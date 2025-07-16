@@ -1,0 +1,79 @@
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Open AI Settings</h5>
+    <form [formGroup]="formGroup" (submit)="onSubmit()">
+      <div class="mb-3">
+        <label for="chatBaseUriInput">Base URI</label>
+        <input type="text" class="form-control"
+               id="chatBaseUriInput"
+               aria-describedby="chatBaseUriInputHelp"
+               formControlName="baseUri"/>
+        <div id="chatBaseUriInputHelp" class="form-text">The base url for your Open AI provider.</div>
+      </div>
+      <div class="mb-3">
+        <label for="chatApiKeyInput">API Key</label>
+        <input type="text" class="form-control"
+               id="chatApiKeyInput"
+               aria-describedby="chatApiKeyInputHelp"
+               formControlName="apiKey"/>
+        <div id="chatApiKeyInputHelp" class="form-text">The api key from your API provider.</div>
+      </div>
+
+      <div appCollapse #collapse="collapse" class="mb-3">
+        <hr/>
+        <h6>Advanced Settings</h6>
+        <div class="form-text mt-0 mb-3">You can override these settings per chat!</div>
+
+        <div class="mb-3">
+          <label for="chatTemperatureInput">Temperature</label>
+          <input type="number" class="form-control"
+                 step="0.1"
+                 id="chatTemperatureInput"
+                 aria-describedby="chatTemperatureInputHelp"
+                 formControlName="temperature"/>
+          <div id="chatTemperatureInputHelp" class="form-text">Adjust randomness & creativity.</div>
+        </div>
+        <div class="mb-3">
+          <label for="chatMaxTokensInput">Max Tokens</label>
+          <input type="number" class="form-control"
+                 id="chatMaxTokensInput"
+                 aria-describedby="chatMaxTokensInputHelp"
+                 formControlName="maxTokens"/>
+          <div id="chatMaxTokensInputHelp" class="form-text">Maximum generated text length (tokens).</div>
+        </div>
+        <div class="mb-3">
+          <label for="chatTopPInput">Top P</label>
+          <input type="number" class="form-control"
+                 step="0.05"
+                 id="chatTopPInput"
+                 aria-describedby="chatTopPInputHelp"
+                 formControlName="topP"/>
+          <div id="chatTopPInputHelp" class="form-text">Controls response diversity & creativity.</div>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="chatStreamCheck">
+          <label class="form-check-label" for="chatStreamCheck"
+                 aria-describedby="chatStreamCheckHelp">Stream response</label>
+          <div id="chatStreamCheckHelp" class="form-text">Enable streaming output for responsiveness.</div>
+        </div>
+        <div class="mb-3">
+          <label for="chatStopSequenceInput">Stop Characters</label>
+          <input type="text" class="form-control"
+                 id="chatStopSequenceInput"
+                 aria-describedby="chatStopSequenceInputHelp"
+                 formControlName="stop"/>
+          <div id="chatStopSequenceInputHelp" class="form-text">
+            Tokens to halt generation early. Separated by commas.
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-toolbar">
+        <button class="btn btn-primary me-2" [disabled]="formGroup.invalid">Save Changes</button>
+        <button type="button" class="btn btn-secondary" (click)="collapse.toggle()">
+          Advanced Settings
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
