@@ -22,7 +22,9 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
   host: {
     '[@collapseAnimation]': 'collapsed() ? "collapsed" : "expanded"'
   },
-  template: `<ng-content></ng-content>`
+  styleUrls: ['./collapse.scss'],
+  template: `
+    <ng-content></ng-content>`
 })
 export class Collapse {
   readonly collapsed: WritableSignal<boolean> = signal(true)
