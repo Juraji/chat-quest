@@ -1,0 +1,19 @@
+<nav class="navbar navbar-expand-lg bg-body-secondary mb-3">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/"><span class="bi bi-people"></span></a>
+    <ul class="navbar-nav mx-auto">
+      <li class="nav-item">
+        <a routerLink="/manage/characters" class="nav-link" routerLinkActive="active">
+          <span class="bi bi-person"></span> Characters
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/manage/scenarios" class="nav-link" routerLinkActive="active">
+          <span class="bi bi-image"></span> Scenarios
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<router-outlet/>

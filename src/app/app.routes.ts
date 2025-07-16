@@ -2,8 +2,12 @@ import {Routes} from '@angular/router';
 
 export const routes: Routes = [
   {
-    path: 'home',
-    loadChildren: () => import("./routes/home/home.routes")
+    path: 'chat',
+    loadChildren: () => import("./routes/chat/chat.routes")
+  },
+  {
+    path: 'manage',
+    loadChildren: () => import("./routes/manage/manage.routes")
   },
   {
     path: 'settings',
@@ -11,6 +15,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: '/home',
+    redirectTo: '/chat',
   }
 ];

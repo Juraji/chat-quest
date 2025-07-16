@@ -1,10 +1,10 @@
 import {Routes} from '@angular/router';
-import {HomePage} from './home-page';
+import {ChatPage} from './chat-page';
 
 const routes: Routes = [
   {
     path: '',
-    component: HomePage
+    component: ChatPage
   }
 ]
 
