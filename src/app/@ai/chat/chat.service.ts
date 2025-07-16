@@ -1,8 +1,14 @@
-import {effect, inject, Injectable, Signal, signal, WritableSignal} from '@angular/core';
+import {effect, inject, Injectable, signal, WritableSignal} from '@angular/core';
 import {SettingsStore} from '@db/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable, throwError} from 'rxjs';
-import {OpenAiChatCompletionRequest, OpenAiChatCompletionResponse, OpenAiModel, OpenAiSettings} from './interface';
+import {
+  OpenAiChatCompletionRequest,
+  OpenAiChatCompletionResponse,
+  OpenAIListResponse,
+  OpenAiModel,
+  OpenAiSettings
+} from './interface';
 
 @Injectable({providedIn: 'root'})
 export class ChatService {
@@ -22,13 +28,13 @@ export class ChatService {
     });
   }
 
-  getModels(): Observable<OpenAiModel[]> {
+  getModels(): Observable<OpenAIListResponse<OpenAiModel>> {
     const settings = this.settings()
     if (!settings) return throwError(() => new Error('Settings not initialized'));
 
     const endpoint = `${settings.baseUri}/models`
 
-    return this.http.get<OpenAiModel[]>(endpoint)
+    return this.http.get<OpenAIListResponse<OpenAiModel>>(endpoint)
   }
 
   chatCompletions(request: OpenAiChatCompletionRequest): Observable<OpenAiChatCompletionResponse> {

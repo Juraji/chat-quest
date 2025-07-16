@@ -68,11 +68,16 @@
         </div>
       </div>
 
-      <div class="btn-toolbar">
-        <button class="btn btn-primary me-2" [disabled]="formGroup.invalid">Save Changes</button>
-        <button type="button" class="btn btn-secondary" (click)="collapse.toggle()">
-          Advanced Settings
+      <div class="btn-toolbar gap-2">
+        <button class="btn btn-primary" [disabled]="formGroup.invalid">Save Changes</button>
+        <button type="button" class="btn btn-secondary"
+                (click)="collapse.toggle()">Advanced Settings
         </button>
+        @if (formGroup.pristine && formGroup.valid) {
+          <button type="button" class="btn btn-outline-success"
+                  (click)="onTestConnection()">Test connection
+          </button>
+        }
       </div>
     </form>
   </div>

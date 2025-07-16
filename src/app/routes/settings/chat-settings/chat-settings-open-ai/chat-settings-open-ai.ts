@@ -3,6 +3,7 @@ import {formControl, formGroup} from '@util/ng';
 import {ChatService, OpenAiSettings} from '@ai/chat';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Collapse} from '@components/collapse';
+import {Notifications} from '@components/notifications';
 
 @Component({
   selector: 'app-chat-settings-open-ai',
@@ -13,6 +14,7 @@ import {Collapse} from '@components/collapse';
   templateUrl: './chat-settings-open-ai.html',
 })
 export class ChatSettingsOpenAi {
+  private readonly notifications = inject(Notifications);
   private readonly chat = inject(ChatService)
 
   readonly formGroup = formGroup<OpenAiSettings>({
@@ -39,5 +41,19 @@ export class ChatSettingsOpenAi {
     if (this.formGroup.invalid) return
     const settings = this.formGroup.getRawValue()
     this.chat.settings.set(settings)
+    this.notifications.toast("Settings updated!")
+  }
+
+  onTestConnection() {
+    if (this.formGroup.dirty || this.formGroup.invalid) return
+    this.chat
+      .getModels()
+      .subscribe({
+        next: data => {
+          const models = data.data.map(m => `'${m.id}'`).join(', ')
+          this.notifications.toast(`Connection successful. Found models ${models}.`);
+        },
+        error: error => this.notifications.toast(`Failed to connect: ${error.message}`, 'DANGER')
+      })
   }
 }

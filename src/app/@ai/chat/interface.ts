@@ -47,3 +47,8 @@ export interface OpenAiChatCompletionResponse {
   choices: OpenAiChatCompletionChoice[];
   usage?: OpenAiChatCompletionUsage;
 }
+
+export interface OpenAIListResponse<T> {
+  object: 'list',
+  data: T[],
+}

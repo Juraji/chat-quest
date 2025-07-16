@@ -6,12 +6,11 @@ interface Toast {
   id: number
   createdAt: Date,
   type: ToastType
-  label: string,
   message: string,
   timerHandle: number | null,
 }
 
-const DEFAULT_TOAST_TIMEOUT = 1e4 // 10 seconds
+const DEFAULT_TOAST_TIMEOUT = 5000
 
 @Injectable({
   providedIn: 'root'
@@ -28,13 +27,11 @@ export class Notifications {
   /**
    * Add a toast.
    *
-   * @param label The label for the toast. (Generally, this is the type of item spawned this message, like "Models" or "Scenes".)
    * @param message The message to display (HTML is not supported and will throw a sanitization error!)
    * @param type One of ToastType.
    * @param timeout When not <=0 the message will be dismissed after the given amount of milliseconds approximately.
    */
   toast(
-    label: string,
     message: string,
     type: ToastType = 'INFO',
     timeout: number = DEFAULT_TOAST_TIMEOUT
@@ -45,7 +42,7 @@ export class Notifications {
     const toast: Toast = {
       id: toastId,
       createdAt: new Date(),
-      type, label, message,
+      type, message,
       timerHandle,
     }
 
