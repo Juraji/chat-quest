@@ -1,9 +1,16 @@
+import {Characters} from '@db/characters';
+
 export const DATABASE_NAME = 'RPTavern'
 
 // Current highest version
 const CURRENT_VERSION = 1
+const DEFAULT_STORE_OPTS: IDBObjectStoreParameters = {autoIncrement: true, keyPath: 'id'}
+
 // {[target version]: [migrator]}
 const MIGRATIONS: Record<number, (db: IDBDatabase) => void> = {
+  1: db => {
+    db.createObjectStore(Characters.STORE_NAME, DEFAULT_STORE_OPTS)
+  }
 }
 
 /**
@@ -31,7 +38,7 @@ export function initializeDatabase(): Promise<void> {
     request.onupgradeneeded = e => {
       if (!e.newVersion) return
       const db: IDBDatabase = request.result;
-      for (let i = e.oldVersion + 1; i < e.newVersion; i++) {
+      for (let i = e.oldVersion + 1; i <= e.newVersion; i++) {
         const migration = MIGRATIONS[i]
         if (!!migration) migration(db)
       }

@@ -1,0 +1,19 @@
+:host {
+  .create-character-card {
+    min-width: 16rem;
+    min-height: 20rem;
+    border-style: dashed;
+    cursor: pointer;
+    color: var(--bs-card-border-color);
+    font-size: 2rem;
+    transition: color 300ms ease-in-out;
+
+    &:hover {
+      color: unset;
+    }
+
+    .add-character-plus-icon {
+      font-size: 4rem;
+    }
+  }
+}

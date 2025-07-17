@@ -1,0 +1,21 @@
+:host {
+  min-width: 16rem;
+  min-height: 20rem;
+  transition: transform 300ms ease-in-out, box-shadow 300ms ease-in-out;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 2px 2px 10px 0 rgba(0, 0, 0, 0.3);
+  }
+
+  &.favorite {
+    border-color: #daa520ff;
+    color: #daa520ff;
+  }
+
+  .card-title {
+    overflow: hidden;
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+  }
+}

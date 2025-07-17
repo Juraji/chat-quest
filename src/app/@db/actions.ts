@@ -1,9 +1,6 @@
 import {Observable, Subscriber} from "rxjs";
 import {DATABASE_NAME} from "./init";
-
-export interface StoreRecord {
-  id: number
-}
+import {NewRecord, StoreRecord} from '@db/storeRecord';
 
 function withDatabase<T>(operation: (db: IDBDatabase, observer: Subscriber<T>) => void): Observable<T> {
   return new Observable(observer => {
@@ -38,6 +35,26 @@ export function getRecord<T extends StoreRecord>(storeName: string, id: number):
   });
 }
 
+export function getAllRecords<T extends StoreRecord>(storeName: string): Observable<T> {
+  return withDatabase<T>((db, observer) => {
+    const cursorRequest = db
+      .transaction(storeName, 'readonly')
+      .objectStore(storeName)
+      .openCursor()
+
+    cursorRequest.onerror = () => observer.error(cursorRequest.error)
+    cursorRequest.onsuccess = () => {
+      const cursor = cursorRequest.result
+      if (!!cursor) {
+        observer.next(cursor.value)
+        cursor.continue()
+      } else {
+        observer.complete()
+      }
+    }
+  })
+}
+
 export function scanRecords<T extends StoreRecord>(storeName: string, indexName: string, key: any): Observable<T> {
   return withDatabase((db, observer) => {
     const keyRange = IDBKeyRange.only(key)
@@ -60,7 +77,7 @@ export function scanRecords<T extends StoreRecord>(storeName: string, indexName:
   })
 }
 
-export function createRecord<T extends StoreRecord>(storeName: string, record: Omit<T, 'id'>): Observable<T> {
+export function createRecord<T extends StoreRecord>(storeName: string, record: NewRecord<T>): Observable<T> {
   return withDatabase<T>((db, observer) => {
     const request = db
       .transaction(storeName, 'readwrite')
@@ -91,6 +108,14 @@ export function updateRecord<T extends StoreRecord>(storeName: string, record: T
       observer.complete()
     }
   })
+}
+
+export function saveRecord<T extends StoreRecord>(storeName: string, record: T | NewRecord<T>): Observable<T> {
+  if ('id' in record && !!record.id) {
+    return updateRecord(storeName, record)
+  } else {
+    return createRecord(storeName, record)
+  }
 }
 
 export function deleteRecord(storeName: string, id: number): Observable<void> {

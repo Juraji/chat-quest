@@ -2,6 +2,7 @@ import {Routes} from '@angular/router';
 import {ManagePage} from './manage-page';
 import {ManageCharactersPage} from './characters/manage-characters-page';
 import {ManageScenariosPage} from './scenarios/manage-scenarios-page';
+import {manageCharactersResolver} from './characters/manage-characters.resolver';
 
 const routes: Routes = [
   {
@@ -10,7 +11,10 @@ const routes: Routes = [
     children: [
       {
         path: 'characters',
-        component: ManageCharactersPage
+        component: ManageCharactersPage,
+        resolve: {
+          characters: manageCharactersResolver
+        }
       },
       {
         path: 'scenarios',

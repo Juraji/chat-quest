@@ -10,6 +10,8 @@
 @import "bootstrap/scss/mixins";
 @import "bootstrap/scss/utilities";
 
+$enable-cssgrid: true;
+
 // Layout & components
 @import "bootstrap/scss/root";
 @import "bootstrap/scss/reboot";
@@ -55,9 +57,3 @@
 // App Styles
 @import "styles/forms";
 @import "styles/util";
-
-.global-notifications {
-  position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
-}
