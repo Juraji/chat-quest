@@ -1,0 +1,9 @@
+// Disable collapsing by default
+.navbar-nav {
+  flex-direction: row !important;
+
+  .nav-link {
+    padding-left: var(--bs-navbar-nav-link-padding-x) !important;
+    padding-right: var(--bs-navbar-nav-link-padding-x) !important;
+  }
+}

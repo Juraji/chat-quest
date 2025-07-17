@@ -1,8 +1,10 @@
 import {Routes} from '@angular/router';
 import {ManagePage} from './manage-page';
-import {ManageCharactersPage} from './characters/manage-characters-page';
+import {ManageCharactersPage} from './characters/manage/manage-characters-page';
 import {ManageScenariosPage} from './scenarios/manage-scenarios-page';
-import {manageCharactersResolver} from './characters/manage-characters.resolver';
+import {manageCharactersResolver} from './characters/manage/manage-characters.resolver';
+import {CharacterEditPage} from './characters/edit/character-edit-page';
+import {editCharacterResolver} from './characters/edit/edit-character.resolver';
 
 const routes: Routes = [
   {
@@ -14,6 +16,13 @@ const routes: Routes = [
         component: ManageCharactersPage,
         resolve: {
           characters: manageCharactersResolver
+        }
+      },
+      {
+        path: 'characters/:characterId',
+        component: CharacterEditPage,
+        resolve: {
+          character: editCharacterResolver
         }
       },
       {
