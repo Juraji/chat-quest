@@ -3,11 +3,15 @@ import {ActivatedRoute} from '@angular/router';
 import {routeDataSignal} from '@util/ng';
 import {Character} from '@db/characters';
 import {ReactiveFormsModule} from '@angular/forms';
+import {
+  CharacterEditBaseInformation
+} from './components/character-edit-base-information/character-edit-base-information';
 
 @Component({
   selector: 'app-character-edit-page',
   imports: [
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    CharacterEditBaseInformation,
   ],
   templateUrl: './character-edit-page.html'
 })

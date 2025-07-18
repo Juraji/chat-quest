@@ -21,6 +21,7 @@ const routes: Routes = [
       {
         path: 'characters/:characterId',
         component: CharacterEditPage,
+        runGuardsAndResolvers: "paramsOrQueryParamsChange",
         resolve: {
           character: editCharacterResolver
         }

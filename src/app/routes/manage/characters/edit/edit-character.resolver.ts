@@ -1,7 +1,7 @@
 import {ResolveFn} from '@angular/router';
 import {inject} from '@angular/core';
 import {Character, Characters} from '@db/characters';
-import {NewRecord} from '@db/storeRecord';
+import {NewRecord} from '@db/model';
 
 const NEW_CHARACTER: NewRecord<Character> = {
   name: '',
@@ -14,7 +14,7 @@ const NEW_CHARACTER: NewRecord<Character> = {
   extraTraits: {},
   avatar: null,
   favorite: false,
-  tags: [],
+  tagIds: [],
 }
 
 export const editCharacterResolver: ResolveFn<Character | NewRecord<Character>> = (route) => {
@@ -25,7 +25,7 @@ export const editCharacterResolver: ResolveFn<Character | NewRecord<Character>> 
   if (characterId === 'new') {
     return {...NEW_CHARACTER}
   } else if(!isNaN(iCharacterId)) {
-    return service.getCharacter(iCharacterId)
+    return service.get(iCharacterId)
   } else{
     throw new Error(`Character with id "${characterId}" can not be loaded.`)
   }

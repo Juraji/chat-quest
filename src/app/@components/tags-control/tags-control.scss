@@ -1,0 +1,8 @@
+:host {
+  display: block;
+  width: 100%;
+
+  .btn-close {
+    font-size: var(--bs-badge-font-size);
+  }
+}

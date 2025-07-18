@@ -1,10 +1,12 @@
 // NG Forms to Bootstrap
 form.ng-touched {
-  .ng-valid {
-    @extend .is-valid;
-  }
+  :not(.no-validation) {
+    &.ng-valid {
+      @extend .is-valid;
+    }
 
-  .ng-invalid {
-    @extend .is-invalid;
+    &.ng-invalid {
+      @extend .is-invalid;
+    }
   }
 }

@@ -20,5 +20,4 @@ export class CharacterCard {
   readonly name: Signal<string> = computed(() => this.character().name)
   readonly favorite: Signal<boolean> = computed(() => this.character().favorite)
   readonly avatar: Signal<Blob | null> = computed(() => this.character().avatar)
-  readonly tags: Signal<string[]> = computed(() => this.character().tags)
 }

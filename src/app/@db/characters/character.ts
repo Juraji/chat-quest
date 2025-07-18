@@ -1,4 +1,4 @@
-import {StoreRecord} from "@db/storeRecord";
+import {StoreRecord} from "@db/model";
 
 export interface Character extends StoreRecord {
   name: string
@@ -11,5 +11,5 @@ export interface Character extends StoreRecord {
   extraTraits: Record<string, string>
   avatar: Blob | null
   favorite: boolean,
-  tags: string[]
+  tagIds: number[]
 }
