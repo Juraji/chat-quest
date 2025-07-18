@@ -3,4 +3,3 @@ export interface StoreRecord {
 }
 
 export type NewRecord<T extends StoreRecord> = Omit<T, 'id'>
-

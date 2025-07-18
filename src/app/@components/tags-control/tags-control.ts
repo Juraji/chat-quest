@@ -24,7 +24,7 @@ export class TagsControl implements ControlValueAccessor {
   private onChange: (value: number[]) => void = () => null;
   private onTouched: () => void = () => null;
 
-  readonly availableTags: Signal<Tag[]> = toSignal(this.tags.getAll(), {initialValue: []})
+  readonly availableTags: Signal<Tag[]> = toSignal(this.tags.getAll(true), {initialValue: []})
   readonly currentTagIds: WritableSignal<number[]> = signal([])
   readonly currentTags: WritableSignal<Tag[]> = signal([])
 
