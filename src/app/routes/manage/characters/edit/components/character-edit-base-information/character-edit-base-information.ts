@@ -54,7 +54,8 @@ export class CharacterEditBaseInformation {
       .save(update)
       .subscribe(char => this.router.navigate(["..", char.id], {
         relativeTo: this.activatedRoute,
-        queryParams: {u: Date.now()}
+        queryParams: {u: Date.now()},
+        replaceUrl: true
       }))
   }
 }

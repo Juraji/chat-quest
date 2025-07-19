@@ -1,4 +1,4 @@
-import {Component, computed, input, InputSignal, Signal} from '@angular/core';
+import {Component, computed, effect, input, InputSignal, signal, Signal, WritableSignal} from '@angular/core';
 import {Character} from '@db/characters';
 import {RouterLink} from '@angular/router';
 
@@ -10,7 +10,6 @@ import {RouterLink} from '@angular/router';
   templateUrl: './character-card.html',
   styleUrl: './character-card.scss',
   host: {
-    '[class.card]': 'true',
     '[class.favorite]': 'favorite()'
   }
 })
@@ -20,4 +19,17 @@ export class CharacterCard {
   readonly name: Signal<string> = computed(() => this.character().name)
   readonly favorite: Signal<boolean> = computed(() => this.character().favorite)
   readonly avatar: Signal<Blob | null> = computed(() => this.character().avatar)
+
+  readonly imageUrl: WritableSignal<string> = signal('')
+
+  constructor() {
+    effect(() => {
+      const blob = this.avatar()
+      this.imageUrl.update(current => {
+        if (!!current) URL.revokeObjectURL(current)
+        if (!!blob) return URL.createObjectURL(blob)
+        else return ''
+      })
+    });
+  }
 }

@@ -1,17 +1,22 @@
-<div class="card-header d-flex align-items-center">
-  <span class="bi me-2"
-        [class.bi-star]="!favorite()"
-        [class.bi-star-fill]="favorite()"></span>
-  <h5 class="card-title mb-0 text-center flex-grow-1">{{ name() }}</h5>
-</div>
-<div class="card-body"></div>
-<div class="card-footer">
-  <div class="btn-toolbar justify-content-center gap-2">
-    <a class="btn btn-sm" [routerLink]="['/chat/with', id()]">
-      <span class="bi bi-chat-fill"></span>
-    </a>
-    <a class="btn btn-sm" [routerLink]="['/manage/characters', id()]">
-      <span class="bi bi-pencil"></span>
-    </a>
+<div class="card">
+  @if (imageUrl(); as url) {
+    <div class="avatar-image" [style.background-image]="'url(' + url + ')'"></div>
+  }
+  <div class="card-header d-flex align-items-center">
+    <span class="bi me-2"
+          [class.bi-star]="!favorite()"
+          [class.bi-star-fill]="favorite()"></span>
+    <h5 class="card-title mb-0 text-center flex-grow-1">{{ name() }}</h5>
+  </div>
+  <div class="card-body"></div>
+  <div class="card-footer">
+    <div class="btn-toolbar justify-content-center gap-2">
+      <a class="btn btn-sm" [routerLink]="['/chat/with', id()]">
+        <span class="bi bi-chat-fill"></span>
+      </a>
+      <a class="btn btn-sm" [routerLink]="['/manage/characters', id()]">
+        <span class="bi bi-pencil"></span>
+      </a>
+    </div>
   </div>
 </div>
