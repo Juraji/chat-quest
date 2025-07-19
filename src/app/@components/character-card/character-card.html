@@ -1,5 +1,5 @@
 <div class="card">
-  @if (imageUrl(); as url) {
+  @if (avatarImageUrl(); as url) {
     <div class="avatar-image" [style.background-image]="'url(' + url + ')'"></div>
   }
   <div class="card-header d-flex align-items-center">
@@ -8,7 +8,9 @@
           [class.bi-star-fill]="favorite()"></span>
     <h5 class="card-title mb-0 text-center flex-grow-1">{{ name() }}</h5>
   </div>
-  <div class="card-body"></div>
+  <div class="card-body">
+    <app-tags-control class="tags" [tagIds]="tagIds()" [disabled]="true"></app-tags-control>
+  </div>
   <div class="card-footer">
     <div class="btn-toolbar justify-content-center gap-2">
       <a class="btn btn-sm" [routerLink]="['/chat/with', id()]">
