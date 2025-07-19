@@ -6,9 +6,7 @@ import {Store} from '@db/store';
   providedIn: 'root'
 })
 export class Characters extends Store<Character> {
-  static readonly STORE_NAME = 'characters';
-
   constructor() {
-    super(Characters.STORE_NAME);
+    super('characters');
   }
 }

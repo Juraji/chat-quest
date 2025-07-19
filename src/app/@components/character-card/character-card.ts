@@ -1,5 +1,5 @@
-import {Component, computed, effect, inject, input, InputSignal, signal, Signal, WritableSignal} from '@angular/core';
-import {Character, Characters} from '@db/characters';
+import {Component, computed, effect, input, InputSignal, signal, Signal, WritableSignal} from '@angular/core';
+import {Character} from '@db/characters';
 import {RouterLink} from '@angular/router';
 import {TagsControl} from '@components/tags-control/tags-control';
 
@@ -16,9 +16,6 @@ import {TagsControl} from '@components/tags-control/tags-control';
   }
 })
 export class CharacterCard {
-  // noinspection JSUnusedLocalSymbols (Needed for Tags service to work?!)
-  protected readonly characters = inject(Characters)
-
   readonly character: InputSignal<Character> = input.required()
   readonly id: Signal<number> = computed(() => this.character().id)
   readonly name: Signal<string> = computed(() => this.character().name)
