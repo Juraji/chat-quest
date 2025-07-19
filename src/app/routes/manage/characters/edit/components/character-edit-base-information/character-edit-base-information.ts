@@ -4,14 +4,16 @@ import {formControl, formGroup} from '@util/ng';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {TagsControl} from '@components/tags-control/tags-control';
 import {ActivatedRoute, Router} from '@angular/router';
+import {AvatarControl} from '@components/avatar-control/avatar-control';
 
-type CharacterEditBaseForm = Pick<Character, 'name' | 'appearance' | 'personality' | 'favorite' | 'tagIds'>
+type CharacterEditBaseForm = Pick<Character, 'name' | 'appearance' | 'personality' | 'favorite' | 'tagIds' | 'avatar'>
 
 @Component({
   selector: 'app-character-edit-base-information',
   imports: [
     ReactiveFormsModule,
-    TagsControl
+    TagsControl,
+    AvatarControl
   ],
   templateUrl: './character-edit-base-information.html'
 })
@@ -27,7 +29,8 @@ export class CharacterEditBaseInformation {
     appearance: formControl(''),
     personality: formControl(''),
     favorite: formControl(false),
-    tagIds: formControl([])
+    tagIds: formControl([]),
+    avatar: formControl(null),
   })
 
   constructor() {

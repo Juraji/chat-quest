@@ -1,0 +1,47 @@
+:host {
+  .avatar-image-wrapper {
+    position: relative;
+    cursor: pointer;
+
+    .avatar-image {
+      width: 100%;
+    }
+
+    .avatar-image-overlay {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      margin: 1px;
+      background-color: rgba(0,0,0,0.6);
+      border-radius: var(--bs-border-radius);
+
+      &:hover {
+        opacity: 1;
+      }
+
+      .bi-camera {
+        font-size: 3rem;
+      }
+    }
+  }
+
+  &.disabled {
+    cursor: unset;
+    pointer-events: none;
+
+    .avatar-image-overlay {
+      display: none;
+    }
+  }
+
+  .avatar-file-input {
+    display: none;
+  }
+}

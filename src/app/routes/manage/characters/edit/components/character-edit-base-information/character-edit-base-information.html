@@ -3,21 +3,26 @@
     <div class="card-body">
       <h5 class="card-title">Base information</h5>
 
-      <div class="mb-3">
-        <label for="characterNameInput">Name</label>
-        <input type="text" class="form-control"
-               id="characterNameInput"
-               aria-describedby="characterNameInputHelp"
-               formControlName="name"/>
-        <div id="characterNameInputHelp" class="form-text">A unique name for your character.</div>
-      </div>
+      <div class="grid mb-3">
+        <div class="g-col-4">
+          <app-avatar-control formControlName="avatar"></app-avatar-control>
+        </div>
+        <div class="g-col-8">
+          <label for="characterNameInput">Name</label>
+          <input type="text" class="form-control"
+                 id="characterNameInput"
+                 aria-describedby="characterNameInputHelp"
+                 formControlName="name"/>
+          <div id="characterNameInputHelp" class="form-text">A unique name for your character.</div>
 
-      <div class="form-check mb-3">
-        <input class="form-check-input" type="checkbox" id="characterFavoriteInput"
-               formControlName="favorite"/>
-        <label class="form-check-label" for="characterFavoriteInput">
-          Favorite
-        </label>
+          <div class="form-check ">
+            <input class="form-check-input" type="checkbox" id="characterFavoriteInput"
+                   formControlName="favorite"/>
+            <label class="form-check-label" for="characterFavoriteInput">
+              Favorite
+            </label>
+          </div>
+        </div>
       </div>
 
       <div class="mb-3">

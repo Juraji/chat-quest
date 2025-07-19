@@ -1,0 +1,16 @@
+<div class="avatar-image-wrapper"
+     (click)="fileInput.click()">
+  @if (imageUrl(); as url) {
+    <img [src]="url"
+         class="img-thumbnail avatar-image"
+         alt="Character avatar"/>
+  } @else {
+    <img src="/favicon.ico"
+         class="img-thumbnail avatar-image"
+         alt="Character avatar"/>
+  }
+  <div class="avatar-image-overlay">
+    <span class="bi bi-camera"></span>
+  </div>
+</div>
+<input type="file" class="avatar-file-input" #fileInput (change)="onSetFile($event)"/>

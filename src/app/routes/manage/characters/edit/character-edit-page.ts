@@ -19,6 +19,6 @@ export class CharacterEditPage {
   private readonly activatedRoute = inject(ActivatedRoute)
 
   readonly character: Signal<Character> = routeDataSignal(this.activatedRoute, 'character')
-  readonly isNew = computed(() => !this.character().id)
+  readonly isNew: Signal<boolean> = computed(() => !this.character().id)
   readonly name: Signal<string> = computed(() => this.character().name)
 }
