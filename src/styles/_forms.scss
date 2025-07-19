@@ -1,5 +1,5 @@
 // NG Forms to Bootstrap
-form.ng-touched {
+form.ng-dirty {
   :not(.no-validation) {
     &.ng-valid {
       @extend .is-valid;

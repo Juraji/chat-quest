@@ -11,7 +11,6 @@ const NEW_CHARACTER: NewRecord<Character> = {
   likelyActions: [],
   unlikelyActions: [],
   dialogueExamples: [],
-  extraTraits: {},
   avatar: null,
   favorite: false,
   tagIds: [],

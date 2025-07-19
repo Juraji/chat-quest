@@ -1,58 +1,54 @@
-<form [formGroup]="formGroup" (submit)="onSubmit()">
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title">Base information</h5>
+<div class="card" [formGroup]="parentForm()">
+  <div class="card-body">
+    <h5 class="card-title">Base information</h5>
 
-      <div class="grid mb-3">
-        <div class="g-col-4">
-          <app-avatar-control formControlName="avatar"></app-avatar-control>
-        </div>
-        <div class="g-col-8">
-          <label for="characterNameInput">Name</label>
-          <input type="text" class="form-control"
-                 id="characterNameInput"
-                 aria-describedby="characterNameInputHelp"
-                 formControlName="name"/>
-          <div id="characterNameInputHelp" class="form-text">A unique name for your character.</div>
+    <div class="grid mb-3">
+      <div class="g-col-4">
+        <app-avatar-control formControlName="avatar"></app-avatar-control>
+      </div>
+      <div class="g-col-8">
+        <label for="characterNameInput">Name</label>
+        <input type="text" class="form-control"
+               id="characterNameInput"
+               aria-describedby="characterNameInputHelp"
+               formControlName="name"/>
+        <div id="characterNameInputHelp" class="form-text">A unique name for your character.</div>
 
-          <div class="form-check ">
-            <input class="form-check-input" type="checkbox" id="characterFavoriteInput"
-                   formControlName="favorite"/>
-            <label class="form-check-label" for="characterFavoriteInput">
-              Favorite
-            </label>
-          </div>
+        <div class="form-check ">
+          <input class="form-check-input" type="checkbox" id="characterFavoriteInput"
+                 formControlName="favorite"/>
+          <label class="form-check-label" for="characterFavoriteInput">
+            Favorite
+          </label>
         </div>
       </div>
+    </div>
 
-      <div class="mb-3">
-        <label for="characterAppearanceInput">Appearance</label>
-        <textarea type="text" class="form-control"
-                  id="characterAppearanceInput"
-                  aria-describedby="characterAppearanceInputHelp"
-                  formControlName="appearance"></textarea>
-        <div id="characterAppearanceInputHelp" class="form-text">
-          Optionally describe your character's appearance, like physical traits and clothing. Leave empty to skip.
-        </div>
+    <div class="mb-3">
+      <label for="characterAppearanceInput">Appearance</label>
+      <textarea type="text" class="form-control"
+                id="characterAppearanceInput"
+                aria-describedby="characterAppearanceInputHelp"
+                formControlName="appearance"></textarea>
+      <div id="characterAppearanceInputHelp" class="form-text">
+        Optionally describe your character's appearance, like physical traits and clothing. Leave empty to skip.
       </div>
+    </div>
 
-      <div class="mb-3">
-        <label for="characterPersonalityInput">Personality</label>
-        <textarea type="text" class="form-control"
-                  id="characterPersonalityInput"
-                  aria-describedby="characterPersonalityInputHelp"
-                  formControlName="personality"></textarea>
-        <div id="characterPersonalityInputHelp" class="form-text">
-          Optionally describe your character's personality. Leave empty to skip.
-        </div>
+    <div class="mb-3">
+      <label for="characterPersonalityInput">Personality</label>
+      <textarea type="text" class="form-control"
+                id="characterPersonalityInput"
+                aria-describedby="characterPersonalityInputHelp"
+                formControlName="personality"></textarea>
+      <div id="characterPersonalityInputHelp" class="form-text">
+        Optionally describe your character's personality. Leave empty to skip.
       </div>
+    </div>
 
-      <div class="mb-3">
-        <label for="characterTagsInput">Tags</label>
-        <app-tags-control formControlName="tagIds" id="characterTagsInput"></app-tags-control>
-      </div>
-
-      <button class="btn btn-primary" [disabled]="formGroup.invalid">Save Changes</button>
+    <div class="mb-3">
+      <label for="characterTagsInput">Tags</label>
+      <app-tags-control formControlName="tagIds" id="characterTagsInput"></app-tags-control>
     </div>
   </div>
-</form>
+</div>
