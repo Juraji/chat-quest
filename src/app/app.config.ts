@@ -8,7 +8,7 @@ import {provideRouter} from '@angular/router';
 
 import {routes} from './app.routes';
 import {initializeDatabase} from '@db/init';
-import {provideHttpClient} from '@angular/common/http';
+import {provideHttpClient, withFetch} from '@angular/common/http';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 
 export const appConfig: ApplicationConfig = {
@@ -16,7 +16,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideHttpClient(),
+    provideHttpClient(withFetch()),
     provideAnimationsAsync(),
     provideAppInitializer(initializeDatabase)
   ]

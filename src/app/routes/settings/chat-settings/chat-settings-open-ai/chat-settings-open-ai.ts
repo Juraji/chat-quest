@@ -1,9 +1,11 @@
-import {Component, effect, inject} from '@angular/core';
+import {Component, effect, inject, Signal} from '@angular/core';
 import {formControl, formGroup} from '@util/ng';
-import {ChatService, OpenAiSettings} from '@ai/chat';
+import {CHAT_SETTINGS_NAME, ChatService, OpenAiSettings} from '@ai/chat';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Collapse} from '@components/collapse';
 import {Notifications} from '@components/notifications';
+import {Settings} from '@db/settings/settings';
+import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-chat-settings-open-ai',
@@ -15,7 +17,11 @@ import {Notifications} from '@components/notifications';
 })
 export class ChatSettingsOpenAi {
   private readonly notifications = inject(Notifications);
+  private readonly settings = inject(Settings)
   private readonly chat = inject(ChatService)
+
+  private readonly chatSettings: Signal<OpenAiSettings | null> = toSignal(this.settings
+    .get<OpenAiSettings>(CHAT_SETTINGS_NAME, true), {initialValue: null});
 
   readonly formGroup = formGroup<OpenAiSettings>({
     baseUri: formControl('https://api.openapi.com/v1', [Validators.required]),
@@ -30,9 +36,11 @@ export class ChatSettingsOpenAi {
 
   constructor() {
     effect(() => {
-      const settings = this.chat.settings()
+      const settings = this.chatSettings()
       if (!!settings) {
         this.formGroup.reset(settings)
+      } else {
+        this.formGroup.markAsDirty()
       }
     });
   }
@@ -40,8 +48,9 @@ export class ChatSettingsOpenAi {
   onSubmit() {
     if (this.formGroup.invalid) return
     const settings = this.formGroup.getRawValue()
-    this.chat.settings.set(settings)
-    this.notifications.toast("Settings updated!")
+    this.settings
+      .set(CHAT_SETTINGS_NAME, settings)
+      .subscribe(() => this.notifications.toast("Open AI settings updated!"))
   }
 
   onTestConnection() {

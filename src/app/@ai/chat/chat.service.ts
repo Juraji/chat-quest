@@ -1,5 +1,4 @@
-import {effect, inject, Injectable, signal, WritableSignal} from '@angular/core';
-import {SettingsStore} from '@db/core';
+import {inject, Injectable, Signal} from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable, throwError} from 'rxjs';
 import {
@@ -9,27 +8,21 @@ import {
   OpenAiModel,
   OpenAiSettings
 } from './interface';
+import {Settings} from '@db/settings/settings';
+import {toSignal} from '@angular/core/rxjs-interop';
+
+export const CHAT_SETTINGS_NAME = 'open-ai'
 
 @Injectable({providedIn: 'root'})
 export class ChatService {
-  private readonly SETTING_NAME = 'open-ai';
-
+  private readonly settings = inject(Settings)
   private readonly http: HttpClient = inject(HttpClient)
 
-  readonly settings: WritableSignal<OpenAiSettings | null> = signal(null)
-
-  constructor() {
-    const settingsStore = inject(SettingsStore)
-    this.settings.set(settingsStore.get(this.SETTING_NAME));
-
-    effect(() => {
-      const upd = this.settings()
-      settingsStore.set(this.SETTING_NAME, upd)
-    });
-  }
+  private readonly chatSettings: Signal<OpenAiSettings | null> = toSignal(this.settings
+    .get<OpenAiSettings>(CHAT_SETTINGS_NAME, true), {initialValue: null});
 
   getModels(): Observable<OpenAIListResponse<OpenAiModel>> {
-    const settings = this.settings()
+    const settings = this.chatSettings()
     if (!settings) return throwError(() => new Error('Settings not initialized'));
 
     const endpoint = `${settings.baseUri}/models`
@@ -38,7 +31,7 @@ export class ChatService {
   }
 
   chatCompletions(request: OpenAiChatCompletionRequest): Observable<OpenAiChatCompletionResponse> {
-    const settings = this.settings()
+    const settings = this.chatSettings()
     if (!settings) return throwError(() => new Error('Settings not initialized'));
 
     const headers = new HttpHeaders({
