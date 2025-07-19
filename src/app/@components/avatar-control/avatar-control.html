@@ -20,4 +20,12 @@
   </div>
 </div>
 <input type="file" class="avatar-file-input" #fileInput
-       accept="image/*" (change)="onSetFile($event)"/>
+       accept="image/*" (change)="onFileSelected($event)"/>
+
+@if (selectedFileForCrop(); as blob) {
+  <app-avatar-image-crop
+    [imageBlob]="blob"
+    (onCropComplete)="onCropResult($event)"
+    (onCropCanceled)="onCropCanceled()"
+  ></app-avatar-image-crop>
+}

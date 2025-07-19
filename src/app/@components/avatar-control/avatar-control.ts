@@ -1,12 +1,15 @@
 import {Component, computed, effect, forwardRef, inject, Signal, signal, WritableSignal} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Notifications} from '@components/notifications';
+import {AvatarImageCrop} from '@components/avatar-control/avatar-image-crop';
 
 type Avatar = Blob | null
 
 @Component({
   selector: 'app-avatar-control',
-  imports: [],
+  imports: [
+    AvatarImageCrop
+  ],
   templateUrl: './avatar-control.html',
   styleUrl: './avatar-control.scss',
   providers: [
@@ -25,6 +28,8 @@ export class AvatarControl implements ControlValueAccessor {
 
   private onChange: (value: Avatar) => void = () => null
   private onTouched: () => void = () => null
+
+  readonly selectedFileForCrop: WritableSignal<Avatar> = signal(null)
 
   readonly currentValue: WritableSignal<Avatar> = signal(null)
   readonly isDisabled: WritableSignal<boolean> = signal(false)
@@ -59,26 +64,37 @@ export class AvatarControl implements ControlValueAccessor {
     this.isDisabled.set(isDisabled)
   }
 
-  onSetFile(e: Event) {
+  onFileSelected(e: Event) {
     e.preventDefault();
 
     const input = e.target as HTMLInputElement;
     const file = input.files?.item(0)
+
+    if (!file) return;
 
     if (!file?.type?.startsWith('image/')) {
       this.notifications.toast("Please select an image file.", "DANGER")
       return
     }
 
-    this.currentValue.set(!!file ? file : null)
-
-    this.onTouched()
-    this.onChange(this.currentValue())
+    this.selectedFileForCrop.set(file)
     input.value = ''
+    this.onTouched()
+  }
+
+  onCropResult(file: Avatar) {
+    this.currentValue.set(file)
+    this.selectedFileForCrop.set(null)
+    this.onChange(this.currentValue())
+  }
+
+  onCropCanceled() {
+    this.selectedFileForCrop.set(null)
   }
 
   onClear(e: Event) {
     e.stopPropagation();
     this.currentValue.set(null)
+    this.onChange(this.currentValue())
   }
 }

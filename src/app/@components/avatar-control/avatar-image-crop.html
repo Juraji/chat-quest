@@ -1,0 +1,19 @@
+<div class="modal-backdrop fade show"></div>
+<div class="modal show d-block" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5>Crop avatar...</h5>
+      </div>
+      <div class="modal-body">
+        <angular-cropper #angularCropper
+                         [cropperOptions]="cropperOptions"
+                         [imageUrl]="b64ImageUrl()"></angular-cropper>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="onAcceptCrop()">Accept changes</button>
+      </div>
+    </div>
+  </div>
+</div>

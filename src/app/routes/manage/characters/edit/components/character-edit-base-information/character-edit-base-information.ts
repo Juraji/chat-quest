@@ -3,7 +3,7 @@ import {Character} from '@db/characters';
 import {TypedFormGroup} from '@util/ng';
 import {ReactiveFormsModule} from '@angular/forms';
 import {TagsControl} from '@components/tags-control/tags-control';
-import {AvatarControl} from '@components/avatar-control/avatar-control';
+import {AvatarControl} from '@components/avatar-control';
 
 
 @Component({
