@@ -9,6 +9,7 @@ import {
 import {
   CharacterEditExtendedDetails
 } from './components/character-edit-extended-details/character-edit-extended-details';
+import {Notifications} from '@components/notifications';
 
 @Component({
   selector: 'app-character-edit-page',
@@ -24,6 +25,7 @@ export class CharacterEditPage {
   private readonly characters = inject(Characters)
   private readonly activatedRoute = inject(ActivatedRoute)
   private readonly router = inject(Router)
+  private readonly notifications = inject(Notifications)
 
   readonly character: Signal<Character> = routeDataSignal(this.activatedRoute, 'character')
   readonly isNew: Signal<boolean> = computed(() => !this.character().id)
@@ -66,16 +68,20 @@ export class CharacterEditPage {
 
     this.characters
       .save(update)
-      .subscribe(char => this.router.navigate(['..', char.id], {
-        relativeTo: this.activatedRoute,
-        queryParams: {u: Date.now()},
-        replaceUrl: true
-      }))
+      .subscribe(char => {
+        this.notifications.toast(`Changes to ${char.name} saved.`)
+        this.router.navigate(['..', char.id], {
+          relativeTo: this.activatedRoute,
+          queryParams: {u: Date.now()},
+          replaceUrl: true
+        });
+      })
   }
 
   onRevertChanges() {
     const character = this.character()
     this.formGroup.reset(character)
+    this.notifications.toast(`Changes to ${character.name} reverted.`)
   }
 
   onDeleteCharacter() {
@@ -87,10 +93,13 @@ export class CharacterEditPage {
     if (doDelete) {
       this.characters
         .delete(character.id)
-        .subscribe(() => this.router.navigate(['../..'], {
-          relativeTo: this.activatedRoute,
-          replaceUrl: true
-        }))
+        .subscribe(() => {
+          this.notifications.toast(`Deleted ${character.name}.`)
+          this.router.navigate(['../..'], {
+            relativeTo: this.activatedRoute,
+            replaceUrl: true
+          });
+        })
     }
   }
 }

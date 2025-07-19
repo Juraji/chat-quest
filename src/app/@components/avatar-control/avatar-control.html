@@ -19,4 +19,5 @@
     }
   </div>
 </div>
-<input type="file" class="avatar-file-input" #fileInput (change)="onSetFile($event)"/>
+<input type="file" class="avatar-file-input" #fileInput
+       accept="image/*" (change)="onSetFile($event)"/>

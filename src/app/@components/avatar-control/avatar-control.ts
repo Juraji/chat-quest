@@ -1,5 +1,6 @@
-import {Component, computed, effect, forwardRef, Signal, signal, WritableSignal} from '@angular/core';
+import {Component, computed, effect, forwardRef, inject, Signal, signal, WritableSignal} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
+import {Notifications} from '@components/notifications';
 
 type Avatar = Blob | null
 
@@ -20,6 +21,8 @@ type Avatar = Blob | null
   }
 })
 export class AvatarControl implements ControlValueAccessor {
+  private notifications = inject(Notifications)
+
   private onChange: (value: Avatar) => void = () => null
   private onTouched: () => void = () => null
 
@@ -61,6 +64,12 @@ export class AvatarControl implements ControlValueAccessor {
 
     const input = e.target as HTMLInputElement;
     const file = input.files?.item(0)
+
+    if (!file?.type?.startsWith('image/')) {
+      this.notifications.toast("Please select an image file.", "DANGER")
+      return
+    }
+
     this.currentValue.set(!!file ? file : null)
 
     this.onTouched()
