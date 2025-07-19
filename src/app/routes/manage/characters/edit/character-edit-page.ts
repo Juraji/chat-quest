@@ -13,7 +13,8 @@ import {
     ReactiveFormsModule,
     CharacterEditBaseInformation,
   ],
-  templateUrl: './character-edit-page.html'
+  templateUrl: './character-edit-page.html',
+  styleUrls: ['./character-edit-page.scss'],
 })
 export class CharacterEditPage {
   private readonly activatedRoute = inject(ActivatedRoute)
@@ -21,4 +22,5 @@ export class CharacterEditPage {
   readonly character: Signal<Character> = routeDataSignal(this.activatedRoute, 'character')
   readonly isNew: Signal<boolean> = computed(() => !this.character().id)
   readonly name: Signal<string> = computed(() => this.character().name)
+  readonly isFavorite: Signal<boolean> = computed(() => this.character().favorite)
 }

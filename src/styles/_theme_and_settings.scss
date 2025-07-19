@@ -2,14 +2,7 @@
 $enable-cssgrid: true;
 
 // Override default variables
-$primary: #2E7D32; // Deep emerald green
-$secondary: #B0BEC5; // Muted silver-gray
-$success: #4CAF50; // Olive green
-$danger: #B71C1C; // Crimson red
-$warning: #FFB300; // Amber
-$info: #0288D1; // Sapphire blue
-$light: #F5F5F5; // Parchment
-$dark: #1B1B1B; // Charcoal black
+@import "./colors";
 
 // Optional: Define custom theme colors
 $theme-colors: (

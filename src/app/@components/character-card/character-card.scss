@@ -1,7 +1,9 @@
+@import "../../../styles/colors";
+
 :host {
   &.favorite .card {
-    border-color: #daa520ff;
-    color: #daa520ff;
+    border-color: $special;
+    color: $special;
   }
 
   .card {
