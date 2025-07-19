@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "rp-tavern": {
+    "chat-quest": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -87,10 +87,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "rp-tavern:build:production"
+              "buildTarget": "chat-quest:build:production"
             },
             "development": {
-              "buildTarget": "rp-tavern:build:development"
+              "buildTarget": "chat-quest:build:development"
             }
           },
           "defaultConfiguration": "development"

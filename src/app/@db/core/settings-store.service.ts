@@ -4,7 +4,7 @@ import {Injectable} from '@angular/core';
   providedIn: 'root'
 })
 export class SettingsStore {
-  private static readonly PREFIX: string = 'rp_tavern:';
+  private static readonly PREFIX: string = 'chat-quest:';
 
   get<T>(name: string): T | null {
     const value = localStorage.getItem(SettingsStore.PREFIX + name);

@@ -1,7 +1,7 @@
 import {Characters} from '@db/characters';
 import {Tags} from '@db/tags';
 
-export const DATABASE_NAME = 'RPTavern'
+export const DATABASE_NAME = 'ChatQuestStore'
 
 // Current highest version
 const CURRENT_VERSION = 1
