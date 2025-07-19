@@ -1,0 +1,57 @@
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">System prompts</h5>
+
+    <div class="form-text mb-2">
+      System prompts tell the AI what the rules of the game are. Generally this includes its role, rules about
+      responses and formatting.
+    </div>
+
+    <div class="input-group input-group-sm mb-3">
+      <select id="systemPromptEditSelect" class="form-select"
+              [ngModel]="editedPrompt()?.id"
+              (ngModelChange)="onSelectPrompt($event)">
+        @if (availablePrompts().length == 0) {
+          <option [ngValue]="null" disabled>No system prompts available</option>
+        } @else {
+          <option [ngValue]="null" disabled>Select a system prompt to edit it</option>
+        }
+        @for (prompt of availablePrompts(); track prompt.id) {
+          <option [ngValue]="prompt.id">{{ prompt.name }}</option>
+        }
+      </select>
+      <button class="btn btn-outline-primary" title="Add new system prompt"
+              (click)="onAddPrompt()">
+        <span class="bi bi-plus-lg"></span>
+      </button>
+    </div>
+
+    @if (editedPrompt()) {
+      <form [formGroup]="formGroup" (submit)="onSubmit()">
+        <div class="mb-3">
+          <label for="systemPromptNameInput">Name</label>
+          <input type="text" class="form-control"
+                 id="systemPromptNameInput"
+                 aria-describedby="systemPromptNameInputHelp"
+                 formControlName="name"/>
+          <div id="systemPromptNameInputHelp" class="form-text">A recognizable name for this system prompt</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="systemPromptPromptInput">Prompt</label>
+          <textarea class="form-control"
+                    rows="7"
+                    id="systemPromptPromptInput"
+                    aria-describedby="systemPromptPromptInputHelp"
+                    formControlName="prompt"></textarea>
+          <div id="systemPromptPromptInputHelp" class="form-text">The system prompt to send to the AI service.</div>
+        </div>
+
+        <div class="btn-toolbar gap-2">
+          <button class="btn btn-primary">Save Changes</button>
+          <button type="button" class="btn btn-outline-danger" (click)="onDeletePrompt()">Delete Prompt</button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

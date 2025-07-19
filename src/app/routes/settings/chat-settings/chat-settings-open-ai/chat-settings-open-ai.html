@@ -69,7 +69,7 @@
       </div>
 
       <div class="btn-toolbar gap-2">
-        <button class="btn btn-primary" [disabled]="formGroup.invalid">Save Changes</button>
+        <button class="btn btn-primary" [disabled]="formGroup.invalid || formGroup.pristine">Save Changes</button>
         <button type="button" class="btn btn-secondary"
                 (click)="collapse.toggle()">Advanced Settings
         </button>

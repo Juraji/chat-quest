@@ -1,7 +1,7 @@
 export const DATABASE_NAME = 'ChatQuestStore'
 
 // Current highest version
-const CURRENT_VERSION = 1
+const CURRENT_VERSION = 2
 const DEFAULT_STORE_OPTS: IDBObjectStoreParameters = {autoIncrement: true, keyPath: 'id'}
 
 // {[target version]: [migrator]}
@@ -9,6 +9,9 @@ const MIGRATIONS: Record<number, (db: IDBDatabase) => void> = {
   1: db => {
     db.createObjectStore('characters', DEFAULT_STORE_OPTS)
     db.createObjectStore('tags', DEFAULT_STORE_OPTS)
+  },
+  2: db => {
+    db.createObjectStore('system-prompts', DEFAULT_STORE_OPTS)
   }
 }
 
