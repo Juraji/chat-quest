@@ -1,4 +1,4 @@
-import {Component, effect, forwardRef, inject, signal, Signal, WritableSignal} from '@angular/core';
+import {Component, computed, effect, forwardRef, inject, signal, Signal, WritableSignal} from '@angular/core';
 import {ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Tag, Tags} from '@db/tags';
 import {toSignal} from '@angular/core/rxjs-interop';
@@ -26,7 +26,13 @@ export class TagsControl implements ControlValueAccessor {
 
   readonly availableTags: Signal<Tag[]> = toSignal(this.tags.getAll(true), {initialValue: []})
   readonly currentTagIds: WritableSignal<number[]> = signal([])
-  readonly currentTags: WritableSignal<Tag[]> = signal([])
+  readonly currentTags: Signal<Tag[]> = computed(() => {
+    const ids = this.currentTagIds()
+    const tags = this.availableTags()
+    return ids.map(id => tags
+      .find(t => t.id === id))
+      .filter(t => !!t)
+  })
 
   readonly inputText: WritableSignal<string> = signal('')
   readonly isDisabled: WritableSignal<boolean> = signal(false)
@@ -36,15 +42,6 @@ export class TagsControl implements ControlValueAccessor {
       // When inputText changes we are touched
       this.inputText()
       this.onTouched()
-    });
-    effect(() => {
-      const available = this.availableTags()
-      const currentTagIds = this.currentTagIds()
-      const currentTags = currentTagIds
-        .map(tId => available.find(t => t.id === tId))
-        .filter(t => !!t)
-
-      this.currentTags.set(currentTags)
     });
   }
 

@@ -10,7 +10,7 @@ export abstract class Store<T extends StoreRecord> {
   protected constructor(readonly storeName: string) {
   }
 
-  getAll(watch: boolean): Observable<T[]> {
+  getAll(watch: boolean = false): Observable<T[]> {
     return this.withDatabase<T[]>((db, observer) => {
       const store = db
         .transaction(this.storeName, 'readonly')
@@ -31,7 +31,7 @@ export abstract class Store<T extends StoreRecord> {
           // Setup watch or complete
           if (watch) {
             const refresh: () => void = () => this
-              .getAll(false)
+              .getAll()
               .subscribe(observer.next.bind(observer))
 
             const addSub = this.addSubject.subscribe(refresh)
@@ -51,8 +51,9 @@ export abstract class Store<T extends StoreRecord> {
     })
   }
 
+  get(id: number): Observable<T>
   get<Watch extends boolean>(id: number, watch: Watch): Observable<Watch extends true ? (T | null) : T>
-  get(id: number, watch: boolean): Observable<T | null> {
+  get(id: number, watch: boolean = false): Observable<T | null> {
     return this.withDatabase<T | null>((db, observer) => {
       const request = db
         .transaction(this.storeName, 'readonly')
