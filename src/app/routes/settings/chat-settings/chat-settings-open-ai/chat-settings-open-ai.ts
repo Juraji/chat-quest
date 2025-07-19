@@ -25,7 +25,7 @@ export class ChatSettingsOpenAi {
     maxTokens: formControl(256, [Validators.required, Validators.min(0)]),
     topP: formControl(0.9, [Validators.required, Validators.min(0)]),
     stream: formControl(true),
-    stop: formControl("\\n", [Validators.required]),
+    stop: formControl(''),
   })
 
   constructor() {
