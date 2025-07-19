@@ -5,6 +5,10 @@
 
     .avatar-image {
       width: 100%;
+
+      &.placeholder {
+        filter: grayscale(100%);
+      }
     }
 
     .avatar-image-overlay {
