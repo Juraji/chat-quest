@@ -1,0 +1,29 @@
+@import "./colors";
+
+.btn-magical {
+  position: relative;
+
+  &:not([disabled])::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: var(--bs-btn-border-radius);
+    box-shadow: 0 0 25px 5px $special;
+    animation: magical-glow 3s ease-in-out infinite;
+  }
+}
+
+@keyframes magical-glow {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}

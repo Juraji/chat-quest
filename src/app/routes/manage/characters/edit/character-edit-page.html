@@ -12,9 +12,17 @@
         <div class="btn-toolbar gap-2">
           @if (!isNew()) {
             <button type="button" class="btn btn-outline-danger"
-                    (click)="onDeleteCharacter()">Delete Character</button>
+                    (click)="onDeleteCharacter()">Delete Character
+            </button>
           }
-          <button class="btn btn-primary" [disabled]="formGroup.invalid || formGroup.pristine">Save Changes</button>
+          @if (!isNew() && formGroup.dirty) {
+            <button type="button" class="btn btn-outline-secondary"
+                    (click)="onRevertChanges()">Revert changes
+            </button>
+          }
+          <button class="btn btn-primary btn-magical" [disabled]="formGroup.invalid || formGroup.pristine">Save
+            Changes
+          </button>
         </div>
       </div>
     </div>

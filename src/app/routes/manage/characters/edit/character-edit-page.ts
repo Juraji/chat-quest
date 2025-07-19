@@ -73,6 +73,11 @@ export class CharacterEditPage {
       }))
   }
 
+  onRevertChanges() {
+    const character = this.character()
+    this.formGroup.reset(character)
+  }
+
   onDeleteCharacter() {
     if (this.isNew()) return
 
