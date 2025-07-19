@@ -1,4 +1,11 @@
 :host {
+  .tag-filter-list {
+    .badge {
+      cursor: pointer;
+      font-size: 1rem;
+    }
+  }
+
   .create-character-card {
     min-width: 16rem;
     min-height: 20rem;

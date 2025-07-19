@@ -1,6 +1,24 @@
 <div class="container">
+  <div class="tag-filter-list d-flex flex-wrap align-items-center mb-3">
+    <div class="badge d-flex align-items-center me-2 mb-2"
+         (click)="onToggleSelectedTag(null)"
+         [class.bg-body-tertiary]="selectedTag()"
+         [class.bg-primary]="!selectedTag()"
+    >
+      <span>All</span>
+    </div>
+    @for (tag of availableTags(); track tag.id) {
+      @let isSelected = selectedTag()?.id == tag.id;
+      <div class="badge d-flex align-items-center me-2 mb-2"
+           (click)="onToggleSelectedTag(tag)"
+           [class.bg-body-tertiary]="!isSelected"
+           [class.bg-primary]="isSelected">
+        <div>{{ tag.label }}</div>
+      </div>
+    }
+  </div>
   <div class="grid">
-    @for (char of characters(); track char.id) {
+    @for (char of filteredCharacters(); track char.id) {
       <div class="g-col-3">
         <app-character-card [character]="char"></app-character-card>
       </div>
