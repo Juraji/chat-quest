@@ -1,4 +1,4 @@
-import {Component, effect, forwardRef, signal, WritableSignal} from '@angular/core';
+import {Component, computed, effect, forwardRef, Signal, signal, WritableSignal} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 
 type Avatar = Blob | null
@@ -26,7 +26,8 @@ export class AvatarControl implements ControlValueAccessor {
   readonly currentValue: WritableSignal<Avatar> = signal(null)
   readonly isDisabled: WritableSignal<boolean> = signal(false)
 
-  readonly imageUrl = signal('')
+  readonly imageUrl: WritableSignal<string> = signal('')
+  readonly isSet: Signal<boolean> = computed(() => this.currentValue() != null)
 
   constructor() {
     effect(() => {
@@ -65,5 +66,10 @@ export class AvatarControl implements ControlValueAccessor {
     this.onTouched()
     this.onChange(this.currentValue())
     input.value = ''
+  }
+
+  onClear(e: Event) {
+    e.stopPropagation();
+    this.currentValue.set(null)
   }
 }

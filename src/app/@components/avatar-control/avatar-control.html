@@ -11,6 +11,9 @@
   }
   <div class="avatar-image-overlay">
     <span class="bi bi-camera"></span>
+    @if (isSet()) {
+      <button type="button" class="btn-close btn-close-white" (click)="onClear($event)"></button>
+    }
   </div>
 </div>
 <input type="file" class="avatar-file-input" #fileInput (change)="onSetFile($event)"/>
