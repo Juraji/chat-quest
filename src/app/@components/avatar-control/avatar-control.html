@@ -1,5 +1,4 @@
-<div class="avatar-image-wrapper"
-     (click)="fileInput.click()">
+<div class="avatar-image-wrapper">
   @if (imageUrl(); as url) {
     <img [src]="url"
          class="img-thumbnail avatar-image"
@@ -9,10 +8,14 @@
          class="img-thumbnail avatar-image placeholder"
          alt="Character avatar"/>
   }
-  <div class="avatar-image-overlay">
+  <div class="avatar-image-overlay"
+       (click)="fileInput.click()"
+       title="Set/Change avatar image">
     <span class="bi bi-camera"></span>
     @if (isSet()) {
-      <button type="button" class="btn-close btn-close-white" (click)="onClear($event)"></button>
+      <button type="button" class="btn-close btn-close-white"
+              (click)="onClear($event)"
+              title="Remove avatar image"></button>
     }
   </div>
 </div>
