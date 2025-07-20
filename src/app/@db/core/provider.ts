@@ -12,9 +12,11 @@ export function provideDatabase(): Provider {
 }
 
 export function initializeDatabase(): Promise<IDBPDatabase> {
+  console.log('Initializing database...', {DATABASE_NAME, CURRENT_VERSION});
   return openDB(DATABASE_NAME, CURRENT_VERSION, {
     blocking: () => window.location.reload(),
     upgrade: async (database, oldVersion, newVersion) => {
+      console.log(`Migrating DB from ${oldVersion} to ${newVersion}`);
       if (!newVersion) return
       for (let i = oldVersion + 1; i <= newVersion; i++) {
         const migration = MIGRATIONS[i]
