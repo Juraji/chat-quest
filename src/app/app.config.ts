@@ -1,13 +1,8 @@
-import {
-  ApplicationConfig,
-  provideAppInitializer,
-  provideBrowserGlobalErrorListeners,
-  provideZonelessChangeDetection
-} from '@angular/core';
+import {ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection} from '@angular/core';
 import {provideRouter} from '@angular/router';
 
 import {routes} from './app.routes';
-import {initializeDatabase} from '@db/core';
+import {provideDatabase} from '@db/core';
 import {provideHttpClient, withFetch} from '@angular/common/http';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 
@@ -18,6 +13,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withFetch()),
     provideAnimationsAsync(),
-    provideAppInitializer(initializeDatabase)
+    provideDatabase()
   ]
 };

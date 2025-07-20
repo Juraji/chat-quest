@@ -1,8 +1,11 @@
-import {filter, Observable, Subject, Subscriber} from "rxjs";
+import {concat, defer, filter, map, merge, mergeMap, Observable, Subject} from "rxjs";
 import {NewRecord, StoreRecord} from "./model";
-import {DATABASE_NAME} from '@db/core/migration';
+import {IDBPDatabase} from 'idb';
+import {inject} from '@angular/core';
+import {DATABASE} from './provider';
 
 export abstract class Store<T extends StoreRecord> {
+  private readonly database: Promise<IDBPDatabase> = inject(DATABASE)
   private readonly addSubject: Subject<T> = new Subject();
   private readonly modifySubject: Subject<T> = new Subject();
   private readonly deleteSubject: Subject<number> = new Subject();
@@ -11,144 +14,87 @@ export abstract class Store<T extends StoreRecord> {
   }
 
   getAll(watch: boolean = false): Observable<T[]> {
-    return this.withDatabase<T[]>((db, observer) => {
-      const store = db
+    const getAll$: Observable<T[]> = defer(async () => {
+      const db = await this.database
+      let cursor = await db
         .transaction(this.storeName, 'readonly')
         .objectStore(this.storeName)
+        .openCursor()
 
-      const cursorRequest = store.openCursor()
       const result: T[] = []
 
-      cursorRequest.onerror = () => observer.error(cursorRequest.error)
-      cursorRequest.onsuccess = () => {
-        const cursor = cursorRequest.result
-        if (!!cursor) {
-          result.push(cursor.value as T)
-          cursor.continue()
-        } else {
-          observer.next(result)
-
-          // Setup watch or complete
-          if (watch) {
-            const refresh: () => void = () => this
-              .getAll()
-              .subscribe(observer.next.bind(observer))
-
-            const addSub = this.addSubject.subscribe(refresh)
-            const modifySub = this.modifySubject.subscribe(refresh)
-            const deleteSub = this.deleteSubject.subscribe(refresh)
-
-            observer.add(() => {
-              addSub.unsubscribe()
-              modifySub.unsubscribe()
-              deleteSub.unsubscribe()
-            })
-          } else {
-            observer.complete()
-          }
-        }
+      while (cursor) {
+        result.push(cursor.value)
+        cursor = await cursor.continue()
       }
+
+      return result;
     })
+
+    if (watch) {
+      const watch$ = merge(this.addSubject, this.modifySubject, this.deleteSubject)
+        .pipe(mergeMap(() => this.getAll()))
+      return concat(getAll$, watch$)
+    } else {
+      return getAll$;
+    }
   }
 
   get(id: number): Observable<T>
   get<Watch extends boolean>(id: number, watch: Watch): Observable<Watch extends true ? (T | null) : T>
   get(id: number, watch: boolean = false): Observable<T | null> {
-    return this.withDatabase<T | null>((db, observer) => {
-      const request = db
+    const get$: Observable<T | null> = defer(async () => {
+      const db = await this.database
+      const item: T | undefined = await db
         .transaction(this.storeName, 'readonly')
         .objectStore(this.storeName)
         .get(id)
 
-      request.onerror = () => observer.error(request.error)
-      request.onsuccess = () => {
-        // Emit initial data or complete if not found
-        if (request.result) {
-          observer.next(request.result as T)
-        } else {
-          observer.complete()
-          return
-        }
-
-        // Setup watch or complete
-        if (watch) {
-          const modifySub = this.modifySubject
-            .pipe(filter(it => it.id === id))
-            .subscribe(record => observer.next(record))
-
-          const deleteSub = this.deleteSubject
-            .pipe(filter(it => it === id))
-            .subscribe(() => observer.next(null))
-
-          observer.add(() => {
-            modifySub.unsubscribe()
-            deleteSub.unsubscribe()
-          })
-        } else {
-          observer.complete()
-        }
-      }
+      return item ?? null
     })
+
+    if (watch) {
+      const watch$ = merge(
+        this.modifySubject.pipe(filter(it => it.id === id)),
+        this.deleteSubject.pipe(filter(it => it === id), map(() => null))
+      )
+
+      return concat(get$, watch$)
+    } else {
+      return get$
+    }
   }
 
   save(record: NewRecord<T> | T): Observable<T> {
-    return this.withDatabase<T>((db, observer) => {
-      const transaction = db.transaction(this.storeName, 'readwrite')
-      const store = transaction.objectStore(this.storeName)
+    return defer(async () => {
+      const db = await this.database
+      const store = db
+        .transaction(this.storeName, 'readwrite')
+        .objectStore(this.storeName)
 
       if ('id' in record && !!record.id) {
         // Existing record
-        const request = store.put(record)
-        request.onerror = () => observer.error(request.error)
-
-        request.onsuccess = () => {
-          observer.next(record)
-          observer.complete()
-          this.modifySubject.next(record)
-        }
+        await store.put(record)
+        this.modifySubject.next(record)
+        return record
       } else {
-        // New record
-        const request = store.add(record)
-        request.onerror = () => observer.error(request.error)
-
-        request.onsuccess = () => {
-          const newRecord = {...record, id: request.result} as T
-          observer.next(newRecord)
-          observer.complete()
-          this.addSubject.next(newRecord)
-        }
+        const id = await store.add(record)
+        const newRecord = {...record, id} as T
+        this.addSubject.next(newRecord)
+        return newRecord
       }
     })
   }
 
   delete(id: number): Observable<void> {
-    return this.withDatabase((db, observer) => {
-      const transaction = db.transaction(this.storeName, 'readwrite')
-      const store = transaction.objectStore(this.storeName)
+    return defer(async () => {
+      const db = await this.database
+      await db
+        .transaction(this.storeName, 'readwrite')
+        .objectStore(this.storeName)
+        .delete(id)
 
-      // Delete the record
-      const deleteRequest = store.delete(id)
-      deleteRequest.onerror = () => observer.error(deleteRequest.error)
-      deleteRequest.onsuccess = () => {
-        this.deleteSubject.next(id)
-        observer.next()
-        observer.complete()
-      }
-    })
-  }
-
-  protected withDatabase<T>(operation: (db: IDBDatabase, observer: Subscriber<T>) => void): Observable<T> {
-    return new Observable(observer => {
-      const request = indexedDB.open(DATABASE_NAME)
-      request.onerror = () => observer.error(request.error)
-
-      request.onsuccess = () => {
-        try {
-          operation(request.result, observer)
-        } catch (error) {
-          observer.error(error)
-        }
-      }
+      this.deleteSubject.next(id)
     })
   }
 }
