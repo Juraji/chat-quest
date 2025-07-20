@@ -34,15 +34,15 @@ export class CharacterEditExtendedDetails {
 
       const la = this.likelyActionsFA()
       la.clear()
-      likelyActions.forEach(action => this.addControl(la, action));
+      likelyActions.forEach(value => this.addControl(la, value));
 
       const ua = this.unlikelyActionsFA()
       ua.clear()
-      unlikelyActions.forEach(action => this.addControl(ua, action));
+      unlikelyActions.forEach(value => this.addControl(ua, value));
 
       const de = this.dialogueExamplesFA()
       de.clear()
-      dialogueExamples.forEach(action => this.addControl(de, action));
+      dialogueExamples.forEach(value => this.addControl(de, value));
     });
   }
 

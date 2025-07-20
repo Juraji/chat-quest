@@ -1,0 +1,97 @@
+<div class="card" [formGroup]="parentForm()">
+  <div class="card-body">
+    <h5 class="card-title">Chat Defaults</h5>
+
+    <div class="grid">
+      <div class="g-col-12 g-col-xl-6">
+        <div class="mb-3">
+          <label for="characterScenarioInput">Scenario</label>
+          <textarea type="text" class="form-control"
+                    id="characterScenarioInput"
+                    rows="7"
+                    aria-describedby="characterScenarioInputHelp"
+                    formControlName="history"></textarea>
+          <div id="characterScenarioInputHelp" class="form-text">
+            Optionally describe the default scenario for you character.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="characterScenarioInput">First Message</label>
+          <textarea type="text" class="form-control"
+                    id="characterScenarioInput"
+                    rows="4"
+                    aria-describedby="characterScenarioInputHelp"
+                    formControlName="history"></textarea>
+          <div id="characterScenarioInputHelp" class="form-text">
+            The default first message your character will post in the chat.
+          </div>
+        </div>
+      </div>
+      <div class="g-col-12 g-col-xl-6">
+        <div class="mb-3" formArrayName="alternateGreetings">
+          <label>Alternate Greetings</label>
+          <div class="form-text mb-2">
+            You can define alternate greetings for your character. If any are defined these are randomly chosen together
+            with the first message, as start of a chat.
+          </div>
+
+          @if (alternateGreetingsFA().controls.length == 0) {
+            <div class="form-text mb-3 text-warning">No alternate greetings defined.</div>
+          }
+
+          @for (c of alternateGreetingsFA().controls; track c) {
+            <div class="input-group mb-2">
+              <textarea type="text" class="form-control form-control-sm" [formControlName]="$index"></textarea>
+              <button type="button" class="btn btn-outline-danger btn-sm"
+                      (click)="onRemoveAlternateGreetingAction($index)">
+                <span class="bi bi-trash"></span>
+              </button>
+            </div>
+          }
+
+          <div class="btn-toolbar justify-content-end mt-1">
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    (click)="onAddAlternateGreetingAction()">
+              <span class="bi bi-plus-lg"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-3" formArrayName="groupGreetings">
+          <label>Group Greetings</label>
+          <div class="form-text mb-2">
+            You can define group chat greetings for your character. If defined, these will be preferred
+            over the first message or alternate greeting.
+          </div>
+
+          @if (groupGreetingsFA().controls.length == 0) {
+            <div class="form-text mb-3 text-warning">No group greetings defined.</div>
+          }
+
+          @for (c of groupGreetingsFA().controls; track c) {
+            <div class="input-group mb-2">
+              <textarea type="text" class="form-control form-control-sm" [formControlName]="$index"></textarea>
+              <button type="button" class="btn btn-outline-danger btn-sm"
+                      (click)="onRemoveGroupGreetingAction($index)">
+                <span class="bi bi-trash"></span>
+              </button>
+            </div>
+          }
+
+          <div class="btn-toolbar justify-content-end mt-1">
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    (click)="onAddGroupGreetingAction()">
+              <span class="bi bi-plus-lg"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <pre>
+groupGreetings: string[]
+groupTalkativeness: number
+    </pre>
+  </div>
+</div>

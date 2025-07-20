@@ -28,6 +28,10 @@
       </div>
       @if (!isNew()) {
         <div class="g-col-12 g-col-lg-6 g-col-xl-8">
+          <app-character-edit-chat-defaults
+            class="d-block mb-3"
+            [parentForm]="formGroup"
+            [character]="character()"></app-character-edit-chat-defaults>
           <app-character-edit-extended-details
             [parentForm]="formGroup"
             [character]="character()"></app-character-edit-extended-details>

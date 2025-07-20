@@ -4,16 +4,25 @@ import {Character, Characters} from '@db/characters';
 import {NewRecord} from '@db/core';
 
 const NEW_CHARACTER: NewRecord<Character> = {
-  name: '',
-  appearance: '',
-  personality: '',
+  name: 'string',
+  appearance: 'string',
+  personality: 'string',
+  avatar: null,
+  favorite: false,
+  tagIds: [],
+
+  // Extended
   history: '',
   likelyActions: [],
   unlikelyActions: [],
   dialogueExamples: [],
-  avatar: null,
-  favorite: false,
-  tagIds: [],
+
+  // Chat Defaults
+  scenario: '',
+  firstMessage: '',
+  alternateGreetings: [],
+  groupGreetings: [],
+  groupTalkativeness: 1.0
 }
 
 export const editCharacterResolver: ResolveFn<Character | NewRecord<Character>> = (route) => {

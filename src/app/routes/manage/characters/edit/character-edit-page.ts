@@ -11,6 +11,7 @@ import {
 } from './components/character-edit-extended-details/character-edit-extended-details';
 import {Notifications} from '@components/notifications';
 import {PageHeader} from '@components/page-header/page-header';
+import {CharacterEditChatDefaults} from './components/character-edit-chat-defaults/character-edit-chat-defaults';
 
 @Component({
   selector: 'app-character-edit-page',
@@ -19,6 +20,7 @@ import {PageHeader} from '@components/page-header/page-header';
     CharacterEditBaseInformation,
     CharacterEditExtendedDetails,
     PageHeader,
+    CharacterEditChatDefaults,
   ],
   templateUrl: './character-edit-page.html',
 })
@@ -39,15 +41,22 @@ export class CharacterEditPage {
     name: formControl('', [Validators.required]),
     appearance: formControl(''),
     personality: formControl(''),
-    favorite: formControl(false),
-    tagIds: formControl([]),
     avatar: formControl(null),
+    tagIds: formControl([]),
+    favorite: formControl(false),
 
     // Extended props
     history: formControl(''),
     likelyActions: formArray([]),
     unlikelyActions: formArray([]),
     dialogueExamples: formArray([]),
+
+    // Chat Defaults
+    scenario: formControl(''),
+    firstMessage: formControl(''),
+    alternateGreetings: formArray([]),
+    groupGreetings: formArray([]),
+    groupTalkativeness: formControl(1.0),
   })
 
   constructor() {
