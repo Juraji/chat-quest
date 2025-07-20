@@ -1,1 +1,60 @@
-<p>manage-scenarios-page works!</p>
+<div class="container">
+  <div class="card mb-3">
+    <div class="card-body d-flex justify-content-between align-items-center">
+      <h1 class="character-name mb-0">Scenarios</h1>
+      <div class="btn-toolbar gap-2">
+        <button class="btn btn-primary" routerLink="./new">Create Scenario</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="g-col-12 g-col-lg-8">
+      @let scenariosEmpty = scenarios() | empty;
+      <table class="table" [class.table-hover]="!scenariosEmpty">
+        <thead>
+        <th>Name</th>
+        <th><!-- Actions --></th>
+        </thead>
+        <tbody>
+          @if (scenariosEmpty) {
+            <tr>
+              <td>No scenarios available</td>
+              <td>
+                <div class="btn-toolbar gap-1 justify-content-end">
+                  <button class="btn btn-sm btn-outline-primary" disabled>
+                    <span class="bi bi-pencil"></span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+          @for (scenario of scenarios(); track scenario.id) {
+            <tr class="cursor-pointer" [routerLink]="['./', scenario.id]">
+              <td>{{ scenario.name }}</td>
+              <td>
+                <div class="btn-toolbar gap-1 justify-content-end">
+                  <button class="btn btn-sm btn-outline-primary">
+                    <span class="bi bi-pencil"></span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="g-col-12 g-col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Scenarios</h5>
+          <p>A scenario in ChatQuest is a defined scene where you’ll interact with AI characters and Non-Player
+            Characters (NPCs). It describes the setting – including the environment, any ongoing events, and who else is
+            present. Think of it as a virtual location with its own story unfolding.</p>
+          <p><b>Example:</b>&nbsp;<code>You are sitting at a table in a medieval tavern. You are enjoying a mug of Orcish
+            Ale; While the local bard is playing surprisingly well written tunes.</code></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

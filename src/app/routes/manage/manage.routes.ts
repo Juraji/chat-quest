@@ -1,10 +1,11 @@
 import {Routes} from '@angular/router';
 import {ManagePage} from './manage-page';
 import {ManageCharactersPage} from './characters/manage/manage-characters-page';
-import {ManageScenariosPage} from './scenarios/manage-scenarios-page';
 import {manageCharactersResolver} from './characters/manage/manage-characters.resolver';
 import {CharacterEditPage} from './characters/edit/character-edit-page';
 import {editCharacterResolver} from './characters/edit/edit-character.resolver';
+import {ManageScenariosPage} from './scenarios/manage-scenarios-page';
+import {manageScenariosResolver} from './scenarios/manage-scenarios.resolver';
 
 const routes: Routes = [
   {
@@ -28,7 +29,10 @@ const routes: Routes = [
       },
       {
         path: 'scenarios',
-        component: ManageScenariosPage
+        component: ManageScenariosPage,
+        resolve: {
+          scenarios: manageScenariosResolver
+        }
       },
       {
         path: '**',
