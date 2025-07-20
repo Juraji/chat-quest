@@ -1,0 +1,17 @@
+<div class="card mb-3">
+  <div class="card-body d-flex align-items-center">
+    @if (backUrl()) {
+      <button type="button" class="btn btn-sm btn-tertiary me-2"
+              [routerLink]="backUrl()"
+              [relativeTo]="activatedRoute">
+        <span class="bi bi-chevron-left"></span>
+      </button>
+    }
+    <h1 class="page-title-content mb-0 me-auto">
+      <ng-content select=".page-title"></ng-content>
+    </h1>
+    <div class="btn-toolbar gap-2 page-actions">
+      <ng-content select=".btn"></ng-content>
+    </div>
+  </div>
+</div>

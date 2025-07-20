@@ -10,6 +10,7 @@ import {
   CharacterEditExtendedDetails
 } from './components/character-edit-extended-details/character-edit-extended-details';
 import {Notifications} from '@components/notifications';
+import {PageHeader} from '@components/page-header/page-header';
 
 @Component({
   selector: 'app-character-edit-page',
@@ -17,9 +18,9 @@ import {Notifications} from '@components/notifications';
     ReactiveFormsModule,
     CharacterEditBaseInformation,
     CharacterEditExtendedDetails,
+    PageHeader,
   ],
   templateUrl: './character-edit-page.html',
-  styleUrls: ['./character-edit-page.scss'],
 })
 export class CharacterEditPage {
   private readonly characters = inject(Characters)

@@ -5,12 +5,14 @@ import {CharacterCard} from '@components/character-card/character-card';
 import {Character} from '@db/characters';
 import {Tag, Tags} from '@db/tags';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {PageHeader} from '@components/page-header/page-header';
 
 @Component({
   selector: 'app-manage-characters-page',
   imports: [
     CharacterCard,
-    RouterLink
+    RouterLink,
+    PageHeader
   ],
   templateUrl: './manage-characters-page.html',
   styleUrls: ['./manage-characters-page.scss']

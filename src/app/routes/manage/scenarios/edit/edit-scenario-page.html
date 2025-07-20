@@ -1,0 +1,56 @@
+<form [formGroup]="formGroup" (submit)="onSubmit()">
+  <div class="container">
+    <app-page-header backUrl="../">
+      @if (isNew()) {
+        <span class="page-title">New Scenario</span>
+      } @else {
+        <span class="page-title">{{ name() }}</span>
+      }
+
+      @if (!isNew()) {
+        <button type="button" class="btn btn-outline-danger"
+                (click)="onDeleteScenario()">Delete Scenario
+        </button>
+      }
+      @if (!isNew() && formGroup.dirty) {
+        <button type="button" class="btn btn-outline-secondary"
+                (click)="onRevertChanges()">Revert changes
+        </button>
+      }
+      <button class="btn btn-primary btn-magical"
+              [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
+      </button>
+    </app-page-header>
+
+    <div class="grid">
+      <div class="g-col-12 g-col-lg-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Base information</h5>
+
+            <div class="mb-3">
+              <label for="scenarioNameInput">Name</label>
+              <input type="text" class="form-control"
+                     id="scenarioNameInput"
+                     aria-describedby="scenarioNameInputHelp"
+                     formControlName="name"/>
+              <div id="scenarioNameInputHelp" class="form-text">A name for this scenario.</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="scenarioDescriptionInput">Scene Description</label>
+              <textarea type="text" class="form-control"
+                        id="scenarioDescriptionInput"
+                        rows="10"
+                        aria-describedby="scenarioDescriptionInputHelp"
+                        formControlName="sceneDescription"></textarea>
+              <div id="scenarioDescriptionInputHelp" class="form-text">
+                Describe the scene. Where are we; What is happening around us.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
