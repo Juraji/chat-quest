@@ -3,3 +3,4 @@ export interface StoreRecord {
 }
 
 export type NewRecord<T extends StoreRecord> = Omit<T, 'id'>
+export type MigrationFn = (db: IDBDatabase) => Promise<void>

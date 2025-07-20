@@ -23,9 +23,9 @@ export const editCharacterResolver: ResolveFn<Character | NewRecord<Character>> 
 
   if (characterId === 'new') {
     return {...NEW_CHARACTER}
-  } else if(!isNaN(iCharacterId)) {
+  } else if (!isNaN(iCharacterId)) {
     return service.get(iCharacterId)
-  } else{
+  } else {
     throw new Error(`Character with id "${characterId}" can not be loaded.`)
   }
 };

@@ -1,4 +1,4 @@
-import {CURRENT_VERSION, MIGRATIONS} from './migrations';
+import {CURRENT_VERSION, MIGRATIONS} from './migration/migrations';
 
 export const DATABASE_NAME = 'ChatQuestStore'
 
