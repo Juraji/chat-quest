@@ -7,7 +7,7 @@ import {
 import {provideRouter} from '@angular/router';
 
 import {routes} from './app.routes';
-import {initializeDatabase} from '@db/init';
+import {initializeDatabase} from '@db/core';
 import {provideHttpClient, withFetch} from '@angular/common/http';
 import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
 

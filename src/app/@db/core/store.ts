@@ -1,6 +1,6 @@
 import {filter, Observable, Subject, Subscriber} from "rxjs";
 import {NewRecord, StoreRecord} from "./model";
-import {DATABASE_NAME} from './init';
+import {DATABASE_NAME} from './initializeDatabase';
 
 export abstract class Store<T extends StoreRecord> {
   private readonly addSubject: Subject<T> = new Subject();

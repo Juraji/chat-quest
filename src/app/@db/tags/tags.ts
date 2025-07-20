@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Tag} from './tag';
-import {Store} from '@db/store';
+import {Store} from '@db/core';
 
 @Injectable({
   providedIn: 'root'

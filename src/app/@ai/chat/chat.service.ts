@@ -8,7 +8,7 @@ import {
   OpenAiModel,
   OpenAiSettings
 } from './interface';
-import {Settings} from '@db/settings/settings';
+import {Settings} from '@db/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 
 export const CHAT_SETTINGS_NAME = 'open-ai'

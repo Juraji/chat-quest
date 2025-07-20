@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {Store} from '@db/store';
+import {Store} from '@db/core';
 import {SystemPrompt} from './system-prompt';
 
 @Injectable({

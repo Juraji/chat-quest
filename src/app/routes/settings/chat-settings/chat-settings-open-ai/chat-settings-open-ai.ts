@@ -4,7 +4,7 @@ import {CHAT_SETTINGS_NAME, ChatService, OpenAiSettings} from '@ai/chat';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Collapse} from '@components/collapse';
 import {Notifications} from '@components/notifications';
-import {Settings} from '@db/settings/settings';
+import {Settings} from '@db/core/settings';
 import {toSignal} from '@angular/core/rxjs-interop';
 
 @Component({

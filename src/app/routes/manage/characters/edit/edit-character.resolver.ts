@@ -1,7 +1,7 @@
 import {ResolveFn} from '@angular/router';
 import {inject} from '@angular/core';
 import {Character, Characters} from '@db/characters';
-import {NewRecord} from '@db/model';
+import {NewRecord} from '@db/core';
 
 const NEW_CHARACTER: NewRecord<Character> = {
   name: '',

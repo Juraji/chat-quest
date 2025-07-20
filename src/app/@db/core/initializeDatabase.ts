@@ -24,12 +24,12 @@ export function initializeDatabase(): Promise<void> {
         request.onerror = () => reject(request.error);
         request.onsuccess = () => resolve()
 
-        request.onupgradeneeded = e => {
+        request.onupgradeneeded = async e => {
             if (!e.newVersion) return
             const db: IDBDatabase = request.result;
             for (let i = e.oldVersion + 1; i <= e.newVersion; i++) {
                 const migration = MIGRATIONS[i]
-                if (!!migration) migration(db)
+                if (!!migration) await migration(db)
             }
         }
     });

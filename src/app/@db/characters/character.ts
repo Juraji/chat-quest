@@ -1,4 +1,4 @@
-import {StoreRecord} from "@db/model";
+import {StoreRecord} from "@db/core";
 
 export interface Character extends StoreRecord {
   name: string
