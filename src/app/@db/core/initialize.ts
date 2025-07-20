@@ -1,6 +1,4 @@
-import {CURRENT_VERSION, MIGRATIONS} from './migration/migrations';
-
-export const DATABASE_NAME = 'ChatQuestStore'
+import {CURRENT_VERSION, DATABASE_NAME, MIGRATIONS} from './migration';
 
 /**
  * Initializes the IndexedDB database and applies necessary migrations.
@@ -19,19 +17,19 @@ export const DATABASE_NAME = 'ChatQuestStore'
  * @returns A promise that resolves when the database is successfully initialized or rejects on error.
  */
 export function initializeDatabase(): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DATABASE_NAME, CURRENT_VERSION);
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => resolve()
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DATABASE_NAME, CURRENT_VERSION);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve()
 
-        request.onupgradeneeded = async e => {
-            if (!e.newVersion) return
-            const db: IDBDatabase = request.result;
-            for (let i = e.oldVersion + 1; i <= e.newVersion; i++) {
-                const migration = MIGRATIONS[i]
-                if (!!migration) await migration(db)
-            }
-        }
-    });
+    request.onupgradeneeded = async e => {
+      if (!e.newVersion) return
+      const db: IDBDatabase = request.result;
+      for (let i = e.oldVersion + 1; i <= e.newVersion; i++) {
+        const migration = MIGRATIONS[i]
+        if (!!migration) await migration(db)
+      }
+    }
+  });
 }
 

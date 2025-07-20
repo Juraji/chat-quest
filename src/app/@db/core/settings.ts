@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {filter, Observable, Subject, Subscriber} from 'rxjs';
-import {DATABASE_NAME} from "./initializeDatabase";
+import {DATABASE_NAME} from '@db/core/migration';
 
 interface SettingUpdate {
   name: string;
