@@ -24,7 +24,14 @@
   <div class="grid">
     @for (char of filteredCharacters(); track char.id) {
       <div class="g-col-3">
-        <app-character-card [character]="char"></app-character-card>
+        <app-character-card [character]="char">
+          <a class="btn" [routerLink]="['/chat/with', char.id]">
+            <span class="bi bi-chat-fill"></span>
+          </a>
+          <a class="btn" [routerLink]="['./', char.id]">
+            <span class="bi bi-pencil"></span>
+          </a>
+        </app-character-card>
       </div>
     }
     <div class="g-col-3">

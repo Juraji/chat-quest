@@ -13,12 +13,7 @@
   </div>
   <div class="card-footer">
     <div class="btn-toolbar justify-content-center gap-2">
-      <a class="btn btn-sm" [routerLink]="['/chat/with', id()]">
-        <span class="bi bi-chat-fill"></span>
-      </a>
-      <a class="btn btn-sm" [routerLink]="['/manage/characters', id()]">
-        <span class="bi bi-pencil"></span>
-      </a>
+      <ng-content select=".btn"></ng-content>
     </div>
   </div>
 </div>
