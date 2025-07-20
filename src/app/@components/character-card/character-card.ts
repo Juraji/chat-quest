@@ -1,12 +1,10 @@
 import {Component, computed, effect, input, InputSignal, signal, Signal, WritableSignal} from '@angular/core';
 import {Character} from '@db/characters';
-import {RouterLink} from '@angular/router';
 import {TagsControl} from '@components/tags-control/tags-control';
 
 @Component({
   selector: 'app-character-card',
   imports: [
-    RouterLink,
     TagsControl
   ],
   templateUrl: './character-card.html',

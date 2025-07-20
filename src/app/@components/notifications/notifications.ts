@@ -37,7 +37,7 @@ export class Notifications {
     timeout: number = DEFAULT_TOAST_TIMEOUT
   ) {
     const toastId = ++this.lastId
-    const timerHandle = timeout <= 0 ? null : setTimeout(() => this.removeToast(toastId), timeout)
+    const timerHandle = timeout <= 0 ? null : window.setTimeout(() => this.removeToast(toastId), timeout)
 
     const toast: Toast = {
       id: toastId,
