@@ -22,7 +22,7 @@ const NEW_CHARACTER: NewRecord<Character> = {
   firstMessage: '',
   alternateGreetings: [],
   groupGreetings: [],
-  groupTalkativeness: 1.0
+  groupTalkativeness: 0.5
 }
 
 export const editCharacterResolver: ResolveFn<Character | NewRecord<Character>> = (route) => {

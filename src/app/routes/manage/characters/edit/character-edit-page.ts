@@ -56,7 +56,7 @@ export class CharacterEditPage {
     firstMessage: formControl(''),
     alternateGreetings: formArray([]),
     groupGreetings: formArray([]),
-    groupTalkativeness: formControl(1.0),
+    groupTalkativeness: formControl(0.5),
   })
 
   constructor() {

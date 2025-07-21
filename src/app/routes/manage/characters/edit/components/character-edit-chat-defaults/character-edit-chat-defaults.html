@@ -1,6 +1,6 @@
 <div class="card" [formGroup]="parentForm()">
   <div class="card-body">
-    <h5 class="card-title">Chat Defaults</h5>
+    <h5 class="card-title">Chat Behavior</h5>
 
     <div class="grid">
       <div class="g-col-12 g-col-xl-6">
@@ -58,6 +58,22 @@
           </div>
         </div>
 
+        <div class="mb-3">
+          <label for="characterTalkativenessInput" class="form-label">Talkativeness</label>
+          <div class="d-flex justify-content-between small text-muted">
+            <div>Fairly silent</div>
+            <div>Normal</div>
+            <div>Very Noisy</div>
+          </div>
+          <input type="range" class="form-range px-4"
+                 formControlName="groupTalkativeness"
+                 id="characterTalkativenessInput"
+                 aria-describedby="characterTalkativenessInputHelp" min="0" max="1" step="0.1">
+          <div class="form-text" id="characterTalkativenessInputHelp">
+            Talkativeness in group chats.
+          </div>
+        </div>
+
         <div class="mb-3" formArrayName="groupGreetings">
           <label>Group Greetings</label>
           <div class="form-text mb-2">
@@ -88,10 +104,5 @@
         </div>
       </div>
     </div>
-
-    <pre>
-groupGreetings: string[]
-groupTalkativeness: number
-    </pre>
   </div>
 </div>
