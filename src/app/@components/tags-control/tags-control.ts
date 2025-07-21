@@ -14,6 +14,7 @@ import {
 import {ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Tag, Tags} from '@db/tags';
 import {toSignal} from '@angular/core/rxjs-interop';
+import {map} from 'rxjs';
 
 @Component({
   selector: 'app-tags-control',
@@ -89,11 +90,15 @@ export class TagsControl implements ControlValueAccessor {
       .split(',')
       .map(t => t.trim())
 
-    for (const tagName of tagsToAdd) {
-      if (tagName) this.addSingleTag(tagName)
-    }
-
-    this.inputText.set('')
+    this.tags
+      .resolve(tagsToAdd)
+      .pipe(map(tags => tags.map(t => t.id)))
+      .subscribe(resolvedTagIds => {
+        this.currentTagIds.update(current =>
+          [...new Set([...current, ...resolvedTagIds])])
+        this.onChange(this.currentTagIds())
+        this.inputText.set('')
+      })
   }
 
   removeTag(tagId: number): void {
@@ -107,28 +112,6 @@ export class TagsControl implements ControlValueAccessor {
       this.addTag()
       event.stopPropagation()
       event.preventDefault()
-    }
-  }
-
-  private addSingleTag(tagName: string) {
-    const alreadyHasTag = this.currentTags()
-      .some(t => t.label.toLowerCase() === tagName.toLowerCase())
-    if (alreadyHasTag) return
-
-    const existingTag = this.availableTags()
-      .find(t => t.label.toLowerCase() === tagName.toLowerCase())
-    if (existingTag) {
-      // Use existing tag
-      this.currentTagIds.update(tIds => ([...tIds, existingTag.id]))
-      this.onChange(this.currentTagIds())
-    } else {
-      // Create new tag
-      this.tags
-        .save({label: tagName})
-        .subscribe(tag => {
-          this.currentTagIds.update(tIds => ([...tIds, tag.id]))
-          this.onChange(this.currentTagIds())
-        })
     }
   }
 }

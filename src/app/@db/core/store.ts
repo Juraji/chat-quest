@@ -97,4 +97,11 @@ export abstract class Store<T extends StoreRecord> {
       this.deleteSubject.next(id)
     })
   }
+
+  protected withDatabase<U>(block: (db: IDBPDatabase) => Promise<U>): Observable<U> {
+    return defer(async () => {
+      const db = await this.database
+      return block(db)
+    })
+  }
 }

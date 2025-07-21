@@ -8,6 +8,8 @@ import {toSignal} from '@angular/core/rxjs-interop';
 import {PageHeader} from '@components/page-header/page-header';
 import {Notifications} from '@components/notifications';
 import {CharaCardParser} from '@util/chara-card';
+import {map, mergeMap} from 'rxjs';
+import {NewRecord} from '@db/core';
 
 @Component({
   selector: 'app-manage-characters-page',
@@ -72,10 +74,13 @@ export class ManageCharactersPage {
       const {character, tags: charTags} = await this.parser.parse(file)
       const doImport = confirm(`Do you want to import "${character.name}" from "${file.name}"?`)
       if (doImport) {
-        // TODO: Save and assign tags
-
-        this.characters
-          .save(character)
+        this.tags
+          .resolve(charTags)
+          .pipe(
+            map(tags => tags.map(t => t.id)),
+            map(tagIds => ({...character, tagIds} as NewRecord<Character>)),
+            mergeMap(char => this.characters.save(char))
+          )
           .subscribe(character => {
             this.notifications.toast(`Character card "${character.name}" imported!`)
             this.router.navigate([character.id], {relativeTo: this.activatedRoute})

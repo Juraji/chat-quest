@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Tag} from './tag';
-import {Store} from '@db/core';
+import {NewRecord, Store} from '@db/core';
+import {Observable} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -8,5 +9,42 @@ import {Store} from '@db/core';
 export class Tags extends Store<Tag> {
   constructor() {
     super('tags')
+  }
+
+  override save(record: NewRecord<Tag> | Tag): Observable<Tag> {
+    // Only allow update to existing tags, else use resolve().
+    if ('id' in record && !!record.id) {
+      return super.save(record);
+    } else {
+      throw new Error("Unsupported operation, use resolve()")
+    }
+  }
+
+  resolve(labels: string[]): Observable<Tag[]> {
+    return this.withDatabase(async db => {
+      const store = db
+        .transaction(this.storeName, 'readwrite')
+        .objectStore(this.storeName)
+
+      const result: Tag[] = [];
+      for (const label of labels) {
+        const lowercase = label.toLowerCase();
+
+        const existing: Tag | null = await store
+          .index('lowercase')
+          .get(lowercase)
+
+        if (!!existing) {
+          result.push(existing);
+        } else {
+          const id = await store
+            .add({label, lowercase}) as number
+
+          result.push({id, label, lowercase})
+        }
+      }
+
+      return result
+    })
   }
 }
