@@ -8,7 +8,6 @@ import {ManageScenariosPage} from './scenarios/manage/manage-scenarios-page';
 import {manageScenariosResolver} from './scenarios/manage/manage-scenarios.resolver';
 import {EditScenarioPage} from './scenarios/edit/edit-scenario-page';
 import {editScenarioResolver} from './scenarios/edit/edit-scenario.resolver';
-import {CharacterCardImportPage} from './characters/character-card-import/character-card-import-page';
 
 const routes: Routes = [
   {
@@ -21,10 +20,6 @@ const routes: Routes = [
         resolve: {
           characters: manageCharactersResolver
         }
-      },
-      {
-        path: "characters/import",
-        component: CharacterCardImportPage,
       },
       {
         path: 'characters/:characterId',

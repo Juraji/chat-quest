@@ -1,4 +1,4 @@
-import {StoreRecord} from "@db/core";
+import {NewRecord, StoreRecord} from "@db/core";
 
 export interface Character extends StoreRecord {
   //base
@@ -21,4 +21,26 @@ export interface Character extends StoreRecord {
   alternateGreetings: string[]
   groupGreetings: string[]
   groupTalkativeness: number
+}
+
+export const NEW_CHARACTER: NewRecord<Character> = {
+  name: '',
+  appearance: '',
+  personality: '',
+  avatar: null,
+  favorite: false,
+  tagIds: [],
+
+  // Extended
+  history: '',
+  likelyActions: [],
+  unlikelyActions: [],
+  dialogueExamples: [],
+
+  // Chat Defaults
+  scenario: '',
+  firstMessage: '',
+  alternateGreetings: [],
+  groupGreetings: [],
+  groupTalkativeness: 0.5
 }

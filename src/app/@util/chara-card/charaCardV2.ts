@@ -1,9 +1,6 @@
 import {CharaCard} from "./charaCard";
 
-/**
- * @see https://github.com/malfoyslastname/character-card-spec-v2/blob/main/spec_v2.md
- */
-
+/** @see https://github.com/malfoyslastname/character-card-spec-v2/blob/main/spec_v2.md */
 export interface CharaCardV2 extends CharaCard {
   spec: 'chara_card_v2'
   spec_version: '2.0' // May 8th addition

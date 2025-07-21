@@ -1,9 +1,6 @@
 import {CharaCard} from './charaCard';
 
-/**
- * @see https://github.com/kwaroran/character-card-spec-v3/blob/main/SPEC_V3.md
- */
-
+/** @see https://github.com/kwaroran/character-card-spec-v3/blob/main/SPEC_V3.md */
 export interface CharaCardV3 extends CharaCard {
   spec: 'chara_card_v3'
   spec_version: '3.0'

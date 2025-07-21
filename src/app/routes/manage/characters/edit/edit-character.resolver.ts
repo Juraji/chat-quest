@@ -1,31 +1,9 @@
 import {ResolveFn} from '@angular/router';
 import {inject} from '@angular/core';
-import {Character, Characters} from '@db/characters';
+import {Character, Characters, NEW_CHARACTER} from '@db/characters';
 import {NewRecord} from '@db/core';
 
-const NEW_CHARACTER: NewRecord<Character> = {
-  name: 'string',
-  appearance: 'string',
-  personality: 'string',
-  avatar: null,
-  favorite: false,
-  tagIds: [],
-
-  // Extended
-  history: '',
-  likelyActions: [],
-  unlikelyActions: [],
-  dialogueExamples: [],
-
-  // Chat Defaults
-  scenario: '',
-  firstMessage: '',
-  alternateGreetings: [],
-  groupGreetings: [],
-  groupTalkativeness: 0.5
-}
-
-export const editCharacterResolver: ResolveFn<Character | NewRecord<Character>> = (route) => {
+export const editCharacterResolver: ResolveFn<Character | NewRecord<Character>> = (route, state) => {
   const service = inject(Characters)
   const characterId = route.paramMap.get('characterId')!!
   const iCharacterId = Number(characterId)

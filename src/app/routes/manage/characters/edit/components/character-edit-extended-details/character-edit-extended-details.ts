@@ -14,8 +14,8 @@ export class CharacterEditExtendedDetails {
   readonly parentForm: InputSignal<TypedFormGroup<Character>> = input.required()
   readonly character: InputSignal<Character> = input.required()
 
-  readonly dialogExample: string = `{user}: Hi, I am User. What's your name?
-{char}: *looks at {user} startled* "Ow, hello. I didn't notice you there. Nice to meet you, my name is {char}."`
+  readonly dialogExample: string = `{{user}}: Hi, I am User. What's your name?
+{{char}}: *looks at {{user}} startled* "Ow, hello. I didn't notice you there. Nice to meet you, my name is {char}."`
 
   readonly likelyActionsFA: Signal<TypedFormArray<string>> =
     computed(() => this.parentForm().get('likelyActions') as FormArray)

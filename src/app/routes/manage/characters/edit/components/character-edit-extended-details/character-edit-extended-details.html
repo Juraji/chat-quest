@@ -27,11 +27,10 @@
             <div class="form-text mb-3 text-warning">No dialog examples defined.</div>
           } @else {
             <div class="form-text mb-2">
-              Use <code>&#123;char&#125;</code> to represent your character and <code>&#123;user&#125;</code> to
-              represent the chatter/you.
+              Use <code>{{ '{{char}}' }}</code> to represent your character and
+              <code>{{ '{{user}}' }}</code> to represent the chatter/you.
             </div>
           }
-
           @for (c of dialogueExamplesFA().controls; track c) {
             <div class="input-group mb-2">
               <textarea class="form-control form-control-sm"
