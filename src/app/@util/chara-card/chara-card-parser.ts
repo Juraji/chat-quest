@@ -1,16 +1,12 @@
 import {Injectable} from '@angular/core';
 import {CharaCard} from './charaCard';
 import ExifReader, {ValueTag} from 'exifreader';
-import {Character, NEW_CHARACTER} from '@db/characters';
+import {NEW_CHARACTER} from '@db/characters';
 import {CharaCardV1} from '@util/chara-card/charaCardV1';
 import {CharaCardV2} from '@util/chara-card/charaCardV2';
 import {CharaCardV3} from '@util/chara-card/charaCardV3';
-import {NewRecord} from '@db/core';
-
-export interface ParseCharaCardResult {
-  character: NewRecord<Character>;
-  tags: string[];
-}
+import {CharacterImportResult} from '@util/import-export';
+import {readBlobAsJson} from '@util/blobs';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +20,7 @@ export class CharaCardParser {
     'application/json'
   ];
 
-  async parse(file: File): Promise<ParseCharaCardResult> {
+  async parse(file: File): Promise<CharacterImportResult> {
     let card: CharaCard;
     let avatarImage: File | null = null;
 
@@ -65,18 +61,10 @@ export class CharaCardParser {
   }
 
   private parseJson(file: File): Promise<CharaCard> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onerror = () => reject(reader.error)
-      reader.onload = () => {
-        const card: CharaCard = JSON.parse(reader.result as string)
-        resolve(card)
-      }
-      reader.readAsText(file)
-    })
+    return readBlobAsJson(file)
   }
 
-  private characterFromV1Card(card: CharaCardV1, avatarImage: File | null): ParseCharaCardResult {
+  private characterFromV1Card(card: CharaCardV1, avatarImage: File | null): CharacterImportResult {
     return {
       character: {
         ...NEW_CHARACTER,
@@ -91,7 +79,7 @@ export class CharaCardParser {
     };
   }
 
-  private characterFromV2Card(card: CharaCardV2, avatarImage: File | null): ParseCharaCardResult {
+  private characterFromV2Card(card: CharaCardV2, avatarImage: File | null): CharacterImportResult {
     const data = card.data
 
     return {
@@ -110,7 +98,7 @@ export class CharaCardParser {
     };
   }
 
-  private characterFromV3Card(card: CharaCardV3, avatarImage: File | null): ParseCharaCardResult {
+  private characterFromV3Card(card: CharaCardV3, avatarImage: File | null): CharacterImportResult {
     const data = card.data
 
     return {

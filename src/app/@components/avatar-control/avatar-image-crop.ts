@@ -11,6 +11,7 @@ import {
   WritableSignal
 } from '@angular/core';
 import {AngularCropperjsModule, CropperComponent} from 'angular-cropperjs';
+import {readBlobAsDataUrl} from '@util/blobs';
 
 const aspectRatio = 1;
 const maxWidth = 350
@@ -47,9 +48,7 @@ export class AvatarImageCrop {
   constructor() {
     effect(() => {
       const file = this.imageBlob()
-      const reader = new FileReader()
-      reader.onload = () => this.b64ImageUrl.set(reader.result as string)
-      reader.readAsDataURL(file)
+      readBlobAsDataUrl(file).then(data => this.b64ImageUrl.set(data))
     });
   }
 

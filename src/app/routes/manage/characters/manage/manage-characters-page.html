@@ -1,7 +1,7 @@
 <div class="container">
   <app-page-header>
     <span class="page-title">Characters</span>
-    <button class="btn btn-outline-primary" (click)="charaCardImportInput.click()">Import Character Card</button>
+    <app-character-import-button class="page-action"></app-character-import-button>
     <button class="btn btn-primary" routerLink="./new">Create Character</button>
   </app-page-header>
   <div class="tag-filter-list d-flex flex-wrap align-items-center mb-3">
@@ -45,8 +45,3 @@
     </div>
   </div>
 </div>
-
-<input type="file" class="d-none"
-       [accept]="acceptCharaCardTypes"
-       (change)="onCharaCardFileSelected($event)"
-       #charaCardImportInput/>

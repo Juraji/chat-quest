@@ -12,6 +12,10 @@ import {
 import {Notifications} from '@components/notifications';
 import {PageHeader} from '@components/page-header/page-header';
 import {CharacterEditChatDefaults} from './components/character-edit-chat-defaults/character-edit-chat-defaults';
+import {CharacterImportExport} from '@util/import-export';
+import {Tags} from '@db/tags';
+import {firstValueFrom} from 'rxjs';
+import {downloadBlob} from '@util/blobs';
 
 @Component({
   selector: 'app-character-edit-page',
@@ -29,6 +33,8 @@ export class CharacterEditPage {
   private readonly activatedRoute = inject(ActivatedRoute)
   private readonly router = inject(Router)
   private readonly notifications = inject(Notifications)
+  private readonly characterExport = inject(CharacterImportExport)
+  private readonly tags = inject(Tags)
 
   readonly character: Signal<Character> = routeDataSignal(this.activatedRoute, 'character')
   readonly isNew: Signal<boolean> = computed(() => !this.character().id)
@@ -111,5 +117,17 @@ export class CharacterEditPage {
           });
         })
     }
+  }
+
+  async onExportCharacter() {
+    const character = this.character()
+    const allTags = await firstValueFrom(this.tags.getAll())
+    const characterTags = character.tagIds
+      .map(tagId => allTags.find(t => t.id === tagId))
+      .filter(t => !!t)
+      .map(t => t.label)
+
+    const blob = await this.characterExport.exportToFile(character, characterTags)
+    downloadBlob(blob, `ChatQuest_v1_${character.name}.json`)
   }
 }

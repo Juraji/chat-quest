@@ -1,5 +1,6 @@
-import {Component, effect, input, InputSignal, output, OutputEmitterRef, signal, WritableSignal} from '@angular/core';
+import {Component, effect, input, InputSignal, output, OutputEmitterRef} from '@angular/core';
 import {animate, state, style, transition, trigger} from '@angular/animations';
+import {BooleanSignal, booleanSignal} from '@util/ng';
 
 @Component({
   selector: '[appCollapse]',
@@ -27,7 +28,7 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
     <ng-content></ng-content>`
 })
 export class Collapse {
-  readonly collapsed: WritableSignal<boolean> = signal(true)
+  readonly collapsed: BooleanSignal = booleanSignal(true)
 
   readonly collapse: InputSignal<boolean> = input(true)
   readonly collapseChange: OutputEmitterRef<boolean> = output()
@@ -42,7 +43,7 @@ export class Collapse {
     if (typeof setCollapsed === 'boolean') {
       this.collapsed.set(setCollapsed)
     } else {
-      this.collapsed.update(state => !state)
+      this.collapsed.toggle()
     }
     this.collapseChange.emit(this.collapsed())
   }

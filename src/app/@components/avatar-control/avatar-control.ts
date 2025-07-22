@@ -2,6 +2,7 @@ import {Component, computed, effect, forwardRef, inject, Signal, signal, Writabl
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Notifications} from '@components/notifications';
 import {AvatarImageCrop} from '@components/avatar-control/avatar-image-crop';
+import {BooleanSignal, booleanSignal} from '@util/ng';
 
 type Avatar = Blob | null
 
@@ -32,7 +33,7 @@ export class AvatarControl implements ControlValueAccessor {
   readonly selectedFileForCrop: WritableSignal<Avatar> = signal(null)
 
   readonly currentValue: WritableSignal<Avatar> = signal(null)
-  readonly isDisabled: WritableSignal<boolean> = signal(false)
+  readonly isDisabled: BooleanSignal = booleanSignal(false)
 
   readonly imageUrl: WritableSignal<string> = signal('')
   readonly isSet: Signal<boolean> = computed(() => this.currentValue() != null)
