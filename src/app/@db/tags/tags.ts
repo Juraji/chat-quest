@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Tag} from './tag';
 import {NewRecord, Store} from '@db/core';
-import {Observable} from 'rxjs';
+import {firstValueFrom, Observable} from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -37,10 +37,8 @@ export class Tags extends Store<Tag> {
         if (!!existing) {
           result.push(existing);
         } else {
-          const id = await store
-            .add({label, lowercase}) as number
-
-          result.push({id, label, lowercase})
+          const t = await firstValueFrom(super.save({label, lowercase}))
+          result.push(t)
         }
       }
 
