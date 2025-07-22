@@ -22,15 +22,13 @@ export class Tags extends Store<Tag> {
 
   resolve(labels: string[]): Observable<Tag[]> {
     return this.withDatabase(async db => {
-      const store = db
-        .transaction(this.storeName, 'readwrite')
-        .objectStore(this.storeName)
 
       const result: Tag[] = [];
       for (const label of labels) {
         const lowercase = label.toLowerCase();
-
-        const existing: Tag | null = await store
+        const existing: Tag | null = await db
+          .transaction(this.storeName, 'readonly')
+          .objectStore(this.storeName)
           .index('lowercase')
           .get(lowercase)
 
