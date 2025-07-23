@@ -1,6 +1,6 @@
 <div class="dropdown">
-  <button class="btn btn-outline-secondary" (click)="showDropDown.toggle()">Import Character</button>
-  <ul class="dropdown-menu mt-1" [class.show]="showDropDown()" (click)="showDropDown.toggle()">
+  <button class="btn btn-outline-secondary" (click)="showDropDown.set(true)">Import Character</button>
+  <ul class="dropdown-menu mt-1" [class.show]="showDropDown()">
     <li>
       <button class="dropdown-item" (click)="chatQuestImportInput.click()">
         From ChatQuest

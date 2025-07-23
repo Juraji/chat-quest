@@ -1,4 +1,4 @@
-import {Component, inject} from '@angular/core';
+import {Component, HostListener, inject} from '@angular/core';
 import {CharaCardParser} from '@util/chara-card';
 import {map, mergeMap} from 'rxjs';
 import {NewRecord} from '@db/core';
@@ -26,6 +26,14 @@ export class CharacterImportButton {
   readonly showDropDown: BooleanSignal = booleanSignal(false)
 
   readonly acceptCharaCardTypes: string = this.charaCardParser.supportedContentTypes.join(',')
+
+  @HostListener('window:click', ['$event'])
+  onWindowClick(e: MouseEvent): void {
+    const target = e.target as HTMLElement;
+    if (!target.closest('.dropdown > button')) {
+      this.showDropDown.set(false);
+    }
+  }
 
   async onImportFileSelected(e: Event, type: 'CharaCard' | 'ChatQuest') {
     e.preventDefault();
