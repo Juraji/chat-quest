@@ -29,19 +29,319 @@
 
     <div class="grid">
       <div class="g-col-12 g-col-lg-6 g-col-xl-4">
-        <app-character-edit-base-information [parentForm]="formGroup"></app-character-edit-base-information>
-      </div>
-      @if (!isNew()) {
-        <div class="g-col-12 g-col-lg-6 g-col-xl-8">
-          <app-character-edit-chat-defaults
-            class="d-block mb-3"
-            [parentForm]="formGroup"
-            [character]="character()"></app-character-edit-chat-defaults>
-          <app-character-edit-extended-details
-            [parentForm]="formGroup"
-            [character]="character()"></app-character-edit-extended-details>
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Base information</h5>
+
+            <div class="grid mb-3">
+              <div class="g-col-4">
+                <app-avatar-control formControlName="avatar"></app-avatar-control>
+              </div>
+              <div class="g-col-8">
+                <label for="characterNameInput">Name</label>
+                <input type="text" class="form-control"
+                       id="characterNameInput"
+                       aria-describedby="characterNameInputHelp"
+                       formControlName="name"/>
+                <div id="characterNameInputHelp" class="form-text">A unique name for your character.</div>
+
+                <div class="form-check ">
+                  <input class="form-check-input" type="checkbox" id="characterFavoriteInput"
+                         formControlName="favorite"/>
+                  <label class="form-check-label" for="characterFavoriteInput">
+                    Favorite
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="characterAppearanceInput">Appearance</label>
+              <textarea type="text" class="form-control"
+                        id="characterAppearanceInput"
+                        aria-describedby="characterAppearanceInputHelp"
+                        formControlName="appearance"></textarea>
+              <div id="characterAppearanceInputHelp" class="form-text">
+                Optionally describe your character's appearance, like physical traits and clothing. Leave empty to skip.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="characterPersonalityInput">Personality</label>
+              <textarea type="text" class="form-control"
+                        id="characterPersonalityInput"
+                        aria-describedby="characterPersonalityInputHelp"
+                        formControlName="personality"></textarea>
+              <div id="characterPersonalityInputHelp" class="form-text">
+                Optionally describe your character's personality. Leave empty to skip.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="characterTagsInput">Tags</label>
+              <app-tags-control formControlName="tagIds" id="characterTagsInput"></app-tags-control>
+            </div>
+          </div>
         </div>
-      }
+        @if (!isNew()) {
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Scenario</h5>
+
+              <div class="mb-3">
+                <label for="characterScenarioInput">Scenario</label>
+                <textarea type="text" class="form-control"
+                          id="characterScenarioInput"
+                          rows="7"
+                          aria-describedby="characterScenarioInputHelp"
+                          formControlName="scenario"></textarea>
+                <div id="characterScenarioInputHelp" class="form-text">
+                  Optionally describe the default scenario for you character.
+                </div>
+              </div>
+
+              <button type="button" class="btn btn-outline-secondary"
+                      title="Export to scenario"
+                      (click)="onExportScenario()">
+                Export Scenario
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+      <div class="g-col-12 g-col-lg-6 g-col-xl-8">
+        @if (!isNew()) {
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Chat Behavior</h5>
+
+              <div class="grid">
+                <div class="g-col-12 g-col-xl-6">
+                  <div class="mb-3">
+                    <label for="characterScenarioInput">First Message</label>
+                    <textarea type="text" class="form-control"
+                              id="characterScenarioInput"
+                              rows="4"
+                              aria-describedby="characterScenarioInputHelp"
+                              formControlName="firstMessage"></textarea>
+                    <div id="characterScenarioInputHelp" class="form-text">
+                      The default first message your character will post in the chat.
+                    </div>
+                  </div>
+
+                  <div class="mb-3" formArrayName="alternateGreetings">
+                    <label>Alternate Greetings</label>
+                    <div class="form-text mb-2">
+                      You can define alternate greetings for your character. If any are defined these are randomly
+                      chosen together
+                      with the first message, as start of a chat.
+                    </div>
+
+                    @if (alternateGreetingsFA.controls.length == 0) {
+                      <div class="form-text mb-3 text-warning">No alternate greetings defined.</div>
+                    }
+
+                    @for (c of alternateGreetingsFA.controls; track c) {
+                      <div class="input-group mb-2">
+                        <textarea type="text" class="form-control form-control-sm"
+                                  [formControlName]="$index"></textarea>
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                (click)="onRemoveControl(alternateGreetingsFA, $index)">
+                          <span class="bi bi-trash"></span>
+                        </button>
+                      </div>
+                    }
+
+                    <div class="btn-toolbar justify-content-end mt-1">
+                      <button type="button" class="btn btn-outline-primary btn-sm"
+                              (click)="onAddControl(alternateGreetingsFA)">
+                        <span class="bi bi-plus-lg"></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="g-col-12 g-col-xl-6">
+
+                  <div class="mb-3">
+                    <label for="characterTalkativenessInput" class="form-label">Talkativeness</label>
+                    <div class="d-flex justify-content-between small text-muted">
+                      <div>Fairly silent</div>
+                      <div>Normal</div>
+                      <div>Very Noisy</div>
+                    </div>
+                    <input type="range" class="form-range px-4"
+                           formControlName="groupTalkativeness"
+                           id="characterTalkativenessInput"
+                           aria-describedby="characterTalkativenessInputHelp" min="0" max="1" step="0.1">
+                    <div class="form-text" id="characterTalkativenessInputHelp">
+                      Talkativeness in group chats.
+                    </div>
+                  </div>
+
+                  <div class="mb-3" formArrayName="groupGreetings">
+                    <label>Group Greetings</label>
+                    <div class="form-text mb-2">
+                      You can define group chat greetings for your character. If defined, these will be preferred
+                      over the first message or alternate greeting.
+                    </div>
+
+                    @if (groupGreetingsFA.controls.length == 0) {
+                      <div class="form-text mb-3 text-warning">No group greetings defined.</div>
+                    }
+
+                    @for (c of groupGreetingsFA.controls; track c) {
+                      <div class="input-group mb-2">
+                        <textarea type="text" class="form-control form-control-sm"
+                                  [formControlName]="$index"></textarea>
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                (click)="onRemoveControl(groupGreetingsFA, $index)">
+                          <span class="bi bi-trash"></span>
+                        </button>
+                      </div>
+                    }
+
+                    <div class="btn-toolbar justify-content-end mt-1">
+                      <button type="button" class="btn btn-outline-primary btn-sm"
+                              (click)="onAddControl(groupGreetingsFA)">
+                        <span class="bi bi-plus-lg"></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+        @if (!isNew()) {
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Extended details</h5>
+
+              <div class="grid">
+                <div class="g-col-12 g-col-xl-6">
+                  <div class="mb-3">
+                    <label for="characterHistoryInput">History</label>
+                    <textarea type="text" class="form-control"
+                              id="characterHistoryInput"
+                              rows="7"
+                              aria-describedby="characterHistoryInputHelp"
+                              formControlName="history"></textarea>
+                    <div id="characterHistoryInputHelp" class="form-text">
+                      Optionally describe your character's history, Where do they come from, how did they get here.
+                      Leave empty
+                      to skip.
+                    </div>
+                  </div>
+
+                  <div class="mb-3" formArrayName="dialogueExamples">
+                    <label>Chat examples</label>
+                    <div class="form-text mb-2">
+                      You can define examples of dialog and speech, such that the AI can personalize your character
+                      more.
+                    </div>
+
+                    @if (dialogueExamplesFA.controls.length == 0) {
+                      <div class="form-text mb-3 text-warning">No dialog examples defined.</div>
+                    } @else {
+                      <div class="form-text mb-2">
+                        Use <code>{{ '{{char}}' }}</code> to represent your character and
+                        <code>{{ '{{user}}' }}</code> to represent the chatter/you.
+                      </div>
+                    }
+
+                    @for (c of dialogueExamplesFA.controls; track c) {
+                      <div class="input-group mb-2">
+                        <textarea class="form-control form-control-sm"
+                                  [formControlName]="$index" rows="3"
+                                  [placeholder]="dialogExample"></textarea>
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                (click)="onRemoveControl(dialogueExamplesFA, $index)">
+                          <span class="bi bi-trash"></span>
+                        </button>
+                      </div>
+                    }
+
+                    <div class="btn-toolbar justify-content-end mt-1">
+                      <button type="button" class="btn btn-outline-primary btn-sm"
+                              (click)="onAddControl(dialogueExamplesFA)">
+                        <span class="bi bi-plus-lg"></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="g-col-12 g-col-xl-6">
+                  <div class="mb-3" formArrayName="likelyActions">
+                    <label>Likely actions</label>
+                    <div class="form-text mb-2">
+                      Likely actions are things your character is likely to do.
+                    </div>
+
+                    @if (likelyActionsFA.controls.length == 0) {
+                      <div class="form-text mb-3 text-warning">No likely actions defined.</div>
+                    } @else {
+                      <div class="form-text mb-3">
+                        Define a single "action" per line, e.g. <code>grunts a lot</code> or <code>gets
+                        distracted</code>.
+                      </div>
+                    }
+
+                    @for (c of likelyActionsFA.controls; track c) {
+                      <div class="input-group mb-2">
+                        <input type="text" class="form-control form-control-sm" [formControlName]="$index"/>
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                (click)="onRemoveControl(likelyActionsFA, $index)">
+                          <span class="bi bi-trash"></span>
+                        </button>
+                      </div>
+                    }
+
+                    <div class="btn-toolbar justify-content-end mt-1">
+                      <button type="button" class="btn btn-outline-primary btn-sm"
+                              (click)="onAddControl(likelyActionsFA)">
+                        <span class="bi bi-plus-lg"></span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="mb-3" formArrayName="unlikelyActions">
+                    <label>Unlikely actions</label>
+                    <div class="form-text mb-2">
+                      The opposite of Likely actions, Unlikely actions are things your character is not at all likely to
+                      do.
+                    </div>
+
+                    @if (unlikelyActionsFA.controls.length == 0) {
+                      <div class="form-text mb-3 text-warning">No unlikely actions defined.</div>
+                    } @else {
+                      <div class="form-text mb-3">
+                        Define a single "action" per line, e.g. <code>blinking with their eyes</code> or <code>be
+                        useful</code>.
+                      </div>
+                    }
+
+                    @for (c of unlikelyActionsFA.controls; track c) {
+                      <div class="input-group mb-2">
+                        <input type="text" class="form-control form-control-sm" [formControlName]="$index"/>
+                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                (click)="onRemoveControl(unlikelyActionsFA, $index)">
+                          <span class="bi bi-trash"></span>
+                        </button>
+                      </div>
+                    }
+
+                    <div class="btn-toolbar justify-content-end mt-1">
+                      <button type="button" class="btn btn-outline-primary btn-sm"
+                              (click)="onAddControl(unlikelyActionsFA)">
+                        <span class="bi bi-plus-lg"></span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
     </div>
   </div>
 </form>

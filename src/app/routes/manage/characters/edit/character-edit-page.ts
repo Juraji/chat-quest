@@ -1,30 +1,24 @@
 import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {formArray, formControl, formGroup, readOnlyControl, routeDataSignal} from '@util/ng';
+import {formArray, formControl, formGroup, readOnlyControl, routeDataSignal, TypedFormArray} from '@util/ng';
 import {Character, Characters} from '@db/characters';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
-import {
-  CharacterEditBaseInformation
-} from './components/character-edit-base-information/character-edit-base-information';
-import {
-  CharacterEditExtendedDetails
-} from './components/character-edit-extended-details/character-edit-extended-details';
 import {Notifications} from '@components/notifications';
 import {PageHeader} from '@components/page-header/page-header';
-import {CharacterEditChatDefaults} from './components/character-edit-chat-defaults/character-edit-chat-defaults';
 import {CharacterImportExport} from '@util/import-export';
 import {Tags} from '@db/tags';
 import {firstValueFrom} from 'rxjs';
 import {downloadBlob} from '@util/blobs';
+import {AvatarControl} from '@components/avatar-control';
+import {TagsControl} from '@components/tags-control/tags-control';
 
 @Component({
   selector: 'app-character-edit-page',
   imports: [
     ReactiveFormsModule,
-    CharacterEditBaseInformation,
-    CharacterEditExtendedDetails,
     PageHeader,
-    CharacterEditChatDefaults,
+    AvatarControl,
+    TagsControl,
   ],
   templateUrl: './character-edit-page.html',
 })
@@ -51,25 +45,59 @@ export class CharacterEditPage {
     tagIds: formControl([]),
     favorite: formControl(false),
 
+    // Chat Behavior
+    firstMessage: formControl(''),
+    alternateGreetings: formArray([]),
+
+    // Group Chat Behavior
+    groupGreetings: formArray([]),
+    groupTalkativeness: formControl(0.5),
+
     // Extended props
     history: formControl(''),
     likelyActions: formArray([]),
     unlikelyActions: formArray([]),
     dialogueExamples: formArray([]),
 
-    // Chat Defaults
+    // Scenario
     scenario: formControl(''),
-    firstMessage: formControl(''),
-    alternateGreetings: formArray([]),
-    groupGreetings: formArray([]),
-    groupTalkativeness: formControl(0.5),
   })
+
+  readonly alternateGreetingsFA: TypedFormArray<string> =
+    this.formGroup.get('alternateGreetings') as TypedFormArray<string>
+  readonly groupGreetingsFA: TypedFormArray<string> =
+    this.formGroup.get('groupGreetings') as TypedFormArray<string>
+  readonly likelyActionsFA: TypedFormArray<string> =
+    this.formGroup.get('likelyActions') as TypedFormArray<string>
+  readonly unlikelyActionsFA: TypedFormArray<string> =
+    this.formGroup.get('unlikelyActions') as TypedFormArray<string>
+  readonly dialogueExamplesFA: TypedFormArray<string> =
+    this.formGroup.get('dialogueExamples') as TypedFormArray<string>
+
+  readonly dialogExample: string = `{{user}}: Hi, I am User. What's your name?
+{{char}}: *looks at {{user}} startled* "Ow, hello. I didn't notice you there. Nice to meet you, my name is {char}."`
 
   constructor() {
     effect(() => {
       const character = this.character()
       this.formGroup.reset(character)
+
+      this.setControlsTo(this.alternateGreetingsFA, character.alternateGreetings)
+      this.setControlsTo(this.groupGreetingsFA, character.groupGreetings)
+      this.setControlsTo(this.likelyActionsFA, character.likelyActions)
+      this.setControlsTo(this.unlikelyActionsFA, character.unlikelyActions)
+      this.setControlsTo(this.dialogueExamplesFA, character.dialogueExamples)
     });
+  }
+
+  onAddControl(arr: TypedFormArray<string>, value: string = '') {
+    this.addControlTo(arr, value)
+    arr.markAsDirty()
+  }
+
+  onRemoveControl(arr: TypedFormArray<string>, idx: number) {
+    arr.removeAt(idx)
+    arr.markAsDirty()
   }
 
   onSubmit() {
@@ -129,5 +157,23 @@ export class CharacterEditPage {
 
     const blob = await this.characterExport.exportToFile(character, characterTags)
     downloadBlob(blob, `ChatQuest_v1_${character.name}.json`)
+  }
+
+  onExportScenario() {
+    const sceneDescription = this.formGroup.get('scenario')!.value
+    if (sceneDescription.trim() === '') return
+
+    this.router.navigate(['/manage/scenarios/new'], {
+      queryParams: {sceneDescription}
+    })
+  }
+
+  private setControlsTo(arr: TypedFormArray<string>, values: string[]) {
+    arr.clear()
+    values.forEach(value => this.addControlTo(arr, value))
+  }
+
+  private addControlTo(arr: TypedFormArray<string>, value: string = '') {
+    arr.push(formControl(value, [Validators.required]))
   }
 }
