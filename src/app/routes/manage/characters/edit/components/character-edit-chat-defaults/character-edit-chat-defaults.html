@@ -6,11 +6,18 @@
       <div class="g-col-12 g-col-xl-6">
         <div class="mb-3">
           <label for="characterScenarioInput">Scenario</label>
+          <div class="input-group">
           <textarea type="text" class="form-control"
                     id="characterScenarioInput"
                     rows="7"
                     aria-describedby="characterScenarioInputHelp"
-                    formControlName="history"></textarea>
+                    formControlName="scenario"></textarea>
+            <button type="button" class="btn btn-outline-secondary"
+                    title="Export to scenario"
+                    (click)="onExportScenario()">
+              <span class="bi bi-box-arrow-right"></span>
+            </button>
+          </div>
           <div id="characterScenarioInputHelp" class="form-text">
             Optionally describe the default scenario for you character.
           </div>

@@ -1,12 +1,8 @@
 import {ResolveFn} from '@angular/router';
-import {Scenario, Scenarios} from '@db/scenarios';
+import {NEW_SCENARIO, Scenario, Scenarios} from '@db/scenarios';
 import {NewRecord} from '@db/core';
 import {inject} from '@angular/core';
 
-const NEW_SCENARIO: NewRecord<Scenario> = {
-  name: '',
-  sceneDescription: ''
-}
 
 export const editScenarioResolver: ResolveFn<Scenario | NewRecord<Scenario>> = (route) => {
   const service = inject(Scenarios)
@@ -14,7 +10,11 @@ export const editScenarioResolver: ResolveFn<Scenario | NewRecord<Scenario>> = (
   const iScenarioId = Number(scenarioId)
 
   if (scenarioId === 'new') {
-    return {...NEW_SCENARIO}
+    const sceneDescription: string = route.queryParamMap.has('sceneDescription')
+      ? route.queryParamMap.get('sceneDescription')!
+      : NEW_SCENARIO.sceneDescription
+
+    return {...NEW_SCENARIO, sceneDescription}
   } else if (!isNaN(iScenarioId)) {
     return service.get(iScenarioId)
   } else {

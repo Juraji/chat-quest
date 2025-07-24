@@ -1,7 +1,8 @@
-import {Component, computed, effect, input, InputSignal} from '@angular/core';
+import {Component, computed, effect, inject, input, InputSignal} from '@angular/core';
 import {formControl, TypedFormArray, TypedFormGroup} from '@util/ng';
 import {Character} from '@db/characters';
 import {FormArray, ReactiveFormsModule, Validators} from '@angular/forms';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-character-edit-chat-defaults',
@@ -11,6 +12,8 @@ import {FormArray, ReactiveFormsModule, Validators} from '@angular/forms';
   templateUrl: './character-edit-chat-defaults.html'
 })
 export class CharacterEditChatDefaults {
+  private readonly router = inject(Router)
+
   readonly parentForm: InputSignal<TypedFormGroup<Character>> = input.required()
   readonly character: InputSignal<Character> = input.required()
 
@@ -62,5 +65,14 @@ export class CharacterEditChatDefaults {
     const fa = this.groupGreetingsFA()
     fa.removeAt(idx)
     fa.markAsDirty()
+  }
+
+  onExportScenario() {
+    const sceneDescription = this.parentForm().get('scenario')!.value
+    if (sceneDescription.trim() === '') return
+
+    this.router.navigate(['/manage/scenarios/new'], {
+      queryParams: {sceneDescription}
+    })
   }
 }
