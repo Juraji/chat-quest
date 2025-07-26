@@ -16,7 +16,6 @@ export function provideDatabase(): Provider {
 export async function initializeDatabase(http: HttpClient): Promise<IDBPDatabase> {
   console.log('Initializing database...', {DATABASE_NAME, CURRENT_VERSION});
   let previousVersion = CURRENT_VERSION
-  let currentVersion = CURRENT_VERSION
 
   const db = await openDB(DATABASE_NAME, CURRENT_VERSION, {
     blocking: () => window.location.reload(),
@@ -25,7 +24,6 @@ export async function initializeDatabase(http: HttpClient): Promise<IDBPDatabase
       console.log(`Migrating DB from ${oldVersion} to ${newVersion}`);
 
       previousVersion = oldVersion;
-      currentVersion = newVersion;
 
       for (let i = oldVersion + 1; i <= newVersion; i++) {
         const migration = MIGRATIONS[i]
@@ -34,9 +32,9 @@ export async function initializeDatabase(http: HttpClient): Promise<IDBPDatabase
     }
   })
 
-  if (currentVersion !== CURRENT_VERSION) {
-    console.log(`Running post migrations from ${previousVersion} to ${currentVersion}`);
-    for (let i = previousVersion + 1; i <= currentVersion; i++) {
+  if (previousVersion !== CURRENT_VERSION) {
+    console.log(`Running post migrations from ${previousVersion} to ${CURRENT_VERSION}`);
+    for (let i = previousVersion + 1; i <= CURRENT_VERSION; i++) {
       const postmigration = POST_MIGRATIONS[i]
       if (!!postmigration) await postmigration(db, http)
     }
