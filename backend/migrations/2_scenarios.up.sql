@@ -1,0 +1,6 @@
+CREATE TABLE scenarios
+(
+  id    INTEGER PRIMARY KEY AUTOINCREMENT,
+  name  VARCHAR(100) NOT NULL,
+  scene TEXT         NOT NULL
+);
