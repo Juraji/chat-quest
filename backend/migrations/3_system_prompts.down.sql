@@ -1,1 +1,1 @@
-drop table system_prompts;
+DROP TABLE system_prompts;

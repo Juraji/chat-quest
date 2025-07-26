@@ -1,1 +1,1 @@
-drop table scenarios;
+DROP TABLE scenarios;

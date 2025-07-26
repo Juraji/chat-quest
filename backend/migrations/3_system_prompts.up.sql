@@ -1,6 +1,6 @@
-create table system_prompts
+CREATE TABLE system_prompts
 (
-  id     integer primary key autoincrement,
-  name   varchar(100) not null,
-  prompt text         not null
+  id     INTEGER PRIMARY KEY AUTOINCREMENT,
+  name   VARCHAR(100) NOT NULL,
+  prompt TEXT         NOT NULL
 );
