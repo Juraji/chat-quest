@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"chat-quest/backend/model"
 	"database/sql"
 	"github.com/gin-gonic/gin"
+	"juraji.nl/chat-quest/model"
 	"net/http"
 )
 

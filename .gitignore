@@ -11,6 +11,9 @@
 npm-debug.log
 yarn-error.log
 
+# Go
+/go
+
 # IDEs and editors
 .idea/
 *.iml

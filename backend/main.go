@@ -1,11 +1,12 @@
 package main
 
 import (
-	"chat-quest/backend/model"
-	"chat-quest/backend/routes"
 	"database/sql"
 	"github.com/gin-gonic/gin"
+	"juraji.nl/chat-quest/model"
+	"juraji.nl/chat-quest/routes"
 	"log"
+	"os"
 )
 
 func main() {
@@ -23,19 +24,23 @@ func main() {
 
 	router := gin.New()
 
-	// Set only to trust localhost proxies
 	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
 		log.Fatal("Failed to set trusted proxies", err)
 	}
 
-	// Create a new router group with the /api prefix
+	// Register API routes first
 	apiRouter := router.Group("/api")
 	{
 		log.Println("Registering routes...")
 		routes.CharactersController(apiRouter, db)
 	}
 
-	log.Println("Server running on http://localhost:8080")
+	// Add a custom handler for static files that don't match our API pattern
+	chatQuestUIDir := os.Getenv("CHAT_QUEST_UI_DIR")
+	log.Printf("Serving Chat Quest UI from directory '%s'", chatQuestUIDir)
+	router.NoRoute(routes.ChatQuestUIHandler(chatQuestUIDir))
+
+	log.Println("ChatQuest is running on http://localhost:8080")
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)
 	}
