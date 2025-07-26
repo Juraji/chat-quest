@@ -11,6 +11,7 @@ func queryForList[T any](
 	scanFunc func(rows *sql.Rows, dest *T) error,
 ) ([]*T, error) {
 	records := make([]*T, 0)
+	var err error
 
 	rows, err := db.Query(query)
 	if err != nil {
@@ -23,7 +24,7 @@ func queryForList[T any](
 	for rows.Next() {
 		var dest T
 
-		err := scanFunc(rows, &dest)
+		err = scanFunc(rows, &dest)
 		if err != nil {
 			return nil, err
 		}
@@ -31,7 +32,7 @@ func queryForList[T any](
 		records = append(records, &dest)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
@@ -56,4 +57,25 @@ func queryForRecord[T any](
 	}
 
 	return &dest, nil
+}
+
+func insertRecord(db *sql.DB, query string, args []any, scanFunc func(row *sql.Row) error) error {
+	row := db.QueryRow(query, args...)
+	err := scanFunc(row)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil
+	}
+
+	return err
+}
+
+func updateRecord(db *sql.DB, query string, args []any) error {
+	_, err := db.Exec(query, args...)
+	return err
+}
+
+func deleteRecord(db *sql.DB, query string, args []any) error {
+	_, err := db.Exec(query, args...)
+	return err
 }

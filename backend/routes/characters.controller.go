@@ -4,6 +4,7 @@ import (
 	"chat-quest/backend/model"
 	"database/sql"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 func CharactersController(router *gin.RouterGroup, db *sql.DB) {
@@ -16,12 +17,51 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 
 	charactersRouter.GET("/:id", func(c *gin.Context) {
 		id, err := getID(c, "id")
-		if id == 0 {
-			c.JSON(400, gin.H{"error": "Invalid character ID"})
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
 			return
 		}
 
 		character, err := model.CharacterById(db, id)
 		respondSingle(c, character, err)
+	})
+
+	charactersRouter.POST("/", func(c *gin.Context) {
+		var newCharacter model.Character
+		if err := c.ShouldBind(&newCharacter); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character data"})
+			return
+		}
+
+		err := model.CreateCharacter(db, &newCharacter)
+		respondSingle(c, &newCharacter, err)
+	})
+
+	charactersRouter.PUT("/:id", func(c *gin.Context) {
+		id, err := getID(c, "id")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		var character model.Character
+		if err := c.ShouldBind(&character); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character data"})
+			return
+		}
+
+		err = model.UpdateCharacter(db, id, &character)
+		respondEmpty(c, err)
+	})
+
+	charactersRouter.DELETE("/:id", func(c *gin.Context) {
+		id, err := getID(c, "id")
+		if err != nil {
+			c.JSON(400, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		err = model.DeleteCharacterById(db, id)
+		respondDeleted(c, err)
 	})
 }
