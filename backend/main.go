@@ -9,6 +9,19 @@ import (
 	"os"
 )
 
+var (
+	ChatQuestUIDir = ""
+	GinMode        = gin.DebugMode
+)
+
+func init() {
+	gin.SetMode(GinMode)
+
+	if ChatQuestUIDir == "" {
+		ChatQuestUIDir = os.Getenv("CHAT_QUEST_UI_DIR")
+	}
+}
+
 func main() {
 	db, err := model.InitDB()
 	if err != nil {
@@ -36,9 +49,8 @@ func main() {
 	}
 
 	// Add a custom handler for static files that don't match our API pattern
-	chatQuestUIDir := os.Getenv("CHAT_QUEST_UI_DIR")
-	log.Printf("Serving Chat Quest UI from directory '%s'", chatQuestUIDir)
-	router.NoRoute(routes.ChatQuestUIHandler(chatQuestUIDir))
+	log.Printf("Serving Chat Quest UI from directory '%s'", ChatQuestUIDir)
+	router.NoRoute(routes.ChatQuestUIHandler(ChatQuestUIDir))
 
 	log.Println("ChatQuest is running on http://localhost:8080")
 	if err := router.Run(":8080"); err != nil {
