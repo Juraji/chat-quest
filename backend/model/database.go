@@ -25,7 +25,7 @@ func InitDB() (*sql.DB, error) {
 	}
 
 	log.Println("Running migrations...")
-	if err = RunMigrations(db); err != nil {
+	if err = runMigrations(db); err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %v", err)
 	}
 
@@ -33,7 +33,7 @@ func InitDB() (*sql.DB, error) {
 	return db, nil
 }
 
-func RunMigrations(db *sql.DB) error {
+func runMigrations(db *sql.DB) error {
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to create driver instance: %v", err)
@@ -51,37 +51,4 @@ func RunMigrations(db *sql.DB) error {
 	}
 
 	return nil
-}
-
-func QueryForList[T any](
-	db *sql.DB,
-	query string,
-	scanFunc func(rows *sql.Rows, dest *T) error,
-) ([]T, error) {
-	records := make([]T, 0)
-
-	rows, err := db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer func(rows *sql.Rows) {
-		_ = rows.Close()
-	}(rows)
-
-	for rows.Next() {
-		var dest T
-
-		err := scanFunc(rows, &dest)
-		if err != nil {
-			return nil, err
-		}
-
-		records = append(records, dest)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return records, nil
 }

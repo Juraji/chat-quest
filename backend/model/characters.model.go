@@ -12,7 +12,7 @@ type Character struct {
 	AvatarUrl *string `json:"avatarUrl"`
 }
 
-func AllCharacters(db *sql.DB) ([]Character, error) {
+func AllCharacters(db *sql.DB) ([]*Character, error) {
 	query := "SELECT id, name, favorite, created_at, avatar_url FROM characters"
 	scanFunc := func(rows *sql.Rows, dest *Character) error {
 		return rows.Scan(
@@ -24,5 +24,21 @@ func AllCharacters(db *sql.DB) ([]Character, error) {
 		)
 	}
 
-	return QueryForList[Character](db, query, scanFunc)
+	return queryForList[Character](db, query, scanFunc)
+}
+
+func CharacterById(db *sql.DB, id int32) (*Character, error) {
+	query := "SELECT id, name, favorite, created_at, avatar_url FROM characters WHERE id = $1"
+	args := []any{id}
+	scanFunc := func(row *sql.Row, dest *Character) error {
+		return row.Scan(
+			&dest.ID,
+			&dest.Name,
+			&dest.Favorite,
+			&dest.CreatedAt,
+			&dest.AvatarUrl,
+		)
+	}
+
+	return queryForRecord[Character](db, query, args, scanFunc)
 }
