@@ -2,8 +2,7 @@ import {Component, effect, inject, signal, Signal, WritableSignal} from '@angula
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {formControl, formGroup, readOnlyControl} from '@util/ng';
 import {toSignal} from '@angular/core/rxjs-interop';
-import {SystemPrompts} from '@db/system-prompts';
-import {SystemPrompt} from '@db/system-prompts/system-prompt';
+import {SystemPrompt, SystemPrompts, SystemPromptType} from '@db/system-prompts';
 import {Notifications} from '@components/notifications';
 
 @Component({
@@ -13,6 +12,7 @@ import {Notifications} from '@components/notifications';
     FormsModule
   ],
   templateUrl: './chat-settings-system-prompts.html',
+  styleUrls: ['./chat-settings-system-prompts.scss']
 })
 export class ChatSettingsSystemPrompts {
   private readonly systemPrompts = inject(SystemPrompts)
@@ -25,6 +25,7 @@ export class ChatSettingsSystemPrompts {
     id: readOnlyControl(),
     name: formControl('', [Validators.required]),
     prompt: formControl('', [Validators.required]),
+    type: formControl<SystemPromptType>('CHAT', [Validators.required]),
   })
 
   constructor() {
@@ -42,7 +43,8 @@ export class ChatSettingsSystemPrompts {
     this.editedPrompt.set({
       id: null as any,
       name: '',
-      prompt: ''
+      prompt: '',
+      type: 'CHAT'
     })
   }
 
@@ -50,6 +52,18 @@ export class ChatSettingsSystemPrompts {
     const p = this.availablePrompts().find(p => p.id === id)
     if (!p) return
     this.editedPrompt.set(p)
+  }
+
+  onCopyPrompt() {
+    this.editedPrompt.update(current => {
+      if(!current) return current
+
+      return {
+        ...current,
+        id: null as any,
+        name: `${current.name} (Copy)`
+      }
+    })
   }
 
   onSubmit() {

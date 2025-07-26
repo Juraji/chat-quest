@@ -30,10 +30,17 @@
       <form [formGroup]="formGroup" (submit)="onSubmit()">
         <div class="mb-3">
           <label for="systemPromptNameInput">Name</label>
-          <input type="text" class="form-control"
-                 id="systemPromptNameInput"
-                 aria-describedby="systemPromptNameInputHelp"
-                 formControlName="name"/>
+          <div class="input-group">
+            <select class="form-select system-prompt-type" formControlName="type">
+              <option value="CHAT">Chat</option>
+              <option value="MEMORIES">Memories</option>
+              <option value="SUMMARIES">Summaries</option>
+            </select>
+            <input type="text" class="form-control"
+                   id="systemPromptNameInput"
+                   aria-describedby="systemPromptNameInputHelp"
+                   formControlName="name"/>
+          </div>
           <div id="systemPromptNameInputHelp" class="form-text">A recognizable name for this system prompt</div>
         </div>
 
@@ -49,7 +56,12 @@
 
         <div class="btn-toolbar gap-2">
           <button class="btn btn-primary">Save Changes</button>
-          <button type="button" class="btn btn-outline-danger" (click)="onDeletePrompt()">Delete Prompt</button>
+          <button type="button" class="btn btn-outline-secondary"
+                  (click)="onCopyPrompt()">Copy Prompt
+          </button>
+          <button type="button" class="btn btn-outline-danger"
+                  (click)="onDeletePrompt()">Delete Prompt
+          </button>
         </div>
       </form>
     }
