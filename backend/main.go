@@ -47,6 +47,7 @@ func main() {
 		log.Println("Registering routes...")
 		routes.TagsController(apiRouter, db)
 		routes.CharactersController(apiRouter, db)
+		routes.ScenariosController(apiRouter, db)
 	}
 
 	// Add a custom handler for static files that don't match our API pattern

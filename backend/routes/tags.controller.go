@@ -44,14 +44,14 @@ func TagsController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		var newTag model.Tag
-		if err := c.ShouldBind(&newTag); err != nil {
+		var tag model.Tag
+		if err := c.ShouldBind(&tag); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag data"})
 			return
 		}
 
-		err = model.UpdateTag(db, id, &newTag)
-		respondSingle(c, &newTag, err)
+		err = model.UpdateTag(db, id, &tag)
+		respondSingle(c, &tag, err)
 	})
 
 	tagsRouter.DELETE("/:id", func(c *gin.Context) {
