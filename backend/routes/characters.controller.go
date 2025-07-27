@@ -136,7 +136,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 		respondDeleted(c, err)
 	})
 
-	charactersRouter.GET("/:characterId/dialogReplaceGreetingsByCharacterIdue-examples", func(c *gin.Context) {
+	charactersRouter.GET("/:characterId/dialogue-examples", func(c *gin.Context) {
 		characterId, err := getID(c, "characterId")
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})

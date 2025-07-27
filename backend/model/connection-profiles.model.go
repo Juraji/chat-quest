@@ -1,6 +1,9 @@
 package model
 
-import "database/sql"
+import (
+	"database/sql"
+	"strings"
+)
 
 type ConnectionProfile struct {
 	ID           int64  `json:"id"`
@@ -10,14 +13,14 @@ type ConnectionProfile struct {
 }
 
 type LlmModel struct {
-	ID                  int64   `json:"id"`
-	ConnectionProfileId string  `json:"connectionProfileId"`
-	ModelId             string  `json:"modelId"`
-	Temperature         float64 `json:"temperature"`
-	MaxTokens           int64   `json:"maxTokens"`
-	TopP                float64 `json:"topP"`
-	Stream              bool    `json:"stream"`
-	Stop                string  `json:"stop"`
+	ID                  int64    `json:"id"`
+	ConnectionProfileId string   `json:"connectionProfileId"`
+	ModelId             string   `json:"modelId"`
+	Temperature         float64  `json:"temperature"`
+	MaxTokens           int64    `json:"maxTokens"`
+	TopP                float64  `json:"topP"`
+	Stream              bool     `json:"stream"`
+	Stop                []string `json:"stop"`
 }
 
 func connectionProfileScanner(scanner RowScanner, dest *ConnectionProfile) error {
@@ -30,7 +33,8 @@ func connectionProfileScanner(scanner RowScanner, dest *ConnectionProfile) error
 }
 
 func llmModelScanner(scanner RowScanner, dest *LlmModel) error {
-	return scanner.Scan(
+	var stopString string
+	err := scanner.Scan(
 		&dest.ID,
 		&dest.ConnectionProfileId,
 		&dest.ModelId,
@@ -38,8 +42,18 @@ func llmModelScanner(scanner RowScanner, dest *LlmModel) error {
 		&dest.MaxTokens,
 		&dest.TopP,
 		&dest.Stream,
-		&dest.Stop,
+		&stopString,
 	)
+	if err != nil {
+		return err
+	}
+
+	if stopString != "" {
+		dest.Stop = strings.Split(stopString, ",")
+	} else {
+		dest.Stop = []string{}
+	}
+	return nil
 }
 
 func AllConnectionProfiles(db *sql.DB) ([]*ConnectionProfile, error) {
@@ -84,8 +98,16 @@ func LlmModelsByConnectionProfileId(db *sql.DB, profileId int64) ([]*LlmModel, e
 }
 
 func CreateLlmModel(db *sql.DB, llmModel *LlmModel) error {
-	query := "INSERT INTO llm_models (model_id, connection_profile_id, temperature, max_tokens, top_p, stream, stop) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
-	args := []any{llmModel.ModelId, llmModel.ConnectionProfileId, llmModel.Temperature, llmModel.MaxTokens, llmModel.TopP, llmModel.Stream, llmModel.Stop}
+	query := "INSERT INTO llm_models (model_id, connection_profile_id, temperature, max_tokens, top_p, stream, stop) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"
+	args := []any{
+		llmModel.ModelId,
+		llmModel.ConnectionProfileId,
+		llmModel.Temperature,
+		llmModel.MaxTokens,
+		llmModel.TopP,
+		llmModel.Stream,
+		strings.Join(llmModel.Stop, ","),
+	}
 	scanFunc := func(scanner RowScanner) error {
 		return scanner.Scan(&llmModel.ID)
 	}
@@ -95,7 +117,14 @@ func CreateLlmModel(db *sql.DB, llmModel *LlmModel) error {
 
 func UpdateLlmModel(db *sql.DB, id int64, llmModel *LlmModel) error {
 	query := "UPDATE llm_models SET temperature = $1, max_tokens = $2, top_p = $3, stream = $4, stop = $5 WHERE id = $6"
-	args := []any{llmModel.Temperature, llmModel.MaxTokens, llmModel.TopP, llmModel.Stream, llmModel.Stop, id}
+	args := []any{
+		llmModel.Temperature,
+		llmModel.MaxTokens,
+		llmModel.TopP,
+		llmModel.Stream,
+		strings.Join(llmModel.Stop, ","),
+		id,
+	}
 
 	return updateRecord(db, query, args)
 }

@@ -6,11 +6,11 @@ import (
 )
 
 type Character struct {
-	ID        int64   `json:"id"`
-	CreatedAt string  `json:"createdAt"`
-	Name      string  `json:"name"`
-	Favorite  bool    `json:"favorite"`
-	AvatarUrl *string `json:"avatarUrl"`
+	ID        int64  `json:"id"`
+	CreatedAt string `json:"createdAt"`
+	Name      string `json:"name"`
+	Favorite  bool   `json:"favorite"`
+	AvatarUrl string `json:"avatarUrl"`
 }
 
 type CharacterDetails struct {
