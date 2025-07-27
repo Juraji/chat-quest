@@ -49,6 +49,7 @@ func main() {
 		routes.CharactersController(apiRouter, db)
 		routes.ScenariosController(apiRouter, db)
 		routes.SystemPromptsController(apiRouter, db)
+		routes.ConnectionProfilesController(apiRouter, db)
 	}
 
 	// Add a custom handler for static files that don't match our API pattern

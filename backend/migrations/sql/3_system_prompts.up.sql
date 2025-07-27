@@ -1,9 +1,9 @@
 CREATE TABLE system_prompts
 (
-    id     INTEGER PRIMARY KEY AUTOINCREMENT,
-    name   VARCHAR(100) NOT NULL,
-    type   VARCHAR      NOT NULL,
-    prompt TEXT         NOT NULL
+  id     INTEGER PRIMARY KEY AUTOINCREMENT,
+  name   VARCHAR(100) NOT NULL,
+  type   VARCHAR(50)  NOT NULL,
+  prompt TEXT         NOT NULL
 );
 
 -- Default Prompts
