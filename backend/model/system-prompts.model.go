@@ -3,7 +3,7 @@ package model
 import "database/sql"
 
 type SystemPrompt struct {
-	DbEntity
+	ID     int64  `json:"id"`
 	Name   string `json:"name"`
 	Type   string `json:"type"`
 	Prompt string `json:"prompt"`

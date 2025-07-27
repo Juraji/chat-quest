@@ -9,10 +9,6 @@ type RowScanner interface {
 	Scan(dest ...any) error
 }
 
-type DbEntity struct {
-	ID int64 `json:"id"`
-}
-
 func queryForList[T any](
 	db *sql.DB,
 	query string,
