@@ -51,7 +51,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 		}
 
 		err = model.UpdateCharacter(db, id, &character)
-		respondEmpty(c, err)
+		respondSingle(c, &character, err)
 	})
 
 	charactersRouter.DELETE("/:id", func(c *gin.Context) {

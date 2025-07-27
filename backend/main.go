@@ -45,6 +45,7 @@ func main() {
 	apiRouter := router.Group("/api")
 	{
 		log.Println("Registering routes...")
+		routes.TagsController(apiRouter, db)
 		routes.CharactersController(apiRouter, db)
 	}
 
