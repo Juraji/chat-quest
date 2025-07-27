@@ -10,7 +10,7 @@ import (
 func SystemPromptsController(router *gin.RouterGroup, db *sql.DB) {
 	systemPromptsRouter := router.Group("/system-prompts")
 
-	systemPromptsRouter.GET("/", func(c *gin.Context) {
+	systemPromptsRouter.GET("", func(c *gin.Context) {
 		prompts, err := model.AllSystemPrompts(db)
 		respondList(c, prompts, err)
 	})

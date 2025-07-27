@@ -10,7 +10,7 @@ import (
 func TagsController(router *gin.RouterGroup, db *sql.DB) {
 	tagsRouter := router.Group("/tags")
 
-	tagsRouter.GET("/", func(c *gin.Context) {
+	tagsRouter.GET("", func(c *gin.Context) {
 		tags, err := model.AllTags(db)
 		respondList(c, tags, err)
 	})

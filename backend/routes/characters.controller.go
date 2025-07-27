@@ -10,7 +10,7 @@ import (
 func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	charactersRouter := router.Group("/characters")
 
-	charactersRouter.GET("/", func(c *gin.Context) {
+	charactersRouter.GET("", func(c *gin.Context) {
 		characters, err := model.AllCharacters(db)
 		respondList(c, characters, err)
 	})

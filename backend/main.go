@@ -2,24 +2,35 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/model"
 	"juraji.nl/chat-quest/routes"
+	"juraji.nl/chat-quest/util"
 	"log"
-	"os"
 )
 
 var (
-	ChatQuestUIDir = ""
-	GinMode        = gin.DebugMode
+	ChatQuestUIRoot   = "./browser"
+	GinMode           = gin.DebugMode
+	GinTrustedProxies []string
+	CorsAllowOrigins  = []string{"http://localhost:4200", "http://localhost:8080", "http://127.0.0.1:8080"}
+	ApplicationHost   = "localhost"
+	ApplicationPort   = "8080"
+	ApiBasePath       = "/api"
 )
 
 func init() {
-	gin.SetMode(GinMode)
+	util.SetStringFromEnvIfPresent("CHAT_QUEST_UI_ROOT", &ChatQuestUIRoot)
+	util.SetStringFromEnvIfPresent("CHAT_QUEST_GIN_MODE", &GinMode)
+	util.SetSliceFromEnvIfPresent("CHAT_QUEST_GIN_TRUSTED_PROXIES", &GinTrustedProxies)
+	util.SetSliceFromEnvIfPresent("CHAT_QUEST_CORS_ALLOW_ORIGINS", &CorsAllowOrigins)
+	util.SetStringFromEnvIfPresent("CHAT_QUEST_APPLICATION_HOST", &ApplicationHost)
+	util.SetStringFromEnvIfPresent("CHAT_QUEST_APPLICATION_PORT", &ApplicationPort)
+	util.SetStringFromEnvIfPresent("CHAT_QUEST_API_BASE_PATH", &ApiBasePath)
 
-	if ChatQuestUIDir == "" {
-		ChatQuestUIDir = os.Getenv("CHAT_QUEST_UI_DIR")
-	}
+	gin.SetMode(GinMode)
 }
 
 func main() {
@@ -37,12 +48,16 @@ func main() {
 
 	router := gin.New()
 
-	if err := router.SetTrustedProxies([]string{"127.0.0.1"}); err != nil {
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = CorsAllowOrigins
+	router.Use(cors.New(corsConfig))
+
+	if err := router.SetTrustedProxies(GinTrustedProxies); err != nil {
 		log.Fatal("Failed to set trusted proxies", err)
 	}
 
 	// Register API routes first
-	apiRouter := router.Group("/api")
+	apiRouter := router.Group(ApiBasePath)
 	{
 		log.Println("Registering routes...")
 		routes.TagsController(apiRouter, db)
@@ -53,11 +68,13 @@ func main() {
 	}
 
 	// Add a custom handler for static files that don't match our API pattern
-	log.Printf("Serving Chat Quest UI from directory '%s'", ChatQuestUIDir)
-	router.NoRoute(routes.ChatQuestUIHandler(ChatQuestUIDir))
+	log.Printf("Serving Chat Quest UI from directory '%s'", ChatQuestUIRoot)
+	router.NoRoute(routes.ChatQuestUIHandler(ChatQuestUIRoot))
 
-	log.Println("ChatQuest is running on http://localhost:8080")
-	if err := router.Run(":8080"); err != nil {
+	serverAddr := fmt.Sprintf("%s:%s", ApplicationHost, ApplicationPort)
+	//goland:noinspection HttpUrlsUsage
+	log.Printf("ChatQuest is running on http://%s", serverAddr)
+	if err := router.Run(serverAddr); err != nil {
 		log.Fatal(err)
 	}
 }

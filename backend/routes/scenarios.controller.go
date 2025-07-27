@@ -10,7 +10,7 @@ import (
 func ScenariosController(router *gin.RouterGroup, db *sql.DB) {
 	scenariosRouter := router.Group("/scenarios")
 
-	scenariosRouter.GET("/", func(c *gin.Context) {
+	scenariosRouter.GET("", func(c *gin.Context) {
 		scenarios, err := model.AllScenarios(db)
 		respondList(c, scenarios, err)
 	})
