@@ -28,7 +28,7 @@ func ScenarioById(db *sql.DB, id int64) (*Scenario, error) {
 }
 
 func CreateScenario(db *sql.DB, newScenario *Scenario) error {
-	query := "INSERT INTO scenarios(name, scene) VALUES($1, $2)"
+	query := "INSERT INTO scenarios (name, scene) VALUES($1, $2)"
 	args := []any{newScenario.Name, newScenario.Scene}
 	scanFunc := func(scanner RowScanner) error {
 		return scanner.Scan(&newScenario.ID)
