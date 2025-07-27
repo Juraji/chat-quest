@@ -7,11 +7,11 @@ import (
 	"strconv"
 )
 
-func getID(c *gin.Context, key string) (int32, error) {
+func getID(c *gin.Context, key string) (int64, error) {
 	idStr := c.Param(key)
-	id, err := strconv.ParseInt(idStr, 10, 32)
+	id, err := strconv.ParseInt(idStr, 10, 64)
 
-	return int32(id), err
+	return id, err
 }
 
 func respondList[T any](c *gin.Context, records []*T, err error) {

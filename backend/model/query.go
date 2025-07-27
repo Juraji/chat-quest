@@ -5,15 +5,20 @@ import (
 	"errors"
 )
 
+type RowScanner interface {
+	Scan(dest ...any) error
+}
+
 func queryForList[T any](
 	db *sql.DB,
 	query string,
-	scanFunc func(rows *sql.Rows, dest *T) error,
+	args []any,
+	scanFunc func(scanner RowScanner, dest *T) error,
 ) ([]*T, error) {
 	records := make([]*T, 0)
 	var err error
 
-	rows, err := db.Query(query)
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +48,7 @@ func queryForRecord[T any](
 	db *sql.DB,
 	query string,
 	args []any,
-	scanFunc func(rows *sql.Row, dest *T) error,
+	scanFunc func(scanner RowScanner, dest *T) error,
 ) (*T, error) {
 	var dest T
 
@@ -59,7 +64,7 @@ func queryForRecord[T any](
 	return &dest, nil
 }
 
-func insertRecord(db *sql.DB, query string, args []any, scanFunc func(row *sql.Row) error) error {
+func insertRecord(db *sql.DB, query string, args []any, scanFunc func(scanner RowScanner) error) error {
 	row := db.QueryRow(query, args...)
 	err := scanFunc(row)
 

@@ -11,44 +11,36 @@ type Tag struct {
 	Lowercase string `json:"lowercase"`
 }
 
-func AllTags(db *sql.DB) ([]*Tag, error) {
-	query := "SELECT * FROM tags"
-	scanFunc := func(rows *sql.Rows, dest *Tag) error {
-		return rows.Scan(
-			&dest.ID,
-			&dest.Label,
-			&dest.Lowercase,
-		)
-	}
-
-	return queryForList(db, query, scanFunc)
+func tagScanner(scanner RowScanner, dest *Tag) error {
+	return scanner.Scan(
+		&dest.ID,
+		&dest.Label,
+		&dest.Lowercase,
+	)
 }
 
-func TagById(db *sql.DB, id int32) (*Tag, error) {
+func AllTags(db *sql.DB) ([]*Tag, error) {
+	query := "SELECT * FROM tags"
+	return queryForList(db, query, nil, tagScanner)
+}
+
+func TagById(db *sql.DB, id int64) (*Tag, error) {
 	query := "SELECT * FROM tags WHERE id = $1"
 	args := []any{id}
-	scanFunc := func(row *sql.Row, dest *Tag) error {
-		return row.Scan(
-			&dest.ID,
-			&dest.Label,
-			&dest.Lowercase,
-		)
-	}
-
-	return queryForRecord(db, query, args, scanFunc)
+	return queryForRecord(db, query, args, tagScanner)
 }
 
 func CreateTag(db *sql.DB, newTag *Tag) error {
 	query := "INSERT INTO tags(label, lowercase) VALUES ($1, $2) RETURNING id"
 	args := []any{newTag.Label, newTag.Lowercase}
-	scanFunc := func(row *sql.Row) error {
-		return row.Scan(&newTag.ID)
+	scanFunc := func(scanner RowScanner) error {
+		return scanner.Scan(&newTag.ID)
 	}
 
 	return insertRecord(db, query, args, scanFunc)
 }
 
-func UpdateTag(db *sql.DB, id int32, tag *Tag) error {
+func UpdateTag(db *sql.DB, id int64, tag *Tag) error {
 	tag.Lowercase = strings.ToLower(tag.Label)
 
 	query := "UPDATE tags SET label = $1, lowercase = $2 WHERE id = $3"
@@ -57,7 +49,7 @@ func UpdateTag(db *sql.DB, id int32, tag *Tag) error {
 	return updateRecord(db, query, args)
 }
 
-func DeleteTagById(db *sql.DB, id int32) error {
+func DeleteTagById(db *sql.DB, id int64) error {
 	query := "DELETE FROM tags WHERE id = $1"
 	args := []any{id}
 

@@ -30,7 +30,6 @@ CREATE TABLE character_details
 
 CREATE TABLE character_tags
 (
-  id           INTEGER PRIMARY KEY AUTOINCREMENT,
   character_id INTEGER NOT NULL,
   tag_id       INTEGER NOT NULL,
 
@@ -40,27 +39,24 @@ CREATE TABLE character_tags
 
 CREATE TABLE character_dialogue_examples
 (
-  id           INTEGER PRIMARY KEY AUTOINCREMENT,
   character_id INTEGER NOT NULL,
-  example      TEXT    NOT NULL,
+  text      TEXT    NOT NULL,
 
   CONSTRAINT fk_cde__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
 );
 
 CREATE TABLE character_greetings
 (
-  id           INTEGER PRIMARY KEY AUTOINCREMENT,
   character_id INTEGER NOT NULL,
-  greeting     TEXT    NOT NULL,
+  text     TEXT    NOT NULL,
 
   CONSTRAINT fk_cag__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
 );
 
 CREATE TABLE character_group_greetings
 (
-  id           INTEGER PRIMARY KEY AUTOINCREMENT,
   character_id INTEGER NOT NULL,
-  greeting     TEXT    NOT NULL,
+  text     TEXT    NOT NULL,
 
   CONSTRAINT fk_cgg__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
 );
