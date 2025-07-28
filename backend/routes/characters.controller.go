@@ -26,7 +26,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 		respondSingle(c, character, err)
 	})
 
-	charactersRouter.POST("/", func(c *gin.Context) {
+	charactersRouter.POST("", func(c *gin.Context) {
 		var newCharacter model.Character
 		if err := c.ShouldBind(&newCharacter); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character data"})

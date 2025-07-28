@@ -35,7 +35,7 @@ func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
 		respondSingle(c, profile, err)
 	})
 
-	connectionProfilesRouter.POST("/", func(c *gin.Context) {
+	connectionProfilesRouter.POST("", func(c *gin.Context) {
 		var newProfile model.ConnectionProfile
 		if err := c.ShouldBindJSON(&newProfile); err != nil {
 			c.JSON(400, gin.H{"error": "Invalid connection profile data"})

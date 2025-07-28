@@ -26,7 +26,7 @@ func TagsController(router *gin.RouterGroup, db *sql.DB) {
 		respondSingle(c, tag, err)
 	})
 
-	tagsRouter.POST("/", func(c *gin.Context) {
+	tagsRouter.POST("", func(c *gin.Context) {
 		var newTag model.Tag
 		if err := c.ShouldBind(&newTag); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag data"})

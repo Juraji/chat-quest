@@ -26,7 +26,7 @@ func SystemPromptsController(router *gin.RouterGroup, db *sql.DB) {
 		respondSingle(c, prompts, err)
 	})
 
-	systemPromptsRouter.POST("/", func(c *gin.Context) {
+	systemPromptsRouter.POST("", func(c *gin.Context) {
 		var newPrompt model.SystemPrompt
 		if err := c.ShouldBind(&newPrompt); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid system prompt data"})

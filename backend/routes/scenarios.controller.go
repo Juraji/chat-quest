@@ -26,7 +26,7 @@ func ScenariosController(router *gin.RouterGroup, db *sql.DB) {
 		respondSingle(c, scenario, err)
 	})
 
-	scenariosRouter.POST("/", func(c *gin.Context) {
+	scenariosRouter.POST("", func(c *gin.Context) {
 		var newScenario model.Scenario
 		if err := c.ShouldBind(&newScenario); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid scenario data"})
