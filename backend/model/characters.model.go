@@ -3,22 +3,23 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"juraji.nl/chat-quest/util"
 )
 
 type Character struct {
-	ID        int64  `json:"id"`
-	CreatedAt string `json:"createdAt"`
-	Name      string `json:"name"`
-	Favorite  bool   `json:"favorite"`
-	AvatarUrl string `json:"avatarUrl"`
+	ID        int64   `json:"id"`
+	CreatedAt string  `json:"createdAt"`
+	Name      string  `json:"name"`
+	Favorite  bool    `json:"favorite"`
+	AvatarUrl *string `json:"avatarUrl"`
 }
 
 type CharacterDetails struct {
 	CharacterId        int64   `json:"characterId"`
-	Appearance         string  `json:"appearance"`
-	Personality        string  `json:"personality"`
-	History            string  `json:"history"`
-	Scenario           string  `json:"scenario"`
+	Appearance         *string `json:"appearance"`
+	Personality        *string `json:"personality"`
+	History            *string `json:"history"`
+	Scenario           *string `json:"scenario"`
 	GroupTalkativeness float64 `json:"groupTalkativeness"`
 }
 
@@ -68,6 +69,8 @@ func CharacterById(db *sql.DB, id int64) (*Character, error) {
 }
 
 func CreateCharacter(db *sql.DB, newCharacter *Character) error {
+	util.EmptyStrPtrToNil(&newCharacter.AvatarUrl)
+
 	query := "INSERT INTO characters (name, favorite, avatar_url) VALUES ($1, $2, $3) RETURNING id, created_at"
 	args := []any{newCharacter.Name, newCharacter.Favorite, newCharacter.AvatarUrl}
 	scanFunc := func(scanner RowScanner) error {
@@ -81,6 +84,8 @@ func CreateCharacter(db *sql.DB, newCharacter *Character) error {
 }
 
 func UpdateCharacter(db *sql.DB, id int64, character *Character) error {
+	util.EmptyStrPtrToNil(&character.AvatarUrl)
+
 	query := "UPDATE characters SET name = $1, favorite = $2, avatar_url = $3 WHERE id = $4"
 	args := []any{character.Name, character.Favorite, character.AvatarUrl, id}
 
@@ -102,6 +107,11 @@ func CharacterDetailsByCharacterId(db *sql.DB, characterId int64) (*CharacterDet
 }
 
 func UpdateCharacterDetails(db *sql.DB, characterId int64, characterDetail *CharacterDetails) error {
+	util.EmptyStrPtrToNil(&characterDetail.Appearance)
+	util.EmptyStrPtrToNil(&characterDetail.Personality)
+	util.EmptyStrPtrToNil(&characterDetail.History)
+	util.EmptyStrPtrToNil(&characterDetail.Scenario)
+
 	//language=sqlite
 	query := `
     INSERT OR REPLACE INTO character_details
