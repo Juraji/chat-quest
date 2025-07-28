@@ -15,11 +15,8 @@
     "target": "ES2022",
     "module": "preserve",
     "paths": {
-      "@db/*": [
-        "./src/app/@db/*"
-      ],
-      "@ai/*": [
-        "./src/app/@ai/*"
+      "@api/*": [
+        "./src/app/@api/*"
       ],
       "@components/*": [
         "./src/app/@components/*"

@@ -9,10 +9,14 @@ import {BooleanSignal, booleanSignal} from '@util/ng';
     trigger('collapseAnimation', [
       state('collapsed', style({
         height: '0px',
+        'padding-top': '0px',
+        'padding-bottom': '0px',
         visibility: 'hidden'
       })),
       state('expanded', style({
         height: '*',
+        'padding-top': '*',
+        'padding-bottom': '*',
         visibility: 'visible'
       })),
       transition('collapsed <=> expanded', [

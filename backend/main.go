@@ -15,7 +15,7 @@ var (
 	ChatQuestUIRoot   = "./browser"
 	GinMode           = gin.DebugMode
 	GinTrustedProxies []string
-	CorsAllowOrigins  = []string{"http://localhost:4200", "http://localhost:8080", "http://127.0.0.1:8080"}
+	CorsAllowOrigins  = []string{"http://localhost:8080", "http://127.0.0.1:8080"}
 	ApplicationHost   = "localhost"
 	ApplicationPort   = "8080"
 	ApiBasePath       = "/api"
@@ -48,6 +48,7 @@ func main() {
 
 	router := gin.New()
 
+	log.Printf("Setting up CORS for hosts: %v", CorsAllowOrigins)
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = CorsAllowOrigins
 	router.Use(cors.New(corsConfig))

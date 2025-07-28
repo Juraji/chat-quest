@@ -1,7 +1,12 @@
 import {Routes} from '@angular/router';
 import {SettingsPage} from './settings-page';
-import {ChatSettingsPage} from './chat-settings/chat-settings-page';
-import {MetaDataSettingsPage} from './meta-data-settings/meta-data-settings-page';
+import {ManageConnectionProfiles} from './connection-profiles/manage/manage-connection-profiles';
+import {manageConnectionProfilesResolver} from './connection-profiles/manage/manage-connection-profiles.resolver';
+import {EditConnectionProfile} from "./connection-profiles/edit/edit-connection-profile"
+import {
+  editConnectionProfileLlmModelsResolver,
+  editConnectionProfileResolver
+} from './connection-profiles/edit/edit-connection-profile.resolver';
 
 const routes: Routes = [
   {
@@ -9,16 +14,24 @@ const routes: Routes = [
     component: SettingsPage,
     children: [
       {
-        path: 'chat',
-        component: ChatSettingsPage
+        path: 'connections',
+        component: ManageConnectionProfiles,
+        resolve: {
+          profiles: manageConnectionProfilesResolver
+        }
       },
       {
-        path: 'meta-data',
-        component: MetaDataSettingsPage
+        path: 'connections/:profileId',
+        component: EditConnectionProfile,
+        runGuardsAndResolvers: "paramsOrQueryParamsChange",
+        resolve: {
+          profile: editConnectionProfileResolver,
+          models: editConnectionProfileLlmModelsResolver
+        }
       },
       {
         path: '**',
-        redirectTo: 'chat'
+        redirectTo: 'connections'
       }
     ]
   }

@@ -1,0 +1,68 @@
+<form [formGroup]="formGroup" (submit)="onFormSubmit()">
+  <div class="container">
+    <app-page-header backUrl="../">
+      @if (isNew()) {
+        <span class="page-title">New Connection Profile</span>
+      } @else {
+        <span class="page-title">{{ profile().baseUrl }}</span>
+      }
+
+      @if (!isNew()) {
+        <button type="button" class="btn btn-outline-danger"
+                (click)="onDeleteCharacter()">Delete
+        </button>
+      }
+      @if (!isNew() && formGroup.dirty) {
+        <button type="button" class="btn btn-outline-secondary"
+                (click)="onRevertChanges()">Revert changes
+        </button>
+      }
+      <button class="btn btn-primary btn-magical"
+              [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
+      </button>
+    </app-page-header>
+
+    <div class="grid">
+      <div class="g-col-12 g-col-lg-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Connection Details</h5>
+
+            <div class="mb-3">
+              <select class="form-select"
+                      formControlName="providerType"
+                      aria-describedby="providerTypeInputHelp">
+                <option value="OPEN_AI">Open AI (ChatGPT)</option>
+                <option value="X_AI">X Ai (Grok)</option>
+                <option value="LM_STUDIO">LM Studio (Open AI-like)</option>
+              </select>
+              <div id="providerTypeInputHelp" class="form-text">Select your provider.</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="baseUrlInput">Base Url</label>
+              <input type="text" class="form-control"
+                     id="baseUrlInput"
+                     aria-describedby="baseUrlInputHelp"
+                     formControlName="baseUrl"/>
+              <div id="baseUrlInputHelp" class="form-text">
+                The API base url for this connection.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="apiKeyInput">API key</label>
+              <input type="text" class="form-control"
+                     id="apiKeyInput"
+                     aria-describedby="apiKeyInputHelp"
+                     formControlName="apiKey"/>
+              <div id="apiKeyInputHelp" class="form-text">
+                Your API key. Check the AI vendor's console.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

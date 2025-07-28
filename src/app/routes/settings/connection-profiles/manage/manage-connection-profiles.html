@@ -1,0 +1,42 @@
+<div class="container">
+  <app-page-header>
+    <span class="page-title">Connections</span>
+    <button class="btn btn-outline-primary"
+            routerLink="./new">Add Connection Profile
+    </button>
+  </app-page-header>
+
+  <div class="card">
+    <div class="card-body">
+      <table class="table">
+        <thead>
+        <tr>
+          <th></th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+          @if (profiles() | empty) {
+            <tr>
+              <td colspan="2">No connection profiles defined.</td>
+            </tr>
+          }
+          @for (profile of profiles(); track profile.id) {
+            <tr>
+              <td><span class="bi bi-ethernet"></span>&nbsp;{{ profile.baseUrl }}</td>
+              <td>
+                <div class="btn-toolbar justify-content-end">
+                  <button class="btn btn-sm btn-primary" [routerLink]="['.', profile.id]">
+                    <span class="bi bi-pencil"></span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        <tr></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
