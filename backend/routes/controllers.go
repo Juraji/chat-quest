@@ -28,7 +28,7 @@ func respondSingle[T any](c *gin.Context, entity *T, err error) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		log.Fatal(err)
 	} else if entity == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Character not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "Entity not found"})
 	} else {
 		c.JSON(http.StatusOK, entity)
 	}

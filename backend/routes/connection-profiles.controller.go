@@ -14,6 +14,16 @@ func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
 		respondList(c, profiles, err)
 	})
 
+	connectionProfilesRouter.GET("/templates/:providerType", func(c *gin.Context) {
+		providerType := c.Param("providerType")
+		profile, err := model.GetConnectionProfileDefaults(providerType)
+		if err != nil {
+			respondSingle[model.ConnectionProfile](c, nil, nil)
+		} else {
+			respondSingle(c, &profile, nil)
+		}
+	})
+
 	connectionProfilesRouter.GET("/:profileId", func(c *gin.Context) {
 		profileId, err := getID(c, "profileId")
 		if err != nil {
