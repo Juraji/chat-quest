@@ -1,8 +1,9 @@
 import {ResolveFn} from '@angular/router';
-import {Character, Characters} from '@db/characters';
 import {inject} from '@angular/core';
+import {Characters} from '@api/clients';
+import {Character} from '@api/model';
 
-export const manageCharactersResolver: ResolveFn<Character[]> = () => {
-  const characters = inject(Characters)
-  return characters.getAll();
+export const manageCharactersResolver: ResolveFn<Character[]> = (route, state) => {
+  const service = inject(Characters)
+  return service.getAll();
 };

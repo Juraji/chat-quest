@@ -13,8 +13,6 @@
     "src/**/*.spec.ts",
 
     /* TODO: Remove these directive when UI rewrite is complete! */
-    "src/app/routes/manage",
-    "src/app/@components/avatar-control",
     "src/app/@components/character-card",
     "src/app/@components/tags-control"
   ]

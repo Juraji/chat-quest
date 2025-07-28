@@ -2,12 +2,15 @@ import {Routes} from '@angular/router';
 import {ManagePage} from './manage-page';
 import {ManageCharactersPage} from './characters/manage/manage-characters-page';
 import {manageCharactersResolver} from './characters/manage/manage-characters.resolver';
-import {CharacterEditPage} from './characters/edit/character-edit-page';
-import {editCharacterResolver} from './characters/edit/edit-character.resolver';
-import {ManageScenariosPage} from './scenarios/manage/manage-scenarios-page';
-import {manageScenariosResolver} from './scenarios/manage/manage-scenarios.resolver';
-import {EditScenarioPage} from './scenarios/edit/edit-scenario-page';
-import {editScenarioResolver} from './scenarios/edit/edit-scenario.resolver';
+import {EditCharacterPage} from './characters/edit/edit-character-page';
+import {
+  editCharacterDetailsResolver,
+  editCharacterDialogueExamplesResolver,
+  editCharacterGreetingsResolver,
+  editCharacterGroupGreetingsResolver,
+  editCharacterResolver,
+  editCharacterTagsResolver
+} from './characters/edit/edit-character.resolver';
 
 const routes: Routes = [
   {
@@ -18,30 +21,20 @@ const routes: Routes = [
         path: 'characters',
         component: ManageCharactersPage,
         resolve: {
-          characters: manageCharactersResolver
+          characters: manageCharactersResolver,
         }
       },
       {
         path: 'characters/:characterId',
-        component: CharacterEditPage,
+        component: EditCharacterPage,
         runGuardsAndResolvers: "paramsOrQueryParamsChange",
         resolve: {
-          character: editCharacterResolver
-        }
-      },
-      {
-        path: 'scenarios',
-        component: ManageScenariosPage,
-        resolve: {
-          scenarios: manageScenariosResolver
-        }
-      },
-      {
-        path: 'scenarios/:scenarioId',
-        component: EditScenarioPage,
-        runGuardsAndResolvers: "paramsOrQueryParamsChange",
-        resolve: {
-          scenario: editScenarioResolver
+          character: editCharacterResolver,
+          characterDetails: editCharacterDetailsResolver,
+          tags: editCharacterTagsResolver,
+          dialogueExamples: editCharacterDialogueExamplesResolver,
+          greetings: editCharacterGreetingsResolver,
+          groupGreetings: editCharacterGroupGreetingsResolver,
         }
       },
       {

@@ -1,10 +1,8 @@
-import {Component, computed, effect, forwardRef, inject, Signal, signal, WritableSignal} from '@angular/core';
+import {Component, computed, forwardRef, inject, Signal, signal, WritableSignal} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Notifications} from '@components/notifications';
-import {AvatarImageCrop} from '@components/avatar-control/avatar-image-crop';
+import {AvatarImageCrop} from './avatar-image-crop';
 import {BooleanSignal, booleanSignal} from '@util/ng';
-
-type Avatar = Blob | null
 
 @Component({
   selector: 'app-avatar-control',
@@ -27,33 +25,22 @@ type Avatar = Blob | null
 export class AvatarControl implements ControlValueAccessor {
   private notifications = inject(Notifications)
 
-  private onChange: (value: Avatar) => void = () => null
+  private onChange: (value: Nullable<string>) => void = () => null
   private onTouched: () => void = () => null
 
-  readonly selectedFileForCrop: WritableSignal<Avatar> = signal(null)
-
-  readonly currentValue: WritableSignal<Avatar> = signal(null)
+  readonly selectedFileForCrop: WritableSignal<Blob | null> = signal(null)
+  readonly currentValue: WritableSignal<Nullable<string>> = signal(null)
   readonly isDisabled: BooleanSignal = booleanSignal(false)
-
-  readonly imageUrl: WritableSignal<string> = signal('')
   readonly isSet: Signal<boolean> = computed(() => this.currentValue() != null)
 
   constructor() {
-    effect(() => {
-      const blob = this.currentValue()
-      this.imageUrl.update(current => {
-        if (!!current) URL.revokeObjectURL(current)
-        if (!!blob) return URL.createObjectURL(blob)
-        else return ''
-      })
-    });
   }
 
-  writeValue(obj: Avatar): void {
+  writeValue(obj: Nullable<string>): void {
     this.currentValue.set(obj)
   }
 
-  registerOnChange(fn: (value: Avatar) => void): void {
+  registerOnChange(fn: (value: Nullable<string>) => void): void {
     this.onChange = fn;
   }
 
@@ -83,10 +70,21 @@ export class AvatarControl implements ControlValueAccessor {
     this.onTouched()
   }
 
-  onCropResult(file: Avatar) {
-    this.currentValue.set(file)
-    this.selectedFileForCrop.set(null)
-    this.onChange(this.currentValue())
+  onCropResult(file: Blob) {
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      this.currentValue.set(reader.result as string)
+      this.selectedFileForCrop.set(null)
+      this.onChange(this.currentValue())
+    }
+
+    reader.onerror = () => {
+      this.notifications.toast("An unexpected error occurred processing the cropped image.", "DANGER")
+      this.selectedFileForCrop.set(null)
+    }
+
+    reader.readAsDataURL(file);
   }
 
   onCropCanceled() {

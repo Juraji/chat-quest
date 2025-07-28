@@ -1,47 +1,20 @@
-import {Component, computed, inject, signal, Signal, WritableSignal} from '@angular/core';
-import {routeDataSignal} from '@util/ng';
+import {Component, inject, Signal} from '@angular/core';
 import {ActivatedRoute, RouterLink} from '@angular/router';
-import {CharacterCard} from '@components/character-card/character-card';
-import {Character} from '@db/characters';
-import {Tag, Tags} from '@db/tags';
-import {toSignal} from '@angular/core/rxjs-interop';
-import {PageHeader} from '@components/page-header/page-header';
-import {CharacterImportButton} from './components/character-import-button/character-import-button';
+import {routeDataSignal} from '@util/ng';
+import {Character} from '@api/model';
+import {PageHeader} from '@components/page-header';
 
 @Component({
-  selector: 'app-manage-characters-page',
+  selector: 'app-manage-characters',
   imports: [
-    CharacterCard,
-    RouterLink,
     PageHeader,
-    CharacterImportButton
+    RouterLink
   ],
   templateUrl: './manage-characters-page.html',
-  styleUrls: ['./manage-characters-page.scss']
+  styleUrls: ['./manage-characters-page.scss'],
 })
 export class ManageCharactersPage {
-  private readonly tags = inject(Tags);
   private readonly activatedRoute = inject(ActivatedRoute);
 
-  readonly availableCharacters: Signal<Character[]> = routeDataSignal(this.activatedRoute, 'characters');
-
-  readonly availableTags: Signal<Tag[]> = toSignal(this.tags.getAll(), {initialValue: []})
-  readonly selectedTag: WritableSignal<Tag | null> = signal(null)
-
-  readonly filteredCharacters = computed(() => {
-    const characters = this.availableCharacters()
-    const selectedTag = this.selectedTag()
-    if (!!selectedTag) {
-      return characters.filter((char) => char.tagIds.includes(selectedTag.id))
-    } else {
-      return characters
-    }
-  })
-
-  onToggleSelectedTag(tag: Tag | null) {
-    this.selectedTag.update(current => {
-      if (tag == null) return null
-      return current?.id == tag.id ? null : tag;
-    })
-  }
+  readonly characters: Signal<Character[]> = routeDataSignal(this.activatedRoute, 'characters');
 }

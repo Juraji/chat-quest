@@ -1,18 +1,18 @@
 import {ChatQuestModel} from './model';
 
 export interface Character extends ChatQuestModel {
-  createdAt: number
+  createdAt: Nullable<number>
   name: string
   favorite: boolean
-  avatarUrl: string
+  avatarUrl: Nullable<string>
 }
 
 export interface CharacterDetails {
   characterId: number
-  appearance: string
-  personality: string
-  history: string
-  scenario: string
+  appearance: Nullable<string>
+  personality: Nullable<string>
+  history: Nullable<string>
+  scenario: Nullable<string>
   groupTalkativeness: number
 }
 

@@ -2,7 +2,7 @@ import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {Notifications} from '@components/notifications';
 import {ConnectionProfiles} from '@api/clients';
 import {ActivatedRoute, Router} from '@angular/router';
-import {PageHeader} from '@components/page-header/page-header';
+import {PageHeader} from '@components/page-header';
 import {formControl, formGroup, readOnlyControl, routeDataSignal} from '@util/ng';
 import {ConnectionProfile, isNew, LlmModel, ProviderType} from '@api/model';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -93,7 +93,10 @@ export class EditConnectionProfile {
         .delete(p!.id)
         .subscribe(() => {
           this.notifications.toast("Connection Profile deleted!")
-          this.router.navigate(['..'], {relativeTo: this.activatedRoute})
+          this.router.navigate(['..'], {
+            relativeTo: this.activatedRoute,
+            replaceUrl: true
+          })
         })
     }
   }

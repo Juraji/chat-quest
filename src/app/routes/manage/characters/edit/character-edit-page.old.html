@@ -1,32 +1,5 @@
 <form [formGroup]="formGroup" (submit)="onSubmit()">
   <div class="container">
-    <app-page-header backUrl="../">
-      @if (isNew()) {
-        <span class="page-title">New Character</span>
-      } @else {
-        <span class="page-title" [class.text-special]="isFavorite()">{{ name() }}</span>
-      }
-
-      @if (!isNew()) {
-        <button type="button" class="btn btn-outline-danger"
-                (click)="onDeleteCharacter()">Delete Character
-        </button>
-      }
-      @if (!isNew() && formGroup.dirty) {
-        <button type="button" class="btn btn-outline-secondary"
-                (click)="onRevertChanges()">Revert changes
-        </button>
-      }
-      @if (!isNew() && formGroup.pristine) {
-        <button type="button" class="btn btn-outline-secondary"
-                (click)="onExportCharacter()">Export Character
-        </button>
-      }
-      <button class="btn btn-primary btn-magical"
-              [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
-      </button>
-    </app-page-header>
-
     <div class="grid">
       <div class="g-col-12 g-col-lg-6 g-col-xl-4">
         <div class="card mb-3">
