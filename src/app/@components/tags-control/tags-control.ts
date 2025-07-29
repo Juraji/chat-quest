@@ -1,6 +1,5 @@
 import {
   Component,
-  computed,
   effect,
   forwardRef,
   inject,
@@ -8,13 +7,12 @@ import {
   InputSignal,
   linkedSignal,
   signal,
-  Signal,
   WritableSignal
 } from '@angular/core';
 import {ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR} from '@angular/forms';
-import {Tag, Tags} from '@db/tags';
-import {toSignal} from '@angular/core/rxjs-interop';
-import {map} from 'rxjs';
+import {Tags} from '@api/clients';
+import {isNew, NEW_ID, Tag} from '@api/model';
+import {filter, iif, map, mergeMap, of, toArray} from 'rxjs';
 
 @Component({
   selector: 'app-tags-control',
@@ -34,24 +32,15 @@ import {map} from 'rxjs';
 export class TagsControl implements ControlValueAccessor {
   private readonly tags = inject(Tags)
 
-  private onChange: (value: number[]) => void = () => null;
+  private onChange: (value: Tag[]) => void = () => null;
   private onTouched: () => void = () => null;
 
-  readonly tagIds: InputSignal<number[]> = input<number[]>([])
-  readonly disabled: InputSignal<boolean> = input<boolean>(false)
-
-  readonly availableTags: Signal<Tag[]> = toSignal(this.tags.getAll(true), {initialValue: []})
-  readonly currentTagIds: WritableSignal<number[]> = linkedSignal(() => this.tagIds())
-  readonly currentTags: Signal<Tag[]> = computed(() => {
-    const ids = this.currentTagIds()
-    const tags = this.availableTags()
-    return ids.map(id => tags
-      .find(t => t.id === id))
-      .filter(t => !!t)
-  })
+  readonly tagsInput: InputSignal<Tag[]> = input<Tag[]>([], {alias: 'tags'})
+  readonly disabled: InputSignal<boolean> = input(false)
 
   readonly inputText: WritableSignal<string> = signal('')
   readonly isDisabled: WritableSignal<boolean> = linkedSignal(() => this.disabled())
+  readonly currentTags: WritableSignal<Tag[]> = linkedSignal(() => this.tagsInput())
 
   constructor() {
     effect(() => {
@@ -61,12 +50,12 @@ export class TagsControl implements ControlValueAccessor {
     });
   }
 
-  writeValue(obj: number[]): void {
+  writeValue(obj: Tag[]): void {
     if (!Array.isArray(obj)) {
       throw new Error('writeValue expects an array of tags');
     }
 
-    this.currentTagIds.set(obj)
+    this.currentTags.set(obj)
   }
 
   registerOnChange(fn: any): void {
@@ -86,32 +75,40 @@ export class TagsControl implements ControlValueAccessor {
     const inputText = this.inputText().trim()
     if (!inputText) return
 
-    const tagsToAdd = inputText
-      .split(',')
-      .map(t => t.trim())
+    const available = this.tags.cachedTags()
 
-    this.tags
-      .resolve(tagsToAdd)
-      .pipe(map(tags => tags.map(t => t.id)))
-      .subscribe(resolvedTagIds => {
-        this.currentTagIds.update(current =>
-          [...new Set([...current, ...resolvedTagIds])])
-        this.onChange(this.currentTagIds())
+    of(inputText)
+      .pipe(
+        mergeMap(names => names
+          .split(',')
+          .map(tag => tag.trim())),
+        map((label): Tag => {
+          const lc = label.toLowerCase()
+          const existing = available.find(t => t.lowercase === lc)
+          return !!existing ? existing : {id: NEW_ID, label, lowercase: lc}
+        }),
+        filter(t => isNew(t) || !this.currentTags().some(ct => ct.id === t.id)),
+        mergeMap(tag => iif(() => isNew(tag), this.tags.save(tag), [tag])),
+        toArray()
+      )
+      .subscribe(newTags => {
+        this.currentTags.update(tags => [...tags, ...newTags])
+        this.onChange(this.currentTags())
         this.inputText.set('')
       })
   }
 
   removeTag(tagId: number): void {
     this.onTouched()
-    this.currentTagIds.update(tags => tags.filter(tId => tId !== tagId))
-    this.onChange(this.currentTagIds())
+    this.currentTags.update(tags => tags.filter(t => t.id !== tagId))
+    this.onChange(this.currentTags())
   }
 
   onInputKeyDown(event: KeyboardEvent) {
     if (event.key === 'Enter') {
-      this.addTag()
       event.stopPropagation()
       event.preventDefault()
+      this.addTag()
     }
   }
 }

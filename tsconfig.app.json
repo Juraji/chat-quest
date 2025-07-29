@@ -14,6 +14,5 @@
 
     /* TODO: Remove these directive when UI rewrite is complete! */
     "src/app/@components/character-card",
-    "src/app/@components/tags-control"
   ]
 }

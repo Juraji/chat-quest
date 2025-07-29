@@ -18,13 +18,15 @@ import {PageHeader} from '@components/page-header';
 import {AvatarControl} from '@components/avatar-control';
 import {CharacterFormData} from './character-form-data';
 import {forkJoin, iif, mergeMap, tap} from 'rxjs';
+import {TagsControl} from '@components/tags-control/tags-control';
 
 @Component({
   selector: 'app-edit-character-page',
   imports: [
     PageHeader,
     ReactiveFormsModule,
-    AvatarControl
+    AvatarControl,
+    TagsControl
   ],
   templateUrl: './edit-character-page.html',
 })

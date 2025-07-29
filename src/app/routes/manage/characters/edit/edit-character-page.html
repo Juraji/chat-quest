@@ -24,33 +24,36 @@
 
     <div class="grid">
       <div class="g-col-12 g-col-lg-6 g-col-xl-4">
-        <div class="card" formGroupName="character">
+        <div class="card">
           <div class="card-body">
             <h5 class="card-title">Base information</h5>
 
             <div class="grid mb-3">
-              <div class="g-col-4">
-                <app-avatar-control formControlName="avatarUrl"></app-avatar-control>
-              </div>
-              <div class="g-col-8">
-                <div class="mb-3">
-                  <label for="characterNameInput">Name</label>
-                  <input type="text" class="form-control"
-                         id="characterNameInput"
-                         aria-describedby="characterNameInputHelp"
-                         formControlName="name"/>
-                  <div id="characterNameInputHelp" class="form-text">A unique name for your character.</div>
+              <ng-container formGroupName="character">
+                <div class="g-col-4">
+                  <app-avatar-control formControlName="avatarUrl"></app-avatar-control>
                 </div>
+                <div class="g-col-8">
+                  <div class="mb-3">
+                    <label for="characterNameInput">Name</label>
+                    <input type="text" class="form-control"
+                           id="characterNameInput"
+                           aria-describedby="characterNameInputHelp"
+                           formControlName="name"/>
+                    <div id="characterNameInputHelp" class="form-text">A unique name for your character.</div>
+                  </div>
 
-                <div class="form-check ">
-                  <input class="form-check-input" type="checkbox" id="characterFavoriteInput"
-                         formControlName="favorite"/>
-                  <label class="form-check-label" for="characterFavoriteInput">
-                    Favorite
-                  </label>
+                  <div class="form-check ">
+                    <input class="form-check-input" type="checkbox" id="characterFavoriteInput"
+                           formControlName="favorite"/>
+                    <label class="form-check-label" for="characterFavoriteInput">
+                      Favorite
+                    </label>
+                  </div>
                 </div>
-              </div>
+              </ng-container>
             </div>
+            <app-tags-control formControlName="tags"></app-tags-control>
           </div>
         </div>
       </div>
