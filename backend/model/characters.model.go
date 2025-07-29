@@ -152,6 +152,37 @@ func RemoveCharacterTag(db *sql.DB, characterId int64, tagId int64) error {
 	return deleteRecord(db, query, args)
 }
 
+func SetCharacterTags(db *sql.DB, characterId int64, tagIds []int64) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func(tx *sql.Tx, err error) {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}(tx, err)
+
+	deleteQuery := "DELETE FROM character_tags WHERE character_id = $1"
+	if _, err := tx.Exec(deleteQuery, characterId); err != nil {
+		return fmt.Errorf("failed to delete existing tag ids: %w", err)
+	}
+
+	if len(tagIds) == 0 {
+		return tx.Commit()
+	}
+
+	insertQuery := "INSERT INTO character_tags (character_id, tag_id) VALUES ($1, $2)"
+	for _, tagId := range tagIds {
+		_, err := tx.Exec(insertQuery, characterId, tagId)
+		if err != nil {
+			return fmt.Errorf("failed to insert tag id: %w", err)
+		}
+	}
+
+	return tx.Commit()
+}
+
 func DialogueExamplesByCharacterId(db *sql.DB, characterId int64) ([]*CharacterTextBlock, error) {
 	query := "SELECT * FROM character_dialogue_examples WHERE character_id = $1"
 	args := []any{characterId}
@@ -159,7 +190,7 @@ func DialogueExamplesByCharacterId(db *sql.DB, characterId int64) ([]*CharacterT
 	return queryForList(db, query, args, characterTextBlockScanner)
 }
 
-func ReplaceDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []string) error {
+func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []string) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -197,7 +228,7 @@ func CharacterGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*Characte
 	return queryForList(db, query, args, characterTextBlockScanner)
 }
 
-func ReplaceGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string) error {
+func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -235,7 +266,7 @@ func CharacterGroupGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*Cha
 	return queryForList(db, query, args, characterTextBlockScanner)
 }
 
-func ReplaceGroupGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string) error {
+func SetGroupGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)

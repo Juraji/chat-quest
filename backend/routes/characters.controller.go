@@ -104,6 +104,23 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 		respondList(c, tags, err)
 	})
 
+	charactersRouter.POST("/:characterId/tags", func(c *gin.Context) {
+		characterId, err := getID(c, "characterId")
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			return
+		}
+
+		var tagIds []int64
+		if err := c.ShouldBind(&tagIds); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid dialogue examples data"})
+			return
+		}
+
+		err = model.SetCharacterTags(db, characterId, tagIds)
+		respondEmpty(c, err)
+	})
+
 	charactersRouter.POST("/:characterId/tags/:tagId", func(c *gin.Context) {
 		characterId, err := getID(c, "characterId")
 		if err != nil {
@@ -160,7 +177,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.ReplaceDialogueExamplesByCharacterId(db, characterId, examples)
+		err = model.SetDialogueExamplesByCharacterId(db, characterId, examples)
 		respondEmpty(c, err)
 	})
 
@@ -188,7 +205,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.ReplaceGreetingsByCharacterId(db, characterId, greetings)
+		err = model.SetGreetingsByCharacterId(db, characterId, greetings)
 		respondEmpty(c, err)
 	})
 
@@ -216,7 +233,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.ReplaceGroupGreetingsByCharacterId(db, characterId, greetings)
+		err = model.SetGroupGreetingsByCharacterId(db, characterId, greetings)
 		respondEmpty(c, err)
 	})
 }
