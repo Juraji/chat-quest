@@ -3,6 +3,7 @@ import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Notifications} from '@components/notifications';
 import {AvatarImageCrop} from './avatar-image-crop';
 import {BooleanSignal, booleanSignal} from '@util/ng';
+import {readBlobAsDataUrl} from '@util/blobs';
 
 @Component({
   selector: 'app-avatar-control',
@@ -28,7 +29,7 @@ export class AvatarControl implements ControlValueAccessor {
   private onChange: (value: Nullable<string>) => void = () => null
   private onTouched: () => void = () => null
 
-  readonly selectedFileForCrop: WritableSignal<Blob | null> = signal(null)
+  readonly cropperDataUrl: WritableSignal<string | null> = signal(null)
   readonly currentValue: WritableSignal<Nullable<string>> = signal(null)
   readonly isDisabled: BooleanSignal = booleanSignal(false)
   readonly isSet: Signal<boolean> = computed(() => this.currentValue() != null)
@@ -52,7 +53,7 @@ export class AvatarControl implements ControlValueAccessor {
     this.isDisabled.set(isDisabled)
   }
 
-  onFileSelected(e: Event) {
+  async onFileSelected(e: Event) {
     e.preventDefault();
 
     const input = e.target as HTMLInputElement;
@@ -65,30 +66,20 @@ export class AvatarControl implements ControlValueAccessor {
       return
     }
 
-    this.selectedFileForCrop.set(file)
+    const dataUrl = await readBlobAsDataUrl(file)
+    this.cropperDataUrl.set(dataUrl)
     input.value = ''
     this.onTouched()
   }
 
-  onCropResult(file: Blob) {
-    const reader = new FileReader();
-
-    reader.onloadend = () => {
-      this.currentValue.set(reader.result as string)
-      this.selectedFileForCrop.set(null)
-      this.onChange(this.currentValue())
-    }
-
-    reader.onerror = () => {
-      this.notifications.toast("An unexpected error occurred processing the cropped image.", "DANGER")
-      this.selectedFileForCrop.set(null)
-    }
-
-    reader.readAsDataURL(file);
+  onCropResult(dataUrl: string) {
+    this.currentValue.set(dataUrl)
+    this.cropperDataUrl.set(null)
+    this.onChange(this.currentValue())
   }
 
   onCropCanceled() {
-    this.selectedFileForCrop.set(null)
+    this.cropperDataUrl.set(null)
   }
 
   onClear(e: Event) {

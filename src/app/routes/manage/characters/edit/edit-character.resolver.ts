@@ -2,79 +2,59 @@ import {ResolveFn} from '@angular/router';
 import {inject} from '@angular/core';
 import {Characters} from '@api/clients';
 import {resolveNewOrExisting} from '@util/resolvers';
-import {Character, CharacterDetails, NEW_ID, Tag} from '@api/model';
-import {map} from 'rxjs';
+import {CharacterTextBlock, NEW_ID} from '@api/model';
+import {forkJoin, map, Observable, OperatorFunction} from 'rxjs';
+import {CharacterFormData} from './character-form-data';
+import {ForkJoinSource} from '@util/rx';
 
-export const editCharacterResolver: ResolveFn<Character> = (route, state) => {
+export const editCharacterResolver: ResolveFn<CharacterFormData> = route => {
   const service = inject(Characters)
   return resolveNewOrExisting(
     route.params['characterId'],
-    () => ({
+    newCharacter,
+    id => existingCharacter(service, id)
+  )
+}
+
+function newCharacter(): CharacterFormData {
+  return {
+    character: {
       id: NEW_ID,
       createdAt: null,
       name: '',
       favorite: false,
       avatarUrl: null
-    }),
-    id => service.get(id)
-  )
-};
-
-
-export const editCharacterDetailsResolver: ResolveFn<CharacterDetails> = route => {
-  const service = inject(Characters)
-  return resolveNewOrExisting(
-    route.params['characterId'],
-    () => ({
+    },
+    characterDetails: {
       characterId: NEW_ID,
       appearance: null,
       personality: null,
       history: null,
-      scenario: null,
       groupTalkativeness: 0.5
-    }),
-    id => service.getDetails(id)
-  )
+    },
+    tags: [],
+    dialogueExamples: [],
+    greetings: [],
+    groupGreetings: [],
+  }
 }
 
-export const editCharacterTagsResolver: ResolveFn<Tag[]> = route => {
-  const service = inject(Characters)
-  return resolveNewOrExisting(
-    route.params['characterId'],
-    () => [],
-    id => service.getTags(id)
-  )
-}
+function existingCharacter(service: Characters, id: number): Observable<CharacterFormData> {
+  const flattenTextBlocks: OperatorFunction<CharacterTextBlock[], string[]> =
+    map(blocks => blocks.map(b => b.text))
 
-export const editCharacterDialogueExamplesResolver: ResolveFn<string[]> = route => {
-  const service = inject(Characters)
-  return resolveNewOrExisting(
-    route.params['characterId'],
-    () => [],
-    id => service
+  return forkJoin<ForkJoinSource<CharacterFormData>>({
+    character: service.get(id),
+    characterDetails: service.getDetails(id),
+    tags: service.getTags(id),
+    dialogueExamples: service
       .getDialogueExamples(id)
-      .pipe(map(blocks => blocks.map(b => b.text)))
-  )
-}
-
-export const editCharacterGreetingsResolver: ResolveFn<string[]> = route => {
-  const service = inject(Characters)
-  return resolveNewOrExisting(
-    route.params['characterId'],
-    () => [],
-    id => service
+      .pipe(flattenTextBlocks),
+    greetings: service
       .getGreetings(id)
-      .pipe(map(blocks => blocks.map(b => b.text)))
-  )
-}
-
-export const editCharacterGroupGreetingsResolver: ResolveFn<string[]> = route => {
-  const service = inject(Characters)
-  return resolveNewOrExisting(
-    route.params['characterId'],
-    () => [],
-    id => service
+      .pipe(flattenTextBlocks),
+    groupGreetings: service
       .getGroupGreetings(id)
-      .pipe(map(blocks => blocks.map(b => b.text)))
-  )
+      .pipe(flattenTextBlocks),
+  })
 }

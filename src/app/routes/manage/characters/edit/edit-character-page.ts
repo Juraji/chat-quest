@@ -15,16 +15,9 @@ import {Notifications} from '@components/notifications';
 import {Characters} from '@api/clients';
 import {FormArray, ReactiveFormsModule, Validators} from '@angular/forms';
 import {PageHeader} from '@components/page-header';
-import {AvatarControl} from './components/avatar-control';
-
-interface CharacterMasterForm {
-  character: Character
-  characterDetails: CharacterDetails
-  tags: Tag[]
-  dialogueExamples: string[]
-  greetings: string[]
-  groupGreetings: string[]
-}
+import {AvatarControl} from '@components/avatar-control';
+import {CharacterFormData} from './character-form-data';
+import {forkJoin, iif, mergeMap, tap} from 'rxjs';
 
 @Component({
   selector: 'app-edit-character-page',
@@ -41,22 +34,17 @@ export class EditCharacterPage {
   private readonly characters = inject(Characters)
   private readonly activatedRoute = inject(ActivatedRoute)
 
-  readonly character: Signal<Character> = routeDataSignal(this.activatedRoute, 'character')
+  readonly characterFormData: Signal<CharacterFormData> = routeDataSignal(this.activatedRoute, 'characterFormData')
 
+  readonly character = computed(() => this.characterFormData()?.character)
   readonly isNew = computed(() => isNew(this.character()))
   readonly name = computed(() => this.character().name)
   readonly favorite = computed(() => this.character().favorite)
 
-  readonly characterDetails: Signal<CharacterDetails> = routeDataSignal(this.activatedRoute, 'characterDetails')
-  readonly tags: Signal<Tag[]> = routeDataSignal(this.activatedRoute, 'tags')
-  readonly dialogueExamples: Signal<string[]> = routeDataSignal(this.activatedRoute, 'dialogueExamples')
-  readonly greetings: Signal<string[]> = routeDataSignal(this.activatedRoute, 'greetings')
-  readonly groupGreetings: Signal<string[]> = routeDataSignal(this.activatedRoute, 'groupGreetings')
-
-  readonly formGroup = formGroup<CharacterMasterForm>({
+  readonly formGroup = formGroup<CharacterFormData>({
     character: formGroup({
       id: readOnlyControl(0),
-      createdAt: readOnlyControl<Nullable<number>>(null),
+      createdAt: readOnlyControl<Nullable<string>>(null),
       name: formControl('', [Validators.required]),
       favorite: formControl(false),
       avatarUrl: formControl<Nullable<string>>(null)
@@ -66,7 +54,6 @@ export class EditCharacterPage {
       appearance: formControl<Nullable<string>>(null),
       personality: formControl<Nullable<string>>(null),
       history: formControl<Nullable<string>>(null),
-      scenario: formControl<Nullable<string>>(null),
       groupTalkativeness: formControl(0)
     }),
     tags: formControl([]),
@@ -89,30 +76,7 @@ export class EditCharacterPage {
     this.formGroup.get('groupGreetings') as FormArray
 
   constructor() {
-    effect(() => {
-      const character = this.character()
-      this.characterFG.reset(character)
-    });
-    effect(() => {
-      const details = this.characterDetails()
-      this.characterDetailsFG.reset(details)
-    });
-    effect(() => {
-      const tags = this.tags()
-      this.tagsCtrl.reset(tags)
-    });
-    effect(() => {
-      const examples = this.dialogueExamples()
-      this.setControlsTo(this.dialogueExamplesFA, examples)
-    })
-    effect(() => {
-      const greetings = this.greetings()
-      this.setControlsTo(this.greetingsFA, greetings)
-    })
-    effect(() => {
-      const greetings = this.groupGreetings()
-      this.setControlsTo(this.groupGreetingsFA, greetings)
-    })
+    effect(() => this.onResetForm());
   }
 
   onAddControl(arr: TypedFormArray<string>, value: string = '') {
@@ -126,27 +90,78 @@ export class EditCharacterPage {
   }
 
   onSubmit() {
-    throw new Error('Not implemented.')
+    if (this.formGroup.invalid) return
+
+    const isNew = this.isNew()
+    const {
+      character,
+      characterDetails,
+    } = this.characterFormData()
+
+    this.characters
+      .save({...character, ...this.characterFG.value})
+      .pipe(
+        tap(res => this.characterFG.reset(res)),
+        mergeMap(c => forkJoin({
+          character: [c],
+          characterDetails: iif(
+            () => !isNew && this.characterDetailsFG.dirty,
+            this.characters
+              .saveDetails({...characterDetails, ...this.characterDetailsFG.value, characterId: c.id})
+              .pipe(tap(res => this.characterDetailsFG.reset(res))),
+            [null]
+          ),
+          tags: iif(
+            () => !isNew && this.tagsCtrl.dirty,
+            this.characters
+              .saveTags(c.id, this.tagsCtrl.value.map(t => t.id))
+              .pipe(tap(() => this.tagsCtrl.reset())),
+            [null]
+          ),
+          dialogueExamples: iif(
+            () => !isNew && this.dialogueExamplesFA.dirty,
+            this.characters
+              .saveDialogueExamples(c.id, this.dialogueExamplesFA.value)
+              .pipe(tap(() => this.dialogueExamplesFA.reset())),
+            [null]
+          ),
+          greetings: iif(
+            () => !isNew && this.greetingsFA.dirty,
+            this.characters
+              .saveGreetings(c.id, this.greetingsFA.value)
+              .pipe(tap(() => this.greetingsFA.reset())),
+            [null]
+          ),
+          groupGreetings: iif(
+            () => !isNew && this.groupGreetingsFA.dirty,
+            this.characters
+              .saveGroupGreetings(c.id, this.groupGreetingsFA.value)
+              .pipe(tap(() => this.groupGreetingsFA.reset())),
+            [null]
+          ),
+        })),
+        tap({
+          error: () => this.notifications
+            .toast("Character save (partially failed).", "DANGER")
+        })
+      )
+      .subscribe(res => {
+        this.notifications.toast(`${res.character.name} saved!`)
+        this.router.navigate(["..", res.character.id], {
+          queryParams: {u: Date.now()},
+          replaceUrl: true,
+          relativeTo: this.activatedRoute
+        })
+      })
   }
 
-  onRevertChanges() {
-    const character = this.character()
-    this.characterFG.reset(character)
+  onResetForm() {
+    const formData = this.characterFormData()
+    this.formGroup.reset(formData)
 
-    const details = this.characterDetails()
-    this.characterDetailsFG.reset(details)
-
-    const tags = this.tags()
-    this.tagsCtrl.reset(tags)
-
-    const examples = this.dialogueExamples()
-    this.setControlsTo(this.dialogueExamplesFA, examples)
-
-    const greetings = this.greetings()
-    this.setControlsTo(this.greetingsFA, greetings)
-
-    const groupGreetings = this.groupGreetings()
-    this.setControlsTo(this.groupGreetingsFA, groupGreetings)
+    this.setControlsTo(this.dialogueExamplesFA, formData.dialogueExamples)
+    this.setControlsTo(this.greetingsFA, formData.greetings)
+    this.setControlsTo(this.groupGreetingsFA, formData.groupGreetings)
   }
 
   onDeleteCharacter() {

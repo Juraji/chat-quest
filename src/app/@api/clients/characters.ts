@@ -42,12 +42,8 @@ export class Characters {
     return this.http.get<Tag[]>(`/characters/${characterId}/tags`)
   }
 
-  addTag(characterId: number, tagId: number): Observable<void> {
-    return this.http.post<void>(`/characters/${characterId}/tags/${tagId}`, null)
-  }
-
-  removeTag(characterId: number, tagId: number): Observable<void> {
-    return this.http.delete<void>(`/characters/${characterId}/tags/${tagId}`)
+  saveTags(characterId: number, tagIds: number[]): Observable<void> {
+    return this.http.post<void>(`/characters/${characterId}/tags`, tagIds)
   }
 
   getDialogueExamples(characterId: number): Observable<CharacterTextBlock[]> {

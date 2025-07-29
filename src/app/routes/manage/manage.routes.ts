@@ -3,14 +3,7 @@ import {ManagePage} from './manage-page';
 import {ManageCharactersPage} from './characters/manage/manage-characters-page';
 import {manageCharactersResolver} from './characters/manage/manage-characters.resolver';
 import {EditCharacterPage} from './characters/edit/edit-character-page';
-import {
-  editCharacterDetailsResolver,
-  editCharacterDialogueExamplesResolver,
-  editCharacterGreetingsResolver,
-  editCharacterGroupGreetingsResolver,
-  editCharacterResolver,
-  editCharacterTagsResolver
-} from './characters/edit/edit-character.resolver';
+import {editCharacterResolver,} from './characters/edit/edit-character.resolver';
 
 const routes: Routes = [
   {
@@ -29,12 +22,7 @@ const routes: Routes = [
         component: EditCharacterPage,
         runGuardsAndResolvers: "paramsOrQueryParamsChange",
         resolve: {
-          character: editCharacterResolver,
-          characterDetails: editCharacterDetailsResolver,
-          tags: editCharacterTagsResolver,
-          dialogueExamples: editCharacterDialogueExamplesResolver,
-          greetings: editCharacterGreetingsResolver,
-          groupGreetings: editCharacterGroupGreetingsResolver,
+          characterFormData: editCharacterResolver,
         }
       },
       {

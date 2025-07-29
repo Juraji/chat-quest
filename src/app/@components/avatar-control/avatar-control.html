@@ -1,4 +1,4 @@
-<div class="avatar-image-wrapper">
+<div class="avatar-image-wrapper ratio ratio-1x1">
   @if (currentValue(); as url) {
     <img [src]="url"
          class="img-thumbnail avatar-image"
@@ -22,9 +22,9 @@
 <input type="file" class="avatar-file-input" #fileInput
        accept="image/*" (change)="onFileSelected($event)"/>
 
-@if (selectedFileForCrop(); as blob) {
+@if (cropperDataUrl(); as dataUrl) {
   <app-avatar-image-crop
-    [imageBlob]="blob"
+    [imageDataUrl]="dataUrl"
     (onCropComplete)="onCropResult($event)"
     (onCropCanceled)="onCropCanceled()"
   ></app-avatar-image-crop>

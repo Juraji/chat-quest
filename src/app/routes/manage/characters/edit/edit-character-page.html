@@ -14,7 +14,7 @@
       }
       @if (!isNew() && formGroup.dirty) {
         <button type="button" class="btn btn-outline-secondary"
-                (click)="onRevertChanges()">Revert changes
+                (click)="onResetForm()">Revert changes
         </button>
       }
       <button class="btn btn-primary btn-magical"
@@ -33,12 +33,14 @@
                 <app-avatar-control formControlName="avatarUrl"></app-avatar-control>
               </div>
               <div class="g-col-8">
-                <label for="characterNameInput">Name</label>
-                <input type="text" class="form-control"
-                       id="characterNameInput"
-                       aria-describedby="characterNameInputHelp"
-                       formControlName="name"/>
-                <div id="characterNameInputHelp" class="form-text">A unique name for your character.</div>
+                <div class="mb-3">
+                  <label for="characterNameInput">Name</label>
+                  <input type="text" class="form-control"
+                         id="characterNameInput"
+                         aria-describedby="characterNameInputHelp"
+                         formControlName="name"/>
+                  <div id="characterNameInputHelp" class="form-text">A unique name for your character.</div>
+                </div>
 
                 <div class="form-check ">
                   <input class="form-check-input" type="checkbox" id="characterFavoriteInput"
