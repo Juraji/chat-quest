@@ -64,7 +64,7 @@ func main() {
 		routes.TagsController(apiRouter, db)
 		routes.CharactersController(apiRouter, db)
 		routes.ScenariosController(apiRouter, db)
-		routes.SystemPromptsController(apiRouter, db)
+		routes.InstructionPromptsController(apiRouter, db)
 		routes.ConnectionProfilesController(apiRouter, db)
 	}
 

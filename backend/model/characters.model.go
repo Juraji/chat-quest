@@ -19,7 +19,6 @@ type CharacterDetails struct {
 	Appearance         *string `json:"appearance"`
 	Personality        *string `json:"personality"`
 	History            *string `json:"history"`
-	Scenario           *string `json:"scenario"`
 	GroupTalkativeness float64 `json:"groupTalkativeness"`
 }
 
@@ -44,7 +43,6 @@ func characterDetailsScanner(scanner RowScanner, dest *CharacterDetails) error {
 		&dest.Appearance,
 		&dest.Personality,
 		&dest.History,
-		&dest.Scenario,
 		&dest.GroupTalkativeness,
 	)
 }
@@ -110,20 +108,18 @@ func UpdateCharacterDetails(db *sql.DB, characterId int64, characterDetail *Char
 	util.EmptyStrPtrToNil(&characterDetail.Appearance)
 	util.EmptyStrPtrToNil(&characterDetail.Personality)
 	util.EmptyStrPtrToNil(&characterDetail.History)
-	util.EmptyStrPtrToNil(&characterDetail.Scenario)
 
 	//language=sqlite
 	query := `
     INSERT OR REPLACE INTO character_details
-      (character_id, appearance, personality, history, scenario, group_talkativeness)
-    VALUES ($1, $2, $3, $4, $5, $6)
+      (character_id, appearance, personality, history, group_talkativeness)
+    VALUES ($1, $2, $3, $4, $5)
   `
 	args := []any{
 		characterId,
 		characterDetail.Appearance,
 		characterDetail.Personality,
 		characterDetail.History,
-		characterDetail.Scenario,
 		characterDetail.GroupTalkativeness,
 	}
 

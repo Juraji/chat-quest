@@ -22,7 +22,6 @@ CREATE TABLE character_details
   appearance          TEXT                         DEFAULT NULL,
   personality         TEXT                         DEFAULT NULL,
   history             TEXT                         DEFAULT NULL,
-  scenario            TEXT                         DEFAULT NULL,
   group_talkativeness FLOAT               NOT NULL DEFAULT 0.5,
 
   CONSTRAINT fk_ct__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
@@ -40,7 +39,7 @@ CREATE TABLE character_tags
 CREATE TABLE character_dialogue_examples
 (
   character_id INTEGER NOT NULL,
-  text      TEXT    NOT NULL,
+  text         TEXT    NOT NULL,
 
   CONSTRAINT fk_cde__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
 );
@@ -48,7 +47,7 @@ CREATE TABLE character_dialogue_examples
 CREATE TABLE character_greetings
 (
   character_id INTEGER NOT NULL,
-  text     TEXT    NOT NULL,
+  text         TEXT    NOT NULL,
 
   CONSTRAINT fk_cag__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
 );
@@ -56,7 +55,7 @@ CREATE TABLE character_greetings
 CREATE TABLE character_group_greetings
 (
   character_id INTEGER NOT NULL,
-  text     TEXT    NOT NULL,
+  text         TEXT    NOT NULL,
 
   CONSTRAINT fk_cgg__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
 );
