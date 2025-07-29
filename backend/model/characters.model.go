@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"fmt"
 	"juraji.nl/chat-quest/util"
+	"time"
 )
 
 type Character struct {
-	ID        int64   `json:"id"`
-	CreatedAt *int64  `json:"createdAt"`
-	Name      string  `json:"name"`
-	Favorite  bool    `json:"favorite"`
-	AvatarUrl *string `json:"avatarUrl"`
+	ID        int64      `json:"id"`
+	CreatedAt *time.Time `json:"createdAt"`
+	Name      string     `json:"name"`
+	Favorite  bool       `json:"favorite"`
+	AvatarUrl *string    `json:"avatarUrl"`
 }
 
 type CharacterDetails struct {
@@ -30,9 +31,9 @@ type CharacterTextBlock struct {
 func characterScanner(scanner RowScanner, dest *Character) error {
 	return scanner.Scan(
 		&dest.ID,
+		&dest.CreatedAt,
 		&dest.Name,
 		&dest.Favorite,
-		&dest.CreatedAt,
 		&dest.AvatarUrl,
 	)
 }
@@ -78,7 +79,14 @@ func CreateCharacter(db *sql.DB, newCharacter *Character) error {
 		)
 	}
 
-	return insertRecord(db, query, args, scanFunc)
+	err := insertRecord(db, query, args, scanFunc)
+	if err != nil {
+		return err
+	}
+
+	// Create empty character details (so it exists when fetched)
+	var newCharacterDetails CharacterDetails
+	return UpdateCharacterDetails(db, newCharacter.ID, &newCharacterDetails)
 }
 
 func UpdateCharacter(db *sql.DB, id int64, character *Character) error {
