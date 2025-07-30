@@ -1,0 +1,14 @@
+<div class="dropdown">
+  <button
+    #dropdownToggle
+    class="btn btn-outline-secondary dropdown-toggle" type="button"
+    (click)="opened.toggle()"
+  >
+    <ng-content select="span"></ng-content>
+  </button>
+  @if (opened()) {
+    <ul class="dropdown-menu show mt-1">
+      <ng-content select="li"></ng-content>
+    </ul>
+  }
+</div>

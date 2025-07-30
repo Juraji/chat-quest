@@ -1,11 +1,13 @@
 import {
   Component,
+  computed,
   effect,
   forwardRef,
   inject,
   input,
   InputSignal,
   linkedSignal,
+  Signal,
   signal,
   WritableSignal
 } from '@angular/core';
@@ -13,13 +15,15 @@ import {ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR} from '@angular/for
 import {Tags} from '@api/clients';
 import {isNew, NEW_ID, Tag} from '@api/model';
 import {filter, iif, map, mergeMap, of, toArray} from 'rxjs';
+import {Dropdown} from '../dropdown';
 
 @Component({
   selector: 'app-tags-control',
   templateUrl: './tags-control.html',
   styleUrls: ['./tags-control.scss'],
   imports: [
-    FormsModule
+    FormsModule,
+    Dropdown
   ],
   providers: [
     {
@@ -35,12 +39,20 @@ export class TagsControl implements ControlValueAccessor {
   private onChange: (value: Tag[]) => void = () => null;
   private onTouched: () => void = () => null;
 
+  readonly availableTags: Signal<Tag[]> = this.tags.cachedTags
+
   readonly tagsInput: InputSignal<Tag[]> = input<Tag[]>([], {alias: 'tags'})
   readonly disabled: InputSignal<boolean> = input(false)
 
   readonly inputText: WritableSignal<string> = signal('')
   readonly isDisabled: WritableSignal<boolean> = linkedSignal(() => this.disabled())
   readonly currentTags: WritableSignal<Tag[]> = linkedSignal(() => this.tagsInput())
+
+  readonly missingTags: Signal<Tag[]> = computed(() => {
+    const availableTags = this.availableTags()
+    const currentTagIds = this.currentTags().map(t => t.id)
+    return availableTags.filter(t => !currentTagIds.includes(t.id))
+  })
 
   constructor() {
     effect(() => {
@@ -70,12 +82,18 @@ export class TagsControl implements ControlValueAccessor {
     this.isDisabled.set(isDisabled);
   }
 
+  onAddFromMenu(t: Tag) {
+    this.currentTags.update(tags => [...tags, t])
+    this.onChange(this.currentTags())
+  }
+
   addTag() {
     this.onTouched()
     const inputText = this.inputText().trim()
     if (!inputText) return
 
-    const available = this.tags.cachedTags()
+    const available = this.availableTags()
+    const currentTags = this.currentTags();
 
     of(inputText)
       .pipe(
@@ -87,7 +105,7 @@ export class TagsControl implements ControlValueAccessor {
           const existing = available.find(t => t.lowercase === lc)
           return !!existing ? existing : {id: NEW_ID, label, lowercase: lc}
         }),
-        filter(t => isNew(t) || !this.currentTags().some(ct => ct.id === t.id)),
+        filter(t => isNew(t) || !currentTags.some(ct => ct.id === t.id)),
         mergeMap(tag => iif(() => isNew(tag), this.tags.save(tag), [tag])),
         toArray()
       )
