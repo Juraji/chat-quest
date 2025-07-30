@@ -17,7 +17,7 @@ import {FormArray, ReactiveFormsModule, Validators} from '@angular/forms';
 import {PageHeader} from '@components/page-header';
 import {AvatarControl} from '@components/avatar-control';
 import {CharacterFormData} from './character-form-data';
-import {forkJoin, iif, mergeMap, tap} from 'rxjs';
+import {defer, forkJoin, mergeMap, tap} from 'rxjs';
 import {TagsControl} from '@components/tags-control/tags-control';
 
 @Component({
@@ -106,40 +106,35 @@ export class EditCharacterPage {
         tap(res => this.characterFG.reset(res)),
         mergeMap(c => forkJoin({
           character: [c],
-          characterDetails: iif(
-            () => !isNew && this.characterDetailsFG.dirty,
-            this.characters
+          characterDetails: defer(() => !isNew && this.characterDetailsFG.dirty
+            ? this.characters
               .saveDetails({...characterDetails, ...this.characterDetailsFG.value, characterId: c.id})
-              .pipe(tap(res => this.characterDetailsFG.reset(res))),
-            [null]
+              .pipe(tap(res => this.characterDetailsFG.reset(res)))
+            : [null]
           ),
-          tags: iif(
-            () => !isNew && this.tagsCtrl.dirty,
-            this.characters
+          tags: defer(() => !isNew && this.tagsCtrl.dirty
+            ? this.characters
               .saveTags(c.id, this.tagsCtrl.value.map(t => t.id))
-              .pipe(tap(() => this.tagsCtrl.reset())),
-            [null]
+              .pipe(tap(() => this.tagsCtrl.reset()))
+            : [null]
           ),
-          dialogueExamples: iif(
-            () => !isNew && this.dialogueExamplesFA.dirty,
-            this.characters
+          dialogueExamples: defer(() => !isNew && this.dialogueExamplesFA.dirty
+            ? this.characters
               .saveDialogueExamples(c.id, this.dialogueExamplesFA.value)
-              .pipe(tap(() => this.dialogueExamplesFA.reset())),
-            [null]
+              .pipe(tap(() => this.dialogueExamplesFA.reset()))
+            : [null]
           ),
-          greetings: iif(
-            () => !isNew && this.greetingsFA.dirty,
-            this.characters
+          greetings: defer(() => !isNew && this.greetingsFA.dirty
+            ? this.characters
               .saveGreetings(c.id, this.greetingsFA.value)
-              .pipe(tap(() => this.greetingsFA.reset())),
-            [null]
+              .pipe(tap(() => this.greetingsFA.reset()))
+            : [null]
           ),
-          groupGreetings: iif(
-            () => !isNew && this.groupGreetingsFA.dirty,
-            this.characters
+          groupGreetings: defer(() => !isNew && this.groupGreetingsFA.dirty
+            ? this.characters
               .saveGroupGreetings(c.id, this.groupGreetingsFA.value)
-              .pipe(tap(() => this.groupGreetingsFA.reset())),
-            [null]
+              .pipe(tap(() => this.groupGreetingsFA.reset()))
+            : [null]
           ),
         })),
         tap({
