@@ -226,7 +226,7 @@ func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []
 }
 
 func CharacterGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*string, error) {
-	query := "SELECT * FROM character_greetings WHERE character_id = $1"
+	query := "SELECT text FROM character_greetings WHERE character_id = $1"
 	args := []any{characterId}
 	scanFunc := func(rows RowScanner, dest *string) error {
 		return rows.Scan(dest)
@@ -267,7 +267,7 @@ func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string
 }
 
 func CharacterGroupGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*string, error) {
-	query := "SELECT * FROM character_group_greetings WHERE character_id = $1"
+	query := "SELECT text FROM character_group_greetings WHERE character_id = $1"
 	args := []any{characterId}
 	scanFunc := func(rows RowScanner, dest *string) error {
 		return rows.Scan(dest)
