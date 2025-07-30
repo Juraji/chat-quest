@@ -14,7 +14,7 @@ func getID(c *gin.Context, key string) (int64, error) {
 	return id, err
 }
 
-func respondList[T any](c *gin.Context, records []*T, err error) {
+func respondList[T any](c *gin.Context, records []T, err error) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 		log.Fatal(err)

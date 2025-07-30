@@ -14,9 +14,3 @@ export interface CharacterDetails {
   history: Nullable<string>
   groupTalkativeness: number
 }
-
-export interface CharacterTextBlock {
-  characterId: number
-  text: string
-}
-

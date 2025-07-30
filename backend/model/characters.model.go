@@ -48,13 +48,6 @@ func characterDetailsScanner(scanner RowScanner, dest *CharacterDetails) error {
 	)
 }
 
-func characterTextBlockScanner(scanner RowScanner, dest *CharacterTextBlock) error {
-	return scanner.Scan(
-		&dest.CharacterId,
-		&dest.Text,
-	)
-}
-
 func AllCharacters(db *sql.DB) ([]*Character, error) {
 	query := "SELECT * FROM characters"
 	return queryForList(db, query, nil, characterScanner)
@@ -191,11 +184,14 @@ func SetCharacterTags(db *sql.DB, characterId int64, tagIds []int64) error {
 	return tx.Commit()
 }
 
-func DialogueExamplesByCharacterId(db *sql.DB, characterId int64) ([]*CharacterTextBlock, error) {
-	query := "SELECT * FROM character_dialogue_examples WHERE character_id = $1"
+func DialogueExamplesByCharacterId(db *sql.DB, characterId int64) ([]*string, error) {
+	query := "SELECT text FROM character_dialogue_examples WHERE character_id = $1"
 	args := []any{characterId}
+	scanFunc := func(rows RowScanner, dest *string) error {
+		return rows.Scan(dest)
+	}
 
-	return queryForList(db, query, args, characterTextBlockScanner)
+	return queryForList(db, query, args, scanFunc)
 }
 
 func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []string) error {
@@ -229,11 +225,14 @@ func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []
 	return tx.Commit()
 }
 
-func CharacterGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*CharacterTextBlock, error) {
+func CharacterGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*string, error) {
 	query := "SELECT * FROM character_greetings WHERE character_id = $1"
 	args := []any{characterId}
+	scanFunc := func(rows RowScanner, dest *string) error {
+		return rows.Scan(dest)
+	}
 
-	return queryForList(db, query, args, characterTextBlockScanner)
+	return queryForList(db, query, args, scanFunc)
 }
 
 func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string) error {
@@ -267,11 +266,14 @@ func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string
 	return tx.Commit()
 }
 
-func CharacterGroupGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*CharacterTextBlock, error) {
+func CharacterGroupGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*string, error) {
 	query := "SELECT * FROM character_group_greetings WHERE character_id = $1"
 	args := []any{characterId}
+	scanFunc := func(rows RowScanner, dest *string) error {
+		return rows.Scan(dest)
+	}
 
-	return queryForList(db, query, args, characterTextBlockScanner)
+	return queryForList(db, query, args, scanFunc)
 }
 
 func SetGroupGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string) error {

@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {Character, CharacterDetails, CharacterTextBlock, isNew, Tag} from '@api/model';
+import {Character, CharacterDetails, isNew, Tag} from '@api/model';
 
 @Injectable({
   providedIn: 'root'
@@ -46,24 +46,24 @@ export class Characters {
     return this.http.post<void>(`/characters/${characterId}/tags`, tagIds)
   }
 
-  getDialogueExamples(characterId: number): Observable<CharacterTextBlock[]> {
-    return this.http.get<CharacterTextBlock[]>(`/characters/${characterId}/dialogue-examples`)
+  getDialogueExamples(characterId: number): Observable<string[]> {
+    return this.http.get<string[]>(`/characters/${characterId}/dialogue-examples`)
   }
 
   saveDialogueExamples(characterId: number, dialogueExamples: string[]): Observable<void> {
     return this.http.post<void>(`/characters/${characterId}/dialogue-examples`, dialogueExamples)
   }
 
-  getGreetings(characterId: number): Observable<CharacterTextBlock[]> {
-    return this.http.get<CharacterTextBlock[]>(`/characters/${characterId}/greetings`)
+  getGreetings(characterId: number): Observable<string[]> {
+    return this.http.get<string[]>(`/characters/${characterId}/greetings`)
   }
 
   saveGreetings(characterId: number, greetings: string[]): Observable<void> {
     return this.http.post<void>(`/characters/${characterId}/greetings`, greetings)
   }
 
-  getGroupGreetings(characterId: number): Observable<CharacterTextBlock[]> {
-    return this.http.get<CharacterTextBlock[]>(`/characters/${characterId}/group-greetings`)
+  getGroupGreetings(characterId: number): Observable<string[]> {
+    return this.http.get<string[]>(`/characters/${characterId}/group-greetings`)
   }
 
   saveGroupGreetings(characterId: number, greetings: string[]): Observable<void> {
