@@ -1,5 +1,7 @@
 import {AbstractControl, AsyncValidatorFn, FormArray, FormControl, FormGroup, ValidatorFn} from '@angular/forms';
 import {Observable} from 'rxjs';
+import {Signal} from '@angular/core';
+import {toSignal} from '@angular/core/rxjs-interop';
 
 export type FormControls<T> = {
   [P in keyof T]: AbstractControl<T[P]>
@@ -42,3 +44,14 @@ export function readOnlyControl<T>(value: T = "" as T): AbstractControl<T, T> {
   return new FormControl<T>({value, disabled: true}, {nonNullable: true})
 }
 
+export function toControlValueSignal<T>(control: AbstractControl<T>): Signal<T>
+export function toControlValueSignal<T>(control: AbstractControl, path: string | (string | number)[]): Signal<T>
+export function toControlValueSignal<T>(control: AbstractControl, path?: string | (string | number)[]): Signal<T> {
+  if(!!path) {
+    const ctrl = control.get(path);
+    if (!ctrl) throw new Error(`Could not find control for path: ${path}`);
+    return toSignal(ctrl.valueChanges, {initialValue: ctrl.value})
+  } else {
+    return toSignal(control.valueChanges, {initialValue: control.value})
+  }
+}

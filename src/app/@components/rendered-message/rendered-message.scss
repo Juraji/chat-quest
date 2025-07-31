@@ -1,0 +1,25 @@
+:host {
+  ::ng-deep.rendered-message {
+    text-wrap: wrap;
+    white-space: pre-wrap;
+
+    .action {
+      color: var(--bs-secondary-color) !important;
+      font-style: italic;
+    }
+
+    .variable {
+      color: var(--bs-code-color) !important;
+      font-family: var(--bs-font-monospace), monospace;
+      font-style: normal;
+      font-size: 0.875em;
+      background-color: var(--bs-secondary-bg);
+      padding: 2px;
+      border-radius: var(--bs-border-radius-sm);
+    }
+  }
+
+  &.rows-3 {
+    max-height: 3rem;
+  }
+}

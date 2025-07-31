@@ -1,0 +1,52 @@
+import {Component, inject} from '@angular/core';
+import {CharacterEditFormService} from '../character-edit-form.service';
+import {ReactiveFormsModule} from '@angular/forms';
+import {booleanSignal, toControlValueSignal} from '@util/ng';
+import {EmptyPipe} from '@components/empty-pipe';
+import {RenderedMessage} from '@components/rendered-message/rendered-message';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+
+@Component({
+  selector: 'app-character-edit-chat-settings',
+  imports: [
+    ReactiveFormsModule,
+    EmptyPipe,
+    RenderedMessage,
+  ],
+  templateUrl: './character-edit-chat-settings.html',
+  styleUrls: ['./character-edit-chat-settings.scss']
+})
+export class CharacterEditChatSettings {
+  private readonly formService = inject(CharacterEditFormService)
+
+  readonly formGroup = this.formService.formGroup
+
+  readonly characterDetailsFG = this.formService.characterDetailsFG
+
+  readonly editDialogueExamples = booleanSignal(false)
+  readonly dialogueExamplesFA = this.formService.dialogueExamplesFA
+  readonly dialogueExamples = toControlValueSignal(this.dialogueExamplesFA)
+
+  readonly editGreetings = booleanSignal(false)
+  readonly greetingsFA = this.formService.greetingsFA
+  readonly greetings = toControlValueSignal(this.greetingsFA)
+
+  readonly editGroupGreetings = booleanSignal(false)
+  readonly groupGreetingsFA = this.formService.groupGreetingsFA
+  readonly groupGreetings = toControlValueSignal(this.groupGreetingsFA)
+
+  readonly onFormSubmit = this.formService.requestSubmitFn()
+  readonly onAddControl = this.formService.addControlFn()
+  readonly onRemoveControl = this.formService.removeControlFn()
+
+  constructor() {
+    this.formService.onFormReset
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.editDialogueExamples.set(false)
+        this.editGreetings.set(false)
+        this.editGroupGreetings.set(false)
+      })
+
+  }
+}

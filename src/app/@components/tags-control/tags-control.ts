@@ -47,10 +47,11 @@ export class TagsControl implements ControlValueAccessor {
   readonly inputText: WritableSignal<string> = signal('')
   readonly isDisabled: WritableSignal<boolean> = linkedSignal(() => this.disabled())
   readonly currentTags: WritableSignal<Tag[]> = linkedSignal(() => this.tagsInput())
+  readonly currentTagIds: Signal<number[]> = computed(() => this.currentTags().map(t => t.id))
 
   readonly missingTags: Signal<Tag[]> = computed(() => {
     const availableTags = this.availableTags()
-    const currentTagIds = this.currentTags().map(t => t.id)
+    const currentTagIds = this.currentTagIds()
     return availableTags.filter(t => !currentTagIds.includes(t.id))
   })
 
@@ -93,7 +94,7 @@ export class TagsControl implements ControlValueAccessor {
     if (!inputText) return
 
     const available = this.availableTags()
-    const currentTags = this.currentTags();
+    const currentTagIds = this.currentTagIds()
 
     of(inputText)
       .pipe(
@@ -105,7 +106,7 @@ export class TagsControl implements ControlValueAccessor {
           const existing = available.find(t => t.lowercase === lc)
           return !!existing ? existing : {id: NEW_ID, label, lowercase: lc}
         }),
-        filter(t => isNew(t) || !currentTags.some(ct => ct.id === t.id)),
+        filter(t => isNew(t) || currentTagIds.includes(t.id)),
         mergeMap(tag => iif(() => isNew(tag), this.tags.save(tag), [tag])),
         toArray()
       )

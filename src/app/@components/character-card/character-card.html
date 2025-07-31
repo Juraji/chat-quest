@@ -6,7 +6,7 @@
     <span class="bi me-2"
           [class.bi-star]="!favorite()"
           [class.bi-star-fill]="favorite()"></span>
-    <h5 class="card-title mb-0 text-center flex-grow-1">{{ name() }}</h5>
+    <h5 class="card-title mb-0 text-center flex-grow-1 text-truncate">{{ name() }}</h5>
   </div>
   <div class="card-body">
     <app-tags-control class="tags" [tagIds]="tagIds()" [disabled]="true"></app-tags-control>

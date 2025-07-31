@@ -1,0 +1,101 @@
+<form [formGroup]="formGroup" (submit)="onFormSubmit()">
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="card-title mb-0">Appearance</h5>
+        <button type="button" class="btn btn-sm" (click)="editAppearance.toggle()">
+          @if (editAppearance()) {
+            <span class="bi bi-x"></span>
+          } @else {
+            <span class="bi bi-pencil"></span>
+          }
+        </button>
+      </div>
+
+      @if (editAppearance()) {
+        <div>
+          <textarea type="text" class="form-control" rows="7"
+                    id="characterAppearanceInput"
+                    aria-describedby="characterAppearanceInputHelp"
+                    formControlName="appearance"></textarea>
+          <div id="characterAppearanceInputHelp" class="form-text">
+            Optionally describe your character's appearance, like physical traits and clothing.
+          </div>
+        </div>
+      } @else if (!!appearanceValue()) {
+        <code>{{ appearanceValue() }}</code>
+      } @else {
+        <p class="form-text mb-0">
+          No appearance description supplied.
+        </p>
+      }
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="card-title mb-0">Personality</h5>
+        <button type="button" class="btn btn-sm" (click)="editPersonality.toggle()">
+          @if (editPersonality()) {
+            <span class="bi bi-x"></span>
+          } @else {
+            <span class="bi bi-pencil"></span>
+          }
+        </button>
+      </div>
+
+      @if (editPersonality()) {
+        <div>
+          <textarea type="text" class="form-control" rows="7"
+                    id="characterPersonalityInput"
+                    aria-describedby="characterPersonalityInputHelp"
+                    formControlName="personality"></textarea>
+          <div id="characterPersonalityInputHelp" class="form-text">
+            Optionally describe your character's personality. Leave empty to skip.
+          </div>
+        </div>
+      } @else if (!!personalityValue()) {
+        <code>{{ personalityValue() }}</code>
+      } @else {
+        <p class="form-text mb-0">
+          No personality description supplied.
+        </p>
+      }
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="card-title mb-0">History</h5>
+        <button type="button" class="btn btn-sm" (click)="editHistory.toggle()">
+          @if (editHistory()) {
+            <span class="bi bi-x"></span>
+          } @else {
+            <span class="bi bi-pencil"></span>
+          }
+        </button>
+      </div>
+
+      @if (editHistory()) {
+        <div>
+          <textarea type="text" class="form-control"
+                    id="characterHistoryInput"
+                    rows="7"
+                    aria-describedby="characterHistoryInputHelp"
+                    formControlName="history"></textarea>
+          <div id="characterHistoryInputHelp" class="form-text">
+            Optionally describe your character's history, Where do they come from, how did they get here.
+          </div>
+        </div>
+      } @else if (!!historyValue()) {
+        <code>{{ historyValue() }}</code>
+      } @else {
+        <p class="form-text mb-0">
+          No history supplied.
+        </p>
+      }
+    </div>
+  </div>
+</form>

@@ -32,12 +32,6 @@
     border-radius: var(--bs-card-border-radius);
   }
 
-  .card-title {
-    overflow: hidden;
-    text-wrap: nowrap;
-    text-overflow: ellipsis;
-  }
-
   .card-body {
     z-index: 1;
     padding-bottom: 0;

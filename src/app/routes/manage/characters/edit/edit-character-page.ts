@@ -1,24 +1,17 @@
 import {Component, computed, effect, inject, Signal} from '@angular/core';
-import {
-  formArray,
-  formControl,
-  formGroup,
-  readOnlyControl,
-  routeDataSignal,
-  TypedFormArray,
-  TypedFormControl,
-  TypedFormGroup
-} from '@util/ng';
-import {Character, CharacterDetails, isNew, Tag} from '@api/model';
-import {ActivatedRoute, Router} from '@angular/router';
+import {routeDataSignal} from '@util/ng';
+import {isNew} from '@api/model';
+import {ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {Notifications} from '@components/notifications';
 import {Characters} from '@api/clients';
-import {FormArray, ReactiveFormsModule, Validators} from '@angular/forms';
+import {ReactiveFormsModule} from '@angular/forms';
 import {PageHeader} from '@components/page-header';
 import {AvatarControl} from '@components/avatar-control';
 import {CharacterFormData} from './character-form-data';
 import {defer, forkJoin, mergeMap, tap} from 'rxjs';
 import {TagsControl} from '@components/tags-control/tags-control';
+import {CharacterEditFormService} from './character-edit-form.service';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-edit-character-page',
@@ -26,7 +19,13 @@ import {TagsControl} from '@components/tags-control/tags-control';
     PageHeader,
     ReactiveFormsModule,
     AvatarControl,
-    TagsControl
+    TagsControl,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive
+  ],
+  providers: [
+    CharacterEditFormService
   ],
   templateUrl: './edit-character-page.html',
 })
@@ -34,7 +33,9 @@ export class EditCharacterPage {
   private readonly router = inject(Router)
   private readonly notifications = inject(Notifications)
   private readonly characters = inject(Characters)
-  private readonly activatedRoute = inject(ActivatedRoute)
+  protected readonly activatedRoute = inject(ActivatedRoute)
+
+  private readonly formService = inject(CharacterEditFormService)
 
   readonly characterFormData: Signal<CharacterFormData> = routeDataSignal(this.activatedRoute, 'characterFormData')
 
@@ -43,52 +44,23 @@ export class EditCharacterPage {
   readonly name = computed(() => this.character().name)
   readonly favorite = computed(() => this.character().favorite)
 
-  readonly formGroup = formGroup<CharacterFormData>({
-    character: formGroup({
-      id: readOnlyControl(0),
-      createdAt: readOnlyControl<Nullable<string>>(null),
-      name: formControl('', [Validators.required]),
-      favorite: formControl(false),
-      avatarUrl: formControl<Nullable<string>>(null)
-    }),
-    characterDetails: formGroup({
-      characterId: readOnlyControl(0),
-      appearance: formControl<Nullable<string>>(null),
-      personality: formControl<Nullable<string>>(null),
-      history: formControl<Nullable<string>>(null),
-      groupTalkativeness: formControl(0)
-    }),
-    tags: formControl([]),
-    dialogueExamples: formArray([]),
-    greetings: formArray([]),
-    groupGreetings: formArray([]),
-  })
+  readonly formGroup = this.formService.formGroup
 
-  readonly characterFG: TypedFormGroup<Character> =
-    this.formGroup.get('character') as TypedFormGroup<Character>
-  readonly characterDetailsFG: TypedFormGroup<CharacterDetails> =
-    this.formGroup.get('characterDetails') as TypedFormGroup<CharacterDetails>
-  readonly tagsCtrl: TypedFormControl<Tag[]> =
-    this.formGroup.get('tags') as TypedFormControl<Tag[]>
-  readonly dialogueExamplesFA: TypedFormArray<string> =
-    this.formGroup.get('dialogueExamples') as FormArray
-  readonly greetingsFA: TypedFormArray<string> =
-    this.formGroup.get('greetings') as FormArray
-  readonly groupGreetingsFA: TypedFormArray<string> =
-    this.formGroup.get('groupGreetings') as FormArray
+  readonly subMenuItems = [
+    {route: 'chat-settings', label: 'Chat Settings'},
+    {route: 'descriptions', label: 'Descriptions'},
+    {route: 'memories', label: 'Memories'},
+  ]
 
   constructor() {
-    effect(() => this.onResetForm());
-  }
+    effect(() => {
+      const formData = this.characterFormData()
+      this.formService.resetFormData(formData)
+    });
 
-  onAddControl(arr: TypedFormArray<string>, value: string = '') {
-    this.addControlTo(arr, value)
-    arr.markAsDirty()
-  }
-
-  onRemoveControl(arr: TypedFormArray<string>, idx: number) {
-    arr.removeAt(idx)
-    arr.markAsDirty()
+    this.formService.onSubmitRequested
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.onSubmit())
   }
 
   onSubmit() {
@@ -100,40 +72,47 @@ export class EditCharacterPage {
       characterDetails,
     } = this.characterFormData()
 
+    const characterFG = this.formService.characterFG;
+    const characterDetailsFG = this.formService.characterDetailsFG;
+    const tagsCtrl = this.formService.tagsCtrl;
+    const dialogueExamplesFA = this.formService.dialogueExamplesFA;
+    const greetingsFA = this.formService.greetingsFA;
+    const groupGreetingsFA = this.formService.groupGreetingsFA;
+
     this.characters
-      .save({...character, ...this.characterFG.value})
+      .save({...character, ...characterFG.value})
       .pipe(
-        tap(res => this.characterFG.reset(res)),
+        tap(res => characterFG.reset(res)),
         mergeMap(c => forkJoin({
           character: [c],
-          characterDetails: defer(() => !isNew && this.characterDetailsFG.dirty
+          characterDetails: defer(() => !isNew && characterDetailsFG.dirty
             ? this.characters
-              .saveDetails({...characterDetails, ...this.characterDetailsFG.value, characterId: c.id})
-              .pipe(tap(res => this.characterDetailsFG.reset(res)))
+              .saveDetails({...characterDetails, ...characterDetailsFG.value, characterId: c.id})
+              .pipe(tap(res => characterDetailsFG.reset(res)))
             : [null]
           ),
-          tags: defer(() => !isNew && this.tagsCtrl.dirty
+          tags: defer(() => !isNew && tagsCtrl.dirty
             ? this.characters
-              .saveTags(c.id, this.tagsCtrl.value.map(t => t.id))
-              .pipe(tap(() => this.tagsCtrl.reset()))
+              .saveTags(c.id, tagsCtrl.value.map(t => t.id))
+              .pipe(tap(() => tagsCtrl.reset()))
             : [null]
           ),
-          dialogueExamples: defer(() => !isNew && this.dialogueExamplesFA.dirty
+          dialogueExamples: defer(() => !isNew && dialogueExamplesFA.dirty
             ? this.characters
-              .saveDialogueExamples(c.id, this.dialogueExamplesFA.value)
-              .pipe(tap(() => this.dialogueExamplesFA.reset()))
+              .saveDialogueExamples(c.id, dialogueExamplesFA.value)
+              .pipe(tap(() => dialogueExamplesFA.reset()))
             : [null]
           ),
-          greetings: defer(() => !isNew && this.greetingsFA.dirty
+          greetings: defer(() => !isNew && greetingsFA.dirty
             ? this.characters
-              .saveGreetings(c.id, this.greetingsFA.value)
-              .pipe(tap(() => this.greetingsFA.reset()))
+              .saveGreetings(c.id, greetingsFA.value)
+              .pipe(tap(() => greetingsFA.reset()))
             : [null]
           ),
-          groupGreetings: defer(() => !isNew && this.groupGreetingsFA.dirty
+          groupGreetings: defer(() => !isNew && groupGreetingsFA.dirty
             ? this.characters
-              .saveGroupGreetings(c.id, this.groupGreetingsFA.value)
-              .pipe(tap(() => this.groupGreetingsFA.reset()))
+              .saveGroupGreetings(c.id, groupGreetingsFA.value)
+              .pipe(tap(() => groupGreetingsFA.reset()))
             : [null]
           ),
         })),
@@ -144,7 +123,9 @@ export class EditCharacterPage {
       )
       .subscribe(res => {
         this.notifications.toast(`${res.character.name} saved!`)
-        this.router.navigate(["..", res.character.id], {
+        const currentSubRoute = this.router.url
+          .replace(/.*\/([a-z-]+)\?.*$/, "$1");
+        this.router.navigate(["..", res.character.id, currentSubRoute], {
           queryParams: {u: Date.now()},
           replaceUrl: true,
           relativeTo: this.activatedRoute
@@ -153,12 +134,7 @@ export class EditCharacterPage {
   }
 
   onResetForm() {
-    const formData = this.characterFormData()
-    this.formGroup.reset(formData)
-
-    this.setControlsTo(this.dialogueExamplesFA, formData.dialogueExamples)
-    this.setControlsTo(this.greetingsFA, formData.greetings)
-    this.setControlsTo(this.groupGreetingsFA, formData.groupGreetings)
+    this.formService.resetFormData(this.characterFormData())
   }
 
   onDeleteCharacter() {
@@ -178,15 +154,5 @@ export class EditCharacterPage {
           });
         })
     }
-  }
-
-  private setControlsTo(arr: TypedFormArray<string>, values: string[]) {
-    arr.clear()
-    values.forEach(value => this.addControlTo(arr, value))
-    arr.reset()
-  }
-
-  private addControlTo(arr: TypedFormArray<string>, value: string = '') {
-    arr.push(formControl(value, [Validators.required]))
   }
 }
