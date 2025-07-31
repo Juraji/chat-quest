@@ -11,8 +11,5 @@
   ],
   "exclude": [
     "src/**/*.spec.ts",
-
-    /* TODO: Remove these directive when UI rewrite is complete! */
-    "src/app/@components/character-card",
   ]
 }

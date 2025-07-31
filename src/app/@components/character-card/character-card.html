@@ -1,5 +1,5 @@
 <div class="card">
-  @if (avatarImageUrl(); as url) {
+  @if (avatarUrl(); as url) {
     <div class="avatar-image" [style.background-image]="'url(' + url + ')'"></div>
   }
   <div class="card-header d-flex align-items-center">
@@ -9,7 +9,7 @@
     <h5 class="card-title mb-0 text-center flex-grow-1 text-truncate">{{ name() }}</h5>
   </div>
   <div class="card-body">
-    <app-tags-control class="tags" [tagIds]="tagIds()" [disabled]="true"></app-tags-control>
+    <app-tags-control class="tags" [tags]="tags()" [disabled]="true"></app-tags-control>
   </div>
   <div class="card-footer">
     <div class="btn-toolbar justify-content-center gap-2">

@@ -15,6 +15,11 @@ type Character struct {
 	AvatarUrl *string    `json:"avatarUrl"`
 }
 
+type CharacterWithTags struct {
+	Character
+	Tags []*Tag `json:"tags"`
+}
+
 type CharacterDetails struct {
 	CharacterId        int64   `json:"characterId"`
 	Appearance         *string `json:"appearance"`
@@ -51,6 +56,25 @@ func characterDetailsScanner(scanner RowScanner, dest *CharacterDetails) error {
 func AllCharacters(db *sql.DB) ([]*Character, error) {
 	query := "SELECT * FROM characters"
 	return queryForList(db, query, nil, characterScanner)
+}
+
+func AllCharactersWithTags(db *sql.DB) ([]*CharacterWithTags, error) {
+	query := "SELECT * FROM characters"
+	characters, err := queryForList(db, query, nil, characterScanner)
+	if err != nil {
+		return nil, err
+	}
+
+	var charactersWithTags []*CharacterWithTags
+	for _, character := range characters {
+		tags, err := TagsByCharacterId(db, character.ID)
+		if err != nil {
+			return nil, err
+		}
+		charactersWithTags = append(charactersWithTags, &CharacterWithTags{*character, tags})
+	}
+
+	return charactersWithTags, nil
 }
 
 func CharacterById(db *sql.DB, id int64) (*Character, error) {

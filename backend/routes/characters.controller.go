@@ -15,6 +15,11 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 		respondList(c, characters, err)
 	})
 
+	charactersRouter.GET("/with-tags", func(c *gin.Context) {
+		characters, err := model.AllCharactersWithTags(db)
+		respondList(c, characters, err)
+	})
+
 	charactersRouter.GET("/:characterId", func(c *gin.Context) {
 		characterId, err := getID(c, "characterId")
 		if err != nil {

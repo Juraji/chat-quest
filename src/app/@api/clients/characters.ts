@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {Character, CharacterDetails, isNew, Tag} from '@api/model';
+import {Character, CharacterDetails, CharacterWithTags, isNew, Tag} from '@api/model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +12,10 @@ export class Characters {
 
   getAll(): Observable<Character[]> {
     return this.http.get<Character[]>('/characters')
+  }
+
+  getAllWithTags(): Observable<CharacterWithTags[]> {
+    return this.http.get<CharacterWithTags[]>('/characters/with-tags')
   }
 
   get(characterId: number): Observable<Character> {

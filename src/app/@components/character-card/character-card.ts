@@ -1,5 +1,6 @@
-import {Component, computed, effect, input, InputSignal, signal, Signal, WritableSignal} from '@angular/core';
-import {Character} from '@db/characters';
+import {Component, computed, effect, inject, input, InputSignal, signal, Signal, WritableSignal} from '@angular/core';
+import {Character, CharacterWithTags, Tag} from "@api/model"
+import {Characters} from '@api/clients';
 import {TagsControl} from '@components/tags-control/tags-control';
 
 @Component({
@@ -14,23 +15,25 @@ import {TagsControl} from '@components/tags-control/tags-control';
   }
 })
 export class CharacterCard {
-  readonly character: InputSignal<Character> = input.required()
-  readonly id: Signal<number> = computed(() => this.character().id)
-  readonly name: Signal<string> = computed(() => this.character().name)
-  readonly favorite: Signal<boolean> = computed(() => this.character().favorite)
-  readonly tagIds: Signal<number[]> = computed(() => this.character().tagIds)
-  readonly avatar: Signal<Blob | null> = computed(() => this.character().avatar)
+  readonly characters = inject(Characters)
 
-  readonly avatarImageUrl: WritableSignal<string> = signal('')
+  readonly character: InputSignal<Character | CharacterWithTags> = input.required()
+  protected readonly id: Signal<number> = computed(() => this.character().id)
+  protected readonly name: Signal<string> = computed(() => this.character().name)
+  protected readonly favorite: Signal<boolean> = computed(() => this.character().favorite)
+  protected readonly avatarUrl: Signal<Nullable<string>> = computed(() => this.character().avatarUrl)
+  protected readonly tags: WritableSignal<Tag[]> = signal([])
 
   constructor() {
     effect(() => {
-      const blob = this.avatar()
-      this.avatarImageUrl.update(current => {
-        if (!!current) URL.revokeObjectURL(current)
-        if (!!blob) return URL.createObjectURL(blob)
-        else return ''
-      })
+      const char = this.character()
+      if ('tags' in char) {
+        this.tags.set(char.tags)
+      } else {
+        this.characters
+          .getTags(char.id)
+          .subscribe(tags => this.tags.set(tags))
+      }
     });
   }
 }
