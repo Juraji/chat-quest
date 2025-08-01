@@ -26,17 +26,38 @@
       <div class="g-col-12 g-col-lg-6">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Connection Details</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="card-title mb-0">Connection Details</h5>
+              <app-dropdown>
+                <span class="bi bi-braces-asterisk"></span>
+                <li><h6 class="dropdown-header">Copy from a template:</h6></li>
+                @for (template of templates(); track template.baseUrl) {
+                  <li>
+                    <button type="button" class="dropdown-item"
+                    (click)="onCopyFromTemplate(template)">{{ template.name }}</button>
+                  </li>
+                }
+              </app-dropdown>
+            </div>
 
             <div class="mb-3">
               <select class="form-select"
                       formControlName="providerType"
                       aria-describedby="providerTypeInputHelp">
-                <option value="OPEN_AI">Open AI (ChatGPT)</option>
-                <option value="X_AI">X Ai (Grok)</option>
-                <option value="LM_STUDIO">LM Studio (Open AI-like)</option>
+                <option value="OPEN_AI">Open AI (ChatGPT/Compatible)</option>
               </select>
               <div id="providerTypeInputHelp" class="form-text">Select your provider.</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="nameInput">Name</label>
+              <input type="text" class="form-control"
+                     id="nameInput"
+                     aria-describedby="nameInputHelp"
+                     formControlName="name"/>
+              <div id="nameInputHelp" class="form-text">
+                This is for display only, so you know what's what.
+              </div>
             </div>
 
             <div class="mb-3">

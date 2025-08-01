@@ -57,18 +57,18 @@ func main() {
 		log.Fatal("Failed to set trusted proxies", err)
 	}
 
-	// Register API routes first
 	apiRouter := router.Group(ApiBasePath)
 	{
 		log.Println("Registering routes...")
+		routes.SystemController(apiRouter, db)
 		routes.TagsController(apiRouter, db)
 		routes.CharactersController(apiRouter, db)
-		routes.ScenariosController(apiRouter, db)
 		routes.InstructionPromptsController(apiRouter, db)
 		routes.ConnectionProfilesController(apiRouter, db)
 	}
 
-	// Add a custom handler for static files that don't match our API pattern
+	// If endpoint is not found, the request is probably a UI resource.
+	// Else we just fail ugly, gl hackers.
 	log.Printf("Serving Chat Quest UI from directory '%s'", ChatQuestUIRoot)
 	router.NoRoute(routes.ChatQuestUIHandler(ChatQuestUIRoot))
 

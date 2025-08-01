@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {InstructionPrompt, isNew} from '@api/model';
@@ -7,8 +7,7 @@ import {InstructionPrompt, isNew} from '@api/model';
   providedIn: 'root'
 })
 export class InstructionPrompts {
-  constructor(private http: HttpClient) {
-  }
+  private http: HttpClient = inject(HttpClient)
 
   getAll(): Observable<InstructionPrompt[]> {
     return this.http.get<InstructionPrompt[]>(`/instruction-prompts`)

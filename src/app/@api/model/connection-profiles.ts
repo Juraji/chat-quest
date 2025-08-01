@@ -1,9 +1,9 @@
 import {ChatQuestModel} from './model';
 
-export type ProviderType =
-  "OPEN_AI" | "X_AI" | "LM_STUDIO"
+export type ProviderType = "OPEN_AI"
 
 export interface ConnectionProfile extends ChatQuestModel {
+  name: string;
   providerType: ProviderType
   baseUrl: string
   apiKey: string

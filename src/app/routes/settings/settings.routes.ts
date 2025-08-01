@@ -5,7 +5,8 @@ import {manageConnectionProfilesResolver} from './connection-profiles/manage/man
 import {EditConnectionProfile} from "./connection-profiles/edit/edit-connection-profile"
 import {
   editConnectionProfileLlmModelsResolver,
-  editConnectionProfileResolver
+  editConnectionProfileResolver,
+  editConnectionProfileTemplatesResolver
 } from './connection-profiles/edit/edit-connection-profile.resolver';
 
 const routes: Routes = [
@@ -26,7 +27,8 @@ const routes: Routes = [
         runGuardsAndResolvers: "paramsOrQueryParamsChange",
         resolve: {
           profile: editConnectionProfileResolver,
-          models: editConnectionProfileLlmModelsResolver
+          models: editConnectionProfileLlmModelsResolver,
+          templates: editConnectionProfileTemplatesResolver,
         }
       },
       {

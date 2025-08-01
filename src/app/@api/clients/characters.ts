@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {Character, CharacterDetails, CharacterWithTags, isNew, Tag} from '@api/model';
@@ -7,8 +7,7 @@ import {Character, CharacterDetails, CharacterWithTags, isNew, Tag} from '@api/m
   providedIn: 'root'
 })
 export class Characters {
-  constructor(private http: HttpClient) {
-  }
+  private http: HttpClient = inject(HttpClient)
 
   getAll(): Observable<Character[]> {
     return this.http.get<Character[]>('/characters')

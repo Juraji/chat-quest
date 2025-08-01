@@ -1,37 +1,45 @@
 package model
 
-import "fmt"
-
-var openAiDefaults = ConnectionProfile{
-	ID:           0,
-	ProviderType: "OPEN_AI",
-	BaseUrl:      "https://api.openai.com/v1",
-	ApiKey:       "",
-}
-
-var xAiDefaults = ConnectionProfile{
-	ID:           0,
-	ProviderType: "X_AI",
-	BaseUrl:      "https://api.x.ai/v1",
-	ApiKey:       "",
-}
-
-var lmStudioDefaults = ConnectionProfile{
-	ID:           0,
-	ProviderType: "LM_STUDIO",
-	BaseUrl:      "https://localhost:1234/v1",
-	ApiKey:       "lm-studio",
-}
-
-func GetConnectionProfileDefaults(providerType string) (ConnectionProfile, error) {
-	switch providerType {
-	case "OPEN_AI":
-		return openAiDefaults, nil
-	case "X_AI":
-		return xAiDefaults, nil
-	case "LM_STUDIO":
-		return lmStudioDefaults, nil
-	default:
-		return ConnectionProfile{}, fmt.Errorf("unknown providerType: %s", providerType)
+func GetConnectionProfileDefaults() []*ConnectionProfile {
+	return []*ConnectionProfile{
+		{
+			ID:           0,
+			Name:         "Open AI",
+			ProviderType: "OPEN_AI",
+			BaseUrl:      "https://api.openai.com/v1",
+			ApiKey:       "",
+		},
+		{
+			ID:           0,
+			Name:         "X AI",
+			ProviderType: "OPEN_AI",
+			BaseUrl:      "https://api.x.ai/v1",
+			ApiKey:       "",
+		},
+		{
+			ID:           0,
+			Name:         "LM Studio",
+			ProviderType: "OPEN_AI",
+			BaseUrl:      "https://localhost:1234/v1",
+			ApiKey:       "lm-studio",
+		},
 	}
+}
+
+func DefaultLlmModel(ConnectionProfileId int64, ModelId string, opts ...func(*LlmModel)) *LlmModel {
+	model := LlmModel{
+		ConnectionProfileId: ConnectionProfileId,
+		ModelId:             ModelId,
+		Temperature:         1.0,
+		MaxTokens:           256,
+		TopP:                0.95,
+		Stream:              false,
+		Stop:                []string{},
+	}
+
+	for _, opt := range opts {
+		opt(&model)
+	}
+
+	return &model
 }

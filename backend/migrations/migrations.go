@@ -14,6 +14,18 @@ import (
 var migrationsFs embed.FS
 
 func RunMigrations(db *sql.DB) error {
+	return runUsingMigrations(db, func(m *migrate.Migrate) error {
+		return m.Up()
+	})
+}
+
+func GoToVersion(db *sql.DB, version uint) error {
+	return runUsingMigrations(db, func(m *migrate.Migrate) error {
+		return m.Migrate(version)
+	})
+}
+
+func runUsingMigrations(db *sql.DB, action func(m *migrate.Migrate) error) error {
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 	if err != nil {
 		return fmt.Errorf("failed to create databse driver instance: %v", err)
@@ -29,7 +41,7 @@ func RunMigrations(db *sql.DB) error {
 		return fmt.Errorf("failed to create migrations: %v", err)
 	}
 
-	if err = m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+	if err = action(m); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("failed to migrate database: %v", err)
 	}
 

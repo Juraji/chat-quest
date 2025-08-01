@@ -1,17 +1,16 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {ConnectionProfile, isNew, LlmModel, ProviderType} from '@api/model';
+import {ConnectionProfile, isNew, LlmModel} from '@api/model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ConnectionProfiles {
-  constructor(private http: HttpClient) {
-  }
+  private http: HttpClient = inject(HttpClient)
 
-  getDefaults(providerType: ProviderType): Observable<ConnectionProfile> {
-    return this.http.get<ConnectionProfile>(`/connection-profiles/templates/${providerType}`);
+  getTemplates(): Observable<ConnectionProfile[]> {
+    return this.http.get<ConnectionProfile[]>(`/connection-profiles/templates`);
   }
 
   getAll(): Observable<ConnectionProfile[]> {

@@ -6,15 +6,15 @@ import {PageHeader} from '@components/page-header';
 import {formControl, formGroup, readOnlyControl, routeDataSignal} from '@util/ng';
 import {ConnectionProfile, isNew, LlmModel, ProviderType} from '@api/model';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {toSignal} from '@angular/core/rxjs-interop';
-import {pairwise} from 'rxjs';
+import {Dropdown} from '@components/dropdown';
 
 @Component({
   selector: 'app-edit-connection-profile',
   imports: [
     PageHeader,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    Dropdown
   ],
   templateUrl: './edit-connection-profile.html'
 })
@@ -24,6 +24,7 @@ export class EditConnectionProfile {
   private readonly notifications = inject(Notifications);
   private readonly connectionProfiles = inject(ConnectionProfiles)
 
+  readonly templates: Signal<ConnectionProfile[]> = routeDataSignal(this.activatedRoute, 'templates')
   readonly profile: Signal<ConnectionProfile> = routeDataSignal(this.activatedRoute, 'profile')
   readonly models: Signal<LlmModel[]> = routeDataSignal(this.activatedRoute, 'models')
 
@@ -31,29 +32,17 @@ export class EditConnectionProfile {
 
   readonly formGroup = formGroup<ConnectionProfile>({
     id: readOnlyControl(0),
+    name: formControl('', [Validators.required]),
     providerType: formControl<ProviderType>('OPEN_AI', [Validators.required]),
     baseUrl: formControl('', [Validators.required]),
     apiKey: formControl('', [Validators.required])
   })
-
-  readonly editorProviderType: Signal<[ProviderType, ProviderType]> = toSignal(
-    this.formGroup.get('providerType')!.valueChanges.pipe(pairwise()),
-    {initialValue: ['OPEN_AI', 'OPEN_AI']}
-  )
 
   constructor() {
     effect(() => {
       const inputP = this.profile()
       if (!!inputP) {
         this.formGroup.reset(inputP)
-      }
-    });
-    effect(() => {
-      const [prev, next] = this.editorProviderType()
-      if (prev !== next) {
-        this.connectionProfiles
-          .getDefaults(next)
-          .subscribe(profile => this.formGroup.patchValue(profile))
       }
     });
   }
@@ -99,5 +88,17 @@ export class EditConnectionProfile {
           })
         })
     }
+  }
+
+  onCopyFromTemplate(template: ConnectionProfile) {
+    const {id, ...patch} = template
+
+    if (!this.isNew()) {
+      const doCopy = confirm(`Are you sure you want overwrite the current settings?`)
+      if (!doCopy) return
+    }
+
+    this.formGroup.patchValue(patch)
+    this.formGroup.markAsDirty()
   }
 }

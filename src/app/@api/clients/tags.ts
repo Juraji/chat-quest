@@ -1,4 +1,4 @@
-import {Injectable, signal, Signal, WritableSignal} from '@angular/core';
+import {inject, Injectable, signal, Signal, WritableSignal} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, tap} from 'rxjs';
 import {isNew, Tag} from '@api/model';
@@ -7,10 +7,12 @@ import {isNew, Tag} from '@api/model';
   providedIn: 'root'
 })
 export class Tags {
+  private http: HttpClient = inject(HttpClient)
+
   private readonly _cachedTags: WritableSignal<Tag[]> = signal([]);
   readonly cachedTags: Signal<Tag[]> = this._cachedTags;
 
-  constructor(private http: HttpClient) {
+  constructor() {
     this.getAll().subscribe()
   }
 

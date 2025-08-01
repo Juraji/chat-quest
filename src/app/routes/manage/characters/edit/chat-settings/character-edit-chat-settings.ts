@@ -5,6 +5,7 @@ import {booleanSignal, toControlValueSignal} from '@util/ng';
 import {EmptyPipe} from '@components/empty-pipe';
 import {RenderedMessage} from '@components/rendered-message/rendered-message';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {TokenCount} from '@components/token-count/token-count';
 
 @Component({
   selector: 'app-character-edit-chat-settings',
@@ -12,6 +13,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
     ReactiveFormsModule,
     EmptyPipe,
     RenderedMessage,
+    TokenCount,
   ],
   templateUrl: './character-edit-chat-settings.html',
   styleUrls: ['./character-edit-chat-settings.scss']

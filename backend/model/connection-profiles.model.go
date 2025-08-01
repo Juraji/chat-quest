@@ -7,6 +7,7 @@ import (
 
 type ConnectionProfile struct {
 	ID           int64  `json:"id"`
+	Name         string `json:"name"`
 	ProviderType string `json:"providerType"`
 	BaseUrl      string `json:"baseUrl"`
 	ApiKey       string `json:"apiKey"`
@@ -14,7 +15,7 @@ type ConnectionProfile struct {
 
 type LlmModel struct {
 	ID                  int64    `json:"id"`
-	ConnectionProfileId string   `json:"connectionProfileId"`
+	ConnectionProfileId int64    `json:"connectionProfileId"`
 	ModelId             string   `json:"modelId"`
 	Temperature         float64  `json:"temperature"`
 	MaxTokens           int64    `json:"maxTokens"`
@@ -26,6 +27,7 @@ type LlmModel struct {
 func connectionProfileScanner(scanner RowScanner, dest *ConnectionProfile) error {
 	return scanner.Scan(
 		&dest.ID,
+		&dest.Name,
 		&dest.ProviderType,
 		&dest.BaseUrl,
 		&dest.ApiKey,
@@ -68,8 +70,8 @@ func ConnectionProfileById(db *sql.DB, id int64) (*ConnectionProfile, error) {
 }
 
 func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile) error {
-	query := "INSERT INTO connection_profiles (provider_type, base_url, api_key) VALUES ($1, $2, $3) RETURNING id"
-	args := []any{profile.ProviderType, profile.BaseUrl, profile.ApiKey}
+	query := "INSERT INTO connection_profiles (name, provider_type, base_url, api_key) VALUES ($1, $2, $3, $4) RETURNING id"
+	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey}
 	scanFunc := func(scanner RowScanner) error {
 		return scanner.Scan(&profile.ID)
 	}
@@ -78,8 +80,13 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile) error {
 }
 
 func UpdateConnectionProfile(db *sql.DB, id int64, profile *ConnectionProfile) error {
-	query := "UPDATE connection_profiles SET provider_type = $1, base_url = $2, api_key = $3 WHERE id = $4"
-	args := []any{profile.ProviderType, profile.BaseUrl, profile.ApiKey, id}
+	query := `UPDATE connection_profiles
+            SET name = $1,
+                provider_type = $2,
+                base_url = $3,
+                api_key = $4
+            WHERE id = $5`
+	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey, id}
 
 	return updateRecord(db, query, args)
 }
@@ -98,10 +105,11 @@ func LlmModelsByConnectionProfileId(db *sql.DB, profileId int64) ([]*LlmModel, e
 }
 
 func CreateLlmModel(db *sql.DB, llmModel *LlmModel) error {
-	query := "INSERT INTO llm_models (model_id, connection_profile_id, temperature, max_tokens, top_p, stream, stop) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id"
+	query := `INSERT INTO llm_models (connection_profile_id, model_id, temperature, max_tokens, top_p, stream, stop)
+            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
 	args := []any{
-		llmModel.ModelId,
 		llmModel.ConnectionProfileId,
+		llmModel.ModelId,
 		llmModel.Temperature,
 		llmModel.MaxTokens,
 		llmModel.TopP,
@@ -116,7 +124,13 @@ func CreateLlmModel(db *sql.DB, llmModel *LlmModel) error {
 }
 
 func UpdateLlmModel(db *sql.DB, id int64, llmModel *LlmModel) error {
-	query := "UPDATE llm_models SET temperature = $1, max_tokens = $2, top_p = $3, stream = $4, stop = $5 WHERE id = $6"
+	query := `UPDATE llm_models
+              SET temperature = $1,
+                  max_tokens = $2,
+                  top_p = $3,
+                  stream = $4,
+                  stop = $5
+              WHERE id = $6`
 	args := []any{
 		llmModel.Temperature,
 		llmModel.MaxTokens,

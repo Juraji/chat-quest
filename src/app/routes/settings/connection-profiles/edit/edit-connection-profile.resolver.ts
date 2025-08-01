@@ -1,5 +1,5 @@
 import {ResolveFn} from '@angular/router';
-import {ConnectionProfile, LlmModel} from '@api/model';
+import {ConnectionProfile, LlmModel, NEW_ID} from '@api/model';
 import {inject} from '@angular/core';
 import {ConnectionProfiles} from '@api/clients';
 import {resolveNewOrExisting} from '@util/resolvers';
@@ -10,7 +10,13 @@ export const editConnectionProfileResolver: ResolveFn<ConnectionProfile> = route
 
   return resolveNewOrExisting(
     profileId,
-    () => service.getDefaults('OPEN_AI'),
+    () => ({
+      id: NEW_ID,
+      name: '',
+      providerType: "OPEN_AI",
+      baseUrl: '',
+      apiKey: ''
+    }),
     id => service.get(id)
   )
 }
@@ -24,4 +30,9 @@ export const editConnectionProfileLlmModelsResolver: ResolveFn<LlmModel[]> = rou
     () => [],
     id => service.getModels(id)
   )
+}
+
+export const editConnectionProfileTemplatesResolver: ResolveFn<ConnectionProfile[]> = () => {
+  const service = inject(ConnectionProfiles)
+  return service.getTemplates()
 }

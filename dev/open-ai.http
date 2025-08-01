@@ -1,0 +1,6 @@
+### GET Models
+GET http://127.0.0.1:1234/v1/models
+Authorization: Bearer noop
+
+###
+POST http://localhost:8080/api/system/migrations/goto/1
