@@ -4,7 +4,7 @@
       @if (isNew()) {
         <span class="page-title">New Connection Profile</span>
       } @else {
-        <span class="page-title">{{ profile().baseUrl }}</span>
+        <span class="page-title">{{ profile().name }}</span>
       }
 
       @if (!isNew()) {
