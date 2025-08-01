@@ -1,4 +1,13 @@
-import {Component, computed, inject, input, InputSignal, SecurityContext} from '@angular/core';
+import {
+  booleanAttribute,
+  Component,
+  computed,
+  inject,
+  input,
+  InputSignal,
+  InputSignalWithTransform,
+  SecurityContext
+} from '@angular/core';
 import {DomSanitizer} from '@angular/platform-browser';
 
 @Component({
@@ -11,16 +20,21 @@ export class RenderedMessage {
 
   private readonly sanitizer = inject(DomSanitizer)
 
+  readonly enableVariables: InputSignalWithTransform<boolean, unknown> = input(false, {transform: booleanAttribute});
+
   readonly message: InputSignal<string> = input.required()
   readonly formatted = computed(() => {
     const template = this.message()
-    return this.render(template) ?? ''
+    const enableVars = this.enableVariables()
+    return this.render(template, enableVars) ?? ''
   })
 
-  render(value: string | null): string | null {
+  render(value: string | null, enableVars: boolean): string | null {
     if (!value) return value;
-    let result = this.wrap(value, 'variable', '{{.', '}}');
-    result = this.wrap(result, 'action', '*', '*');
+    let result = this.wrap(value, 'action', '*', '*');
+    if (enableVars) {
+      result = this.wrap(result, 'variable', '{{.', '}}');
+    }
     return this.sanitizer.sanitize(SecurityContext.HTML, result)
   }
 
