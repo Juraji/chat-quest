@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/model"
-	"net/http"
 )
 
 func TagsController(router *gin.RouterGroup, db *sql.DB) {
@@ -16,9 +15,9 @@ func TagsController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	tagsRouter.GET("/:id", func(c *gin.Context) {
-		id, err := getID(c, "id")
+		id, err := getIDParam(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag ID"})
+			respondBadRequest(c, "Invalid tag ID")
 			return
 		}
 
@@ -29,7 +28,7 @@ func TagsController(router *gin.RouterGroup, db *sql.DB) {
 	tagsRouter.POST("", func(c *gin.Context) {
 		var newTag model.Tag
 		if err := c.ShouldBind(&newTag); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag data"})
+			respondBadRequest(c, "Invalid tag data")
 			return
 		}
 
@@ -38,15 +37,15 @@ func TagsController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	tagsRouter.PUT("/:id", func(c *gin.Context) {
-		id, err := getID(c, "id")
+		id, err := getIDParam(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag ID"})
+			respondBadRequest(c, "Invalid tag ID")
 			return
 		}
 
 		var tag model.Tag
 		if err := c.ShouldBind(&tag); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag data"})
+			respondBadRequest(c, "Invalid tag data")
 			return
 		}
 
@@ -55,9 +54,9 @@ func TagsController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	tagsRouter.DELETE("/:id", func(c *gin.Context) {
-		id, err := getID(c, "id")
+		id, err := getIDParam(c, "id")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag ID"})
+			respondBadRequest(c, "Invalid tag ID")
 			return
 		}
 

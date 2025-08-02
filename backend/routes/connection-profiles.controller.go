@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/ai"
 	"juraji.nl/chat-quest/model"
-	"net/http"
 )
 
 func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
@@ -17,9 +16,9 @@ func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	connectionProfilesRouter.GET("/:profileId", func(c *gin.Context) {
-		profileId, err := getID(c, "profileId")
+		profileId, err := getIDParam(c, "profileId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid connection profile ID"})
+			respondBadRequest(c, "Invalid connection profile ID")
 			return
 		}
 
@@ -30,7 +29,7 @@ func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
 	connectionProfilesRouter.POST("", func(c *gin.Context) {
 		var newProfile model.ConnectionProfile
 		if err := c.ShouldBindJSON(&newProfile); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid connection profile data"})
+			respondBadRequest(c, "Invalid connection profile data")
 			return
 		}
 
@@ -45,26 +44,25 @@ func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	connectionProfilesRouter.PUT("/:profileId", func(c *gin.Context) {
-		profileId, err := getID(c, "profileId")
+		profileId, err := getIDParam(c, "profileId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid connection profile ID"})
+			respondBadRequest(c, "Invalid connection profile ID")
 			return
 		}
 		var profile model.ConnectionProfile
 		if err := c.ShouldBindJSON(&profile); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid connection profile data"})
+			respondBadRequest(c, "Invalid connection profile data")
 			return
 		}
 
 		err = model.UpdateConnectionProfile(db, profileId, &profile)
-		// TODO: Test connection and refresh models
 		respondSingle(c, &profile, err)
 	})
 
 	connectionProfilesRouter.DELETE("/:profileId", func(c *gin.Context) {
-		profileId, err := getID(c, "profileId")
+		profileId, err := getIDParam(c, "profileId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid connection profile ID"})
+			respondBadRequest(c, "Invalid connection profile ID")
 			return
 		}
 
@@ -73,9 +71,9 @@ func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	connectionProfilesRouter.GET("/:profileId/models", func(c *gin.Context) {
-		profileId, err := getID(c, "profileId")
+		profileId, err := getIDParam(c, "profileId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid connection profile ID"})
+			respondBadRequest(c, "Invalid connection profile ID")
 			return
 		}
 
@@ -83,18 +81,39 @@ func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
 		respondList(c, models, err)
 	})
 
-	connectionProfilesRouter.POST("/:profileId/models/refresh", func(c *gin.Context) {})
+	connectionProfilesRouter.POST("/:profileId/models/refresh", func(c *gin.Context) {
+		profileId, err := getIDParam(c, "profileId")
+		if err != nil {
+			respondBadRequest(c, "Invalid connection profile ID")
+			return
+		}
+
+		profile, err := model.ConnectionProfileById(db, profileId)
+		if err != nil {
+			respondEmpty(c, err)
+			return
+		}
+
+		llmModels, err := ai.GetAvailableModels(*profile)
+		if err != nil {
+			respondNotAcceptable(c, "Connection test failed (Failed to get available models)", err)
+			return
+		}
+
+		err = model.MergeLlmModels(db, profileId, llmModels)
+		respondEmpty(c, err)
+	})
 
 	connectionProfilesRouter.PUT("/:profileId/models/:modelId", func(c *gin.Context) {
-		modelId, err := getID(c, "modelId")
+		modelId, err := getIDParam(c, "modelId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid model ID"})
+			respondBadRequest(c, "Invalid model ID")
 			return
 		}
 
 		var llmModel model.LlmModel
 		if err := c.ShouldBindJSON(&llmModel); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid model data"})
+			respondBadRequest(c, "Invalid model data")
 			return
 		}
 

@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/model"
-	"net/http"
 )
 
 func CharactersController(router *gin.RouterGroup, db *sql.DB) {
@@ -21,9 +20,9 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.GET("/:characterId", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
@@ -34,7 +33,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	charactersRouter.POST("", func(c *gin.Context) {
 		var newCharacter model.Character
 		if err := c.ShouldBind(&newCharacter); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character data"})
+			respondBadRequest(c, "Invalid character data")
 			return
 		}
 
@@ -43,15 +42,15 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.PUT("/:characterId", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
 		var character model.Character
 		if err := c.ShouldBind(&character); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character data"})
+			respondBadRequest(c, "Invalid character data")
 			return
 		}
 
@@ -60,9 +59,9 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.DELETE("/:characterId", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
@@ -71,9 +70,9 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.GET("/:characterId/details", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
@@ -82,15 +81,15 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.PUT("/:characterId/details", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
 		var details model.CharacterDetails
 		if err := c.ShouldBind(&details); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character details data"})
+			respondBadRequest(c, "Invalid character details data")
 			return
 		}
 
@@ -99,9 +98,9 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.GET("/:characterId/tags", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
@@ -110,15 +109,15 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.POST("/:characterId/tags", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
 		var tagIds []int64
 		if err := c.ShouldBind(&tagIds); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid dialogue examples data"})
+			respondBadRequest(c, "Invalid dialogue examples data")
 			return
 		}
 
@@ -127,14 +126,14 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.POST("/:characterId/tags/:tagId", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
-		tagId, err := getID(c, "tagId")
+		tagId, err := getIDParam(c, "tagId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag ID"})
+			respondBadRequest(c, "Invalid tag ID")
 			return
 		}
 
@@ -143,14 +142,14 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.DELETE("/:characterId/tags/:tagId", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
-		tagId, err := getID(c, "tagId")
+		tagId, err := getIDParam(c, "tagId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tag ID"})
+			respondBadRequest(c, "Invalid tag ID")
 			return
 		}
 
@@ -159,9 +158,9 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.GET("/:characterId/dialogue-examples", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
@@ -170,15 +169,15 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.POST("/:characterId/dialogue-examples", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
 		var examples []string
 		if err := c.ShouldBind(&examples); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid dialogue examples data"})
+			respondBadRequest(c, "Invalid dialogue examples data")
 			return
 		}
 
@@ -187,9 +186,9 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.GET("/:characterId/greetings", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
@@ -198,15 +197,15 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.POST("/:characterId/greetings", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
 		var greetings []string
 		if err := c.ShouldBind(&greetings); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid greetings data"})
+			respondBadRequest(c, "Invalid greetings data")
 			return
 		}
 
@@ -215,9 +214,9 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.GET("/:characterId/group-greetings", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
@@ -226,15 +225,15 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	charactersRouter.POST("/:characterId/group-greetings", func(c *gin.Context) {
-		characterId, err := getID(c, "characterId")
+		characterId, err := getIDParam(c, "characterId")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid character ID"})
+			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
 		var greetings []string
 		if err := c.ShouldBind(&greetings); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid greetings data"})
+			respondBadRequest(c, "Invalid greetings data")
 			return
 		}
 

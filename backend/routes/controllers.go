@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func getID(c *gin.Context, key string) (int64, error) {
+func getIDParam(c *gin.Context, key string) (int64, error) {
 	idStr := c.Param(key)
 	id, err := strconv.ParseInt(idStr, 10, 64)
 
@@ -16,7 +16,7 @@ func getID(c *gin.Context, key string) (int64, error) {
 
 func respondList[T any](c *gin.Context, records []T, err error) {
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		respondInternalError(c, err)
 		log.Print(err)
 	} else {
 		c.JSON(http.StatusOK, &records)
@@ -25,7 +25,7 @@ func respondList[T any](c *gin.Context, records []T, err error) {
 
 func respondSingle[T any](c *gin.Context, entity *T, err error) {
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+		respondInternalError(c, err)
 		log.Print(err)
 	} else if entity == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Entity not found"})
@@ -36,8 +36,7 @@ func respondSingle[T any](c *gin.Context, entity *T, err error) {
 
 func respondEmpty(c *gin.Context, err error) {
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		log.Print(err)
+		respondInternalError(c, err)
 	} else {
 		c.Status(http.StatusNoContent)
 	}
@@ -52,7 +51,7 @@ func respondDeleted(c *gin.Context, err error) {
 	}
 }
 
-func respondError(c *gin.Context, err error) {
+func respondInternalError(c *gin.Context, err error) {
 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 	log.Print(err)
 }

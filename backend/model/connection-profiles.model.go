@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"juraji.nl/chat-quest/util"
 )
 
 type ConnectionProfile struct {
@@ -66,7 +67,7 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels [
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer func(tx *sql.Tx, err error) {
-		if err != nil {
+		if err == nil {
 			_ = tx.Rollback()
 		}
 	}(tx, err)
@@ -83,14 +84,13 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels [
 	}
 
 	for _, llmModel := range llmModels {
-		llmModel.ConnectionProfileId = profile.ID
-		err = CreateLlmModel(db, llmModel)
+		err = CreateLlmModel(db, profile.ID, llmModel)
 		if err != nil {
 			return err
 		}
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 func UpdateConnectionProfile(db *sql.DB, id int64, profile *ConnectionProfile) error {
@@ -118,7 +118,7 @@ func LlmModelsByConnectionProfileId(db *sql.DB, profileId int64) ([]*LlmModel, e
 	return queryForList(db, query, args, llmModelScanner)
 }
 
-func CreateLlmModel(db *sql.DB, llmModel *LlmModel) error {
+func CreateLlmModel(db *sql.DB, profileId int64, llmModel *LlmModel) error {
 	query := `INSERT INTO llm_models
             (connection_profile_id, model_id, temperature, max_tokens, top_p, stream, stop_sequences, disabled)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`
@@ -166,4 +166,53 @@ func DeleteLlmModelById(db *sql.DB, id int64) error {
 	args := []any{id}
 
 	return deleteRecord(db, query, args)
+}
+
+func MergeLlmModels(db *sql.DB, profileId int64, newModels []*LlmModel) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func(tx *sql.Tx, err error) {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}(tx, err)
+
+	// New model id set
+	newModelIdSet := util.NewSetFrom(newModels, func(t *LlmModel) string {
+		return t.ModelId
+	})
+
+	// Existing model id set
+	existingModels, err := LlmModelsByConnectionProfileId(db, profileId)
+	if err != nil {
+		return err
+	}
+
+	existingModelIdSet := util.NewSetFrom(existingModels, func(t *LlmModel) string {
+		return t.ModelId
+	})
+
+	// Add new models
+	for _, newModel := range newModels {
+		if existingModelIdSet.NotContains(newModel.ModelId) {
+			err = CreateLlmModel(db, profileId, newModel)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Remove models not in new set
+	for _, existingModel := range existingModels {
+		if newModelIdSet.NotContains(existingModel.ModelId) {
+			err = DeleteLlmModelById(db, existingModel.ID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return tx.Commit()
 }

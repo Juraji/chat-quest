@@ -67,7 +67,8 @@ export class EditConnectionProfile {
         this.notifications.toast("Connection Profile saved!")
         this.router.navigate(['..', profile.id], {
           relativeTo: this.activatedRoute,
-          queryParams: {u: Date.now()}
+          queryParams: {u: Date.now()},
+          replaceUrl: true
         })
       })
   }
@@ -107,6 +108,27 @@ export class EditConnectionProfile {
   }
 
   onRefreshModels() {
-    this.notifications.toast("Not yet implemented!", "DANGER")
+    const doRefresh = confirm(
+      `Are you sure you want to refresh the available models?
+
+ChatQuest will request the available set of models from the AI Provider.
+New models will be added and non-existent models will be removed.
+
+(Unchanged models will remain as they are.)`
+    )
+
+    if (!doRefresh) return
+    const profileId = this.profile().id
+
+    this.connectionProfiles
+      .refreshModels(profileId)
+      .subscribe(() => {
+        this.notifications.toast("Models updated!")
+        this.router.navigate([], {
+          relativeTo: this.activatedRoute,
+          queryParams: {u: Date.now()},
+          replaceUrl: true
+        })
+      })
   }
 }

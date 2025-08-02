@@ -16,7 +16,7 @@ func InstructionPromptsController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	instructionPromptsRouter.GET("/:promptId", func(c *gin.Context) {
-		promptId, err := getID(c, "promptId")
+		promptId, err := getIDParam(c, "promptId")
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid prompt ID"})
 			return
@@ -38,7 +38,7 @@ func InstructionPromptsController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	instructionPromptsRouter.PUT("/:promptId", func(c *gin.Context) {
-		promptId, err := getID(c, "promptId")
+		promptId, err := getIDParam(c, "promptId")
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid prompt ID"})
 			return
@@ -54,7 +54,7 @@ func InstructionPromptsController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	instructionPromptsRouter.DELETE("/:promptId", func(c *gin.Context) {
-		promptId, err := getID(c, "promptId")
+		promptId, err := getIDParam(c, "promptId")
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid prompt ID"})
 			return
