@@ -21,7 +21,7 @@
   ],
   "online": [
     {
-      "name": "Anthropic",
+      "name": "Anthropic (Claude)",
       "providerType": "OPEN_AI",
       "baseUrl": "https://api.anthropic.com/v1",
       "apiKey": ""
@@ -39,13 +39,13 @@
       "apiKey": ""
     },
     {
-      "name": "Open AI",
+      "name": "Open AI (ChatGPT)",
       "providerType": "OPEN_AI",
       "baseUrl": "https://api.openai.com/v1",
       "apiKey": ""
     },
     {
-      "name": "X AI",
+      "name": "X AI (Grok)",
       "providerType": "OPEN_AI",
       "baseUrl": "https://api.x.ai/v1",
       "apiKey": ""
