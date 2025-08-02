@@ -7,7 +7,7 @@
   <div class="tag-filter-list d-flex flex-wrap align-items-center mb-3">
     <div class="badge bg-body-tertiary me-2 mb-2"
          [class.active]="!selectedTag()"
-           (click)="selectedTag.set(null)">All
+         (click)="selectedTag.set(null)">All
     </div>
     @for (tag of allTags(); track tag.id) {
       <div class="badge bg-body-tertiary me-2 mb-2"
@@ -21,13 +21,13 @@
   <div class="grid">
     @for (char of filteredCharacters(); track char.id) {
       <div class="g-col-3">
-        <app-character-card [character]="char">
-          <a class="btn" [routerLink]="['/chat/with', char.id]">
+        <app-character-card [character]="char" [routerLink]="['.', char.id]" class="cursor-pointer">
+          <a class="btn" [routerLink]="['/chat/with', char.id]" (click)="$event.stopPropagation()">
             <span class="bi bi-chat-fill"></span>
           </a>
-          <a class="btn" [routerLink]="['.', char.id]">
+          <button class="btn">
             <span class="bi bi-pencil"></span>
-          </a>
+          </button>
         </app-character-card>
       </div>
     }

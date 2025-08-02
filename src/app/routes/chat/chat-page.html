@@ -1,14 +1,24 @@
 <nav class="navbar bg-body-secondary mb-3">
-  <div class="container-fluid">
-    <a class="navbar-brand" routerLink="/"><span class="bi bi-chat"></span></a>
-    <ul class="navbar-nav me-auto">
-<!--      <li class="nav-item">-->
-<!--        <a routerLink="/settings/chat" class="nav-link" routerLinkActive="active">Chat Settings</a>-->
-<!--      </li>-->
-    </ul>
-  </div>
+    <div class="container-fluid">
+        <a class="navbar-brand" routerLink="/"><span class="bi bi-people"></span></a>
+        <ul class="navbar-nav mx-auto">
+            <li class="nav-item">
+                <a routerLink="worlds" class="nav-link" routerLinkActive="active">
+                    <span class="bi bi-globe-europe-africa"></span> Worlds
+                </a>
+            </li>
+            <li class="nav-item">
+                <a routerLink="characters" class="nav-link" routerLinkActive="active">
+                    <span class="bi bi-person"></span> Characters
+                </a>
+            </li>
+            <li class="nav-item">
+                <a routerLink="scenarios" class="nav-link" routerLinkActive="active">
+                    <span class="bi bi-book"></span> Scenarios
+                </a>
+            </li>
+        </ul>
+    </div>
 </nav>
 
-<div class="container">
-  <div class="mt-5">Honey I'm Home!</div>
-</div>
+<router-outlet/>

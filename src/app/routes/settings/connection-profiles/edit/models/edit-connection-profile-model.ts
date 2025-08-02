@@ -81,7 +81,7 @@ export class EditConnectionProfileModel {
       .saveModel(update)
       .subscribe(() => {
         this.editMode.set(false)
-        this.notifications.toast("Model saved!")
+        this.notifications.toast("Model settings saved!")
         this.router.navigate([], {
           queryParams: {u: Date.now()},
           replaceUrl: true,
