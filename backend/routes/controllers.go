@@ -17,7 +17,7 @@ func getID(c *gin.Context, key string) (int64, error) {
 func respondList[T any](c *gin.Context, records []T, err error) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		log.Fatal(err)
+		log.Print(err)
 	} else {
 		c.JSON(http.StatusOK, &records)
 	}
@@ -26,7 +26,7 @@ func respondList[T any](c *gin.Context, records []T, err error) {
 func respondSingle[T any](c *gin.Context, entity *T, err error) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		log.Fatal(err)
+		log.Print(err)
 	} else if entity == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Entity not found"})
 	} else {
@@ -37,7 +37,7 @@ func respondSingle[T any](c *gin.Context, entity *T, err error) {
 func respondEmpty(c *gin.Context, err error) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
-		log.Fatal(err)
+		log.Print(err)
 	} else {
 		c.Status(http.StatusNoContent)
 	}
@@ -46,8 +46,22 @@ func respondEmpty(c *gin.Context, err error) {
 func respondDeleted(c *gin.Context, err error) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not delete Entity, it might be in use."})
-		log.Fatal(err)
+		log.Print(err)
 	} else {
 		c.JSON(http.StatusOK, gin.H{"error": "Entity was deleted"})
 	}
+}
+
+func respondError(c *gin.Context, err error) {
+	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
+	log.Print(err)
+}
+
+func respondBadRequest(c *gin.Context, message string) {
+	c.JSON(http.StatusBadRequest, gin.H{"error": message})
+}
+
+func respondNotAcceptable(c *gin.Context, message string, err error) {
+	c.JSON(http.StatusNotAcceptable, gin.H{"error": message})
+	log.Print(err)
 }

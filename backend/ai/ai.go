@@ -5,11 +5,24 @@ import (
 	"juraji.nl/chat-quest/model"
 )
 
-func NewProvider(profile model.ConnectionProfile) (Provider, error) {
-	switch profile.ProviderType {
-	case "OPEN_AI":
-		return &openAIProvider{ConnectionProfile: profile}, nil
-	default:
-		return nil, fmt.Errorf("unknown provider type: %s", profile.ProviderType)
+func GetAvailableModels(profile model.ConnectionProfile) ([]*model.LlmModel, error) {
+	provider, err := newProvider(profile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create provider for profile %s (id %d): %w", profile.Name, profile.ID, err)
 	}
+
+	models, err := provider.getAvailableModels()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get models for profile %s (id %d): %w", profile.Name, profile.ID, err)
+	}
+
+	return models, nil
+}
+
+func GenerateChatCompletions(
+	profile model.ConnectionProfile,
+	llmModel model.LlmModel,
+	messages []Message,
+) (string, error) {
+	return "", fmt.Errorf("not yet implemented")
 }

@@ -20,7 +20,7 @@ func GetConnectionProfileDefaults() []*ConnectionProfile {
 			ID:           0,
 			Name:         "LM Studio",
 			ProviderType: "OPEN_AI",
-			BaseUrl:      "https://localhost:1234/v1",
+			BaseUrl:      "http://localhost:1234/v1",
 			ApiKey:       "lm-studio",
 		},
 	}

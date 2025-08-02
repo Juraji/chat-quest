@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"fmt"
 	"strings"
 )
 
@@ -69,14 +70,36 @@ func ConnectionProfileById(db *sql.DB, id int64) (*ConnectionProfile, error) {
 	return queryForRecord(db, query, args, connectionProfileScanner)
 }
 
-func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile) error {
+func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels []*LlmModel) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func(tx *sql.Tx, err error) {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}(tx, err)
+
 	query := "INSERT INTO connection_profiles (name, provider_type, base_url, api_key) VALUES ($1, $2, $3, $4) RETURNING id"
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey}
 	scanFunc := func(scanner RowScanner) error {
 		return scanner.Scan(&profile.ID)
 	}
 
-	return insertRecord(db, query, args, scanFunc)
+	err = insertRecord(db, query, args, scanFunc)
+	if err != nil {
+		return err
+	}
+
+	for _, llmModel := range llmModels {
+		err = CreateLlmModel(db, llmModel)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func UpdateConnectionProfile(db *sql.DB, id int64, profile *ConnectionProfile) error {
