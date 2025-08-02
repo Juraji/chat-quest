@@ -6,8 +6,8 @@ import {PageHeader} from '@components/page-header';
 import {formControl, formGroup, readOnlyControl, routeDataSignal} from '@util/ng';
 import {AiProviders, ConnectionProfile, isNew, LlmModel, ProviderType} from '@api/model';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Dropdown} from '@components/dropdown';
 import {EditConnectionProfileModel} from './models/edit-connection-profile-model';
+import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
 
 @Component({
   selector: 'app-edit-connection-profile',
@@ -15,8 +15,10 @@ import {EditConnectionProfileModel} from './models/edit-connection-profile-model
     PageHeader,
     FormsModule,
     ReactiveFormsModule,
-    Dropdown,
-    EditConnectionProfileModel
+    EditConnectionProfileModel,
+    DropdownContainer,
+    DropdownToggle,
+    DropdownMenu
   ],
   templateUrl: './edit-connection-profile.html'
 })

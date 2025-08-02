@@ -15,7 +15,7 @@ import {ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR} from '@angular/for
 import {Tags} from '@api/clients';
 import {isNew, NEW_ID, Tag} from '@api/model';
 import {filter, iif, map, mergeMap, of, toArray} from 'rxjs';
-import {Dropdown} from '../dropdown';
+import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
 
 @Component({
   selector: 'app-tags-control',
@@ -23,7 +23,9 @@ import {Dropdown} from '../dropdown';
   styleUrls: ['./tags-control.scss'],
   imports: [
     FormsModule,
-    Dropdown
+    DropdownContainer,
+    DropdownMenu,
+    DropdownToggle,
   ],
   providers: [
     {

@@ -36,14 +36,17 @@
         <span class="bi bi-plus-lg"></span>
       </button>
     </div>
-    <app-dropdown>
-      @for (t of missingTags(); track t.id) {
-        <li>
-          <button type="button" class="dropdown-item"
-                  (click)="onAddFromMenu(t)">{{ t.label }}
-          </button>
-        </li>
-      }
-    </app-dropdown>
+    <div dropdown>
+      <button type="button" class="btn btn-outline-secondary" dropdownToggle></button>
+      <ul class="mt-1" dropdownMenu>
+        @for (t of missingTags(); track t.id) {
+          <li>
+            <button type="button" class="dropdown-item"
+                    (click)="onAddFromMenu(t)">{{ t.label }}
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
   </div>
 }

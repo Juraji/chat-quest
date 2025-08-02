@@ -34,26 +34,30 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h5 class="card-title mb-0">Connection Details</h5>
               @if (providers(); as p) {
-               <app-dropdown>
-                <span class="bi bi-braces-asterisk"></span>
-                <li><h5 class="dropdown-header">Copy from a template:</h5></li>
-                <li><h6 class="dropdown-header">Local options</h6></li>
-                @for (template of p.offline; track template.baseUrl) {
-                  <li>
-                    <button type="button" class="dropdown-item"
-                            (click)="onCopyFromTemplate(template)">{{ template.name }}
-                    </button>
-                  </li>
-                }
-                <li><h6 class="dropdown-header">Online options</h6></li>
-                @for (template of p.online; track template.baseUrl) {
-                  <li>
-                    <button type="button" class="dropdown-item"
-                            (click)="onCopyFromTemplate(template)">{{ template.name }}
-                    </button>
-                  </li>
-                }
-              </app-dropdown>
+                <div dropdown>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" dropdownToggle>
+                    <span class="bi bi-braces-asterisk"></span>
+                  </button>
+                  <ul class="mt-1" dropdownMenu>
+                    <li><h5 class="dropdown-header">Copy from a template:</h5></li>
+                    <li><h6 class="dropdown-header">Local options</h6></li>
+                    @for (template of p.offline; track template.baseUrl) {
+                      <li>
+                        <button type="button" class="dropdown-item"
+                                (click)="onCopyFromTemplate(template)">{{ template.name }}
+                        </button>
+                      </li>
+                    }
+                    <li><h6 class="dropdown-header">Online options</h6></li>
+                    @for (template of p.online; track template.baseUrl) {
+                      <li>
+                        <button type="button" class="dropdown-item"
+                                (click)="onCopyFromTemplate(template)">{{ template.name }}
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                </div>
               }
             </div>
 
@@ -112,7 +116,7 @@
           @for (model of models(); track model.id) {
             <app-edit-connection-profile-model
               class="g-col-12 g-col-lg-6"
-              [model]="model" />
+              [model]="model"/>
           }
         </div>
       </div>
