@@ -1,0 +1,54 @@
+{
+  "offline": [
+    {
+      "name": "Kobolcpp",
+      "providerType": "OPEN_AI",
+      "baseUrl": "http://localhost:5001/v1",
+      "apiKey": "ollama"
+    },
+    {
+      "name": "LM Studio",
+      "providerType": "OPEN_AI",
+      "baseUrl": "http://localhost:1234/v1",
+      "apiKey": "lm-studio"
+    },
+    {
+      "name": "Ollama",
+      "providerType": "OPEN_AI",
+      "baseUrl": "http://localhost:11434/v1",
+      "apiKey": "ollama"
+    }
+  ],
+  "online": [
+    {
+      "name": "Anthropic",
+      "providerType": "OPEN_AI",
+      "baseUrl": "https://api.anthropic.com/v1",
+      "apiKey": ""
+    },
+    {
+      "name": "Deepseek",
+      "providerType": "OPEN_AI",
+      "baseUrl": "https://api.deepseek.com",
+      "apiKey": ""
+    },
+    {
+      "name": "Mistral AI",
+      "providerType": "OPEN_AI",
+      "baseUrl": "https://api.mistral.ai/v1",
+      "apiKey": ""
+    },
+    {
+      "name": "Open AI",
+      "providerType": "OPEN_AI",
+      "baseUrl": "https://api.openai.com/v1",
+      "apiKey": ""
+    },
+    {
+      "name": "X AI",
+      "providerType": "OPEN_AI",
+      "baseUrl": "https://api.x.ai/v1",
+      "apiKey": ""
+    }
+  ]
+}

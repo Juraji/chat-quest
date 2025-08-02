@@ -4,9 +4,10 @@ import {ConnectionProfiles} from '@api/clients';
 import {ActivatedRoute, Router} from '@angular/router';
 import {PageHeader} from '@components/page-header';
 import {formControl, formGroup, readOnlyControl, routeDataSignal} from '@util/ng';
-import {ConnectionProfile, isNew, LlmModel, ProviderType} from '@api/model';
+import {AiProviders, ConnectionProfile, isNew, LlmModel, ProviderType} from '@api/model';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Dropdown} from '@components/dropdown';
+import {EditConnectionProfileModel} from './models/edit-connection-profile-model';
 
 @Component({
   selector: 'app-edit-connection-profile',
@@ -14,7 +15,8 @@ import {Dropdown} from '@components/dropdown';
     PageHeader,
     FormsModule,
     ReactiveFormsModule,
-    Dropdown
+    Dropdown,
+    EditConnectionProfileModel
   ],
   templateUrl: './edit-connection-profile.html'
 })
@@ -24,7 +26,7 @@ export class EditConnectionProfile {
   private readonly notifications = inject(Notifications);
   private readonly connectionProfiles = inject(ConnectionProfiles)
 
-  readonly templates: Signal<ConnectionProfile[]> = routeDataSignal(this.activatedRoute, 'templates')
+  readonly providers: Signal<AiProviders> = routeDataSignal(this.activatedRoute, 'providers')
   readonly profile: Signal<ConnectionProfile> = routeDataSignal(this.activatedRoute, 'profile')
   readonly models: Signal<LlmModel[]> = routeDataSignal(this.activatedRoute, 'models')
 
@@ -100,5 +102,9 @@ export class EditConnectionProfile {
 
     this.formGroup.patchValue(patch)
     this.formGroup.markAsDirty()
+  }
+
+  onRefreshModels() {
+    this.notifications.toast("Not yet implemented!", "DANGER")
   }
 }

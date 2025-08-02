@@ -17,27 +17,44 @@
                 (click)="onRevertChanges()">Revert changes
         </button>
       }
+      @if (!isNew() && formGroup.pristine) {
+        <button type="button" class="btn btn-outline-secondary"
+                (click)="onRefreshModels()">Refresh Models
+        </button>
+      }
       <button class="btn btn-primary btn-magical"
               [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
       </button>
     </app-page-header>
 
     <div class="grid">
-      <div class="g-col-12 g-col-lg-6">
+      <div class="g-col-12 g-col-md-6 g-col-lg-4">
         <div class="card">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h5 class="card-title mb-0">Connection Details</h5>
-              <app-dropdown>
+              @if (providers(); as p) {
+               <app-dropdown>
                 <span class="bi bi-braces-asterisk"></span>
-                <li><h6 class="dropdown-header">Copy from a template:</h6></li>
-                @for (template of templates(); track template.baseUrl) {
+                <li><h5 class="dropdown-header">Copy from a template:</h5></li>
+                <li><h6 class="dropdown-header">Local options</h6></li>
+                @for (template of p.offline; track template.baseUrl) {
                   <li>
                     <button type="button" class="dropdown-item"
-                    (click)="onCopyFromTemplate(template)">{{ template.name }}</button>
+                            (click)="onCopyFromTemplate(template)">{{ template.name }}
+                    </button>
+                  </li>
+                }
+                <li><h6 class="dropdown-header">Online options</h6></li>
+                @for (template of p.online; track template.baseUrl) {
+                  <li>
+                    <button type="button" class="dropdown-item"
+                            (click)="onCopyFromTemplate(template)">{{ template.name }}
+                    </button>
                   </li>
                 }
               </app-dropdown>
+              }
             </div>
 
             <div class="mb-3">
@@ -82,6 +99,21 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+      <div class="g-col-12 g-col-md-6 g-col-lg-8">
+        <ul class="nav nav-underline mb-3">
+          <li class="nav-item">
+            <a class="nav-link active">Models</a>
+          </li>
+        </ul>
+
+        <div class="grid">
+          @for (model of models(); track model.id) {
+            <app-edit-connection-profile-model
+              class="g-col-12 g-col-lg-6"
+              [model]="model" />
+          }
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import {ResolveFn} from '@angular/router';
-import {ConnectionProfile, LlmModel, NEW_ID} from '@api/model';
+import {AiProviders, ConnectionProfile, LlmModel, NEW_ID} from '@api/model';
 import {inject} from '@angular/core';
 import {ConnectionProfiles} from '@api/clients';
 import {resolveNewOrExisting} from '@util/resolvers';
@@ -32,7 +32,7 @@ export const editConnectionProfileLlmModelsResolver: ResolveFn<LlmModel[]> = rou
   )
 }
 
-export const editConnectionProfileTemplatesResolver: ResolveFn<ConnectionProfile[]> = () => {
+export const editConnectionProfileTemplatesResolver: ResolveFn<AiProviders> = () => {
   const service = inject(ConnectionProfiles)
   return service.getTemplates()
 }

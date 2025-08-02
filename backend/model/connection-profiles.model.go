@@ -3,7 +3,6 @@ package model
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 )
 
 type ConnectionProfile struct {
@@ -15,14 +14,15 @@ type ConnectionProfile struct {
 }
 
 type LlmModel struct {
-	ID                  int64    `json:"id"`
-	ConnectionProfileId int64    `json:"connectionProfileId"`
-	ModelId             string   `json:"modelId"`
-	Temperature         float64  `json:"temperature"`
-	MaxTokens           int64    `json:"maxTokens"`
-	TopP                float64  `json:"topP"`
-	Stream              bool     `json:"stream"`
-	Stop                []string `json:"stop"`
+	ID                  int64   `json:"id"`
+	ConnectionProfileId int64   `json:"connectionProfileId"`
+	ModelId             string  `json:"modelId"`
+	Temperature         float64 `json:"temperature"`
+	MaxTokens           int64   `json:"maxTokens"`
+	TopP                float64 `json:"topP"`
+	Stream              bool    `json:"stream"`
+	StopSequences       *string `json:"stopSequences"`
+	Disabled            bool    `json:"disabled"`
 }
 
 func connectionProfileScanner(scanner RowScanner, dest *ConnectionProfile) error {
@@ -36,8 +36,7 @@ func connectionProfileScanner(scanner RowScanner, dest *ConnectionProfile) error
 }
 
 func llmModelScanner(scanner RowScanner, dest *LlmModel) error {
-	var stopString string
-	err := scanner.Scan(
+	return scanner.Scan(
 		&dest.ID,
 		&dest.ConnectionProfileId,
 		&dest.ModelId,
@@ -45,18 +44,9 @@ func llmModelScanner(scanner RowScanner, dest *LlmModel) error {
 		&dest.MaxTokens,
 		&dest.TopP,
 		&dest.Stream,
-		&stopString,
+		&dest.StopSequences,
+		&dest.Disabled,
 	)
-	if err != nil {
-		return err
-	}
-
-	if stopString != "" {
-		dest.Stop = strings.Split(stopString, ",")
-	} else {
-		dest.Stop = []string{}
-	}
-	return nil
 }
 
 func AllConnectionProfiles(db *sql.DB) ([]*ConnectionProfile, error) {
@@ -93,6 +83,7 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels [
 	}
 
 	for _, llmModel := range llmModels {
+		llmModel.ConnectionProfileId = profile.ID
 		err = CreateLlmModel(db, llmModel)
 		if err != nil {
 			return err
@@ -128,8 +119,9 @@ func LlmModelsByConnectionProfileId(db *sql.DB, profileId int64) ([]*LlmModel, e
 }
 
 func CreateLlmModel(db *sql.DB, llmModel *LlmModel) error {
-	query := `INSERT INTO llm_models (connection_profile_id, model_id, temperature, max_tokens, top_p, stream, stop)
-            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
+	query := `INSERT INTO llm_models
+            (connection_profile_id, model_id, temperature, max_tokens, top_p, stream, stop_sequences, disabled)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`
 	args := []any{
 		llmModel.ConnectionProfileId,
 		llmModel.ModelId,
@@ -137,7 +129,8 @@ func CreateLlmModel(db *sql.DB, llmModel *LlmModel) error {
 		llmModel.MaxTokens,
 		llmModel.TopP,
 		llmModel.Stream,
-		strings.Join(llmModel.Stop, ","),
+		llmModel.StopSequences,
+		llmModel.Disabled,
 	}
 	scanFunc := func(scanner RowScanner) error {
 		return scanner.Scan(&llmModel.ID)
@@ -152,14 +145,16 @@ func UpdateLlmModel(db *sql.DB, id int64, llmModel *LlmModel) error {
                   max_tokens = $2,
                   top_p = $3,
                   stream = $4,
-                  stop = $5
-              WHERE id = $6`
+                  stop_sequences = $5,
+                  disabled = $6
+              WHERE id = $7`
 	args := []any{
 		llmModel.Temperature,
 		llmModel.MaxTokens,
 		llmModel.TopP,
 		llmModel.Stream,
-		strings.Join(llmModel.Stop, ","),
+		llmModel.StopSequences,
+		llmModel.Disabled,
 		id,
 	}
 

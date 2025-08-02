@@ -16,7 +16,8 @@ CREATE TABLE llm_models
   max_tokens            INTEGER       NOT NULL,
   top_p                 FLOAT         NOT NULL,
   stream                BIT(1)        NOT NULL,
-  stop                  VARCHAR(2048) NOT NULL,
+  stop_sequences        VARCHAR(2048),
+  disabled              BIT(1)        NOT NULL,
 
   constraint fk_lm__connection_profile FOREIGN KEY (connection_profile_id)
     REFERENCES connection_profiles (id) ON DELETE CASCADE

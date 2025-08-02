@@ -28,7 +28,7 @@ const routes: Routes = [
         resolve: {
           profile: editConnectionProfileResolver,
           models: editConnectionProfileLlmModelsResolver,
-          templates: editConnectionProfileTemplatesResolver,
+          providers: editConnectionProfileTemplatesResolver,
         }
       },
       {

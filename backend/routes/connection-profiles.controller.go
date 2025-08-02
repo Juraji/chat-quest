@@ -16,11 +16,6 @@ func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
 		respondList(c, profiles, err)
 	})
 
-	connectionProfilesRouter.GET("/templates", func(c *gin.Context) {
-		profiles := model.GetConnectionProfileDefaults()
-		respondList(c, profiles, nil)
-	})
-
 	connectionProfilesRouter.GET("/:profileId", func(c *gin.Context) {
 		profileId, err := getID(c, "profileId")
 		if err != nil {

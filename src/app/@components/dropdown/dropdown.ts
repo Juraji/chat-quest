@@ -5,7 +5,6 @@ import {booleanSignal, BooleanSignal} from '@util/ng';
   selector: 'app-dropdown',
   imports: [],
   templateUrl: './dropdown.html',
-  styleUrl: './dropdown.scss'
 })
 export class Dropdown {
   readonly opened: BooleanSignal = booleanSignal(false)

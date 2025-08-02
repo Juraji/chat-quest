@@ -1,6 +1,6 @@
 <div class="container">
   <app-page-header>
-    <span class="page-title">Connections</span>
+    <span class="page-title">Connections &amp; Models</span>
     <button class="btn btn-outline-primary"
             routerLink="./new">Add Connection Profile
     </button>
@@ -13,6 +13,7 @@
         <tr>
           <th></th>
           <th></th>
+          <th></th>
         </tr>
         </thead>
         <tbody>
@@ -22,11 +23,12 @@
             </tr>
           }
           @for (profile of profiles(); track profile.id) {
-            <tr>
-              <td><span class="bi bi-ethernet"></span>&nbsp;{{ profile.baseUrl }}</td>
+            <tr class="cursor-pointer" [routerLink]="['.', profile.id]">
+              <td><span class="bi bi-ethernet"></span>&nbsp;{{ profile.name }}</td>
+              <td class="text-muted">{{profile.baseUrl}}</td>
               <td>
                 <div class="btn-toolbar justify-content-end">
-                  <button class="btn btn-sm btn-primary" [routerLink]="['.', profile.id]">
+                  <button class="btn btn-sm btn-primary">
                     <span class="bi bi-pencil"></span>
                   </button>
                 </div>
