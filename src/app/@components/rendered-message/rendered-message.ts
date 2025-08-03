@@ -1,5 +1,4 @@
 import {
-  booleanAttribute,
   Component,
   computed,
   inject,
@@ -9,6 +8,20 @@ import {
   SecurityContext
 } from '@angular/core';
 import {DomSanitizer} from '@angular/platform-browser';
+
+type RendererOptions = {
+  enableActions: boolean
+  enableVariables: boolean
+  enableOOC: boolean
+  enableMD: boolean
+}
+
+const DEFAULT_OPTIONS: RendererOptions = {
+  enableActions: true,
+  enableVariables: true,
+  enableOOC: true,
+  enableMD: false,
+}
 
 @Component({
   selector: 'app-rendered-message',
@@ -20,20 +33,32 @@ export class RenderedMessage {
 
   private readonly sanitizer = inject(DomSanitizer)
 
-  readonly enableVariables: InputSignalWithTransform<boolean, unknown> = input(false, {transform: booleanAttribute});
+  readonly renderOptions: InputSignalWithTransform<RendererOptions, Partial<RendererOptions>> =
+    input(DEFAULT_OPTIONS, {transform: v => ({...DEFAULT_OPTIONS, ...v})})
 
   readonly message: InputSignal<string> = input.required()
+
   readonly formatted = computed(() => {
     const template = this.message()
-    const enableVars = this.enableVariables()
-    return this.render(template, enableVars) ?? ''
+    const opts = this.renderOptions()
+    if (!template) return template;
+    return this.render(template, opts)
   })
 
-  render(value: string | null, enableVars: boolean): string | null {
-    if (!value) return value;
-    let result = this.wrap(value, 'action', '*', '*');
-    if (enableVars) {
+  render(value: string, opts: RendererOptions): string | null {
+    let result = this.escapeHtml(value)
+    if (opts.enableActions) {
+      result = this.wrap(result, 'action', '*', '*');
+    }
+    if (opts.enableVariables) {
       result = this.wrap(result, 'variable', '{{.', '}}');
+    }
+    if (opts.enableOOC) {
+      result = this.wrap(result, 'out-of-character ', '[OOC:', ']');
+      result = this.wrap(result, 'out-of-character ', '[System note:', ']');
+    }
+    if (opts.enableMD) {
+      result = this.wrap(result, 'md-block', '```', '```');
     }
     return this.sanitizer.sanitize(SecurityContext.HTML, result)
   }
@@ -60,4 +85,13 @@ export class RenderedMessage {
     }
     return text;
   }
+
+  private escapeHtml(unsafe: string): string {
+    return unsafe
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  };
 }

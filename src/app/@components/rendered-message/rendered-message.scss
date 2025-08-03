@@ -17,6 +17,24 @@
       padding: 2px;
       border-radius: var(--bs-border-radius-sm);
     }
+
+    .out-of-character {
+      color: var(--bs-secondary-color) !important;
+      font-family: var(--bs-font-monospace), monospace;
+      font-style: italic;
+      font-size: 0.875em;
+    }
+
+    .md-block {
+      display: block;
+      color: unset;
+      font-family: var(--bs-font-monospace), monospace;
+      font-style: normal;
+      font-size: 0.875em;
+      background-color: var(--bs-secondary-bg);
+      padding: 0.5rem;
+      border-radius: var(--bs-border-radius-sm);
+    }
   }
 
   &.rows-3 {

@@ -45,9 +45,7 @@ export class EditConnectionProfile {
   constructor() {
     effect(() => {
       const inputP = this.profile()
-      if (!!inputP) {
-        this.formGroup.reset(inputP)
-      }
+      this.formGroup.reset(inputP)
     });
   }
 

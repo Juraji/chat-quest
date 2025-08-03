@@ -8,6 +8,12 @@ import {
   editConnectionProfileResolver,
   editConnectionProfileTemplatesResolver
 } from './connection-profiles/edit/edit-connection-profile.resolver';
+import {InstructionTemplatesOverviewPage} from './instruction-templates/overview/instruction-templates-overview-page';
+import {
+  instructionTemplatesOverviewResolver
+} from './instruction-templates/overview/instruction-templates-overview.resolver';
+import {EditInstructionTemplate} from './instruction-templates/edit/edit-instruction-template';
+import {editInstructionTemplateResolver} from './instruction-templates/edit/edit-instruction-template.resolver';
 
 const routes: Routes = [
   {
@@ -29,6 +35,21 @@ const routes: Routes = [
           profile: editConnectionProfileResolver,
           models: editConnectionProfileLlmModelsResolver,
           providers: editConnectionProfileTemplatesResolver,
+        }
+      },
+      {
+        path: 'instruction-templates',
+        component: InstructionTemplatesOverviewPage,
+        resolve: {
+          templates: instructionTemplatesOverviewResolver
+        }
+      },
+      {
+        path: 'instruction-templates/:templateId',
+        component: EditInstructionTemplate,
+        runGuardsAndResolvers: "paramsOrQueryParamsChange",
+        resolve: {
+          template: editInstructionTemplateResolver,
         }
       },
       {

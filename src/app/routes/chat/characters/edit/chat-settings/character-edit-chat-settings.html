@@ -52,11 +52,8 @@
           } @else {
             @for (greeting of greetings(); track greeting) {
               <div class="card character-text mb-2">
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info">
-                  {{ $index + 1 }}
-                </span>
                 <div class="card-body">
-                  <app-rendered-message [message]="greeting" enableVariables></app-rendered-message>
+                  <app-rendered-message [message]="greeting"></app-rendered-message>
                   <app-token-count class="mt-2 float-end" [text]="greeting"></app-token-count>
                 </div>
               </div>
@@ -117,11 +114,8 @@
           } @else {
             @for (example of dialogueExamples(); track example) {
               <div class="card character-text mb-2">
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info">
-                  {{ $index + 1 }}
-                </span>
                 <div class="card-body">
-                  <app-rendered-message [message]="example" enableVariables></app-rendered-message>
+                  <app-rendered-message [message]="example"></app-rendered-message>
                   <app-token-count class="mt-2 float-end" [text]="example"></app-token-count>
                 </div>
               </div>
@@ -182,11 +176,8 @@
           } @else {
             @for (greeting of groupGreetings(); track greeting) {
               <div class="card character-text mb-2">
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info">
-                  {{ $index + 1 }}
-                </span>
                 <div class="card-body">
-                  <app-rendered-message [message]="greeting" enableVariables></app-rendered-message>
+                  <app-rendered-message [message]="greeting"></app-rendered-message>
                   <app-token-count class="mt-2 float-end" [text]="greeting"></app-token-count>
                 </div>
               </div>

@@ -1,0 +1,149 @@
+<form [formGroup]="formGroup" (submit)="onFormSubmit()">
+  <div class="container">
+    <app-page-header backUrl="../">
+      @if (isNew()) {
+        <span class="page-title">New Connection Profile</span>
+      } @else {
+        <span class="page-title"><span>{{ template().name }}</span>&nbsp;<span
+          class="text-muted small">&bullet;&nbsp;{{ template().type }}</span></span>
+      }
+
+      @if (!isNew()) {
+        <button type="button" class="btn btn-outline-danger"
+                (click)="onDeleteTemplate()">Delete
+        </button>
+      }
+      @if (!isNew() && formGroup.dirty) {
+        <button type="button" class="btn btn-outline-secondary"
+                (click)="onRevertChanges()">Revert changes
+        </button>
+      }
+      <button class="btn btn-primary btn-magical"
+              [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
+      </button>
+    </app-page-header>
+
+    <div class="grid">
+      <div class="g-col-12 g-col-md-6 g-col-lg-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Template Settings</h5>
+
+            <div class="mb-3">
+              <label for="nameInput">Name</label>
+              <input type="text" class="form-control"
+                     id="nameInput"
+                     aria-describedby="nameInputHelp"
+                     formControlName="name"/>
+              <div id="nameInputHelp" class="form-text">
+                This is for display only, so you know what's what.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="typeInput">Type</label>
+              <select class="form-select"
+                      id="typeInput"
+                      aria-describedby="typeInputHelp"
+                      formControlName="type">
+                <option value="CHAT">CHAT</option>
+                <option value="MEMORIES">MEMORIES</option>
+                <option value="SUMMARIES">SUMMARIES</option>
+              </select>
+              <div id="typeInputHelp" class="form-text">
+                Makes this template available under specific conditions.
+              </div>
+            </div>
+
+            <div class="g-col-12 g-col-xl-6">
+              <label for="temperatureInput">Temperature</label>
+              <input type="number" class="form-control"
+                     step="0.01"
+                     id="temperatureInput"
+                     aria-describedby="temperatureInputHelp"
+                     formControlName="temperature"/>
+              <div id="temperatureInputHelp" class="form-text"
+                   title="Lower numbers (< 1.0) will follow instructions more closely, but be less creative;
+Higher numbers (> 1.0) will increase creativity but decrease accuracy.">
+                <span>Overrides model value, if set. Leave empty to use model preference.</span>
+                <span class="bi bi-question-circle ms-1"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-col-12 g-col-md-6 g-col-lg-8">
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="card-title mb-0">System Prompt</h5>
+              <button type="button" class="btn btn-sm" (click)="editSystemPrompt.toggle()">
+                @if (editSystemPrompt()) {
+                  <span class="bi bi-x"></span>
+                } @else {
+                  <span class="bi bi-pencil"></span>
+                }
+              </button>
+            </div>
+
+            @if (editSystemPrompt()) {
+              <div>
+                <textarea type="text" class="form-control" rows="15"
+                          id="systemPromptInput"
+                          aria-describedby="systemPromptInputHelp"
+                          formControlName="systemPrompt"></textarea>
+                <div id="systemPromptInputHelp" class="form-text">
+                  Optionally describe your character's appearance, like physical traits and clothing.
+                </div>
+              </div>
+            } @else if (!!systemPromptValue()) {
+              @let systemPrompt = systemPromptValue();
+              <app-rendered-message [message]="systemPrompt" [renderOptions]="{enableMD: true}"></app-rendered-message>
+              <app-token-count class="mt-2 float-end" [text]="systemPrompt"></app-token-count>
+            } @else {
+              <p class="form-text mb-0">
+                No system prompt defined.
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="card-title mb-0">Instruction</h5>
+              <button type="button" class="btn btn-sm" (click)="editInstruction.toggle()">
+                @if (editInstruction()) {
+                  <span class="bi bi-x"></span>
+                } @else {
+                  <span class="bi bi-pencil"></span>
+                }
+              </button>
+            </div>
+
+            @if (editInstruction()) {
+              <div>
+                <textarea type="text" class="form-control" rows="15"
+                          id="instructionInput"
+                          aria-describedby="instructionInputHelp"
+                          formControlName="instruction"></textarea>
+                <div id="instructionInputHelp" class="form-text">
+                  Optionally describe your character's appearance, like physical traits and clothing.
+                </div>
+              </div>
+            } @else if (!!instructionValue()) {
+              @let systemPrompt = instructionValue();
+              <app-rendered-message [message]="systemPrompt" [renderOptions]="{enableMD: true}"></app-rendered-message>
+              <app-token-count class="mt-2 float-end" [text]="systemPrompt"></app-token-count>
+            } @else {
+              <p class="form-text mb-0">
+                No instruction defined.
+              </p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
