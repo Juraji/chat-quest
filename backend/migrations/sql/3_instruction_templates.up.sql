@@ -1,4 +1,4 @@
-CREATE TABLE instruction_prompts
+CREATE TABLE instruction_templates
 (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   name          VARCHAR(100) NOT NULL,
@@ -9,7 +9,7 @@ CREATE TABLE instruction_prompts
 );
 
 -- Default Prompts
-INSERT INTO instruction_prompts (name, type, temperature, system_prompt, instruction)
+INSERT INTO instruction_templates (name, type, temperature, system_prompt, instruction)
 VALUES ('Default Chat',
         'CHAT',
         NULL,

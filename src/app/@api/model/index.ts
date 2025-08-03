@@ -1,5 +1,5 @@
 export * from "./characters"
 export * from "./connection-profiles"
 export * from "./model"
-export * from "./instruction-prompts"
+export * from "./instruction-templates"
 export * from "./tags"

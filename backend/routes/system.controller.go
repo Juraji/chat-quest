@@ -2,10 +2,10 @@ package routes
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/ai"
 	"juraji.nl/chat-quest/migrations"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -33,13 +33,14 @@ func SystemController(router *gin.RouterGroup, db *sql.DB) {
 
 	systemRouter.POST("/migrations/goto/:version", func(c *gin.Context) {
 		version, _ := getIDParam(c, "version")
-		fmt.Printf("Migrating to version: %d", version)
+		log.Printf("Migrating to version: %d", version)
 		err := migrations.GoToVersion(db, uint(version))
 		respondEmpty(c, err)
 	})
 
 	systemRouter.POST("/shutdown", func(c *gin.Context) {
 		c.String(http.StatusOK, "Shutting down...")
+		log.Print("Shutdown requested from API, goodbye!")
 
 		go func() {
 			// Give Gin some time to process and send the response
