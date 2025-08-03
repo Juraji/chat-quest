@@ -14,7 +14,7 @@ type InstructionTemplate struct {
 	Instruction  string   `json:"instruction"`
 }
 
-func InstructionPromptScanner(scanner RowScanner, dest *InstructionTemplate) error {
+func instructionPromptScanner(scanner RowScanner, dest *InstructionTemplate) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.Name,
@@ -27,13 +27,13 @@ func InstructionPromptScanner(scanner RowScanner, dest *InstructionTemplate) err
 
 func AllInstructionPrompts(db *sql.DB) ([]*InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates"
-	return queryForList(db, query, nil, InstructionPromptScanner)
+	return queryForList(db, query, nil, instructionPromptScanner)
 }
 
 func InstructionPromptById(db *sql.DB, id int64) (*InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates WHERE id = $1"
 	args := []any{id}
-	return queryForRecord(db, query, args, InstructionPromptScanner)
+	return queryForRecord(db, query, args, instructionPromptScanner)
 }
 
 func CreateInstructionPrompt(db *sql.DB, prompt *InstructionTemplate) error {

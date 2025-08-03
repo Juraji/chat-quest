@@ -11,6 +11,7 @@ import {TagsControl} from '@components/tags-control/tags-control';
   templateUrl: './character-card.html',
   styleUrl: './character-card.scss',
   host: {
+    '[class.chat-quest-card]': 'true',
     '[class.favorite]': 'favorite()'
   }
 })

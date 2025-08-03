@@ -3,15 +3,17 @@ import {ActivatedRoute, RouterLink} from '@angular/router';
 import {routeDataSignal} from '@util/ng';
 import {CharacterWithTags, Tag} from '@api/model';
 import {PageHeader} from '@components/page-header';
-import {CharacterCard} from '@components/character-card/character-card';
+import {CharacterCard} from '@components/cards/character-card/character-card';
 import {Tags} from '@api/clients';
+import {NewItemCard} from '@components/cards/new-item-card/new-item-card';
 
 @Component({
   selector: 'app-manage-characters',
   imports: [
     PageHeader,
     RouterLink,
-    CharacterCard
+    CharacterCard,
+    NewItemCard
   ],
   templateUrl: './manage-characters-page.html',
   styleUrls: ['./manage-characters-page.scss'],

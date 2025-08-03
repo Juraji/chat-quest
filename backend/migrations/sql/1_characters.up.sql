@@ -18,44 +18,34 @@ CREATE TABLE characters
 
 CREATE TABLE character_details
 (
-  character_id        INTEGER PRIMARY KEY NOT NULL,
+  character_id        INTEGER PRIMARY KEY NOT NULL REFERENCES characters (id) ON DELETE CASCADE,
   appearance          TEXT                         DEFAULT NULL,
   personality         TEXT                         DEFAULT NULL,
   history             TEXT                         DEFAULT NULL,
-  group_talkativeness FLOAT               NOT NULL DEFAULT 0.5,
+  group_talkativeness FLOAT               NOT NULL DEFAULT 0.5
 
-  CONSTRAINT fk_ct__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
 );
 
 CREATE TABLE character_tags
 (
-  character_id INTEGER NOT NULL,
-  tag_id       INTEGER NOT NULL,
-
-  CONSTRAINT fk_ct__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE,
-  CONSTRAINT fk_ct__tag FOREIGN KEY (tag_id) REFERENCES tags (id)
+  character_id INTEGER NOT NULL REFERENCES characters (id) ON DELETE CASCADE, ,
+  tag_id       INTEGER NOT NULL REFERENCES tags (id)
 );
 
 CREATE TABLE character_dialogue_examples
 (
-  character_id INTEGER NOT NULL,
-  text         TEXT    NOT NULL,
-
-  CONSTRAINT fk_cde__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
+  character_id INTEGER NOT NULL REFERENCES characters (id) ON DELETE CASCADE,
+  text         TEXT    NOT NULL
 );
 
 CREATE TABLE character_greetings
 (
-  character_id INTEGER NOT NULL,
-  text         TEXT    NOT NULL,
-
-  CONSTRAINT fk_cag__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
+  character_id INTEGER NOT NULL REFERENCES characters (id) ON DELETE CASCADE,
+  text         TEXT    NOT NULL
 );
 
 CREATE TABLE character_group_greetings
 (
-  character_id INTEGER NOT NULL,
-  text         TEXT    NOT NULL,
-
-  CONSTRAINT fk_cgg__character FOREIGN KEY (character_id) REFERENCES characters (id) ON DELETE CASCADE
+  character_id INTEGER NOT NULL REFERENCES characters (id) ON DELETE CASCADE,
+  text         TEXT    NOT NULL
 );

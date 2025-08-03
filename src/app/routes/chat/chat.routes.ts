@@ -5,7 +5,10 @@ import {manageCharactersResolver} from './characters/manage/manage-characters.re
 import {EditCharacterPage} from './characters/edit/edit-character-page';
 import {editCharacterResolver,} from './characters/edit/edit-character.resolver';
 import {WorldsOverviewPage} from './worlds/overview/worlds-overview-page';
-import {ScenariosOverview} from './scenarios/scenarios-overview/scenarios-overview';
+import {ScenariosOverview} from './scenarios/overview/scenarios-overview';
+import {scenariosOverviewResolver} from './scenarios/overview/scenarios-overview.resolver';
+import {EditScenarioPage} from './scenarios/edit/edit-scenario-page';
+import {editScenarioResolver} from './scenarios/edit/edit-scenario.resolver';
 
 const routes: Routes = [
   {
@@ -35,6 +38,17 @@ const routes: Routes = [
       {
         path: 'scenarios',
         component: ScenariosOverview,
+        resolve: {
+          scenarios: scenariosOverviewResolver
+        }
+      },
+      {
+        path: 'scenarios/:scenarioId',
+        component: EditScenarioPage,
+        runGuardsAndResolvers: "paramsOrQueryParamsChange",
+        resolve: {
+          scenario: editScenarioResolver,
+        }
       },
       {
         path: '**',

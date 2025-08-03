@@ -65,6 +65,7 @@ func main() {
 		routes.CharactersController(apiRouter, db)
 		routes.InstructionPromptsController(apiRouter, db)
 		routes.ConnectionProfilesController(apiRouter, db)
+		routes.ScenariosController(apiRouter, db)
 	}
 
 	// If endpoint is not found, the request is probably a UI resource.

@@ -1,0 +1,22 @@
+:host {
+  .card {
+    min-width: 16rem;
+    min-height: 20rem;
+    border-style: dashed;
+    cursor: pointer;
+    color: var(--bs-card-border-color);
+    font-size: 2rem;
+    transition: color 300ms ease-in-out;
+
+    &:hover {
+      color: unset;
+      transform: unset;
+      box-shadow: unset;
+      z-index: unset;
+    }
+
+    .add-item-plus-icon {
+      font-size: 4rem;
+    }
+  }
+}

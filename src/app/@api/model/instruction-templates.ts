@@ -1,6 +1,6 @@
 import {ChatQuestModel} from './model';
 
-export type InstructionType = 'CHAT' | 'MEMORIES' | 'SUMMARIES'
+export type InstructionType = 'CHAT' | 'MEMORIES'
 
 export interface InstructionTemplate extends ChatQuestModel {
   name: string

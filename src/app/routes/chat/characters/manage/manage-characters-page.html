@@ -20,7 +20,7 @@
 
   <div class="grid">
     @for (char of filteredCharacters(); track char.id) {
-      <div class="g-col-3">
+      <div class="g-col-6 g-col-lg-3">
         <app-character-card [character]="char" [routerLink]="['.', char.id]" class="cursor-pointer">
           <a class="btn" [routerLink]="['/chat/with', char.id]" (click)="$event.stopPropagation()">
             <span class="bi bi-chat-fill"></span>
@@ -31,13 +31,10 @@
         </app-character-card>
       </div>
     }
-    <div class="g-col-3">
-      <div class="card create-character-card" routerLink="./new">
-        <div class="card-body d-flex flex-column align-items-center justify-content-center gap-1">
-          <span class="bi bi-plus-lg add-character-plus-icon"></span>
-          <span>Add Character</span>
-        </div>
-      </div>
+    <div class="g-col-6 g-col-lg-3">
+      <app-new-item-card routerLink="./new">
+        <span>Add Character</span>
+      </app-new-item-card>
     </div>
   </div>
 </div>

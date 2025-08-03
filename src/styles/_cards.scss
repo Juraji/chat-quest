@@ -1,11 +1,4 @@
-@import "../../../styles/colors";
-
-:host {
-  &.favorite .card {
-    border-color: $special;
-    color: $special;
-  }
-
+.chat-quest-card {
   .card {
     position: relative;
     width: 100%;
@@ -21,7 +14,7 @@
     }
   }
 
-  .avatar-image {
+  .chat-quest-card-image {
     position: absolute;
     top: 0;
     left: 0;

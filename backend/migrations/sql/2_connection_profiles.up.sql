@@ -10,15 +10,12 @@ CREATE TABLE connection_profiles
 CREATE TABLE llm_models
 (
   id                    INTEGER PRIMARY KEY AUTOINCREMENT,
-  connection_profile_id INTEGER       NOT NULL,
+  connection_profile_id INTEGER      NOT NULL REFERENCES connection_profiles (id) ON DELETE CASCADE,
   model_id              VARCHAR(255) NOT NULL,
-  temperature           FLOAT         NOT NULL,
-  max_tokens            INTEGER       NOT NULL,
-  top_p                 FLOAT         NOT NULL,
-  stream                BIT(1)        NOT NULL,
+  temperature           FLOAT        NOT NULL,
+  max_tokens            INTEGER      NOT NULL,
+  top_p                 FLOAT        NOT NULL,
+  stream                BIT(1)       NOT NULL,
   stop_sequences        VARCHAR(1024),
-  disabled              BIT(1)        NOT NULL,
-
-  constraint fk_lm__connection_profile FOREIGN KEY (connection_profile_id)
-    REFERENCES connection_profiles (id) ON DELETE CASCADE
+  disabled              BIT(1)       NOT NULL
 )

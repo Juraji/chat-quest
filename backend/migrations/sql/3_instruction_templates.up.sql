@@ -61,26 +61,4 @@ Example output:
   {"character": "Caspian", "memory": "..."},
   {"character": "User", "memory": "..."}
 ]
-```'),
-       ('Default Summarization',
-        'SUMMARIES',
-        0.1,
-        'You are an assistant that creates concise summaries of conversations between characters.',
-        '[OOC: Forget all previous instructions.]
-
-1. Identify all primary participants
-2. Determine 1-3 key elements (topics, decisions, revelations)
-3. Format as: "[Participants] discussed [main topic]. [Key event/development 1]. [Key event/development 2 or outcome if applicable]."
-
-Rules:
-- Use complete sentences in present tense
-- Keep summaries to 2-3 lines maximum
-- Focus on what matters most for understanding the conversation
-- If no significant events occurred, summarize main topics and tone
-
-Example outputs:
-1. "Caspian and Robin discussed magic theory. Caspian revealed his natural magical affinity while Robin shared advanced techniques."
-2. "Aragorn and Legolas debated strategy. Tensions rose over differing approaches but they reached compromise on the main objective."
-3. "Gandalf explained the Middle-earth history to Frodo. Key revelations included Sauron''s past and the nature of the One Ring."
-
-Process conversations according to these rules and return only the formatted summary text.');
+```');

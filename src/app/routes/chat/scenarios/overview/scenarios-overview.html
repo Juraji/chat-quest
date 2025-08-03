@@ -1,0 +1,23 @@
+<div class="container">
+  <app-page-header>
+    <span class="page-title">Scenarios</span>
+    <button class="btn btn-primary" routerLink="./new">Create Scenario</button>
+  </app-page-header>
+
+  <div class="grid">
+    @for (scene of scenarios(); track scene.id) {
+      <div class="g-col-6 g-col-lg-3">
+        <app-scenario-card [scenario]="scene" [routerLink]="['.', scene.id]" class="cursor-pointer">
+          <button class="btn">
+            <span class="bi bi-pencil"></span>
+          </button>
+        </app-scenario-card>
+      </div>
+    }
+    <div class="g-col-6 g-col-lg-3">
+      <app-new-item-card routerLink="./new">
+        <span>Add Scenario</span>
+      </app-new-item-card>
+    </div>
+  </div>
+</div>
