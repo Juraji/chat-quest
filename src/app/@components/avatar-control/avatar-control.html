@@ -2,11 +2,11 @@
   @if (currentValue(); as url) {
     <img [src]="url"
          class="img-thumbnail avatar-image"
-         alt="Character avatar"/>
+         alt="Avatar"/>
   } @else {
     <img src="/tree.png"
          class="img-thumbnail avatar-image placeholder"
-         alt="Character avatar"/>
+         alt="Avatar"/>
   }
   <div class="avatar-image-overlay"
        (click)="fileInput.click()"

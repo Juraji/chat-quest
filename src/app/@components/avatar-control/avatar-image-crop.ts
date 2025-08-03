@@ -11,8 +11,8 @@ const CROPPER_OPTIONS = {
   zoomable: false,
   viewMode: 1,
 }
-const maxWidth = 350
-const maxHeight = 350
+const maxWidth = 500
+const maxHeight = 500
 const exportType = "image/jpeg";
 const exportQuality = 1;
 

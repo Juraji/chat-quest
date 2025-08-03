@@ -49,9 +49,7 @@ export class EditInstructionTemplate {
     effect(() => {
       const input = this.template()
       this.formGroup.reset(input)
-      if(isNew(input)) {
-        this.editSystemPrompt.set(true)
-      }
+      this.editSystemPrompt.set(isNew(input))
     });
   }
 

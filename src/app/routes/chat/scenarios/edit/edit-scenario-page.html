@@ -1,1 +1,89 @@
-<p>edit-scenario works!</p>
+<form [formGroup]="formGroup" (submit)="onFormSubmit()">
+  <div class="container">
+    <app-page-header backUrl="../">
+      @if (isNew()) {
+        <span class="page-title">New Character</span>
+      } @else {
+        <span class="page-title">{{ name() }}</span>
+      }
+
+      @if (!isNew()) {
+        <button type="button" class="btn btn-outline-danger"
+                (click)="onDeleteScenario()">Delete Scenario
+        </button>
+      }
+      @if (!isNew() && formGroup.dirty) {
+        <button type="button" class="btn btn-outline-secondary"
+                (click)="onResetForm()">Revert changes
+        </button>
+      }
+      <button class="btn btn-primary btn-magical"
+              [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
+      </button>
+    </app-page-header>
+
+    <div class="grid">
+      <div class="g-col-12 g-col-lg-6 g-col-xl-4">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Base information</h5>
+
+            <div class="grid mb-3">
+              <div class="g-col-4">
+                <app-avatar-control formControlName="avatarUrl"></app-avatar-control>
+              </div>
+              <div class="g-col-8">
+                <div class="mb-3">
+                  <label for="nameInput">Name</label>
+                  <input type="text" class="form-control"
+                         id="nameInput"
+                         aria-describedby="nameInputHelp"
+                         formControlName="name"/>
+                  <div id="nameInputHelp" class="form-text">A unique name for your scenario.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="g-col-12 g-col-lg-6 g-col-xl-8">
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="card-title mb-0">Scenario</h5>
+              <button type="button" class="btn btn-sm" (click)="editDescription.toggle()">
+                @if (editDescription()) {
+                  <span class="bi bi-x"></span>
+                } @else {
+                  <span class="bi bi-pencil"></span>
+                }
+              </button>
+            </div>
+
+            @if (editDescription()) {
+              <div>
+                <textarea type="text" class="form-control" rows="15"
+                          id="descriptionInput"
+                          aria-describedby="descriptionInputHelp"
+                          formControlName="description"></textarea>
+                <div id="descriptionInputHelp" class="form-text">
+                  Describe your scene in as much detail as you like.
+                </div>
+              </div>
+            } @else if (!!descriptionValue()) {
+              @let m = descriptionValue();
+              <app-rendered-message
+                [message]="m"
+                [renderOptions]="{enableActions: false, enableVariables: false}"/>
+              <app-token-count [text]="m" class="float-end"/>
+            } @else {
+              <p class="form-text mb-0">
+                No description supplied.
+              </p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
