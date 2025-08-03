@@ -1,1 +1,1 @@
-DROP TABLE instruction_prompts;
+DROP TABLE instruction_templates;
