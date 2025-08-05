@@ -6,7 +6,7 @@ import (
 	"juraji.nl/chat-quest/util"
 )
 
-func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
+func Routes(router *gin.RouterGroup, db *sql.DB) {
 	connectionProfilesRouter := router.Group("/connection-profiles")
 
 	connectionProfilesRouter.GET("", func(c *gin.Context) {

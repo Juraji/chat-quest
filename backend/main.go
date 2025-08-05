@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"juraji.nl/chat-quest/characters"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/providers"
 	"juraji.nl/chat-quest/routes"
@@ -62,10 +63,9 @@ func main() {
 	{
 		log.Println("Registering routes...")
 		routes.SystemController(apiRouter, db)
-		routes.TagsController(apiRouter, db)
-		routes.CharactersController(apiRouter, db)
+		characters.Routes(apiRouter, db)
 		routes.InstructionPromptsController(apiRouter, db)
-		providers.ConnectionProfilesController(apiRouter, db)
+		providers.Routes(apiRouter, db)
 		routes.ScenariosController(apiRouter, db)
 		routes.ChatPreferencesController(apiRouter, db)
 		routes.WorldsController(apiRouter, db)

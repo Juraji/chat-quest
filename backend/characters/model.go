@@ -1,10 +1,11 @@
-package model
+package characters
 
 import (
 	"database/sql"
 	"fmt"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/util"
+	"strings"
 	"time"
 )
 
@@ -34,6 +35,12 @@ type CharacterTextBlock struct {
 	Text        string `json:"text"`
 }
 
+type Tag struct {
+	ID        int    `json:"id"`
+	Label     string `json:"label"`
+	Lowercase string `json:"lowercase"`
+}
+
 func characterScanner(scanner database.RowScanner, dest *Character) error {
 	return scanner.Scan(
 		&dest.ID,
@@ -43,7 +50,6 @@ func characterScanner(scanner database.RowScanner, dest *Character) error {
 		&dest.AvatarUrl,
 	)
 }
-
 func characterDetailsScanner(scanner database.RowScanner, dest *CharacterDetails) error {
 	return scanner.Scan(
 		&dest.CharacterId,
@@ -51,6 +57,14 @@ func characterDetailsScanner(scanner database.RowScanner, dest *CharacterDetails
 		&dest.Personality,
 		&dest.History,
 		&dest.GroupTalkativeness,
+	)
+}
+
+func tagScanner(scanner database.RowScanner, dest *Tag) error {
+	return scanner.Scan(
+		&dest.ID,
+		&dest.Label,
+		&dest.Lowercase,
 	)
 }
 
@@ -326,4 +340,43 @@ func SetGroupGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []s
 	}
 
 	return tx.Commit()
+}
+
+func AllTags(db *sql.DB) ([]*Tag, error) {
+	query := "SELECT * FROM tags"
+	return database.QueryForList(db, query, nil, tagScanner)
+}
+
+func TagById(db *sql.DB, id int64) (*Tag, error) {
+	query := "SELECT * FROM tags WHERE id = $1"
+	args := []any{id}
+	return database.QueryForRecord(db, query, args, tagScanner)
+}
+
+func CreateTag(db *sql.DB, newTag *Tag) error {
+	newTag.Lowercase = strings.ToLower(newTag.Label)
+
+	query := "INSERT INTO tags(label, lowercase) VALUES ($1, $2) RETURNING id"
+	args := []any{newTag.Label, newTag.Lowercase}
+	scanFunc := func(scanner database.RowScanner) error {
+		return scanner.Scan(&newTag.ID)
+	}
+
+	return database.InsertRecord(db, query, args, scanFunc)
+}
+
+func UpdateTag(db *sql.DB, id int64, tag *Tag) error {
+	tag.Lowercase = strings.ToLower(tag.Label)
+
+	query := "UPDATE tags SET label = $1, lowercase = $2 WHERE id = $3"
+	args := []any{id, tag.Label, tag.Lowercase}
+
+	return database.UpdateRecord(db, query, args)
+}
+
+func DeleteTagById(db *sql.DB, id int64) error {
+	query := "DELETE FROM tags WHERE id = $1"
+	args := []any{id}
+
+	return database.DeleteRecord(db, query, args)
 }

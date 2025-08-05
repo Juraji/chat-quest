@@ -1,22 +1,22 @@
-package routes
+package characters
 
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
-	"juraji.nl/chat-quest/model"
 	"juraji.nl/chat-quest/util"
 )
 
-func CharactersController(router *gin.RouterGroup, db *sql.DB) {
+func Routes(router *gin.RouterGroup, db *sql.DB) {
 	charactersRouter := router.Group("/characters")
+	tagsRouter := router.Group("/tags")
 
 	charactersRouter.GET("", func(c *gin.Context) {
-		characters, err := model.AllCharacters(db)
+		characters, err := AllCharacters(db)
 		util.RespondList(c, characters, err)
 	})
 
 	charactersRouter.GET("/with-tags", func(c *gin.Context) {
-		characters, err := model.AllCharactersWithTags(db)
+		characters, err := AllCharactersWithTags(db)
 		util.RespondList(c, characters, err)
 	})
 
@@ -27,18 +27,18 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		character, err := model.CharacterById(db, characterId)
+		character, err := CharacterById(db, characterId)
 		util.RespondSingle(c, character, err)
 	})
 
 	charactersRouter.POST("", func(c *gin.Context) {
-		var newCharacter model.Character
+		var newCharacter Character
 		if err := c.ShouldBind(&newCharacter); err != nil {
 			util.RespondBadRequest(c, "Invalid character data")
 			return
 		}
 
-		err := model.CreateCharacter(db, &newCharacter)
+		err := CreateCharacter(db, &newCharacter)
 		util.RespondSingle(c, &newCharacter, err)
 	})
 
@@ -49,13 +49,13 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		var character model.Character
+		var character Character
 		if err := c.ShouldBind(&character); err != nil {
 			util.RespondBadRequest(c, "Invalid character data")
 			return
 		}
 
-		err = model.UpdateCharacter(db, characterId, &character)
+		err = UpdateCharacter(db, characterId, &character)
 		util.RespondSingle(c, &character, err)
 	})
 
@@ -66,7 +66,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.DeleteCharacterById(db, characterId)
+		err = DeleteCharacterById(db, characterId)
 		util.RespondDeleted(c, err)
 	})
 
@@ -77,7 +77,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		details, err := model.CharacterDetailsByCharacterId(db, characterId)
+		details, err := CharacterDetailsByCharacterId(db, characterId)
 		util.RespondSingle(c, details, err)
 	})
 
@@ -88,13 +88,13 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		var details model.CharacterDetails
+		var details CharacterDetails
 		if err := c.ShouldBind(&details); err != nil {
 			util.RespondBadRequest(c, "Invalid character details data")
 			return
 		}
 
-		err = model.UpdateCharacterDetails(db, characterId, &details)
+		err = UpdateCharacterDetails(db, characterId, &details)
 		util.RespondSingle(c, &details, err)
 	})
 
@@ -105,7 +105,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		tags, err := model.TagsByCharacterId(db, characterId)
+		tags, err := TagsByCharacterId(db, characterId)
 		util.RespondList(c, tags, err)
 	})
 
@@ -122,7 +122,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.SetCharacterTags(db, characterId, tagIds)
+		err = SetCharacterTags(db, characterId, tagIds)
 		util.RespondEmpty(c, err)
 	})
 
@@ -138,7 +138,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.AddCharacterTag(db, characterId, tagId)
+		err = AddCharacterTag(db, characterId, tagId)
 		util.RespondEmpty(c, err)
 	})
 
@@ -154,7 +154,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.RemoveCharacterTag(db, characterId, tagId)
+		err = RemoveCharacterTag(db, characterId, tagId)
 		util.RespondDeleted(c, err)
 	})
 
@@ -165,7 +165,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		examples, err := model.DialogueExamplesByCharacterId(db, characterId)
+		examples, err := DialogueExamplesByCharacterId(db, characterId)
 		util.RespondList(c, examples, err)
 	})
 
@@ -182,7 +182,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.SetDialogueExamplesByCharacterId(db, characterId, examples)
+		err = SetDialogueExamplesByCharacterId(db, characterId, examples)
 		util.RespondEmpty(c, err)
 	})
 
@@ -193,7 +193,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		greetings, err := model.CharacterGreetingsByCharacterId(db, characterId)
+		greetings, err := CharacterGreetingsByCharacterId(db, characterId)
 		util.RespondList(c, greetings, err)
 	})
 
@@ -210,7 +210,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.SetGreetingsByCharacterId(db, characterId, greetings)
+		err = SetGreetingsByCharacterId(db, characterId, greetings)
 		util.RespondEmpty(c, err)
 	})
 
@@ -221,7 +221,7 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		greetings, err := model.CharacterGroupGreetingsByCharacterId(db, characterId)
+		greetings, err := CharacterGroupGreetingsByCharacterId(db, characterId)
 		util.RespondList(c, greetings, err)
 	})
 
@@ -238,7 +238,62 @@ func CharactersController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.SetGroupGreetingsByCharacterId(db, characterId, greetings)
+		err = SetGroupGreetingsByCharacterId(db, characterId, greetings)
 		util.RespondEmpty(c, err)
+	})
+
+	tagsRouter.GET("", func(c *gin.Context) {
+		tags, err := AllTags(db)
+		util.RespondList(c, tags, err)
+	})
+
+	tagsRouter.GET("/:id", func(c *gin.Context) {
+		id, err := util.GetIDParam(c, "id")
+		if err != nil {
+			util.RespondBadRequest(c, "Invalid tag ID")
+			return
+		}
+
+		tag, err := TagById(db, id)
+		util.RespondSingle(c, tag, err)
+	})
+
+	tagsRouter.POST("", func(c *gin.Context) {
+		var newTag Tag
+		if err := c.ShouldBind(&newTag); err != nil {
+			util.RespondBadRequest(c, "Invalid tag data")
+			return
+		}
+
+		err := CreateTag(db, &newTag)
+		util.RespondSingle(c, &newTag, err)
+	})
+
+	tagsRouter.PUT("/:id", func(c *gin.Context) {
+		id, err := util.GetIDParam(c, "id")
+		if err != nil {
+			util.RespondBadRequest(c, "Invalid tag ID")
+			return
+		}
+
+		var tag Tag
+		if err := c.ShouldBind(&tag); err != nil {
+			util.RespondBadRequest(c, "Invalid tag data")
+			return
+		}
+
+		err = UpdateTag(db, id, &tag)
+		util.RespondSingle(c, &tag, err)
+	})
+
+	tagsRouter.DELETE("/:id", func(c *gin.Context) {
+		id, err := util.GetIDParam(c, "id")
+		if err != nil {
+			util.RespondBadRequest(c, "Invalid tag ID")
+			return
+		}
+
+		err = DeleteTagById(db, id)
+		util.RespondDeleted(c, err)
 	})
 }
