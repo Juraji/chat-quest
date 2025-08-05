@@ -28,7 +28,7 @@ func GoToVersion(db *sql.DB, version uint) error {
 func runUsingMigrations(db *sql.DB, action func(m *migrate.Migrate) error) error {
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 	if err != nil {
-		return fmt.Errorf("failed to create databse driver instance: %v", err)
+		return fmt.Errorf("failed to create database driver instance: %v", err)
 	}
 
 	migrationsFsDriver, err := iofs.New(migrationsFs, "sql")

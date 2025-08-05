@@ -5,20 +5,28 @@ import (
 	"errors"
 )
 
-type RowScanner interface {
+// rowScanner interface that works with both sql.Row and sql.Rows
+type rowScanner interface {
 	Scan(dest ...any) error
 }
 
+// queryExecutor interface that works with both *sql.DB and *sql.Tx
+type queryExecutor interface {
+	Query(query string, args ...any) (*sql.Rows, error)
+	QueryRow(query string, args ...any) *sql.Row
+	Exec(query string, args ...any) (sql.Result, error)
+}
+
 func queryForList[T any](
-	db *sql.DB,
+	q queryExecutor,
 	query string,
 	args []any,
-	scanFunc func(scanner RowScanner, dest *T) error,
+	scanFunc func(scanner rowScanner, dest *T) error,
 ) ([]*T, error) {
 	records := make([]*T, 0)
 	var err error
 
-	rows, err := db.Query(query, args...)
+	rows, err := q.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -45,14 +53,14 @@ func queryForList[T any](
 }
 
 func queryForRecord[T any](
-	db *sql.DB,
+	q queryExecutor,
 	query string,
 	args []any,
-	scanFunc func(scanner RowScanner, dest *T) error,
+	scanFunc func(scanner rowScanner, dest *T) error,
 ) (*T, error) {
 	var dest T
 
-	row := db.QueryRow(query, args...)
+	row := q.QueryRow(query, args...)
 	err := scanFunc(row, &dest)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -64,8 +72,12 @@ func queryForRecord[T any](
 	return &dest, nil
 }
 
-func insertRecord(db *sql.DB, query string, args []any, scanFunc func(scanner RowScanner) error) error {
-	row := db.QueryRow(query, args...)
+func insertRecord(
+	q queryExecutor,
+	query string, args []any,
+	scanFunc func(scanner rowScanner) error,
+) error {
+	row := q.QueryRow(query, args...)
 	err := scanFunc(row)
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -75,12 +87,38 @@ func insertRecord(db *sql.DB, query string, args []any, scanFunc func(scanner Ro
 	return err
 }
 
-func updateRecord(db *sql.DB, query string, args []any) error {
-	_, err := db.Exec(query, args...)
+func updateRecord(
+	q queryExecutor,
+	query string,
+	args []any,
+) error {
+	res, err := q.Exec(query, args...)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func deleteRecord(
+	q queryExecutor,
+	query string,
+	args []any,
+) error {
+	_, err := q.Exec(query, args...)
 	return err
 }
 
-func deleteRecord(db *sql.DB, query string, args []any) error {
-	_, err := db.Exec(query, args...)
-	return err
+//goland:noinspection GoUnusedParameter
+func noopScanFunc(scanner rowScanner) error {
+	return nil
 }

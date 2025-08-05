@@ -13,7 +13,7 @@ type Scenario struct {
 	LinkedCharacterId *int64  `json:"linkedCharacterId"`
 }
 
-func scenarioScanner(scanner RowScanner, dest *Scenario) error {
+func scenarioScanner(scanner rowScanner, dest *Scenario) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.Name,
@@ -40,7 +40,7 @@ func CreateScenario(db *sql.DB, scenario *Scenario) error {
 	query := `INSERT INTO scenarios (name, description, avatar_url, linked_character_id)
             VALUES ($1, $2, $3, $4) RETURNING id`
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId}
-	scanFunc := func(scanner RowScanner) error {
+	scanFunc := func(scanner rowScanner) error {
 		return scanner.Scan(&scenario.ID)
 	}
 

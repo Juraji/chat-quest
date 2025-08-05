@@ -14,7 +14,7 @@ type InstructionTemplate struct {
 	Instruction  string   `json:"instruction"`
 }
 
-func instructionPromptScanner(scanner RowScanner, dest *InstructionTemplate) error {
+func instructionPromptScanner(scanner rowScanner, dest *InstructionTemplate) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.Name,
@@ -42,7 +42,7 @@ func CreateInstructionPrompt(db *sql.DB, prompt *InstructionTemplate) error {
 	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, instruction)
             VALUES ($1, $2, $3, $4, $5) RETURNING id`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction}
-	scanFunc := func(scanner RowScanner) error {
+	scanFunc := func(scanner rowScanner) error {
 		return scanner.Scan(&prompt.ID)
 	}
 

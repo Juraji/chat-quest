@@ -66,6 +66,10 @@ func main() {
 		routes.InstructionPromptsController(apiRouter, db)
 		routes.ConnectionProfilesController(apiRouter, db)
 		routes.ScenariosController(apiRouter, db)
+		routes.ChatPreferencesController(apiRouter, db)
+		routes.WorldsController(apiRouter, db)
+		routes.ChatSessionsController(apiRouter, db)
+		routes.MemoriesController(apiRouter, db)
 	}
 
 	// If endpoint is not found, the request is probably a UI resource.

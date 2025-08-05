@@ -104,6 +104,23 @@ func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
 		respondEmpty(c, err)
 	})
 
+	connectionProfilesRouter.POST("/:profileId/models", func(c *gin.Context) {
+		profileId, err := getIDParam(c, "profileId")
+		if err != nil {
+			respondBadRequest(c, "Invalid connection profile ID")
+			return
+		}
+
+		var newLlmModel model.LlmModel
+		if err := c.ShouldBindJSON(&newLlmModel); err != nil {
+			respondBadRequest(c, "Invalid llm model data")
+			return
+		}
+
+		err = model.CreateLlmModel(db, profileId, &newLlmModel)
+		respondSingle(c, &newLlmModel, err)
+	})
+
 	connectionProfilesRouter.PUT("/:profileId/models/:modelId", func(c *gin.Context) {
 		modelId, err := getIDParam(c, "modelId")
 		if err != nil {
@@ -119,5 +136,16 @@ func ConnectionProfilesController(router *gin.RouterGroup, db *sql.DB) {
 
 		err = model.UpdateLlmModel(db, modelId, &llmModel)
 		respondSingle(c, &llmModel, err)
+	})
+
+	connectionProfilesRouter.DELETE("/:profileId/models/:modelId", func(c *gin.Context) {
+		modelId, err := getIDParam(c, "modelId")
+		if err != nil {
+			respondBadRequest(c, "Invalid model ID")
+			return
+		}
+
+		err = model.DeleteLlmModelById(db, modelId)
+		respondDeleted(c, err)
 	})
 }
