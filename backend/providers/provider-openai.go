@@ -1,15 +1,14 @@
-package ai
+package providers
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"juraji.nl/chat-quest/model"
 	"net/http"
 )
 
 type openAIProvider struct {
-	ConnectionProfile model.ConnectionProfile
+	ConnectionProfile *ConnectionProfile
 }
 
 type modelListResponse struct {
@@ -23,7 +22,7 @@ type modelData struct {
 	OwnedBy string `json:"owned_by"`
 }
 
-func (o *openAIProvider) getAvailableModels() ([]*model.LlmModel, error) {
+func (o *openAIProvider) getAvailableModels() ([]*LlmModel, error) {
 	url := o.ConnectionProfile.BaseUrl + "/models"
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -53,14 +52,10 @@ func (o *openAIProvider) getAvailableModels() ([]*model.LlmModel, error) {
 		return nil, fmt.Errorf("error parsing JSON response: %w", err)
 	}
 
-	models := make([]*model.LlmModel, len(response.Data))
-	for i, modelData := range response.Data {
-		models[i] = model.DefaultLlmModel(o.ConnectionProfile.ID, modelData.ID)
+	models := make([]*LlmModel, len(response.Data))
+	for i, data := range response.Data {
+		models[i] = DefaultLlmModel(o.ConnectionProfile.ID, data.ID)
 	}
 
 	return models, nil
-}
-
-func (o *openAIProvider) generateChatCompletions(llmModel model.LlmModel, messages []Message) (string, error) {
-	return "", fmt.Errorf("not yet implemented")
 }

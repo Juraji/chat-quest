@@ -3,7 +3,7 @@ package model
 import (
 	"database/sql"
 	"juraji.nl/chat-quest/database"
-	"juraji.nl/chat-quest/util"
+	"juraji.nl/chat-quest/providers"
 	"time"
 )
 
@@ -14,11 +14,11 @@ type Memory struct {
 	CharacterId      int64      `json:"characterId"`
 	CreatedAt        *time.Time `json:"createdAt"`
 	Content          string     `json:"content"`
-	Embedding        util.Embedding
+	Embedding        providers.Embeddings
 	EmbeddingModelId *int64
 }
 
-func (m *Memory) CosineSimilarity(other util.Embedding) (float64, error) {
+func (m *Memory) CosineSimilarity(other providers.Embeddings) (float64, error) {
 	return m.Embedding.CosineSimilarity(other)
 }
 

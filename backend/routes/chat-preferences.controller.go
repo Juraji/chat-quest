@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/model"
+	"juraji.nl/chat-quest/util"
 )
 
 func ChatPreferencesController(router *gin.RouterGroup, db *sql.DB) {
@@ -11,17 +12,17 @@ func ChatPreferencesController(router *gin.RouterGroup, db *sql.DB) {
 
 	prefsRouter.GET("", func(c *gin.Context) {
 		prefs, err := model.GetChatPreferences(db)
-		respondSingle(c, prefs, err)
+		util.RespondSingle(c, prefs, err)
 	})
 
 	prefsRouter.PUT("", func(c *gin.Context) {
 		var update model.ChatPreferences
 		if err := c.ShouldBind(&update); err != nil {
-			respondBadRequest(c, "Invalid preference data")
+			util.RespondBadRequest(c, "Invalid preference data")
 			return
 		}
 
 		err := model.UpdateChatPreferences(db, &update)
-		respondSingle(c, &update, err)
+		util.RespondSingle(c, &update, err)
 	})
 }

@@ -1,4 +1,4 @@
-package ai
+package providers
 
 import (
 	"github.com/tiktoken-go/tokenizer"

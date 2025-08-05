@@ -1,4 +1,4 @@
-package model
+package providers
 
 func DefaultLlmModel(ConnectionProfileId int64, ModelId string, opts ...func(*LlmModel)) *LlmModel {
 	model := LlmModel{

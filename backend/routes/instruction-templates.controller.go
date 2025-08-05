@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/model"
+	"juraji.nl/chat-quest/util"
 	"net/http"
 )
 
@@ -12,18 +13,18 @@ func InstructionPromptsController(router *gin.RouterGroup, db *sql.DB) {
 
 	instructionPromptsRouter.GET("", func(c *gin.Context) {
 		prompts, err := model.AllInstructionPrompts(db)
-		respondList(c, prompts, err)
+		util.RespondList(c, prompts, err)
 	})
 
 	instructionPromptsRouter.GET("/:templateId", func(c *gin.Context) {
-		templateId, err := getIDParam(c, "templateId")
+		templateId, err := util.GetIDParam(c, "templateId")
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid prompt ID"})
 			return
 		}
 
 		prompts, err := model.InstructionPromptById(db, templateId)
-		respondSingle(c, prompts, err)
+		util.RespondSingle(c, prompts, err)
 	})
 
 	instructionPromptsRouter.POST("", func(c *gin.Context) {
@@ -34,11 +35,11 @@ func InstructionPromptsController(router *gin.RouterGroup, db *sql.DB) {
 		}
 
 		err := model.CreateInstructionPrompt(db, &newPrompt)
-		respondSingle(c, &newPrompt, err)
+		util.RespondSingle(c, &newPrompt, err)
 	})
 
 	instructionPromptsRouter.PUT("/:templateId", func(c *gin.Context) {
-		templateId, err := getIDParam(c, "templateId")
+		templateId, err := util.GetIDParam(c, "templateId")
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid prompt ID"})
 			return
@@ -50,17 +51,17 @@ func InstructionPromptsController(router *gin.RouterGroup, db *sql.DB) {
 		}
 
 		err = model.UpdateInstructionPrompt(db, templateId, &prompt)
-		respondSingle(c, &prompt, err)
+		util.RespondSingle(c, &prompt, err)
 	})
 
 	instructionPromptsRouter.DELETE("/:templateId", func(c *gin.Context) {
-		templateId, err := getIDParam(c, "templateId")
+		templateId, err := util.GetIDParam(c, "templateId")
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid prompt ID"})
 			return
 		}
 
 		err = model.DeleteInstructionPrompt(db, templateId)
-		respondDeleted(c, err)
+		util.RespondDeleted(c, err)
 	})
 }

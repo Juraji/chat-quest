@@ -3,8 +3,9 @@ package routes
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
-	"juraji.nl/chat-quest/ai"
 	"juraji.nl/chat-quest/database"
+	"juraji.nl/chat-quest/providers"
+	"juraji.nl/chat-quest/util"
 	"log"
 	"net/http"
 	"os"
@@ -17,13 +18,13 @@ func SystemController(router *gin.RouterGroup, db *sql.DB) {
 	systemRouter.POST("/tokenizer/count", func(c *gin.Context) {
 		body, err := c.GetRawData()
 		if err != nil {
-			respondBadRequest(c, "Failed to read request body")
+			util.RespondBadRequest(c, "Failed to read request body")
 			return
 		}
 
 		text := string(body)
 
-		tokenCount, err := ai.TokenCount(text)
+		tokenCount, err := providers.TokenCount(text)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get token count"})
 		} else {
@@ -32,10 +33,10 @@ func SystemController(router *gin.RouterGroup, db *sql.DB) {
 	})
 
 	systemRouter.POST("/migrations/goto/:version", func(c *gin.Context) {
-		version, _ := getIDParam(c, "version")
+		version, _ := util.GetIDParam(c, "version")
 		log.Printf("Migrating to version: %d", version)
 		err := database.GoToVersion(db, uint(version))
-		respondEmpty(c, err)
+		util.RespondEmpty(c, err)
 	})
 
 	systemRouter.POST("/shutdown", func(c *gin.Context) {

@@ -1,4 +1,4 @@
-package util
+package providers
 
 import (
 	"bytes"
@@ -9,9 +9,9 @@ import (
 	"math"
 )
 
-type Embedding []float64
+type Embeddings []float64
 
-func (e *Embedding) Scan(value any) error {
+func (e *Embeddings) Scan(value any) error {
 	if value == nil {
 		*e = nil
 		return nil
@@ -24,7 +24,7 @@ func (e *Embedding) Scan(value any) error {
 			return errors.New("invalid byte length for float64 array")
 		}
 
-		embedding := make(Embedding, len(v)/8)
+		embedding := make(Embeddings, len(v)/8)
 		reader := bytes.NewReader(v)
 		for i := 0; i < len(embedding); i++ {
 			var bits uint64
@@ -41,11 +41,11 @@ func (e *Embedding) Scan(value any) error {
 		return fmt.Errorf("unsupported type: %T", value)
 
 	default:
-		return fmt.Errorf("incompatible type for Embedding: %T", value)
+		return fmt.Errorf("incompatible type for Embeddings: %T", value)
 	}
 }
 
-func (e *Embedding) Value() (driver.Value, error) {
+func (e *Embeddings) Value() (driver.Value, error) {
 	if e == nil || len(*e) == 0 {
 		return nil, nil
 	}
@@ -59,7 +59,7 @@ func (e *Embedding) Value() (driver.Value, error) {
 	return b, nil
 }
 
-func (e *Embedding) CosineSimilarity(other Embedding) (float64, error) {
+func (e *Embeddings) CosineSimilarity(other Embeddings) (float64, error) {
 	if e == nil {
 		return 0, nil
 	}

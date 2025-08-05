@@ -6,6 +6,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/database"
+	"juraji.nl/chat-quest/providers"
 	"juraji.nl/chat-quest/routes"
 	"juraji.nl/chat-quest/util"
 	"log"
@@ -64,7 +65,7 @@ func main() {
 		routes.TagsController(apiRouter, db)
 		routes.CharactersController(apiRouter, db)
 		routes.InstructionPromptsController(apiRouter, db)
-		routes.ConnectionProfilesController(apiRouter, db)
+		providers.ConnectionProfilesController(apiRouter, db)
 		routes.ScenariosController(apiRouter, db)
 		routes.ChatPreferencesController(apiRouter, db)
 		routes.WorldsController(apiRouter, db)
