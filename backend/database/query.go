@@ -1,27 +1,27 @@
-package model
+package database
 
 import (
 	"database/sql"
 	"errors"
 )
 
-// rowScanner interface that works with both sql.Row and sql.Rows
-type rowScanner interface {
+// RowScanner interface that works with both sql.Row and sql.Rows
+type RowScanner interface {
 	Scan(dest ...any) error
 }
 
-// queryExecutor interface that works with both *sql.DB and *sql.Tx
-type queryExecutor interface {
+// QueryExecutor interface that works with both *sql.DB and *sql.Tx
+type QueryExecutor interface {
 	Query(query string, args ...any) (*sql.Rows, error)
 	QueryRow(query string, args ...any) *sql.Row
 	Exec(query string, args ...any) (sql.Result, error)
 }
 
-func queryForList[T any](
-	q queryExecutor,
+func QueryForList[T any](
+	q QueryExecutor,
 	query string,
 	args []any,
-	scanFunc func(scanner rowScanner, dest *T) error,
+	scanFunc func(scanner RowScanner, dest *T) error,
 ) ([]*T, error) {
 	records := make([]*T, 0)
 	var err error
@@ -52,11 +52,11 @@ func queryForList[T any](
 	return records, nil
 }
 
-func queryForRecord[T any](
-	q queryExecutor,
+func QueryForRecord[T any](
+	q QueryExecutor,
 	query string,
 	args []any,
-	scanFunc func(scanner rowScanner, dest *T) error,
+	scanFunc func(scanner RowScanner, dest *T) error,
 ) (*T, error) {
 	var dest T
 
@@ -72,10 +72,10 @@ func queryForRecord[T any](
 	return &dest, nil
 }
 
-func insertRecord(
-	q queryExecutor,
+func InsertRecord(
+	q QueryExecutor,
 	query string, args []any,
-	scanFunc func(scanner rowScanner) error,
+	scanFunc func(scanner RowScanner) error,
 ) error {
 	row := q.QueryRow(query, args...)
 	err := scanFunc(row)
@@ -87,8 +87,8 @@ func insertRecord(
 	return err
 }
 
-func updateRecord(
-	q queryExecutor,
+func UpdateRecord(
+	q QueryExecutor,
 	query string,
 	args []any,
 ) error {
@@ -109,8 +109,8 @@ func updateRecord(
 	return nil
 }
 
-func deleteRecord(
-	q queryExecutor,
+func DeleteRecord(
+	q QueryExecutor,
 	query string,
 	args []any,
 ) error {
@@ -119,6 +119,6 @@ func deleteRecord(
 }
 
 //goland:noinspection GoUnusedParameter
-func noopScanFunc(scanner rowScanner) error {
+func NoopScanFunc(scanner RowScanner) error {
 	return nil
 }

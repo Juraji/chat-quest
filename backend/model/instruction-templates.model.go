@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/util"
 )
 
@@ -14,7 +15,7 @@ type InstructionTemplate struct {
 	Instruction  string   `json:"instruction"`
 }
 
-func instructionPromptScanner(scanner rowScanner, dest *InstructionTemplate) error {
+func instructionPromptScanner(scanner database.RowScanner, dest *InstructionTemplate) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.Name,
@@ -27,13 +28,13 @@ func instructionPromptScanner(scanner rowScanner, dest *InstructionTemplate) err
 
 func AllInstructionPrompts(db *sql.DB) ([]*InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates"
-	return queryForList(db, query, nil, instructionPromptScanner)
+	return database.QueryForList(db, query, nil, instructionPromptScanner)
 }
 
 func InstructionPromptById(db *sql.DB, id int64) (*InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates WHERE id = $1"
 	args := []any{id}
-	return queryForRecord(db, query, args, instructionPromptScanner)
+	return database.QueryForRecord(db, query, args, instructionPromptScanner)
 }
 
 func CreateInstructionPrompt(db *sql.DB, prompt *InstructionTemplate) error {
@@ -42,11 +43,11 @@ func CreateInstructionPrompt(db *sql.DB, prompt *InstructionTemplate) error {
 	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, instruction)
             VALUES ($1, $2, $3, $4, $5) RETURNING id`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction}
-	scanFunc := func(scanner rowScanner) error {
+	scanFunc := func(scanner database.RowScanner) error {
 		return scanner.Scan(&prompt.ID)
 	}
 
-	return insertRecord(db, query, args, scanFunc)
+	return database.InsertRecord(db, query, args, scanFunc)
 }
 
 func UpdateInstructionPrompt(db *sql.DB, id int64, prompt *InstructionTemplate) error {
@@ -61,12 +62,12 @@ func UpdateInstructionPrompt(db *sql.DB, id int64, prompt *InstructionTemplate) 
             WHERE id = $6`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction, id}
 
-	return updateRecord(db, query, args)
+	return database.UpdateRecord(db, query, args)
 }
 
 func DeleteInstructionPrompt(db *sql.DB, id int64) error {
 	query := "DELETE FROM instruction_templates WHERE id = $1"
 	args := []any{id}
 
-	return deleteRecord(db, query, args)
+	return database.DeleteRecord(db, query, args)
 }

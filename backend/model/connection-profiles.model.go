@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/util"
 )
 
@@ -26,7 +27,7 @@ type LlmModel struct {
 	Disabled            bool    `json:"disabled"`
 }
 
-func connectionProfileScanner(scanner rowScanner, dest *ConnectionProfile) error {
+func connectionProfileScanner(scanner database.RowScanner, dest *ConnectionProfile) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.Name,
@@ -36,7 +37,7 @@ func connectionProfileScanner(scanner rowScanner, dest *ConnectionProfile) error
 	)
 }
 
-func llmModelScanner(scanner rowScanner, dest *LlmModel) error {
+func llmModelScanner(scanner database.RowScanner, dest *LlmModel) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.ConnectionProfileId,
@@ -52,13 +53,13 @@ func llmModelScanner(scanner rowScanner, dest *LlmModel) error {
 
 func AllConnectionProfiles(db *sql.DB) ([]*ConnectionProfile, error) {
 	query := "SELECT * FROM connection_profiles"
-	return queryForList(db, query, nil, connectionProfileScanner)
+	return database.QueryForList(db, query, nil, connectionProfileScanner)
 }
 
 func ConnectionProfileById(db *sql.DB, id int64) (*ConnectionProfile, error) {
 	query := "SELECT * FROM connection_profiles WHERE id = $1"
 	args := []any{id}
-	return queryForRecord(db, query, args, connectionProfileScanner)
+	return database.QueryForRecord(db, query, args, connectionProfileScanner)
 }
 
 func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels []*LlmModel) error {
@@ -74,11 +75,11 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels [
 
 	query := "INSERT INTO connection_profiles (name, provider_type, base_url, api_key) VALUES ($1, $2, $3, $4) RETURNING id"
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey}
-	scanFunc := func(scanner rowScanner) error {
+	scanFunc := func(scanner database.RowScanner) error {
 		return scanner.Scan(&profile.ID)
 	}
 
-	if err = insertRecord(tx, query, args, scanFunc); err != nil {
+	if err = database.InsertRecord(tx, query, args, scanFunc); err != nil {
 		return err
 	}
 
@@ -101,26 +102,26 @@ func UpdateConnectionProfile(db *sql.DB, id int64, profile *ConnectionProfile) e
             WHERE id = $5`
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey, id}
 
-	return updateRecord(db, query, args)
+	return database.UpdateRecord(db, query, args)
 }
 
 func DeleteConnectionProfileById(db *sql.DB, id int64) error {
 	query := "DELETE FROM connection_profiles WHERE id = $1"
 	args := []any{id}
 
-	return deleteRecord(db, query, args)
+	return database.DeleteRecord(db, query, args)
 }
 
 func LlmModelsByConnectionProfileId(db *sql.DB, profileId int64) ([]*LlmModel, error) {
 	query := "SELECT * FROM llm_models WHERE connection_profile_id = $1"
 	args := []any{profileId}
-	return queryForList(db, query, args, llmModelScanner)
+	return database.QueryForList(db, query, args, llmModelScanner)
 }
 
 func CreateLlmModel(db *sql.DB, profileId int64, llmModel *LlmModel) error {
 	return createLlmModel(db, profileId, llmModel)
 }
-func createLlmModel(db queryExecutor, profileId int64, llmModel *LlmModel) error {
+func createLlmModel(db database.QueryExecutor, profileId int64, llmModel *LlmModel) error {
 	llmModel.ConnectionProfileId = profileId
 
 	query := `INSERT INTO llm_models
@@ -136,11 +137,11 @@ func createLlmModel(db queryExecutor, profileId int64, llmModel *LlmModel) error
 		llmModel.StopSequences,
 		llmModel.Disabled,
 	}
-	scanFunc := func(scanner rowScanner) error {
+	scanFunc := func(scanner database.RowScanner) error {
 		return scanner.Scan(&llmModel.ID)
 	}
 
-	return insertRecord(db, query, args, scanFunc)
+	return database.InsertRecord(db, query, args, scanFunc)
 }
 
 func UpdateLlmModel(db *sql.DB, id int64, llmModel *LlmModel) error {
@@ -162,18 +163,18 @@ func UpdateLlmModel(db *sql.DB, id int64, llmModel *LlmModel) error {
 		id,
 	}
 
-	return updateRecord(db, query, args)
+	return database.UpdateRecord(db, query, args)
 }
 
 func DeleteLlmModelById(db *sql.DB, id int64) error {
 	return deleteLlmModelById(db, id)
 }
 
-func deleteLlmModelById(db queryExecutor, id int64) error {
+func deleteLlmModelById(db database.QueryExecutor, id int64) error {
 	query := "DELETE FROM llm_models WHERE id = $1"
 	args := []any{id}
 
-	return deleteRecord(db, query, args)
+	return database.DeleteRecord(db, query, args)
 }
 
 func MergeLlmModels(db *sql.DB, profileId int64, newModels []*LlmModel) error {

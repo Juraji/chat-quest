@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/util"
 )
 
@@ -13,7 +14,7 @@ type Scenario struct {
 	LinkedCharacterId *int64  `json:"linkedCharacterId"`
 }
 
-func scenarioScanner(scanner rowScanner, dest *Scenario) error {
+func scenarioScanner(scanner database.RowScanner, dest *Scenario) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.Name,
@@ -25,13 +26,13 @@ func scenarioScanner(scanner rowScanner, dest *Scenario) error {
 
 func AllScenarios(db *sql.DB) ([]*Scenario, error) {
 	query := "SELECT * FROM scenarios"
-	return queryForList(db, query, nil, scenarioScanner)
+	return database.QueryForList(db, query, nil, scenarioScanner)
 }
 
 func ScenarioById(db *sql.DB, id int64) (*Scenario, error) {
 	query := "SELECT * FROM scenarios WHERE id=$1"
 	args := []any{id}
-	return queryForRecord(db, query, args, scenarioScanner)
+	return database.QueryForRecord(db, query, args, scenarioScanner)
 }
 
 func CreateScenario(db *sql.DB, scenario *Scenario) error {
@@ -40,11 +41,11 @@ func CreateScenario(db *sql.DB, scenario *Scenario) error {
 	query := `INSERT INTO scenarios (name, description, avatar_url, linked_character_id)
             VALUES ($1, $2, $3, $4) RETURNING id`
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId}
-	scanFunc := func(scanner rowScanner) error {
+	scanFunc := func(scanner database.RowScanner) error {
 		return scanner.Scan(&scenario.ID)
 	}
 
-	return insertRecord(db, query, args, scanFunc)
+	return database.InsertRecord(db, query, args, scanFunc)
 }
 
 func UpdateScenario(db *sql.DB, id int64, scenario *Scenario) error {
@@ -58,11 +59,11 @@ func UpdateScenario(db *sql.DB, id int64, scenario *Scenario) error {
             WHERE id=$5`
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId, id}
 
-	return updateRecord(db, query, args)
+	return database.UpdateRecord(db, query, args)
 }
 
 func DeleteScenario(db *sql.DB, id int64) error {
 	query := "DELETE FROM scenarios WHERE id=$1"
 	args := []interface{}{id}
-	return deleteRecord(db, query, args)
+	return database.DeleteRecord(db, query, args)
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"juraji.nl/chat-quest/model"
+	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/routes"
 	"juraji.nl/chat-quest/util"
 	"log"
@@ -34,7 +34,7 @@ func init() {
 }
 
 func main() {
-	db, err := model.InitDB()
+	db, err := database.InitDB()
 	if err != nil {
 		log.Fatal("Failed to initialize database:", err)
 	}

@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/util"
 	"time"
 )
@@ -33,7 +34,7 @@ type CharacterTextBlock struct {
 	Text        string `json:"text"`
 }
 
-func characterScanner(scanner rowScanner, dest *Character) error {
+func characterScanner(scanner database.RowScanner, dest *Character) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.CreatedAt,
@@ -43,7 +44,7 @@ func characterScanner(scanner rowScanner, dest *Character) error {
 	)
 }
 
-func characterDetailsScanner(scanner rowScanner, dest *CharacterDetails) error {
+func characterDetailsScanner(scanner database.RowScanner, dest *CharacterDetails) error {
 	return scanner.Scan(
 		&dest.CharacterId,
 		&dest.Appearance,
@@ -55,12 +56,12 @@ func characterDetailsScanner(scanner rowScanner, dest *CharacterDetails) error {
 
 func AllCharacters(db *sql.DB) ([]*Character, error) {
 	query := "SELECT * FROM characters"
-	return queryForList(db, query, nil, characterScanner)
+	return database.QueryForList(db, query, nil, characterScanner)
 }
 
 func AllCharactersWithTags(db *sql.DB) ([]*CharacterWithTags, error) {
 	query := "SELECT * FROM characters"
-	characters, err := queryForList(db, query, nil, characterScanner)
+	characters, err := database.QueryForList(db, query, nil, characterScanner)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +82,7 @@ func CharacterById(db *sql.DB, id int64) (*Character, error) {
 	query := "SELECT * FROM characters WHERE id = $1"
 	args := []any{id}
 
-	return queryForRecord(db, query, args, characterScanner)
+	return database.QueryForRecord(db, query, args, characterScanner)
 }
 
 func CreateCharacter(db *sql.DB, newCharacter *Character) error {
@@ -89,14 +90,14 @@ func CreateCharacter(db *sql.DB, newCharacter *Character) error {
 
 	query := "INSERT INTO characters (name, favorite, avatar_url) VALUES ($1, $2, $3) RETURNING id, created_at"
 	args := []any{newCharacter.Name, newCharacter.Favorite, newCharacter.AvatarUrl}
-	scanFunc := func(scanner rowScanner) error {
+	scanFunc := func(scanner database.RowScanner) error {
 		return scanner.Scan(
 			&newCharacter.ID,
 			&newCharacter.CreatedAt,
 		)
 	}
 
-	err := insertRecord(db, query, args, scanFunc)
+	err := database.InsertRecord(db, query, args, scanFunc)
 	if err != nil {
 		return err
 	}
@@ -112,21 +113,21 @@ func UpdateCharacter(db *sql.DB, id int64, character *Character) error {
 	query := "UPDATE characters SET name = $1, favorite = $2, avatar_url = $3 WHERE id = $4"
 	args := []any{character.Name, character.Favorite, character.AvatarUrl, id}
 
-	return updateRecord(db, query, args)
+	return database.UpdateRecord(db, query, args)
 }
 
 func DeleteCharacterById(db *sql.DB, id int64) error {
 	query := "DELETE FROM characters WHERE id = $1"
 	args := []any{id}
 
-	return deleteRecord(db, query, args)
+	return database.DeleteRecord(db, query, args)
 }
 
 func CharacterDetailsByCharacterId(db *sql.DB, characterId int64) (*CharacterDetails, error) {
 	query := "SELECT * FROM character_details WHERE character_id = $1"
 	args := []any{characterId}
 
-	return queryForRecord(db, query, args, characterDetailsScanner)
+	return database.QueryForRecord(db, query, args, characterDetailsScanner)
 }
 
 func UpdateCharacterDetails(db *sql.DB, characterId int64, characterDetail *CharacterDetails) error {
@@ -148,7 +149,7 @@ func UpdateCharacterDetails(db *sql.DB, characterId int64, characterDetail *Char
 		characterDetail.GroupTalkativeness,
 	}
 
-	return updateRecord(db, query, args)
+	return database.UpdateRecord(db, query, args)
 }
 
 func TagsByCharacterId(db *sql.DB, characterId int64) ([]*Tag, error) {
@@ -160,21 +161,21 @@ func TagsByCharacterId(db *sql.DB, characterId int64) ([]*Tag, error) {
   `
 	args := []any{characterId}
 
-	return queryForList(db, query, args, tagScanner)
+	return database.QueryForList(db, query, args, tagScanner)
 }
 
 func AddCharacterTag(db *sql.DB, characterId int64, tagId int64) error {
 	query := "INSERT INTO character_tags (character_id, tag_id) VALUES ($1, $2)"
 	args := []any{characterId, tagId}
 
-	return updateRecord(db, query, args)
+	return database.UpdateRecord(db, query, args)
 }
 
 func RemoveCharacterTag(db *sql.DB, characterId int64, tagId int64) error {
 	query := "DELETE FROM character_tags WHERE character_id = $1 AND tag_id = $2"
 	args := []any{characterId, tagId}
 
-	return deleteRecord(db, query, args)
+	return database.DeleteRecord(db, query, args)
 }
 
 func SetCharacterTags(db *sql.DB, characterId int64, tagIds []int64) error {
@@ -189,7 +190,7 @@ func SetCharacterTags(db *sql.DB, characterId int64, tagIds []int64) error {
 	}(tx, err)
 
 	deleteQuery := "DELETE FROM character_tags WHERE character_id = $1"
-	if err := deleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
+	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
 		return fmt.Errorf("failed to delete existing tag ids: %w", err)
 	}
 
@@ -199,7 +200,7 @@ func SetCharacterTags(db *sql.DB, characterId int64, tagIds []int64) error {
 
 	insertQuery := "INSERT INTO character_tags (character_id, tag_id) VALUES ($1, $2)"
 	for _, tagId := range tagIds {
-		if err := insertRecord(tx, insertQuery, []any{characterId, tagId}, noopScanFunc); err != nil {
+		if err := database.InsertRecord(tx, insertQuery, []any{characterId, tagId}, database.NoopScanFunc); err != nil {
 			return fmt.Errorf("failed to insert tag id: %w", err)
 		}
 	}
@@ -210,11 +211,11 @@ func SetCharacterTags(db *sql.DB, characterId int64, tagIds []int64) error {
 func DialogueExamplesByCharacterId(db *sql.DB, characterId int64) ([]*string, error) {
 	query := "SELECT text FROM character_dialogue_examples WHERE character_id = $1"
 	args := []any{characterId}
-	scanFunc := func(rows rowScanner, dest *string) error {
+	scanFunc := func(rows database.RowScanner, dest *string) error {
 		return rows.Scan(dest)
 	}
 
-	return queryForList(db, query, args, scanFunc)
+	return database.QueryForList(db, query, args, scanFunc)
 }
 
 func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []string) error {
@@ -229,7 +230,7 @@ func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []
 	}(tx, err)
 
 	deleteQuery := "DELETE FROM character_dialogue_examples WHERE character_id = $1"
-	if err := deleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
+	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
 		return fmt.Errorf("failed to delete existing dialogue examples: %w", err)
 	}
 
@@ -239,7 +240,7 @@ func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []
 
 	insertQuery := "INSERT INTO character_dialogue_examples (character_id, text) VALUES ($1, $2)"
 	for _, example := range examples {
-		if err := insertRecord(tx, insertQuery, []any{characterId, example}, noopScanFunc); err != nil {
+		if err := database.InsertRecord(tx, insertQuery, []any{characterId, example}, database.NoopScanFunc); err != nil {
 			return fmt.Errorf("failed to insert dialogue example: %w", err)
 		}
 	}
@@ -250,11 +251,11 @@ func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []
 func CharacterGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*string, error) {
 	query := "SELECT text FROM character_greetings WHERE character_id = $1"
 	args := []any{characterId}
-	scanFunc := func(rows rowScanner, dest *string) error {
+	scanFunc := func(rows database.RowScanner, dest *string) error {
 		return rows.Scan(dest)
 	}
 
-	return queryForList(db, query, args, scanFunc)
+	return database.QueryForList(db, query, args, scanFunc)
 }
 
 func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string) error {
@@ -269,7 +270,7 @@ func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string
 	}(tx, err)
 
 	deleteQuery := "DELETE FROM character_greetings WHERE character_id = $1"
-	if err := deleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
+	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
 		return fmt.Errorf("failed to delete existing greetings: %w", err)
 	}
 
@@ -279,7 +280,7 @@ func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string
 
 	insertQuery := "INSERT INTO character_greetings (character_id, text) VALUES ($1, $2)"
 	for _, greeting := range greetings {
-		if err := insertRecord(tx, insertQuery, []any{characterId, greeting}, noopScanFunc); err != nil {
+		if err := database.InsertRecord(tx, insertQuery, []any{characterId, greeting}, database.NoopScanFunc); err != nil {
 			return fmt.Errorf("failed to insert greeting: %w", err)
 		}
 	}
@@ -290,11 +291,11 @@ func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string
 func CharacterGroupGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*string, error) {
 	query := "SELECT text FROM character_group_greetings WHERE character_id = $1"
 	args := []any{characterId}
-	scanFunc := func(rows rowScanner, dest *string) error {
+	scanFunc := func(rows database.RowScanner, dest *string) error {
 		return rows.Scan(dest)
 	}
 
-	return queryForList(db, query, args, scanFunc)
+	return database.QueryForList(db, query, args, scanFunc)
 }
 
 func SetGroupGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string) error {
@@ -309,7 +310,7 @@ func SetGroupGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []s
 	}(tx, err)
 
 	deleteQuery := "DELETE FROM character_greetings WHERE character_id = $1"
-	if err := deleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
+	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
 		return fmt.Errorf("failed to delete existing greetings: %w", err)
 	}
 
@@ -319,7 +320,7 @@ func SetGroupGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []s
 
 	insertQuery := "INSERT INTO character_greetings (character_id, text) VALUES ($1, $2)"
 	for _, greeting := range greetings {
-		if err := insertRecord(tx, insertQuery, []any{characterId, greeting}, noopScanFunc); err != nil {
+		if err := database.InsertRecord(tx, insertQuery, []any{characterId, greeting}, database.NoopScanFunc); err != nil {
 			return fmt.Errorf("failed to insert greeting: %w", err)
 		}
 	}

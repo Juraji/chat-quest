@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/ai"
-	"juraji.nl/chat-quest/migrations"
+	"juraji.nl/chat-quest/database"
 	"log"
 	"net/http"
 	"os"
@@ -34,7 +34,7 @@ func SystemController(router *gin.RouterGroup, db *sql.DB) {
 	systemRouter.POST("/migrations/goto/:version", func(c *gin.Context) {
 		version, _ := getIDParam(c, "version")
 		log.Printf("Migrating to version: %d", version)
-		err := migrations.GoToVersion(db, uint(version))
+		err := database.GoToVersion(db, uint(version))
 		respondEmpty(c, err)
 	})
 

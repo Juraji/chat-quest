@@ -28,7 +28,7 @@ CREATE TABLE character_details
 
 CREATE TABLE character_tags
 (
-  character_id INTEGER NOT NULL REFERENCES characters (id) ON DELETE CASCADE, ,
+  character_id INTEGER NOT NULL REFERENCES characters (id) ON DELETE CASCADE,
   tag_id       INTEGER NOT NULL REFERENCES tags (id)
 );
 

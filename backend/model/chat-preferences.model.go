@@ -1,6 +1,9 @@
 package model
 
-import "database/sql"
+import (
+	"database/sql"
+	"juraji.nl/chat-quest/database"
+)
 
 type ChatPreferences struct {
 	ChatModelID           *int64  `json:"chatModelId"`
@@ -13,7 +16,7 @@ type ChatPreferences struct {
 	MemoryWindowSize      int64   `json:"memoryWindowSize"`
 }
 
-func chatPreferencesScanner(scanner rowScanner, dest *ChatPreferences) error {
+func chatPreferencesScanner(scanner database.RowScanner, dest *ChatPreferences) error {
 	return scanner.Scan(
 		dest.ChatModelID,
 		dest.ChatInstructionID,
@@ -28,7 +31,7 @@ func chatPreferencesScanner(scanner rowScanner, dest *ChatPreferences) error {
 
 func GetChatPreferences(db *sql.DB) (*ChatPreferences, error) {
 	query := "SELECT * FROM chat_preferences WHERE id = 0"
-	return queryForRecord(db, query, nil, chatPreferencesScanner)
+	return database.QueryForRecord(db, query, nil, chatPreferencesScanner)
 }
 
 func UpdateChatPreferences(db *sql.DB, prefs *ChatPreferences) error {
@@ -49,5 +52,5 @@ func UpdateChatPreferences(db *sql.DB, prefs *ChatPreferences) error {
 		prefs.MemoryTriggerAfter,
 		prefs.MemoryWindowSize,
 	}
-	return updateRecord(db, query, args)
+	return database.UpdateRecord(db, query, args)
 }

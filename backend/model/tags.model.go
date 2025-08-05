@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"juraji.nl/chat-quest/database"
 	"strings"
 )
 
@@ -11,7 +12,7 @@ type Tag struct {
 	Lowercase string `json:"lowercase"`
 }
 
-func tagScanner(scanner rowScanner, dest *Tag) error {
+func tagScanner(scanner database.RowScanner, dest *Tag) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.Label,
@@ -21,13 +22,13 @@ func tagScanner(scanner rowScanner, dest *Tag) error {
 
 func AllTags(db *sql.DB) ([]*Tag, error) {
 	query := "SELECT * FROM tags"
-	return queryForList(db, query, nil, tagScanner)
+	return database.QueryForList(db, query, nil, tagScanner)
 }
 
 func TagById(db *sql.DB, id int64) (*Tag, error) {
 	query := "SELECT * FROM tags WHERE id = $1"
 	args := []any{id}
-	return queryForRecord(db, query, args, tagScanner)
+	return database.QueryForRecord(db, query, args, tagScanner)
 }
 
 func CreateTag(db *sql.DB, newTag *Tag) error {
@@ -35,11 +36,11 @@ func CreateTag(db *sql.DB, newTag *Tag) error {
 
 	query := "INSERT INTO tags(label, lowercase) VALUES ($1, $2) RETURNING id"
 	args := []any{newTag.Label, newTag.Lowercase}
-	scanFunc := func(scanner rowScanner) error {
+	scanFunc := func(scanner database.RowScanner) error {
 		return scanner.Scan(&newTag.ID)
 	}
 
-	return insertRecord(db, query, args, scanFunc)
+	return database.InsertRecord(db, query, args, scanFunc)
 }
 
 func UpdateTag(db *sql.DB, id int64, tag *Tag) error {
@@ -48,12 +49,12 @@ func UpdateTag(db *sql.DB, id int64, tag *Tag) error {
 	query := "UPDATE tags SET label = $1, lowercase = $2 WHERE id = $3"
 	args := []any{id, tag.Label, tag.Lowercase}
 
-	return updateRecord(db, query, args)
+	return database.UpdateRecord(db, query, args)
 }
 
 func DeleteTagById(db *sql.DB, id int64) error {
 	query := "DELETE FROM tags WHERE id = $1"
 	args := []any{id}
 
-	return deleteRecord(db, query, args)
+	return database.DeleteRecord(db, query, args)
 }

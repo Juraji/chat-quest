@@ -1,10 +1,9 @@
-package model
+package database
 
 import (
 	"database/sql"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
-	"juraji.nl/chat-quest/migrations"
 	"log"
 )
 
@@ -21,7 +20,7 @@ func InitDB() (*sql.DB, error) {
 	}
 
 	log.Println("Running migrations...")
-	if err = migrations.RunMigrations(db); err != nil {
+	if err = RunMigrations(db); err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 

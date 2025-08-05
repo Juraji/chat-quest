@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"juraji.nl/chat-quest/database"
 )
 
 type World struct {
@@ -10,7 +11,7 @@ type World struct {
 	Description string `json:"description"`
 }
 
-func worldScanner(scanner rowScanner, dest *World) error {
+func worldScanner(scanner database.RowScanner, dest *World) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.Name,
@@ -20,24 +21,24 @@ func worldScanner(scanner rowScanner, dest *World) error {
 
 func GetAllWorlds(db *sql.DB) ([]*World, error) {
 	query := "SELECT * FROM worlds"
-	return queryForList(db, query, nil, worldScanner)
+	return database.QueryForList(db, query, nil, worldScanner)
 }
 
 func WorldById(db *sql.DB, id int64) (*World, error) {
 	query := "SELECT * FROM worlds WHERE id=$1"
 	args := []any{id}
 
-	return queryForRecord(db, query, args, worldScanner)
+	return database.QueryForRecord(db, query, args, worldScanner)
 }
 
 func CreateWorld(db *sql.DB, newWorld *World) error {
 	query := "INSERT INTO worlds (name, description) VALUES ($1, $2) RETURNING id"
 	args := []any{newWorld.Name, newWorld.Description}
-	scanFunc := func(scanner rowScanner) error {
+	scanFunc := func(scanner database.RowScanner) error {
 		return scanner.Scan(&newWorld.ID)
 	}
 
-	return insertRecord(db, query, args, scanFunc)
+	return database.InsertRecord(db, query, args, scanFunc)
 }
 
 func UpdateWorld(db *sql.DB, id int64, world *World) error {
@@ -47,12 +48,12 @@ func UpdateWorld(db *sql.DB, id int64, world *World) error {
             WHERE id=$1`
 	args := []any{id, world.Name, world.Description}
 
-	return updateRecord(db, query, args)
+	return database.UpdateRecord(db, query, args)
 }
 
 func DeleteWorld(db *sql.DB, id int64) error {
 	query := "DELETE FROM worlds WHERE id=$1"
 	args := []any{id}
 
-	return deleteRecord(db, query, args)
+	return database.DeleteRecord(db, query, args)
 }
