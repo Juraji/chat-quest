@@ -33,6 +33,20 @@ func memoryScanner(scanner rowScanner, dest *Memory) error {
 	)
 }
 
+func GetMemoriesByWorldId(db *sql.DB, worldId int64) ([]*Memory, error) {
+	query := `SELECT id,
+                   world_id,
+                   chat_session_id,
+                   character_id,
+                   created_at,
+                   content
+            FROM memories
+            WHERE world_id = $1`
+	args := []interface{}{worldId}
+
+	return queryForList(db, query, args, memoryScanner)
+}
+
 func GetMemoriesByWorldAndCharacterId(
 	db *sql.DB,
 	worldId int64,

@@ -9,6 +9,17 @@ import (
 func MemoriesController(router *gin.RouterGroup, db *sql.DB) {
 	memoriesRouter := router.Group("/worlds/:worldId/memories")
 
+	memoriesRouter.GET("", func(c *gin.Context) {
+		worldId, err := getIDParam(c, "worldId")
+		if err != nil {
+			respondBadRequest(c, "Invalid world ID")
+			return
+		}
+
+		memories, err := model.GetMemoriesByWorldId(db, worldId)
+		respondList(c, memories, err)
+	})
+
 	memoriesRouter.GET("/by-character/:characterId", func(c *gin.Context) {
 		worldId, err := getIDParam(c, "worldId")
 		if err != nil {
@@ -26,16 +37,10 @@ func MemoriesController(router *gin.RouterGroup, db *sql.DB) {
 		respondList(c, memories, err)
 	})
 
-	memoriesRouter.POST("/by-character/:characterId", func(c *gin.Context) {
+	memoriesRouter.POST("", func(c *gin.Context) {
 		worldId, err := getIDParam(c, "worldId")
 		if err != nil {
 			respondBadRequest(c, "Invalid world ID")
-			return
-		}
-
-		characterId, err := getIDParam(c, "characterId")
-		if err != nil {
-			respondBadRequest(c, "Invalid character ID")
 			return
 		}
 
@@ -46,7 +51,6 @@ func MemoriesController(router *gin.RouterGroup, db *sql.DB) {
 		}
 
 		newMemory.WorldId = worldId
-		newMemory.CharacterId = characterId
 
 		// TODO: Generate embeddings!
 		err = model.CreateMemory(db, &newMemory)
