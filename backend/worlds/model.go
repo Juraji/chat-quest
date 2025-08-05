@@ -1,4 +1,4 @@
-package model
+package worlds
 
 import (
 	"database/sql"

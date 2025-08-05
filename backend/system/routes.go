@@ -1,4 +1,4 @@
-package routes
+package system
 
 import (
 	"database/sql"
@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func SystemController(router *gin.RouterGroup, db *sql.DB) {
+func Routes(router *gin.RouterGroup, db *sql.DB) {
 	systemRouter := router.Group("/system")
 
 	systemRouter.POST("/tokenizer/count", func(c *gin.Context) {

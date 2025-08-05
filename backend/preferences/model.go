@@ -1,9 +1,11 @@
-package model
+package preferences
 
 import (
 	"database/sql"
 	"juraji.nl/chat-quest/database"
 )
+
+// TODO: Split into ChatPreferences and MemoryPreferences, move to chat-sessions and memories respectively
 
 type ChatPreferences struct {
 	ChatModelID           *int64  `json:"chatModelId"`

@@ -1,13 +1,12 @@
-package routes
+package memories
 
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
-	"juraji.nl/chat-quest/model"
 	"juraji.nl/chat-quest/util"
 )
 
-func MemoriesController(router *gin.RouterGroup, db *sql.DB) {
+func Routes(router *gin.RouterGroup, db *sql.DB) {
 	memoriesRouter := router.Group("/worlds/:worldId/memories")
 
 	memoriesRouter.GET("", func(c *gin.Context) {
@@ -17,7 +16,7 @@ func MemoriesController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		memories, err := model.GetMemoriesByWorldId(db, worldId)
+		memories, err := GetMemoriesByWorldId(db, worldId)
 		util.RespondList(c, memories, err)
 	})
 
@@ -34,7 +33,7 @@ func MemoriesController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		memories, err := model.GetMemoriesByWorldAndCharacterId(db, worldId, characterId)
+		memories, err := GetMemoriesByWorldAndCharacterId(db, worldId, characterId)
 		util.RespondList(c, memories, err)
 	})
 
@@ -45,7 +44,7 @@ func MemoriesController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		var newMemory model.Memory
+		var newMemory Memory
 		if err := c.Bind(&newMemory); err != nil {
 			util.RespondBadRequest(c, "Invalid memory data")
 			return
@@ -54,7 +53,7 @@ func MemoriesController(router *gin.RouterGroup, db *sql.DB) {
 		newMemory.WorldId = worldId
 
 		// TODO: Generate embeddings!
-		err = model.CreateMemory(db, &newMemory)
+		err = CreateMemory(db, &newMemory)
 		util.RespondSingle(c, &newMemory, err)
 	})
 
@@ -70,7 +69,7 @@ func MemoriesController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		var memory model.Memory
+		var memory Memory
 		if err := c.Bind(&memory); err != nil {
 			util.RespondBadRequest(c, "Invalid memory data")
 			return
@@ -79,7 +78,7 @@ func MemoriesController(router *gin.RouterGroup, db *sql.DB) {
 		memory.WorldId = worldId
 
 		// TODO: Generate embeddings!
-		err = model.UpdateMemory(db, memoryId, &memory)
+		err = UpdateMemory(db, memoryId, &memory)
 		util.RespondSingle(c, &memory, err)
 	})
 
@@ -90,7 +89,7 @@ func MemoriesController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.DeleteMemory(db, memoryId)
+		err = DeleteMemory(db, memoryId)
 		util.RespondDeleted(c, err)
 	})
 }

@@ -1,13 +1,12 @@
-package routes
+package chat_sessions
 
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
-	"juraji.nl/chat-quest/model"
 	"juraji.nl/chat-quest/util"
 )
 
-func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
+func Routes(router *gin.RouterGroup, db *sql.DB) {
 	sessionRouter := router.Group("/worlds/:worldId/chat-sessions")
 
 	sessionRouter.GET("", func(c *gin.Context) {
@@ -17,7 +16,7 @@ func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		sessions, err := model.GetAllChatSessionsByWorldId(db, worldId)
+		sessions, err := GetAllChatSessionsByWorldId(db, worldId)
 		util.RespondList(c, sessions, err)
 	})
 
@@ -33,7 +32,7 @@ func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		session, err := model.GetChatSessionById(db, worldId, sessionId)
+		session, err := GetChatSessionById(db, worldId, sessionId)
 		util.RespondSingle(c, session, err)
 	})
 
@@ -44,13 +43,13 @@ func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		var session model.ChatSession
+		var session ChatSession
 		if err := c.ShouldBindJSON(&session); err != nil {
 			util.RespondBadRequest(c, "Invalid session data")
 			return
 		}
 
-		err = model.CreateChatSession(db, worldId, &session)
+		err = CreateChatSession(db, worldId, &session)
 		util.RespondSingle(c, &session, err)
 	})
 
@@ -66,13 +65,13 @@ func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		var session model.ChatSession
+		var session ChatSession
 		if err := c.ShouldBindJSON(&session); err != nil {
 			util.RespondBadRequest(c, "Invalid session data")
 			return
 		}
 
-		err = model.UpdateChatSession(db, worldId, sessionId, &session)
+		err = UpdateChatSession(db, worldId, sessionId, &session)
 		util.RespondSingle(c, &session, err)
 	})
 
@@ -88,7 +87,7 @@ func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.DeleteChatSessionById(db, worldId, sessionId)
+		err = DeleteChatSessionById(db, worldId, sessionId)
 		util.RespondDeleted(c, err)
 	})
 
@@ -99,7 +98,7 @@ func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		messages, err := model.GetChatMessages(db, sessionId)
+		messages, err := GetChatMessages(db, sessionId)
 		util.RespondList(c, messages, err)
 	})
 
@@ -110,7 +109,7 @@ func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		var message model.ChatMessage
+		var message ChatMessage
 		if err := c.ShouldBindJSON(&message); err != nil {
 			util.RespondBadRequest(c, "Invalid chat message data")
 			return
@@ -120,7 +119,7 @@ func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
 		//       go func...
 		// TODO: Trigger chat truncation (creating memories)
 
-		err = model.CreateChatMessage(db, sessionId, &message)
+		err = CreateChatMessage(db, sessionId, &message)
 		util.RespondSingle(c, &message, err)
 	})
 
@@ -137,7 +136,7 @@ func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		var message model.ChatMessage
+		var message ChatMessage
 		if err := c.ShouldBindJSON(&message); err != nil {
 			util.RespondBadRequest(c, "Invalid chat message data")
 			return
@@ -145,7 +144,7 @@ func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
 
 		// TODO: Trigger updating of memories
 
-		err = model.UpdateChatMessage(db, sessionId, messageId, &message)
+		err = UpdateChatMessage(db, sessionId, messageId, &message)
 		util.RespondSingle(c, &message, err)
 	})
 
@@ -161,7 +160,7 @@ func ChatSessionsController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.DeleteChatMessagesFrom(db, sessionId, messageId)
+		err = DeleteChatMessagesFrom(db, sessionId, messageId)
 		util.RespondDeleted(c, err)
 	})
 }

@@ -1,17 +1,16 @@
-package routes
+package scenarios
 
 import (
 	"database/sql"
 	"github.com/gin-gonic/gin"
-	"juraji.nl/chat-quest/model"
 	"juraji.nl/chat-quest/util"
 )
 
-func ScenariosController(router *gin.RouterGroup, db *sql.DB) {
+func Routes(router *gin.RouterGroup, db *sql.DB) {
 	scenariosRouter := router.Group("/scenarios")
 
 	scenariosRouter.GET("", func(c *gin.Context) {
-		scenarios, err := model.AllScenarios(db)
+		scenarios, err := AllScenarios(db)
 		util.RespondList(c, scenarios, err)
 	})
 
@@ -22,18 +21,18 @@ func ScenariosController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		scenarios, err := model.ScenarioById(db, scenarioId)
+		scenarios, err := ScenarioById(db, scenarioId)
 		util.RespondSingle(c, scenarios, err)
 	})
 
 	scenariosRouter.POST("", func(c *gin.Context) {
-		var newScenario model.Scenario
+		var newScenario Scenario
 		if err := c.ShouldBind(&newScenario); err != nil {
 			util.RespondBadRequest(c, "Invalid scenario data")
 			return
 		}
 
-		err := model.CreateScenario(db, &newScenario)
+		err := CreateScenario(db, &newScenario)
 		util.RespondSingle(c, &newScenario, err)
 	})
 
@@ -44,13 +43,13 @@ func ScenariosController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		var scenario model.Scenario
+		var scenario Scenario
 		if err = c.ShouldBind(&scenario); err != nil {
 			util.RespondBadRequest(c, "Invalid scenario data")
 			return
 		}
 
-		err = model.UpdateScenario(db, scenarioId, &scenario)
+		err = UpdateScenario(db, scenarioId, &scenario)
 		util.RespondSingle(c, &scenario, err)
 	})
 
@@ -61,7 +60,7 @@ func ScenariosController(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = model.DeleteScenario(db, scenarioId)
+		err = DeleteScenario(db, scenarioId)
 		util.RespondDeleted(c, err)
 	})
 }

@@ -6,10 +6,16 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/characters"
+	"juraji.nl/chat-quest/chat-sessions"
 	"juraji.nl/chat-quest/database"
+	"juraji.nl/chat-quest/instructions"
+	"juraji.nl/chat-quest/memories"
+	"juraji.nl/chat-quest/preferences"
 	"juraji.nl/chat-quest/providers"
-	"juraji.nl/chat-quest/routes"
+	"juraji.nl/chat-quest/scenarios"
+	"juraji.nl/chat-quest/system"
 	"juraji.nl/chat-quest/util"
+	"juraji.nl/chat-quest/worlds"
 	"log"
 )
 
@@ -62,21 +68,21 @@ func main() {
 	apiRouter := router.Group(ApiBasePath)
 	{
 		log.Println("Registering routes...")
-		routes.SystemController(apiRouter, db)
+		system.Routes(apiRouter, db)
 		characters.Routes(apiRouter, db)
-		routes.InstructionPromptsController(apiRouter, db)
+		instructions.Routes(apiRouter, db)
 		providers.Routes(apiRouter, db)
-		routes.ScenariosController(apiRouter, db)
-		routes.ChatPreferencesController(apiRouter, db)
-		routes.WorldsController(apiRouter, db)
-		routes.ChatSessionsController(apiRouter, db)
-		routes.MemoriesController(apiRouter, db)
+		scenarios.Routes(apiRouter, db)
+		preferences.Routes(apiRouter, db)
+		worlds.Routes(apiRouter, db)
+		chat_sessions.Routes(apiRouter, db)
+		memories.Routes(apiRouter, db)
 	}
 
 	// If endpoint is not found, the request is probably a UI resource.
 	// Else we just fail ugly, gl hackers.
 	log.Printf("Serving Chat Quest UI from directory '%s'", ChatQuestUIRoot)
-	router.NoRoute(routes.ChatQuestUIHandler(ChatQuestUIRoot))
+	router.NoRoute(system.ChatQuestUIHandler(ChatQuestUIRoot))
 
 	serverAddr := fmt.Sprintf("%s:%s", ApplicationHost, ApplicationPort)
 	//goland:noinspection HttpUrlsUsage

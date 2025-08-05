@@ -1,4 +1,4 @@
-package model
+package memories
 
 import (
 	"database/sql"

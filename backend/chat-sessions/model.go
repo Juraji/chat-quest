@@ -1,4 +1,4 @@
-package model
+package chat_sessions
 
 import (
 	"database/sql"
