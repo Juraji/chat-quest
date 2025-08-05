@@ -6,18 +6,12 @@ import (
 )
 
 type ChatSession struct {
-	ID         int64      `json:"id"`
-	WorldID    int64      `json:"worldId"`
-	CreatedAt  *time.Time `json:"createdAt"`
-	Name       string     `json:"name"`
-	ScenarioID int64      `json:"scenarioId"`
-
-	ChatModelID       *int64 `json:"chatModelId"`
-	ChatInstructionID *int64 `json:"chatInstructionId"`
-
-	EnableMemories        bool   `json:"enableMemories"`
-	MemoriesModelID       *int64 `json:"memoriesModelId"`
-	MemoriesInstructionID *int64 `json:"memoriesInstructionId"`
+	ID             int64      `json:"id"`
+	WorldID        int64      `json:"worldId"`
+	CreatedAt      *time.Time `json:"createdAt"`
+	Name           string     `json:"name"`
+	ScenarioID     int64      `json:"scenarioId"`
+	EnableMemories bool       `json:"enableMemories"`
 }
 
 type ChatMessage struct {
@@ -36,11 +30,7 @@ func chatSessionScanner(scanner rowScanner, dest *ChatSession) error {
 		&dest.CreatedAt,
 		&dest.Name,
 		&dest.ScenarioID,
-		&dest.ChatModelID,
-		&dest.ChatInstructionID,
 		&dest.EnableMemories,
-		&dest.MemoriesModelID,
-		&dest.MemoriesInstructionID,
 	)
 }
 
@@ -72,18 +62,14 @@ func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession) erro
 	chatSession.WorldID = worldId
 	chatSession.CreatedAt = nil
 
-	query := `INSERT INTO chat_sessions (world_id, created_at, name, scenario_id, chat_model_id, chat_instruction_id, enable_memories, memories_model_id, memories_instruction_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`
+	query := `INSERT INTO chat_sessions (world_id, created_at, name, scenario_id, enable_memories)
+            VALUES ($1, $2, $3, $4, $5) RETURNING id`
 	args := []any{
 		chatSession.WorldID,
 		chatSession.CreatedAt,
 		chatSession.Name,
 		chatSession.ScenarioID,
-		chatSession.ChatModelID,
-		chatSession.ChatInstructionID,
 		chatSession.EnableMemories,
-		chatSession.MemoriesModelID,
-		chatSession.MemoriesInstructionID,
 	}
 	scanFunc := func(scanner rowScanner) error {
 		return scanner.Scan(&chatSession.ID)
@@ -95,12 +81,8 @@ func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession) erro
 func UpdateChatSession(db *sql.DB, worldId int64, id int64, chatSession *ChatSession) error {
 	query := `UPDATE chat_sessions
             SET name = $3,
-                scenario_id = $5,
-                chat_model_id = $5,
-                chat_instruction_id = $6,
-                enable_memories = $7,
-                memories_model_id = $8,
-                memories_instruction_id = $9
+                scenario_id = $4,
+                enable_memories = $5
             WHERE world_id = $1
               AND id = $2`
 	args := []any{
@@ -108,11 +90,7 @@ func UpdateChatSession(db *sql.DB, worldId int64, id int64, chatSession *ChatSes
 		id,
 		chatSession.Name,
 		chatSession.ScenarioID,
-		chatSession.ChatModelID,
-		chatSession.ChatInstructionID,
 		chatSession.EnableMemories,
-		chatSession.MemoriesModelID,
-		chatSession.MemoriesInstructionID,
 	}
 
 	return updateRecord(db, query, args)

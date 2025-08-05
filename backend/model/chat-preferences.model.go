@@ -3,11 +3,14 @@ package model
 import "database/sql"
 
 type ChatPreferences struct {
-	ChatModelID           *int64 `json:"chatModelId"`
-	ChatInstructionID     *int64 `json:"chatInstructionId"`
-	MemoriesModelID       *int64 `json:"memoriesModelId"`
-	MemoriesInstructionID *int64 `json:"memoriesInstructionId"`
-	EmbeddingModelID      *int64 `json:"embeddingModelId"`
+	ChatModelID           *int64  `json:"chatModelId"`
+	ChatInstructionID     *int64  `json:"chatInstructionId"`
+	MemoriesModelID       *int64  `json:"memoriesModelId"`
+	MemoriesInstructionID *int64  `json:"memoriesInstructionId"`
+	EmbeddingModelID      *int64  `json:"embeddingModelId"`
+	MemoryTopP            float64 `json:"memoryTopP"`
+	MemoryTriggerAfter    int64   `json:"memoryTriggerAfter"`
+	MemoryWindowSize      int64   `json:"memoryWindowSize"`
 }
 
 func chatPreferencesScanner(scanner rowScanner, dest *ChatPreferences) error {
@@ -17,6 +20,9 @@ func chatPreferencesScanner(scanner rowScanner, dest *ChatPreferences) error {
 		dest.MemoriesModelID,
 		dest.MemoriesInstructionID,
 		dest.EmbeddingModelID,
+		dest.MemoryTopP,
+		dest.MemoryTriggerAfter,
+		dest.MemoryWindowSize,
 	)
 }
 
@@ -38,6 +44,10 @@ func UpdateChatPreferences(db *sql.DB, prefs *ChatPreferences) error {
 		prefs.ChatInstructionID,
 		prefs.MemoriesModelID,
 		prefs.MemoriesInstructionID,
-		prefs.EmbeddingModelID}
+		prefs.EmbeddingModelID,
+		prefs.MemoryTopP,
+		prefs.MemoryTriggerAfter,
+		prefs.MemoryWindowSize,
+	}
 	return updateRecord(db, query, args)
 }
