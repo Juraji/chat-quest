@@ -1,19 +1,22 @@
-<nav class="navbar bg-body-secondary mb-3">
-  <div class="container-fluid">
-    <a class="navbar-brand" routerLink="/"><span class="bi bi-gear"></span></a>
-    <ul class="navbar-nav mx-auto">
-      <li class="nav-item">
-        <a routerLink="/settings/connections" class="nav-link" routerLinkActive="active">
-          <span class="bi bi-ethernet"></span> Connections &amp; Models
-        </a>
-      </li>
-      <li class="nav-item">
-        <a routerLink="/settings/instruction-templates" class="nav-link" routerLinkActive="active">
-          <span class="bi bi-terminal"></span> Instruction Templates
-        </a>
-      </li>
-    </ul>
-  </div>
-</nav>
+<div class="container mt-3">
+  <app-page-header>
+    <span class="page-title">Settings</span>
+  </app-page-header>
 
-<router-outlet/>
+  <div class="grid">
+    <div class="g-col-12 g-col-lg-8">
+      <connection-profiles-overview [profiles]="profiles()" class="d-block mb-3"/>
+      <instruction-templates-overview [templates]="templates()"/>
+    </div>
+    <div class="g-col-12 g-col-lg-4">
+      <chat-settings
+        [preferences]="chatPreferences()"
+        [instructionTemplates]="templates()"/>
+    </div>
+    <div class="g-col-12">
+      <memory-settings
+        [preferences]="memoryPreferences()"
+        [instructionTemplates]="templates()"/>
+    </div>
+  </div>
+</div>

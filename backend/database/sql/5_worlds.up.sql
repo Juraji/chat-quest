@@ -16,4 +16,4 @@ CREATE TABLE chat_preferences
 INSERT INTO chat_preferences (id, chat_model_id, chat_instruction_id)
 VALUES (0,
         NULL,
-        NULL);
+        1);

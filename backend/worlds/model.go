@@ -25,8 +25,8 @@ func worldScanner(scanner database.RowScanner, dest *World) error {
 }
 func chatPreferencesScanner(scanner database.RowScanner, dest *ChatPreferences) error {
 	return scanner.Scan(
-		dest.ChatModelID,
-		dest.ChatInstructionID,
+		&dest.ChatModelID,
+		&dest.ChatInstructionID,
 	)
 }
 

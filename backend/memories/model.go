@@ -26,7 +26,7 @@ type MemoryPreferences struct {
 	MemoriesModelID       *int64  `json:"memoriesModelId"`
 	MemoriesInstructionID *int64  `json:"memoriesInstructionId"`
 	EmbeddingModelID      *int64  `json:"embeddingModelId"`
-	MemoryTopP            float64 `json:"memoryTopP"`
+	MemoryMinP            float64 `json:"memoryMinP"`
 	MemoryTriggerAfter    int64   `json:"memoryTriggerAfter"`
 	MemoryWindowSize      int64   `json:"memoryWindowSize"`
 }
@@ -48,7 +48,7 @@ func memoryPreferencesScanner(scanner database.RowScanner, dest *MemoryPreferenc
 		&dest.MemoriesModelID,
 		&dest.MemoriesInstructionID,
 		&dest.EmbeddingModelID,
-		&dest.MemoryTopP,
+		&dest.MemoryMinP,
 		&dest.MemoryTriggerAfter,
 		&dest.MemoryWindowSize,
 	)
@@ -129,7 +129,7 @@ func GetMemoryPreferences(db *sql.DB) (*MemoryPreferences, error) {
 	query := `SELECT memories_model_id,
                    memories_instruction_id,
                    embedding_model_id,
-                   memory_top_p,
+                   memory_min_p,
                    memory_trigger_after,
                    memory_window_size
             FROM memory_preferences
@@ -142,7 +142,7 @@ func UpdateMemoryPreferences(db *sql.DB, prefs *MemoryPreferences) error {
             SET memories_model_id = $1,
                 memories_instruction_id = $2,
                 embedding_model_id = $3,
-                memory_top_p = $4,
+                memory_min_p = $4,
                 memory_trigger_after = $5,
                 memory_window_size = $6
             WHERE id = 0`
@@ -150,7 +150,7 @@ func UpdateMemoryPreferences(db *sql.DB, prefs *MemoryPreferences) error {
 		prefs.MemoriesModelID,
 		prefs.MemoriesInstructionID,
 		prefs.EmbeddingModelID,
-		prefs.MemoryTopP,
+		prefs.MemoryMinP,
 		prefs.MemoryTriggerAfter,
 		prefs.MemoryWindowSize,
 	}

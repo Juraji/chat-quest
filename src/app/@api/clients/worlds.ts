@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {isNew, World} from '@api/model';
+import {ChatPreferences, isNew, World} from '@api/model';
 
 @Injectable({
   providedIn: 'root'
@@ -27,5 +27,13 @@ export class Worlds {
 
   delete(worldId: number): Observable<void> {
     return this.http.delete<void>(`/worlds/${worldId}`)
+  }
+
+  getChatPreferences(): Observable<ChatPreferences> {
+    return this.http.get<ChatPreferences>(`/worlds/preferences`)
+  }
+
+  saveChatPreferences(preferences: ChatPreferences): Observable<ChatPreferences> {
+    return this.http.put<ChatPreferences>(`/worlds/preferences`, preferences)
   }
 }

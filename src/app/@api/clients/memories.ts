@@ -1,6 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {isNew, Memory} from '@api/model';
+import {isNew, Memory, MemoryPreferences} from '@api/model';
 import {Observable} from 'rxjs';
 
 @Injectable({
@@ -27,5 +27,13 @@ export class Memories {
 
   delete(worldId: number, memoryId: number): Observable<void> {
     return this.http.delete<void>(`/worlds/${worldId}/memories/${memoryId}`)
+  }
+
+  getPreferences(): Observable<MemoryPreferences> {
+    return this.http.get<MemoryPreferences>(`/memories/preferences`)
+  }
+
+  savePreferences(preferences: MemoryPreferences): Observable<MemoryPreferences> {
+    return this.http.put<MemoryPreferences>(`/memories/preferences`, preferences)
   }
 }

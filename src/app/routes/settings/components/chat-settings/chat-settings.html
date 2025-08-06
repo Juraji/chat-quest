@@ -1,0 +1,37 @@
+<form [formGroup]="formGroup" (submit)="onFormSubmit()">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title mb-0">Chat Settings</h5>
+
+      <div class="mb-3">
+        <label for="chatModelIdInput">Chat Model</label>
+        <select class="form-select"
+                formControlName="chatModelId"
+                id="chatModelIdInput"
+                aria-describedby="chatModelIdInputHelp">
+        </select>
+        <div id="chatModelIdInputHelp" class="form-text">
+          Select the model you want to use for the chat.
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="chatInstructionIdInput">Chat Instructions</label>
+        <select class="form-select"
+                id="chatInstructionIdInput"
+                formControlName="chatInstructionId"
+                aria-describedby="chatInstructionIdInputHelp">
+          @for (template of chatInstructionTemplates(); track template.id) {
+            <option [value]="template.id">{{ template.name }}</option>
+          }
+        </select>
+        <div id="chatInstructionIdInputHelp" class="form-text">
+          Select the instruction you want to use for generating chat responses.
+        </div>
+      </div>
+      <button class="btn btn-primary btn-magical float-end"
+              [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
+      </button>
+    </div>
+  </div>
+</form>

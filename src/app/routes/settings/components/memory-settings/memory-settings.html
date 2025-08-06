@@ -1,0 +1,111 @@
+<form [formGroup]="formGroup" (submit)="onFormSubmit()">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title mb-0">Memory Settings</h5>
+
+      <div class="grid">
+        <div class="g-col-12 g-col-lg-4">
+          <div class="mb-3">
+            <label for="memoriesModelIdInput">Memory Model</label>
+            <select class="form-select"
+                    formControlName="memoriesModelId"
+                    id="memoriesModelIdInput"
+                    aria-describedby="memoriesModelIdInputHelp">
+            </select>
+            <div id="memoriesModelIdInputHelp" class="form-text">
+              Select the model you want to use for memory generation.
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="memoriesInstructionIdInput">Memory Instructions</label>
+            <select class="form-select"
+                    id="memoriesInstructionIdInput"
+                    formControlName="memoriesInstructionId"
+                    aria-describedby="memoriesInstructionIdInputHelp">
+              @for (template of memInstructionTemplates(); track template.id) {
+                <option [value]="template.id">{{ template.name }}</option>
+              }
+            </select>
+            <div id="memoriesInstructionIdInputHelp" class="form-text">
+              Select the instruction you want to use for generating memories.
+            </div>
+          </div>
+
+          <div>
+            <label for="embeddingModelIdInput">Embedding Model</label>
+            <select class="form-select"
+                    formControlName="embeddingModelId"
+                    id="embeddingModelIdInput"
+                    aria-describedby="embeddingModelIdInputHelp">
+            </select>
+            <div id="embeddingModelIdInputHelp" class="form-text">
+              Select the embedding model you want to use for memories.
+            </div>
+          </div>
+        </div>
+
+        <div class="g-col-12 g-col-lg-4">
+          <div class="mb-3">
+            <label for="memoryTriggerAfterInput">Max Interactions in Context</label>
+            <input type="number" class="form-control"
+                   step="1"
+                   id="memoryTriggerAfterInput"
+                   aria-describedby="memoryTriggerAfterInputHelp"
+                   formControlName="memoryTriggerAfter"/>
+            <div id="memoryTriggerAfterInputHelp" class="form-text">
+              After how many interactions chat truncation and generating memories kick in.
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="memoryWindowSizeInput">Interaction Window Size</label>
+            <input type="number" class="form-control"
+                   step="1"
+                   id="memoryWindowSizeInput"
+                   aria-describedby="memoryWindowSizeInputHelp"
+                   formControlName="memoryWindowSize"/>
+            <div id="memoryWindowSizeInputHelp" class="form-text">
+              How many interactions should be saved up before generating memories.
+            </div>
+          </div>
+
+          <div>
+            <label for="memoryMinPInput">Min P</label>
+            <input type="number" class="form-control"
+                   step="0.01"
+                   id="memoryMinPInput"
+                   aria-describedby="memoryMinPInputHelp"
+                   formControlName="memoryMinP"/>
+            <div id="memoryMinPInputHelp" class="form-text">
+              Minimum base probability for a memory to be selected for inclusion in RAG data.
+            </div>
+          </div>
+        </div>
+        <div class="g-col-12 g-col-lg-4 form-text">
+          <p>
+            When Memories are enabled the actual message history, send to the LLM/API will be limited by the
+            <code>Max Interactions in Contexts</code> setting.
+            Instead historical events will be presented in the form of memories.
+          </p>
+          <p>
+            Hence the RAG, <i>Retrieval Augmented Generation</i>, a fancy word for including extra related knowledge
+            from a database in a prompt ;).
+            In our case, we generate embeddings (numbers), which we can later compare to new messages to retrieve
+            possibly related memories.
+          </p>
+          <p>
+            An interaction is a user+assistant message. Thus, setting the <code>Max Interactions in Contexts</code> to
+            <code>10</code>, would result in 20 messages in the context (as well as the chat instructions).<br/>
+            The <code>Interaction Window Size</code> determines how many interactions, to
+            save up before generating memories.
+          </p>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-magical float-end"
+              [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
+      </button>
+    </div>
+  </div>
+</form>
