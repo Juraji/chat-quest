@@ -32,7 +32,7 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		llmModels, err := newProfile.getAvailableModels()
+		llmModels, err := newProfile.GetAvailableModels()
 		if err != nil {
 			util.RespondNotAcceptable(c, "Connection test failed (Failed to get available models)", err)
 			return
@@ -93,7 +93,7 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		llmModels, err := profile.getAvailableModels()
+		llmModels, err := profile.GetAvailableModels()
 		if err != nil {
 			util.RespondNotAcceptable(c, "Connection test failed (Failed to get available models)", err)
 			return
