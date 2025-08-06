@@ -1,7 +1,6 @@
 package providers
 
 import (
-	"bytes"
 	"database/sql/driver"
 	"encoding/binary"
 	"errors"
@@ -9,7 +8,7 @@ import (
 	"math"
 )
 
-type Embeddings []float64
+type Embeddings []float32
 
 func (e *Embeddings) Scan(value any) error {
 	if value == nil {
@@ -17,32 +16,23 @@ func (e *Embeddings) Scan(value any) error {
 		return nil
 	}
 
-	switch v := value.(type) {
-	case []byte:
-		// Handle byte array directly
-		if len(v)%8 != 0 {
-			return errors.New("invalid byte length for float64 array")
-		}
-
-		embedding := make(Embeddings, len(v)/8)
-		reader := bytes.NewReader(v)
-		for i := 0; i < len(embedding); i++ {
-			var bits uint64
-			if err := binary.Read(reader, binary.LittleEndian, &bits); err != nil {
-				return errors.Join(err, errors.New("error reading embedding bytes"))
-			}
-			embedding[i] = math.Float64frombits(bits)
-		}
-		*e = embedding
-		return nil
-
-	case string:
-		// Handle text representations if needed (not typical for binary storage)
+	b, ok := value.([]byte)
+	if !ok {
 		return fmt.Errorf("unsupported type: %T", value)
-
-	default:
-		return fmt.Errorf("incompatible type for Embeddings: %T", value)
 	}
+	if len(b)%4 != 0 {
+		return errors.New("invalid byte length for float32 array")
+	}
+
+	n := len(b) / 4
+	embedding := make(Embeddings, n)
+	for i := 0; i < n; i++ {
+		start := i * 4
+		bits := binary.LittleEndian.Uint32(b[start : start+4])
+		embedding[i] = math.Float32frombits(bits)
+	}
+	*e = embedding
+	return nil
 }
 
 func (e *Embeddings) Value() (driver.Value, error) {
@@ -50,39 +40,32 @@ func (e *Embeddings) Value() (driver.Value, error) {
 		return nil, nil
 	}
 
-	b := make([]byte, len(*e)*8)
+	b := make([]byte, len(*e)*4)
 	for i, v := range *e {
-		bits := math.Float64bits(v)
-		binary.LittleEndian.PutUint64(b[i*8:], bits)
+		bits := math.Float32bits(v)
+		binary.LittleEndian.PutUint32(b[i*4:], bits)
 	}
 
 	return b, nil
 }
 
-func (e *Embeddings) CosineSimilarity(other Embeddings) (float64, error) {
-	if e == nil {
-		return 0, nil
-	}
-
-	this := *e
-	if len(this) != len(other) {
+func (e *Embeddings) CosineSimilarity(other Embeddings) (float32, error) {
+	if e == nil || len(*e) != len(other) {
 		return 0.0, errors.New("embedding dimensions must match")
 	}
 
-	dotProduct := float64(0)
-	normE := float64(0)
-	normO := float64(0)
+	dotProduct := float32(0)
+	normE, normO := float32(0), float32(0)
 
-	for i := 0; i < len(this); i++ {
-		dotProduct += this[i] * other[i]
-		normE += math.Pow(this[i], 2)
-		normO += math.Pow(other[i], 2)
+	for i, v := range *e {
+		dotProduct += v * other[i]
+		normE += v * v
+		normO += other[i] * other[i]
 	}
 
-	denominator := math.Sqrt(normE * normO)
+	denominator := math.Sqrt(float64(normE * normO))
 	if denominator == 0.0 {
 		return 0.0, nil
 	}
-
-	return dotProduct / denominator, nil
+	return dotProduct / float32(denominator), nil
 }

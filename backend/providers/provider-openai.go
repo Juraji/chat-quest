@@ -69,7 +69,7 @@ func (o *openAIProvider) getAvailableModels() ([]*LlmModel, error) {
 
 	models := make([]*LlmModel, len(resp.Data))
 	for i, d := range resp.Data {
-		models[i] = DefaultLlmModel(o.connectionProfile.ID, d.ID)
+		models[i] = defaultLlmModel(o.connectionProfile.ID, d.ID)
 	}
 	return models, nil
 }
