@@ -34,11 +34,8 @@ func WorldById(db *sql.DB, id int64) (*World, error) {
 func CreateWorld(db *sql.DB, newWorld *World) error {
 	query := "INSERT INTO worlds (name, description) VALUES ($1, $2) RETURNING id"
 	args := []any{newWorld.Name, newWorld.Description}
-	scanFunc := func(scanner database.RowScanner) error {
-		return scanner.Scan(&newWorld.ID)
-	}
 
-	return database.InsertRecord(db, query, args, scanFunc)
+	return database.InsertRecord(db, query, args, &newWorld.ID)
 }
 
 func UpdateWorld(db *sql.DB, id int64, world *World) error {

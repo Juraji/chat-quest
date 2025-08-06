@@ -75,16 +75,21 @@ func QueryForRecord[T any](
 func InsertRecord(
 	q QueryExecutor,
 	query string, args []any,
-	scanFunc func(scanner RowScanner) error,
+	scanTo ...any,
 ) error {
 	row := q.QueryRow(query, args...)
-	err := scanFunc(row)
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil
+	if len(scanTo) != 0 {
+		err := row.Scan(scanTo...)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		}
+
+		return err
 	}
 
-	return err
+	return nil
 }
 
 func UpdateRecord(
@@ -116,9 +121,4 @@ func DeleteRecord(
 ) error {
 	_, err := q.Exec(query, args...)
 	return err
-}
-
-//goland:noinspection GoUnusedParameter
-func NoopScanFunc(scanner RowScanner) error {
-	return nil
 }

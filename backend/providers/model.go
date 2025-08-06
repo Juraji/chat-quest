@@ -75,11 +75,8 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels [
 
 	query := "INSERT INTO connection_profiles (name, provider_type, base_url, api_key) VALUES ($1, $2, $3, $4) RETURNING id"
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey}
-	scanFunc := func(scanner database.RowScanner) error {
-		return scanner.Scan(&profile.ID)
-	}
 
-	if err = database.InsertRecord(tx, query, args, scanFunc); err != nil {
+	if err = database.InsertRecord(tx, query, args, &profile.ID); err != nil {
 		return err
 	}
 
@@ -137,11 +134,8 @@ func createLlmModel(db database.QueryExecutor, profileId int64, llmModel *LlmMod
 		llmModel.StopSequences,
 		llmModel.Disabled,
 	}
-	scanFunc := func(scanner database.RowScanner) error {
-		return scanner.Scan(&llmModel.ID)
-	}
 
-	return database.InsertRecord(db, query, args, scanFunc)
+	return database.InsertRecord(db, query, args, &llmModel.ID)
 }
 
 func UpdateLlmModel(db *sql.DB, id int64, llmModel *LlmModel) error {

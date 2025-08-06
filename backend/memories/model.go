@@ -89,10 +89,8 @@ func CreateMemory(db *sql.DB, memory *Memory) error {
 		memory.Embedding,
 		memory.EmbeddingModelId,
 	}
-	scanFunc := func(scanner database.RowScanner) error {
-		return scanner.Scan(&memory.ID)
-	}
-	return database.InsertRecord(db, query, args, scanFunc)
+
+	return database.InsertRecord(db, query, args, &memory.ID)
 }
 
 func UpdateMemory(db *sql.DB, id int64, memory *Memory) error {

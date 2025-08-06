@@ -43,11 +43,8 @@ func CreateInstructionPrompt(db *sql.DB, prompt *InstructionTemplate) error {
 	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, instruction)
             VALUES ($1, $2, $3, $4, $5) RETURNING id`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction}
-	scanFunc := func(scanner database.RowScanner) error {
-		return scanner.Scan(&prompt.ID)
-	}
 
-	return database.InsertRecord(db, query, args, scanFunc)
+	return database.InsertRecord(db, query, args, &prompt.ID)
 }
 
 func UpdateInstructionPrompt(db *sql.DB, id int64, prompt *InstructionTemplate) error {

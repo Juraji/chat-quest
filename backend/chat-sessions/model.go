@@ -76,11 +76,8 @@ func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession) erro
 		chatSession.ScenarioID,
 		chatSession.EnableMemories,
 	}
-	scanFunc := func(scanner database.RowScanner) error {
-		return scanner.Scan(&chatSession.ID)
-	}
 
-	return database.InsertRecord(db, query, args, scanFunc)
+	return database.InsertRecord(db, query, args, &chatSession.ID)
 }
 
 func UpdateChatSession(db *sql.DB, worldId int64, id int64, chatSession *ChatSession) error {
@@ -125,11 +122,8 @@ func CreateChatMessage(db *sql.DB, sessionId int64, chatMessage *ChatMessage) er
 		chatMessage.CharacterID,
 		chatMessage.Content,
 	}
-	scanFunc := func(scanner database.RowScanner) error {
-		return scanner.Scan(&chatMessage.ID)
-	}
 
-	return database.InsertRecord(db, query, args, scanFunc)
+	return database.InsertRecord(db, query, args, &chatMessage.ID)
 }
 
 func UpdateChatMessage(db *sql.DB, sessionId int64, id int64, chatMessage *ChatMessage) error {

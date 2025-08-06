@@ -41,11 +41,8 @@ func CreateScenario(db *sql.DB, scenario *Scenario) error {
 	query := `INSERT INTO scenarios (name, description, avatar_url, linked_character_id)
             VALUES ($1, $2, $3, $4) RETURNING id`
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId}
-	scanFunc := func(scanner database.RowScanner) error {
-		return scanner.Scan(&scenario.ID)
-	}
 
-	return database.InsertRecord(db, query, args, scanFunc)
+	return database.InsertRecord(db, query, args, &scenario.ID)
 }
 
 func UpdateScenario(db *sql.DB, id int64, scenario *Scenario) error {
