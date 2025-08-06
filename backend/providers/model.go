@@ -17,7 +17,7 @@ type ConnectionProfile struct {
 
 type LlmModel struct {
 	ID                  int64   `json:"id"`
-	ConnectionProfileId int64   `json:"connectionProfileId"`
+	ConnectionProfileId int64   `json:"profileId"`
 	ModelId             string  `json:"modelId"`
 	Temperature         float64 `json:"temperature"`
 	MaxTokens           int64   `json:"maxTokens"`
@@ -25,6 +25,13 @@ type LlmModel struct {
 	Stream              bool    `json:"stream"`
 	StopSequences       *string `json:"stopSequences"`
 	Disabled            bool    `json:"disabled"`
+}
+
+type LlmModelView struct {
+	ID                    int64  `json:"id"`
+	ModelId               string `json:"modelId"`
+	ConnectionProfileId   int64  `json:"profileId"`
+	ConnectionProfileName string `json:"profileName"`
 }
 
 func connectionProfileScanner(scanner database.RowScanner, dest *ConnectionProfile) error {
@@ -48,6 +55,15 @@ func llmModelScanner(scanner database.RowScanner, dest *LlmModel) error {
 		&dest.Stream,
 		&dest.StopSequences,
 		&dest.Disabled,
+	)
+}
+
+func llModelViewScanner(scanner database.RowScanner, dest *LlmModelView) error {
+	return scanner.Scan(
+		&dest.ID,
+		&dest.ModelId,
+		&dest.ConnectionProfileId,
+		&dest.ConnectionProfileName,
 	)
 }
 
@@ -216,4 +232,15 @@ func MergeLlmModels(db *sql.DB, profileId int64, newModels []*LlmModel) error {
 	}
 
 	return tx.Commit()
+}
+
+func GetAllLlmModelViews(db database.QueryExecutor) ([]*LlmModelView, error) {
+	query := `SELECT lm.id       AS model_id,
+                   lm.model_id AS model_model_id,
+                   p.id       AS profile_id,
+                   p.name     AS profile_name
+            FROM llm_models lm
+                     JOIN connection_profiles p on p.id = lm.connection_profile_id
+                     WHERE lm.disabled = FALSE`
+	return database.QueryForList(db, query, nil, llModelViewScanner)
 }

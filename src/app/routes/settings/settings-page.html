@@ -11,12 +11,14 @@
     <div class="g-col-12 g-col-lg-4">
       <chat-settings
         [preferences]="chatPreferences()"
-        [instructionTemplates]="templates()"/>
+        [instructionTemplates]="templates()"
+        [llmModelViews]="llmModelViews()"/>
     </div>
     <div class="g-col-12">
       <memory-settings
         [preferences]="memoryPreferences()"
-        [instructionTemplates]="templates()"/>
+        [instructionTemplates]="templates()"
+        [llmModelViews]="llmModelViews()"/>
     </div>
   </div>
 </div>

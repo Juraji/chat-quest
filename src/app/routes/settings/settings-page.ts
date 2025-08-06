@@ -4,7 +4,7 @@ import {ConnectionProfilesOverview} from './components/connection-profiles';
 import {InstructionTemplatesOverview} from './components/instruction-templates';
 import {ChatSettings} from './components/chat-settings';
 import {ActivatedRoute} from '@angular/router';
-import {ChatPreferences, ConnectionProfile, InstructionTemplate, MemoryPreferences} from '@api/model';
+import {ChatPreferences, ConnectionProfile, InstructionTemplate, LlmModelView, MemoryPreferences} from '@api/model';
 import {routeDataSignal} from '@util/ng';
 import {MemorySettings} from './components/memory-settings';
 
@@ -26,5 +26,6 @@ export class SettingsPage {
   readonly templates: Signal<InstructionTemplate[]> = routeDataSignal(this.activatedRoute, 'templates')
   readonly chatPreferences: Signal<ChatPreferences> = routeDataSignal(this.activatedRoute, 'chatPreferences');
   readonly memoryPreferences: Signal<MemoryPreferences> = routeDataSignal(this.activatedRoute, 'memoryPreferences');
+  readonly llmModelViews: Signal<LlmModelView[]> = routeDataSignal(this.activatedRoute, 'llmModelViews');
 
 }

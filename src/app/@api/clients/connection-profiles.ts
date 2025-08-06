@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {AiProviders, ConnectionProfile, isNew, LlmModel} from '@api/model';
+import {AiProviders, ConnectionProfile, isNew, LlmModel, LlmModelView} from '@api/model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +11,10 @@ export class ConnectionProfiles {
 
   getTemplates(): Observable<AiProviders> {
     return this.http.get<AiProviders>(`${location.origin}/data/ai-providers.json`);
+  }
+
+  getAllLlmModelViews(): Observable<LlmModelView[]> {
+    return this.http.get<LlmModelView[]>(`/connection-profiles/model-views`)
   }
 
   getAll(): Observable<ConnectionProfile[]> {
@@ -42,6 +46,6 @@ export class ConnectionProfiles {
   }
 
   saveModel(llmModel: LlmModel): Observable<LlmModel> {
-    return this.http.put<LlmModel>(`/connection-profiles/${llmModel.connectionProfileId}/models/${llmModel.id}`, llmModel)
+    return this.http.put<LlmModel>(`/connection-profiles/${llmModel.profileId}/models/${llmModel.id}`, llmModel)
   }
 }

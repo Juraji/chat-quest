@@ -11,6 +11,7 @@ import {instructionTemplatesOverviewResolver} from './components/instruction-tem
 import {EditInstructionTemplate, editInstructionTemplateResolver} from './edit-instruction-templates';
 import {chatSettingsResolver} from './components/chat-settings';
 import {memorySettingsResolver} from './components/memory-settings';
+import {llmModelViewsResolver} from './llm-model-views.resolver';
 
 const routes: Routes = [
   {
@@ -21,6 +22,7 @@ const routes: Routes = [
       templates: instructionTemplatesOverviewResolver,
       chatPreferences: chatSettingsResolver,
       memoryPreferences: memorySettingsResolver,
+      llmModelViews: llmModelViewsResolver
     }
   },
   {

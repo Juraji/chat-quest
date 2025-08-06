@@ -147,4 +147,9 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 		err = DeleteLlmModelById(db, modelId)
 		util.RespondDeleted(c, err)
 	})
+
+	connectionProfilesRouter.GET("/model-views", func(c *gin.Context) {
+		views, err := GetAllLlmModelViews(db)
+		util.RespondList(c, views, err)
+	})
 }

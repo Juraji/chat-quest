@@ -9,8 +9,8 @@ export interface ConnectionProfile extends ChatQuestModel {
   apiKey: string
 }
 
-export interface LlmModel extends ChatQuestModel{
-  connectionProfileId: number
+export interface LlmModel extends ChatQuestModel {
+  profileId: number
   modelId: string
   temperature: number
   maxTokens: number
@@ -18,6 +18,13 @@ export interface LlmModel extends ChatQuestModel{
   stream: boolean
   stopSequences: string
   disabled: boolean
+}
+
+export interface LlmModelView {
+  id: number
+  modelId: string
+  profileId: number
+  profileName: string
 }
 
 export interface AiProviders {

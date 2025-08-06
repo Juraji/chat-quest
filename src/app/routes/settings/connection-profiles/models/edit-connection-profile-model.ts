@@ -26,7 +26,7 @@ export class EditConnectionProfileModel {
 
   readonly formGroup = formGroup<LlmModel>({
     id: readOnlyControl(),
-    connectionProfileId: readOnlyControl(),
+    profileId: readOnlyControl(),
     modelId: readOnlyControl(),
     temperature: formControl(0, [Validators.required, Validators.min(0.01)]),
     maxTokens: formControl(1, [Validators.required, Validators.min(1)]),

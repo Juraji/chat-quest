@@ -1,7 +1,7 @@
 <form [formGroup]="formGroup" (submit)="onFormSubmit()">
   <div class="card">
     <div class="card-body">
-      <h5 class="card-title mb-0">Memory Settings</h5>
+      <h5 class="card-title">Memory Settings</h5>
 
       <div class="grid">
         <div class="g-col-12 g-col-lg-4">
@@ -11,6 +11,9 @@
                     formControlName="memoriesModelId"
                     id="memoriesModelIdInput"
                     aria-describedby="memoriesModelIdInputHelp">
+              @for (llm of llmModelViews(); track llm.id) {
+                <option [ngValue]="llm.id">{{ llm.modelId }}&nbsp;&bullet;&nbsp;{{ llm.profileName }}</option>
+              }
             </select>
             <div id="memoriesModelIdInputHelp" class="form-text">
               Select the model you want to use for memory generation.
@@ -24,7 +27,7 @@
                     formControlName="memoriesInstructionId"
                     aria-describedby="memoriesInstructionIdInputHelp">
               @for (template of memInstructionTemplates(); track template.id) {
-                <option [value]="template.id">{{ template.name }}</option>
+                <option [ngValue]="template.id">{{ template.name }}</option>
               }
             </select>
             <div id="memoriesInstructionIdInputHelp" class="form-text">
@@ -38,6 +41,9 @@
                     formControlName="embeddingModelId"
                     id="embeddingModelIdInput"
                     aria-describedby="embeddingModelIdInputHelp">
+              @for (llm of llmModelViews(); track llm.id) {
+                <option [ngValue]="llm.id">{{ llm.modelId }}&nbsp;&bullet;&nbsp;{{ llm.profileName }}</option>
+              }
             </select>
             <div id="embeddingModelIdInputHelp" class="form-text">
               Select the embedding model you want to use for memories.
@@ -54,7 +60,7 @@
                    aria-describedby="memoryTriggerAfterInputHelp"
                    formControlName="memoryTriggerAfter"/>
             <div id="memoryTriggerAfterInputHelp" class="form-text">
-              After how many interactions chat truncation and generating memories kick in.
+              After how many interactions should chat truncation and generating memories kick in.
             </div>
           </div>
 
@@ -85,7 +91,7 @@
         <div class="g-col-12 g-col-lg-4 form-text">
           <p>
             When Memories are enabled the actual message history, send to the LLM/API will be limited by the
-            <code>Max Interactions in Contexts</code> setting.
+            <code>Max Interactions in Context</code> setting.
             Instead historical events will be presented in the form of memories.
           </p>
           <p>
@@ -97,7 +103,7 @@
           <p>
             An interaction is a user+assistant message. Thus, setting the <code>Max Interactions in Contexts</code> to
             <code>10</code>, would result in 20 messages in the context (as well as the chat instructions).<br/>
-            The <code>Interaction Window Size</code> determines how many interactions, to
+            The <code>Interaction Window Size</code> determines how many interactions to
             save up before generating memories.
           </p>
         </div>

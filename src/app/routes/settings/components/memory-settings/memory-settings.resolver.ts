@@ -7,3 +7,4 @@ export const memorySettingsResolver: ResolveFn<MemoryPreferences> = () => {
   const service = inject(Memories)
   return service.getPreferences();
 };
+

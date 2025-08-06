@@ -1,7 +1,7 @@
 <form [formGroup]="formGroup" (submit)="onFormSubmit()">
   <div class="card">
     <div class="card-body">
-      <h5 class="card-title mb-0">Chat Settings</h5>
+      <h5 class="card-title">Chat Settings</h5>
 
       <div class="mb-3">
         <label for="chatModelIdInput">Chat Model</label>
@@ -9,6 +9,9 @@
                 formControlName="chatModelId"
                 id="chatModelIdInput"
                 aria-describedby="chatModelIdInputHelp">
+          @for (llm of llmModelViews(); track llm.id) {
+            <option [ngValue]="llm.id">{{ llm.modelId }}&nbsp;&bullet;&nbsp;{{ llm.profileName }}</option>
+          }
         </select>
         <div id="chatModelIdInputHelp" class="form-text">
           Select the model you want to use for the chat.
@@ -22,7 +25,7 @@
                 formControlName="chatInstructionId"
                 aria-describedby="chatInstructionIdInputHelp">
           @for (template of chatInstructionTemplates(); track template.id) {
-            <option [value]="template.id">{{ template.name }}</option>
+            <option [ngValue]="template.id">{{ template.name }}</option>
           }
         </select>
         <div id="chatInstructionIdInputHelp" class="form-text">
