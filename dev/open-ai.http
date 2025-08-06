@@ -13,4 +13,4 @@ Content-Type: application/json
 }
 
 ### Backend migrate DB to
-POST http://localhost:8080/api/system/migrations/goto/7
+POST http://localhost:8080/api/system/migrations/goto/4

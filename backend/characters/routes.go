@@ -7,8 +7,12 @@ import (
 )
 
 func Routes(router *gin.RouterGroup, db *sql.DB) {
+	charactersRoutes(router, db)
+	tagsRoutes(router, db)
+}
+
+func charactersRoutes(router *gin.RouterGroup, db *sql.DB) {
 	charactersRouter := router.Group("/characters")
-	tagsRouter := router.Group("/tags")
 
 	charactersRouter.GET("", func(c *gin.Context) {
 		characters, err := AllCharacters(db)
@@ -241,6 +245,10 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 		err = SetGroupGreetingsByCharacterId(db, characterId, greetings)
 		util.RespondEmpty(c, err)
 	})
+}
+
+func tagsRoutes(router *gin.RouterGroup, db *sql.DB) {
+	tagsRouter := router.Group("/tags")
 
 	tagsRouter.GET("", func(c *gin.Context) {
 		tags, err := AllTags(db)

@@ -7,6 +7,11 @@ import (
 )
 
 func Routes(router *gin.RouterGroup, db *sql.DB) {
+	memoriesRoutes(router, db)
+	prefsRoutes(router, db)
+}
+
+func memoriesRoutes(router *gin.RouterGroup, db *sql.DB) {
 	memoriesRouter := router.Group("/worlds/:worldId/memories")
 
 	memoriesRouter.GET("", func(c *gin.Context) {
@@ -91,5 +96,25 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 
 		err = DeleteMemory(db, memoryId)
 		util.RespondDeleted(c, err)
+	})
+}
+
+func prefsRoutes(router *gin.RouterGroup, db *sql.DB) {
+	prefsRouter := router.Group("/memories/preferences")
+
+	prefsRouter.GET("", func(c *gin.Context) {
+		prefs, err := GetMemoryPreferences(db)
+		util.RespondSingle(c, prefs, err)
+	})
+
+	prefsRouter.PUT("", func(c *gin.Context) {
+		var update MemoryPreferences
+		if err := c.ShouldBind(&update); err != nil {
+			util.RespondBadRequest(c, "Invalid preference data")
+			return
+		}
+
+		err := UpdateMemoryPreferences(db, &update)
+		util.RespondSingle(c, &update, err)
 	})
 }

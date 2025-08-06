@@ -22,6 +22,15 @@ func (m *Memory) CosineSimilarity(other providers.Embeddings) (float64, error) {
 	return m.Embedding.CosineSimilarity(other)
 }
 
+type MemoryPreferences struct {
+	MemoriesModelID       *int64  `json:"memoriesModelId"`
+	MemoriesInstructionID *int64  `json:"memoriesInstructionId"`
+	EmbeddingModelID      *int64  `json:"embeddingModelId"`
+	MemoryTopP            float64 `json:"memoryTopP"`
+	MemoryTriggerAfter    int64   `json:"memoryTriggerAfter"`
+	MemoryWindowSize      int64   `json:"memoryWindowSize"`
+}
+
 func memoryScanner(scanner database.RowScanner, dest *Memory) error {
 	return scanner.Scan(
 		&dest.ID,
@@ -31,6 +40,17 @@ func memoryScanner(scanner database.RowScanner, dest *Memory) error {
 		&dest.Content,
 		&dest.Embedding,
 		&dest.EmbeddingModelId,
+	)
+}
+
+func memoryPreferencesScanner(scanner database.RowScanner, dest *MemoryPreferences) error {
+	return scanner.Scan(
+		&dest.MemoriesModelID,
+		&dest.MemoriesInstructionID,
+		&dest.EmbeddingModelID,
+		&dest.MemoryTopP,
+		&dest.MemoryTriggerAfter,
+		&dest.MemoryWindowSize,
 	)
 }
 
@@ -103,4 +123,36 @@ func DeleteMemory(db *sql.DB, id int64) error {
 	query := `DELETE FROM memories WHERE id = $1`
 	args := []any{id}
 	return database.DeleteRecord(db, query, args)
+}
+
+func GetMemoryPreferences(db *sql.DB) (*MemoryPreferences, error) {
+	query := `SELECT memories_model_id,
+                   memories_instruction_id,
+                   embedding_model_id,
+                   memory_top_p,
+                   memory_trigger_after,
+                   memory_window_size
+            FROM memory_preferences
+            WHERE id = 0`
+	return database.QueryForRecord(db, query, nil, memoryPreferencesScanner)
+}
+
+func UpdateMemoryPreferences(db *sql.DB, prefs *MemoryPreferences) error {
+	query := `UPDATE memory_preferences
+            SET memories_model_id = $1,
+                memories_instruction_id = $2,
+                embedding_model_id = $3,
+                memory_top_p = $4,
+                memory_trigger_after = $5,
+                memory_window_size = $6
+            WHERE id = 0`
+	args := []any{
+		prefs.MemoriesModelID,
+		prefs.MemoriesInstructionID,
+		prefs.EmbeddingModelID,
+		prefs.MemoryTopP,
+		prefs.MemoryTriggerAfter,
+		prefs.MemoryWindowSize,
+	}
+	return database.UpdateRecord(db, query, args)
 }

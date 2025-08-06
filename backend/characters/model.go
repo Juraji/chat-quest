@@ -105,8 +105,7 @@ func CreateCharacter(db *sql.DB, newCharacter *Character) error {
 	query := "INSERT INTO characters (name, favorite, avatar_url) VALUES ($1, $2, $3) RETURNING id, created_at"
 	args := []any{newCharacter.Name, newCharacter.Favorite, newCharacter.AvatarUrl}
 
-	err := database.InsertRecord(db, query, args, &newCharacter.ID, &newCharacter.CreatedAt)
-	if err != nil {
+	if err := database.InsertRecord(db, query, args, &newCharacter.ID, &newCharacter.CreatedAt); err != nil {
 		return err
 	}
 

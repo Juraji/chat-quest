@@ -10,7 +10,6 @@ import (
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/instructions"
 	"juraji.nl/chat-quest/memories"
-	"juraji.nl/chat-quest/preferences"
 	"juraji.nl/chat-quest/providers"
 	"juraji.nl/chat-quest/scenarios"
 	"juraji.nl/chat-quest/system"
@@ -73,7 +72,6 @@ func main() {
 		instructions.Routes(apiRouter, db)
 		providers.Routes(apiRouter, db)
 		scenarios.Routes(apiRouter, db)
-		preferences.Routes(apiRouter, db)
 		worlds.Routes(apiRouter, db)
 		chat_sessions.Routes(apiRouter, db)
 		memories.Routes(apiRouter, db)

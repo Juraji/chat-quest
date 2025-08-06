@@ -7,6 +7,31 @@ import (
 )
 
 func Routes(router *gin.RouterGroup, db *sql.DB) {
+	preferencesRoutes(router, db)
+	worldsRoutes(router, db)
+}
+
+func preferencesRoutes(router *gin.RouterGroup, db *sql.DB) {
+	prefsRouter := router.Group("/worlds/preferences")
+
+	prefsRouter.GET("", func(c *gin.Context) {
+		prefs, err := GetChatPreferences(db)
+		util.RespondSingle(c, prefs, err)
+	})
+
+	prefsRouter.PUT("", func(c *gin.Context) {
+		var update ChatPreferences
+		if err := c.ShouldBind(&update); err != nil {
+			util.RespondBadRequest(c, "Invalid preference data")
+			return
+		}
+
+		err := UpdateChatPreferences(db, &update)
+		util.RespondSingle(c, &update, err)
+	})
+}
+
+func worldsRoutes(router *gin.RouterGroup, db *sql.DB) {
 	worldsRouter := router.Group("/worlds")
 
 	worldsRouter.GET("", func(c *gin.Context) {
