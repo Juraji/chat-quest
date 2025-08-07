@@ -44,7 +44,10 @@ func CreateInstructionPrompt(db *sql.DB, prompt *InstructionTemplate) error {
             VALUES ($1, $2, $3, $4, $5) RETURNING id`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction}
 
-	return database.InsertRecord(db, query, args, &prompt.ID)
+	err := database.InsertRecord(db, query, args, &prompt.ID)
+	defer util.EmitOnSuccess(InstructionTemplateCreatedSignal, prompt, err)
+
+	return err
 }
 
 func UpdateInstructionPrompt(db *sql.DB, id int64, prompt *InstructionTemplate) error {
@@ -59,12 +62,18 @@ func UpdateInstructionPrompt(db *sql.DB, id int64, prompt *InstructionTemplate) 
             WHERE id = $6`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction, id}
 
-	return database.UpdateRecord(db, query, args)
+	err := database.UpdateRecord(db, query, args)
+	defer util.EmitOnSuccess(InstructionTemplateUpdatedSignal, prompt, err)
+
+	return err
 }
 
 func DeleteInstructionPrompt(db *sql.DB, id int64) error {
 	query := "DELETE FROM instruction_templates WHERE id = $1"
 	args := []any{id}
 
-	return database.DeleteRecord(db, query, args)
+	err := database.DeleteRecord(db, query, args)
+	defer util.EmitOnSuccess(InstructionTemplateDeletedSignal, id, err)
+
+	return err
 }

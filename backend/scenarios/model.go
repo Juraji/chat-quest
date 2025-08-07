@@ -42,7 +42,10 @@ func CreateScenario(db *sql.DB, scenario *Scenario) error {
             VALUES ($1, $2, $3, $4) RETURNING id`
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId}
 
-	return database.InsertRecord(db, query, args, &scenario.ID)
+	err := database.InsertRecord(db, query, args, &scenario.ID)
+	defer util.EmitOnSuccess(ScenarioCreatedSignal, scenario, err)
+
+	return err
 }
 
 func UpdateScenario(db *sql.DB, id int64, scenario *Scenario) error {
@@ -56,11 +59,18 @@ func UpdateScenario(db *sql.DB, id int64, scenario *Scenario) error {
             WHERE id=$5`
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId, id}
 
-	return database.UpdateRecord(db, query, args)
+	err := database.UpdateRecord(db, query, args)
+	defer util.EmitOnSuccess(ScenarioUpdatedSignal, scenario, err)
+
+	return err
 }
 
 func DeleteScenario(db *sql.DB, id int64) error {
 	query := "DELETE FROM scenarios WHERE id=$1"
 	args := []interface{}{id}
-	return database.DeleteRecord(db, query, args)
+
+	err := database.DeleteRecord(db, query, args)
+	defer util.EmitOnSuccess(ScenarioDeletedSignal, id, err)
+
+	return err
 }

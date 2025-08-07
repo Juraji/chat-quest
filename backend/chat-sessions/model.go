@@ -3,6 +3,7 @@ package chat_sessions
 import (
 	"database/sql"
 	"juraji.nl/chat-quest/database"
+	"juraji.nl/chat-quest/util"
 	"time"
 )
 
@@ -64,6 +65,7 @@ func GetChatSessionById(db *sql.DB, worldId int64, id int64) (*ChatSession, erro
 }
 
 func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession) error {
+
 	chatSession.WorldID = worldId
 	chatSession.CreatedAt = nil
 
@@ -77,7 +79,10 @@ func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession) erro
 		chatSession.EnableMemories,
 	}
 
-	return database.InsertRecord(db, query, args, &chatSession.ID)
+	err := database.InsertRecord(db, query, args, &chatSession.ID)
+	defer util.EmitOnSuccess(ChatSessionCreatedSignal, chatSession, err)
+
+	return err
 }
 
 func UpdateChatSession(db *sql.DB, worldId int64, id int64, chatSession *ChatSession) error {
@@ -95,13 +100,20 @@ func UpdateChatSession(db *sql.DB, worldId int64, id int64, chatSession *ChatSes
 		chatSession.EnableMemories,
 	}
 
-	return database.UpdateRecord(db, query, args)
+	err := database.UpdateRecord(db, query, args)
+	defer util.EmitOnSuccess(ChatSessionUpdatedSignal, chatSession, err)
+
+	return err
 }
 
 func DeleteChatSessionById(db *sql.DB, worldId int64, id int64) error {
 	query := "DELETE FROM chat_sessions WHERE world_id=$1 AND id=$2"
 	args := []any{worldId, id}
-	return database.DeleteRecord(db, query, args)
+
+	err := database.DeleteRecord(db, query, args)
+	defer util.EmitOnSuccess(ChatSessionDeletedSignal, worldId, err)
+
+	return err
 }
 
 func GetChatMessages(db *sql.DB, sessionId int64) ([]*ChatMessage, error) {
@@ -123,7 +135,10 @@ func CreateChatMessage(db *sql.DB, sessionId int64, chatMessage *ChatMessage) er
 		chatMessage.Content,
 	}
 
-	return database.InsertRecord(db, query, args, &chatMessage.ID)
+	err := database.InsertRecord(db, query, args, &chatMessage.ID)
+	defer util.EmitOnSuccess(ChatMessageCreatedSignal, chatMessage, err)
+
+	return err
 }
 
 func UpdateChatMessage(db *sql.DB, sessionId int64, id int64, chatMessage *ChatMessage) error {
@@ -133,7 +148,10 @@ func UpdateChatMessage(db *sql.DB, sessionId int64, id int64, chatMessage *ChatM
               AND id = $3`
 	args := []any{sessionId, id, chatMessage.Content}
 
-	return database.UpdateRecord(db, query, args)
+	err := database.UpdateRecord(db, query, args)
+	defer util.EmitOnSuccess(ChatMessageUpdatedSignal, chatMessage, err)
+
+	return err
 }
 
 func DeleteChatMessagesFrom(db *sql.DB, sessionId int64, id int64) error {
@@ -141,5 +159,9 @@ func DeleteChatMessagesFrom(db *sql.DB, sessionId int64, id int64) error {
             WHERE chat_session_id = $1
               AND id >= $2`
 	args := []any{sessionId, id}
-	return database.DeleteRecord(db, query, args)
+
+	err := database.DeleteRecord(db, query, args)
+	defer util.EmitOnSuccess(ChatMessageDeletedSignal, id, err)
+
+	return err
 }

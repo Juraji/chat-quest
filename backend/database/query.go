@@ -25,7 +25,6 @@ func QueryForList[T any](
 	scanFunc func(scanner RowScanner, dest *T) error,
 ) ([]*T, error) {
 	records := make([]*T, 0)
-	var err error
 
 	rows, err := q.Query(query, args...)
 	if err != nil {

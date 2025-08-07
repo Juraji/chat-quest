@@ -5,18 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"juraji.nl/chat-quest/characters"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
 )
-
-var sseSourceSignals = []sourceSignal{
-	newSourceSignal("CHARACTER_CREATED", characters.CharacterCreatedSignal),
-	newSourceSignal("CHARACTER_UPDATED", characters.CharacterUpdatedSignal),
-	newSourceSignal("CHARACTER_DELETED", characters.CharacterDeletedSignal),
-}
 
 func sseHandler(c *gin.Context) {
 	clientIp := c.ClientIP()

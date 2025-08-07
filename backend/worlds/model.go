@@ -3,6 +3,7 @@ package worlds
 import (
 	"database/sql"
 	"juraji.nl/chat-quest/database"
+	"juraji.nl/chat-quest/util"
 )
 
 type World struct {
@@ -46,7 +47,10 @@ func CreateWorld(db *sql.DB, newWorld *World) error {
 	query := "INSERT INTO worlds (name, description) VALUES ($1, $2) RETURNING id"
 	args := []any{newWorld.Name, newWorld.Description}
 
-	return database.InsertRecord(db, query, args, &newWorld.ID)
+	err := database.InsertRecord(db, query, args, &newWorld.ID)
+	defer util.EmitOnSuccess(WorldCreatedSignal, newWorld, err)
+
+	return err
 }
 
 func UpdateWorld(db *sql.DB, id int64, world *World) error {
@@ -56,14 +60,20 @@ func UpdateWorld(db *sql.DB, id int64, world *World) error {
             WHERE id=$1`
 	args := []any{id, world.Name, world.Description}
 
-	return database.UpdateRecord(db, query, args)
+	err := database.UpdateRecord(db, query, args)
+	defer util.EmitOnSuccess(WorldUpdatedSignal, world, err)
+
+	return err
 }
 
 func DeleteWorld(db *sql.DB, id int64) error {
 	query := "DELETE FROM worlds WHERE id=$1"
 	args := []any{id}
 
-	return database.DeleteRecord(db, query, args)
+	err := database.DeleteRecord(db, query, args)
+	defer util.EmitOnSuccess(WorldDeletedSignal, id, err)
+
+	return err
 }
 
 func GetChatPreferences(db *sql.DB) (*ChatPreferences, error) {
@@ -80,5 +90,9 @@ func UpdateChatPreferences(db *sql.DB, prefs *ChatPreferences) error {
 		prefs.ChatModelID,
 		prefs.ChatInstructionID,
 	}
-	return database.UpdateRecord(db, query, args)
+
+	err := database.UpdateRecord(db, query, args)
+	defer util.EmitOnSuccess(ChatPreferencesUpdatedSignal, prefs, err)
+
+	return err
 }

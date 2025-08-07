@@ -131,26 +131,23 @@ func CreateCharacter(db *sql.DB, newCharacter *Character) error {
 }
 
 func UpdateCharacter(db *sql.DB, id int64, character *Character) error {
-	var err error
-	defer util.EmitOnSuccess(CharacterUpdatedSignal, character, err)
-
 	util.EmptyStrPtrToNil(&character.AvatarUrl)
 
 	query := "UPDATE characters SET name = $1, favorite = $2, avatar_url = $3 WHERE id = $4"
 	args := []any{character.Name, character.Favorite, character.AvatarUrl, id}
 
-	err = database.UpdateRecord(db, query, args)
+	err := database.UpdateRecord(db, query, args)
+	defer util.EmitOnSuccess(CharacterUpdatedSignal, character, err)
+
 	return err
 }
 
 func DeleteCharacterById(db *sql.DB, id int64) error {
-	var err error
-	defer util.EmitOnSuccess(CharacterDeletedSignal, id, err)
-
 	query := "DELETE FROM characters WHERE id = $1"
 	args := []any{id}
 
-	err = database.DeleteRecord(db, query, args)
+	err := database.DeleteRecord(db, query, args)
+	defer util.EmitOnSuccess(CharacterDeletedSignal, id, err)
 	return err
 }
 

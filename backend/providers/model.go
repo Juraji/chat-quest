@@ -84,6 +84,8 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels [
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer database.RollBackOnErr(tx, err)
+	defer util.EmitOnSuccess(ConnectionProfileCreatedSignal, profile, err)
+	defer util.EmitAllOnSuccess(LlmModelCreatedSignal, llmModels, err)
 
 	query := "INSERT INTO connection_profiles (name, provider_type, base_url, api_key) VALUES ($1, $2, $3, $4) RETURNING id"
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey}
@@ -99,7 +101,8 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels [
 		}
 	}
 
-	return tx.Commit()
+	err = tx.Commit()
+	return err
 }
 
 func UpdateConnectionProfile(db *sql.DB, id int64, profile *ConnectionProfile) error {
@@ -111,14 +114,20 @@ func UpdateConnectionProfile(db *sql.DB, id int64, profile *ConnectionProfile) e
             WHERE id = $5`
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey, id}
 
-	return database.UpdateRecord(db, query, args)
+	err := database.UpdateRecord(db, query, args)
+	defer util.EmitOnSuccess(ConnectionProfileUpdatedSignal, profile, err)
+
+	return err
 }
 
 func DeleteConnectionProfileById(db *sql.DB, id int64) error {
 	query := "DELETE FROM connection_profiles WHERE id = $1"
 	args := []any{id}
 
-	return database.DeleteRecord(db, query, args)
+	err := database.DeleteRecord(db, query, args)
+	defer util.EmitOnSuccess(ConnectionProfileDeletedSignal, id, err)
+
+	return err
 }
 
 func LlmModelsByConnectionProfileId(db *sql.DB, profileId int64) ([]*LlmModel, error) {
@@ -128,7 +137,10 @@ func LlmModelsByConnectionProfileId(db *sql.DB, profileId int64) ([]*LlmModel, e
 }
 
 func CreateLlmModel(db *sql.DB, profileId int64, llmModel *LlmModel) error {
-	return createLlmModel(db, profileId, llmModel)
+	err := createLlmModel(db, profileId, llmModel)
+	defer util.EmitOnSuccess(LlmModelCreatedSignal, llmModel, err)
+
+	return err
 }
 func createLlmModel(db database.QueryExecutor, profileId int64, llmModel *LlmModel) error {
 	llmModel.ConnectionProfileId = profileId
@@ -169,11 +181,17 @@ func UpdateLlmModel(db *sql.DB, id int64, llmModel *LlmModel) error {
 		id,
 	}
 
-	return database.UpdateRecord(db, query, args)
+	err := database.UpdateRecord(db, query, args)
+	defer util.EmitOnSuccess(LlmModelUpdatedSignal, llmModel, err)
+
+	return err
 }
 
 func DeleteLlmModelById(db *sql.DB, id int64) error {
-	return deleteLlmModelById(db, id)
+	err := deleteLlmModelById(db, id)
+	util.EmitOnSuccess(LlmModelDeletedSignal, id, err)
+
+	return err
 }
 
 func deleteLlmModelById(db database.QueryExecutor, id int64) error {
@@ -206,24 +224,31 @@ func MergeLlmModels(db *sql.DB, profileId int64, newModels []*LlmModel) error {
 	})
 
 	// Add new models
+	var createdModels []*LlmModel
+	defer util.EmitAllOnSuccess(LlmModelCreatedSignal, createdModels, err)
 	for _, newModel := range newModels {
 		if existingModelIdSet.NotContains(newModel.ModelId) {
 			if err = createLlmModel(tx, profileId, newModel); err != nil {
 				return err
 			}
+			createdModels = append(createdModels, newModel)
 		}
 	}
 
 	// Remove models not in new set
+	var deletedModelIds []int64
+	defer util.EmitAllOnSuccess(LlmModelDeletedSignal, deletedModelIds, err)
 	for _, existingModel := range existingModels {
 		if newModelIdSet.NotContains(existingModel.ModelId) {
 			if err = deleteLlmModelById(tx, existingModel.ID); err != nil {
 				return err
 			}
+			deletedModelIds = append(deletedModelIds, existingModel.ID)
 		}
 	}
 
-	return tx.Commit()
+	err = tx.Commit()
+	return err
 }
 
 func GetAllLlmModelViews(db database.QueryExecutor) ([]*LlmModelView, error) {

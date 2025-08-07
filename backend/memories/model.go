@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/providers"
+	"juraji.nl/chat-quest/util"
 	"time"
 )
 
@@ -110,19 +111,30 @@ func CreateMemory(db *sql.DB, memory *Memory) error {
 		memory.EmbeddingModelId,
 	}
 
-	return database.InsertRecord(db, query, args, &memory.ID)
+	err := database.InsertRecord(db, query, args, &memory.ID)
+	defer util.EmitOnSuccess(MemoryCreatedSignal, memory, err)
+
+	return err
 }
 
 func UpdateMemory(db *sql.DB, id int64, memory *Memory) error {
 	query := `UPDATE memories SET content = $2, embedding = $3, embedding_model_id = $4 WHERE id = $1`
 	args := []any{id, memory.Content, memory.Embedding, memory.EmbeddingModelId}
-	return database.UpdateRecord(db, query, args)
+
+	err := database.UpdateRecord(db, query, args)
+	defer util.EmitOnSuccess(MemoryUpdatedSignal, memory, err)
+
+	return err
 }
 
 func DeleteMemory(db *sql.DB, id int64) error {
 	query := `DELETE FROM memories WHERE id = $1`
 	args := []any{id}
-	return database.DeleteRecord(db, query, args)
+
+	err := database.DeleteRecord(db, query, args)
+	defer util.EmitOnSuccess(MemoryDeletedSignal, id, err)
+
+	return err
 }
 
 func GetMemoryPreferences(db *sql.DB) (*MemoryPreferences, error) {
@@ -154,5 +166,9 @@ func UpdateMemoryPreferences(db *sql.DB, prefs *MemoryPreferences) error {
 		prefs.MemoryTriggerAfter,
 		prefs.MemoryWindowSize,
 	}
-	return database.UpdateRecord(db, query, args)
+
+	err := database.UpdateRecord(db, query, args)
+	defer util.EmitOnSuccess(MemoryPreferencesUpdatedSignal, prefs, err)
+
+	return err
 }
