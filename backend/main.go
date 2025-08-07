@@ -12,6 +12,7 @@ import (
 	"juraji.nl/chat-quest/memories"
 	"juraji.nl/chat-quest/providers"
 	"juraji.nl/chat-quest/scenarios"
+	"juraji.nl/chat-quest/sse"
 	"juraji.nl/chat-quest/system"
 	"juraji.nl/chat-quest/util"
 	"juraji.nl/chat-quest/worlds"
@@ -75,6 +76,7 @@ func main() {
 		worlds.Routes(apiRouter, db)
 		chat_sessions.Routes(apiRouter, db)
 		memories.Routes(apiRouter, db)
+		sse.Routes(apiRouter)
 	}
 
 	// If endpoint is not found, the request is probably a UI resource.
