@@ -30,7 +30,6 @@ func sseHandler(c *gin.Context) {
 	pingTicker := time.NewTicker(30 * time.Second)
 	defer pingTicker.Stop()
 
-	// Create a map to store listener keys for cleanup
 	listenerKeys := make(map[string]string)
 
 	for _, source := range sseSourceSignals {
@@ -38,19 +37,20 @@ func sseHandler(c *gin.Context) {
 		signal := source.signal
 		key := "SSE_" + clientIp + "_" + sourceName
 
-		// Store the key for later removal
 		listenerKeys[sourceName] = key
-
-		// Create a listener function that handles any payload type
 		signal.AddListener(func(ctx context.Context, payload any) {
 			clientChan <- messageBody{sourceName, payload}
 		}, key)
 	}
 
+	// Write initial message to confirm connection
+	if err := writeAndFlushEvent(c, "connection", "SSE connected!"); err != nil {
+		log.Printf("error writing data on SSE for %v: %v", clientIp, err)
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
-			// Remove all listeners before closing
 			for _, source := range sseSourceSignals {
 				source.signal.RemoveListener(listenerKeys[source.sourceName])
 			}
