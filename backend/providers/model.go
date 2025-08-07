@@ -83,11 +83,7 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels [
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer func(tx *sql.Tx, err error) {
-		if err == nil {
-			_ = tx.Rollback()
-		}
-	}(tx, err)
+	defer database.RollBackOnErr(tx, err)
 
 	query := "INSERT INTO connection_profiles (name, provider_type, base_url, api_key) VALUES ($1, $2, $3, $4) RETURNING id"
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey}
@@ -192,11 +188,7 @@ func MergeLlmModels(db *sql.DB, profileId int64, newModels []*LlmModel) error {
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer func(tx *sql.Tx, err error) {
-		if err != nil {
-			_ = tx.Rollback()
-		}
-	}(tx, err)
+	defer database.RollBackOnErr(tx, err)
 
 	// New model id set
 	newModelIdSet := util.NewSetFrom(newModels, func(t *LlmModel) string {

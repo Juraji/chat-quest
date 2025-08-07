@@ -100,34 +100,58 @@ func CharacterById(db *sql.DB, id int64) (*Character, error) {
 }
 
 func CreateCharacter(db *sql.DB, newCharacter *Character) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer database.RollBackOnErr(tx, err)
+	defer util.EmitOnSuccess(CharacterCreatedSignal, newCharacter, err)
+
 	util.EmptyStrPtrToNil(&newCharacter.AvatarUrl)
 
 	query := "INSERT INTO characters (name, favorite, avatar_url) VALUES ($1, $2, $3) RETURNING id, created_at"
 	args := []any{newCharacter.Name, newCharacter.Favorite, newCharacter.AvatarUrl}
 
-	if err := database.InsertRecord(db, query, args, &newCharacter.ID, &newCharacter.CreatedAt); err != nil {
+	if err := database.InsertRecord(tx, query, args, &newCharacter.ID, &newCharacter.CreatedAt); err != nil {
 		return err
 	}
 
 	// Create empty character details (so it exists when fetched)
 	var newCharacterDetails CharacterDetails
-	return UpdateCharacterDetails(db, newCharacter.ID, &newCharacterDetails)
+	if err = updateCharacterDetails(tx, newCharacter.ID, &newCharacterDetails); err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func UpdateCharacter(db *sql.DB, id int64, character *Character) error {
+	var err error
+	defer util.EmitOnSuccess(CharacterUpdatedSignal, character, err)
+
 	util.EmptyStrPtrToNil(&character.AvatarUrl)
 
 	query := "UPDATE characters SET name = $1, favorite = $2, avatar_url = $3 WHERE id = $4"
 	args := []any{character.Name, character.Favorite, character.AvatarUrl, id}
 
-	return database.UpdateRecord(db, query, args)
+	err = database.UpdateRecord(db, query, args)
+	return err
 }
 
 func DeleteCharacterById(db *sql.DB, id int64) error {
+	var err error
+	defer util.EmitOnSuccess(CharacterDeletedSignal, id, err)
+
 	query := "DELETE FROM characters WHERE id = $1"
 	args := []any{id}
 
-	return database.DeleteRecord(db, query, args)
+	err = database.DeleteRecord(db, query, args)
+	return err
 }
 
 func CharacterDetailsByCharacterId(db *sql.DB, characterId int64) (*CharacterDetails, error) {
@@ -138,6 +162,10 @@ func CharacterDetailsByCharacterId(db *sql.DB, characterId int64) (*CharacterDet
 }
 
 func UpdateCharacterDetails(db *sql.DB, characterId int64, characterDetail *CharacterDetails) error {
+	return updateCharacterDetails(db, characterId, characterDetail)
+}
+
+func updateCharacterDetails(db database.QueryExecutor, characterId int64, characterDetail *CharacterDetails) error {
 	util.EmptyStrPtrToNil(&characterDetail.Appearance)
 	util.EmptyStrPtrToNil(&characterDetail.Personality)
 	util.EmptyStrPtrToNil(&characterDetail.History)
@@ -190,11 +218,7 @@ func SetCharacterTags(db *sql.DB, characterId int64, tagIds []int64) error {
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer func(tx *sql.Tx, err error) {
-		if err != nil {
-			_ = tx.Rollback()
-		}
-	}(tx, err)
+	defer database.RollBackOnErr(tx, err)
 
 	deleteQuery := "DELETE FROM character_tags WHERE character_id = $1"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
@@ -230,11 +254,7 @@ func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer func(tx *sql.Tx, err error) {
-		if err != nil {
-			_ = tx.Rollback()
-		}
-	}(tx, err)
+	defer database.RollBackOnErr(tx, err)
 
 	deleteQuery := "DELETE FROM character_dialogue_examples WHERE character_id = $1"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
@@ -270,11 +290,7 @@ func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer func(tx *sql.Tx, err error) {
-		if err != nil {
-			_ = tx.Rollback()
-		}
-	}(tx, err)
+	defer database.RollBackOnErr(tx, err)
 
 	deleteQuery := "DELETE FROM character_greetings WHERE character_id = $1"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {

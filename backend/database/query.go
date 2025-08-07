@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"log"
 )
 
 // RowScanner interface that works with both sql.Row and sql.Rows
@@ -121,4 +122,12 @@ func DeleteRecord(
 ) error {
 	_, err := q.Exec(query, args...)
 	return err
+}
+
+func RollBackOnErr(tx *sql.Tx, err error) {
+	if err != nil {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			log.Printf("Rollback failed: %v", rbErr)
+		}
+	}
 }
