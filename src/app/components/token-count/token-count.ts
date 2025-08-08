@@ -20,8 +20,6 @@ export class TokenCount {
   protected readonly tokenCount: WritableSignal<number> = signal(0)
 
   constructor() {
-    let firstEmission = true;
-
     toObservable(this.text)
       .pipe(
         takeUntilDestroyed(),
