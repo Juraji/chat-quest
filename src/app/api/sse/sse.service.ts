@@ -1,4 +1,4 @@
-import {DestroyRef, inject, Injectable, OnDestroy} from '@angular/core';
+import {DestroyRef, inject, Injectable, Signal, signal} from '@angular/core';
 import {map, Observable, Subject, timer} from 'rxjs';
 import {filter, share} from 'rxjs/operators';
 import {SseMessageBody} from './sse.model';
@@ -6,7 +6,7 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {ChatQuestConfig} from '@config/config';
 
 @Injectable({providedIn: 'root'})
-export class SSE implements OnDestroy {
+export class SSE {
   private readonly destroyRef = inject(DestroyRef)
   private readonly config = inject(ChatQuestConfig)
   private readonly events = new Subject<SseMessageBody>();
@@ -15,11 +15,8 @@ export class SSE implements OnDestroy {
   private maxReconnectAttempts = this.config.sse.maxReconnectAttempts;
   private reconnectionDelay = this.config.sse.reconnectionDelay;
 
-  ngOnDestroy() {
-    if (this.eventSource) {
-      this.eventSource.close();
-    }
-  }
+  private readonly _connectionState = signal<number>(EventSource.CLOSED);
+  readonly connectionState: Signal<number> = this._connectionState;
 
   on<T>(source: string): Observable<T> {
     return this.events.pipe(
@@ -34,20 +31,27 @@ export class SSE implements OnDestroy {
     this.reconnect()
   }
 
+  disconnect() {
+    // Prevent reconnect on destroy
+    this.reconnectAttempts = this.maxReconnectAttempts;
+    if (this.eventSource) {
+      this.eventSource.close();
+    }
+  }
+
   private reconnect() {
     if (this.eventSource) {
       this.eventSource.close();
     }
 
-    // Reset attempts on new connection attempt
-    this.reconnectAttempts = 0;
-
     const s = new EventSource(`${this.config.apiBaseUrl}/sse`);
     this.eventSource = s;
+    this._connectionState.set(s.CONNECTING);
 
     s.onopen = () => {
       console.log('SSE connection established');
       this.reconnectAttempts = 0;
+      this._connectionState.set(s.OPEN);
     };
 
     s.addEventListener('message', e => {
@@ -73,6 +77,7 @@ export class SSE implements OnDestroy {
       } else {
         console.error('Max reconnection attempts reached');
         s.close();
+        this._connectionState.set(s.CLOSED);
       }
     };
   }

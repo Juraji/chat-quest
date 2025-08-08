@@ -1,0 +1,21 @@
+@switch (status()) {
+  @case (0) {
+    <button class="btn btn-dark text-warning"
+            title="Trying to connect to ChatQuest backend...">
+      <span>Connecting...</span>
+    </button>
+  }
+  @case (1) {
+    <button class="btn btn-dark text-success"
+            title="Connected to ChatQuest backend!">
+      <span>Connected</span>
+    </button>
+  }
+  @case (2) {
+    <button class="btn btn-dark text-danger"
+            title="Unable to connect to ChatQuest backend.
+Check the server status and try refreshing the page.">
+      <span>Connection lost.</span>
+    </button>
+  }
+}
