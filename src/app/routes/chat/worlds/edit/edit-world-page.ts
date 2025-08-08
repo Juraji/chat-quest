@@ -1,20 +1,31 @@
-import {Component, computed, inject, Signal} from '@angular/core';
+import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {PageHeader} from '@components/page-header';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
-import {ActivatedRoute} from '@angular/router';
-import {formControl, formGroup, readOnlyControl, routeDataSignal} from '@util/ng';
-import {World} from '@api/worlds';
+import {ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
+import {formControl, formGroup, readOnlyControl, routeDataSignal, toControlValueSignal} from '@util/ng';
+import {World, Worlds} from '@api/worlds';
 import {isNew} from '@api/common';
+import {AvatarControl} from '@components/avatar-control';
+import {TokenCount} from '@components/token-count';
+import {Notifications} from '@components/notifications';
 
 @Component({
   imports: [
     PageHeader,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    AvatarControl,
+    RouterLinkActive,
+    RouterOutlet,
+    RouterLink,
+    TokenCount
   ],
   templateUrl: './edit-world-page.html'
 })
 export class EditWorldPage {
-  private readonly activatedRoute = inject(ActivatedRoute);
+  readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly worlds = inject(Worlds)
+  private readonly notifications = inject(Notifications)
 
   readonly world: Signal<World> = routeDataSignal(this.activatedRoute, 'world');
 
@@ -27,15 +38,59 @@ export class EditWorldPage {
     description: formControl(''),
   })
 
-  onResetForm() {
+  readonly descriptionValue: Signal<string> = toControlValueSignal(this.formGroup, 'description')
 
+  readonly subMenuItems = [
+    {route: 'chat-sessions', label: 'Chat Sessions'},
+    {route: 'memories', label: 'Memories'},
+  ]
+
+
+  constructor() {
+    effect(() => this.onResetForm());
+  }
+
+  onResetForm() {
+    this.formGroup.reset(this.world())
   }
 
   onFormSubmit() {
+    if (this.formGroup.invalid) return
 
+    const formValue = this.formGroup.value
+
+    const update: World = {
+      ...this.world(),
+      ...formValue
+    }
+
+    this.worlds
+      .save(update)
+      .subscribe(world => {
+        this.notifications.toast("World saved!")
+        this.router.navigate(['..', world.id], {
+          relativeTo: this.activatedRoute,
+          queryParams: {u: Date.now()},
+          replaceUrl: true
+        })
+      })
   }
 
-  onDeleteScenario() {
+  onDeleteWorld() {
+    const world = this.world();
+    if (isNew(world)) return
+    const doDelete = confirm(`Are you sure you want to delete this world?\n\nAll chat sessions and memories will also be deleted!`)
 
+    if (doDelete) {
+      this.worlds
+        .delete(world!.id)
+        .subscribe(() => {
+          this.notifications.toast("World deleted!")
+          this.router.navigate(['..'], {
+            relativeTo: this.activatedRoute,
+            replaceUrl: true
+          })
+        })
+    }
   }
 }

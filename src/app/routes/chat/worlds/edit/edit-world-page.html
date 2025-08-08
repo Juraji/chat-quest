@@ -9,7 +9,7 @@
 
       @if (!isNew()) {
         <button type="button" class="btn btn-outline-danger"
-                (click)="onDeleteScenario()">Delete World
+                (click)="onDeleteWorld()">Delete World
         </button>
       }
       @if (!isNew() && formGroup.dirty) {
@@ -21,5 +21,62 @@
               [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
       </button>
     </app-page-header>
+
+    <div class="grid">
+      <div class="g-col-12 g-col-lg-6 g-col-xl-4">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Base information</h5>
+
+            <div class="grid mb-3">
+              <div class="g-col-4">
+                <app-avatar-control disabled></app-avatar-control>
+              </div>
+              <div class="g-col-8">
+                <div class="mb-3">
+                  <label for="worldNameInput">Name</label>
+                  <input type="text" class="form-control"
+                         id="worldNameInput"
+                         aria-describedby="worldNameInputHelp"
+                         formControlName="name"/>
+                  <div id="worldNameInputHelp" class="form-text">A unique name for your world.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="worldDescriptionInput">Description</label>
+              <textarea type="text" class="form-control"
+                        rows="10"
+                        id="worldDescriptionInput"
+                        aria-describedby="worldDescriptionInputHelp"
+                        formControlName="description"></textarea>
+              <div>
+                <div id="worldDescriptionInputHelp" class="form-text d-inline">Describe your world.</div>
+                <app-token-count class="float-end" [text]="descriptionValue()"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      @if (!isNew()) {
+        <div class="g-col-12 g-col-lg-6 g-col-xl-8">
+          <ul class="nav nav-underline mb-3">
+            @for (item of subMenuItems; track item.route) {
+              <li class="nav-item">
+                <a class="nav-link"
+                   [routerLink]="item.route"
+                   routerLinkActive="active"
+                   queryParamsHandling="preserve"
+                   replaceUrl
+                   [relativeTo]="activatedRoute">{{ item.label }}</a>
+              </li>
+            }
+          </ul>
+
+          <router-outlet></router-outlet>
+        </div>
+      }
+    </div>
   </div>
 </form>

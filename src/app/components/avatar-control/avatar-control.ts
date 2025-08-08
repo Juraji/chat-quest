@@ -1,8 +1,18 @@
-import {Component, computed, forwardRef, inject, Signal, signal, WritableSignal} from '@angular/core';
+import {
+  booleanAttribute,
+  Component,
+  computed,
+  forwardRef,
+  inject,
+  input,
+  linkedSignal,
+  Signal,
+  signal,
+  WritableSignal
+} from '@angular/core';
 import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {Notifications} from '../notifications';
 import {AvatarImageCrop} from './avatar-image-crop';
-import {BooleanSignal, booleanSignal} from '@util/ng';
 import {readBlobAsDataUrl} from '@util/blobs';
 
 @Component({
@@ -29,10 +39,12 @@ export class AvatarControl implements ControlValueAccessor {
   private onChange: (value: Nullable<string>) => void = () => null
   private onTouched: () => void = () => null
 
-  readonly cropperDataUrl: WritableSignal<string | null> = signal(null)
-  readonly currentValue: WritableSignal<Nullable<string>> = signal(null)
-  readonly isDisabled: BooleanSignal = booleanSignal(false)
-  readonly isSet: Signal<boolean> = computed(() => this.currentValue() != null)
+  readonly disabled = input(false, {transform: booleanAttribute})
+
+  protected readonly cropperDataUrl: WritableSignal<string | null> = signal(null)
+  protected readonly currentValue: WritableSignal<Nullable<string>> = signal(null)
+  protected readonly isDisabled: WritableSignal<boolean> = linkedSignal(() => this.disabled())
+  protected readonly isSet: Signal<boolean> = computed(() => this.currentValue() != null)
 
   constructor() {
   }

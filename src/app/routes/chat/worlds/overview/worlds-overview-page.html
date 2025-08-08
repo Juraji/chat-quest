@@ -7,7 +7,7 @@
   <div class="grid">
     @for (world of worlds(); track world.id) {
       <div class="g-col-6 g-col-lg-3">
-        <world-card [world]="world">
+        <world-card [world]="world" [routerLink]="['.', world.id]" class="cursor-pointer">
           <button class="btn">
             <span class="bi bi-box-arrow-in-right"></span>
           </button>

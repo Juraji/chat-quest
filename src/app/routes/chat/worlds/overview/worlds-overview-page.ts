@@ -12,7 +12,6 @@ import {WorldCard} from '@components/cards/world-card';
     NewItemCard,
     RouterLink,
     WorldCard,
-
   ],
   templateUrl: './worlds-overview-page.html'
 })

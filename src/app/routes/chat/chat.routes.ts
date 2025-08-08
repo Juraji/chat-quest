@@ -33,6 +33,8 @@ const routes: Routes = [
       {
         path: 'worlds/:worldId',
         component: EditWorldPage,
+        runGuardsAndResolvers: "paramsOrQueryParamsChange",
+        loadChildren: () => import("./worlds/edit/world.routes"),
         resolve: {
           world: worldResolverFactory('worldId')
         }
