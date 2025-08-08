@@ -1,5 +1,23 @@
 <div class="container">
   <app-page-header>
     <span class="page-title">Worlds</span>
+    <button class="btn btn-primary" routerLink="./new">Create World</button>
   </app-page-header>
+
+  <div class="grid">
+    @for (world of worlds(); track world.id) {
+      <div class="g-col-6 g-col-lg-3">
+        <world-card [world]="world">
+          <button class="btn">
+            <span class="bi bi-box-arrow-in-right"></span>
+          </button>
+        </world-card>
+      </div>
+    }
+    <div class="g-col-6 g-col-lg-3">
+      <app-new-item-card routerLink="./new">
+        <span>Add world</span>
+      </app-new-item-card>
+    </div>
+  </div>
 </div>

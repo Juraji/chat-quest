@@ -1,0 +1,25 @@
+<form [formGroup]="formGroup" (submit)="onFormSubmit()">
+  <div class="container">
+    <app-page-header backUrl="../">
+      @if (isNew()) {
+        <span class="page-title">New World</span>
+      } @else {
+        <span class="page-title">{{ name() }}</span>
+      }
+
+      @if (!isNew()) {
+        <button type="button" class="btn btn-outline-danger"
+                (click)="onDeleteScenario()">Delete World
+        </button>
+      }
+      @if (!isNew() && formGroup.dirty) {
+        <button type="button" class="btn btn-outline-secondary"
+                (click)="onResetForm()">Revert changes
+        </button>
+      }
+      <button class="btn btn-primary btn-magical"
+              [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
+      </button>
+    </app-page-header>
+  </div>
+</form>

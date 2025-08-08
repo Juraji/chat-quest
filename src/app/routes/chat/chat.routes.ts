@@ -15,6 +15,8 @@ import {
   characterTagsResolverFactory
 } from '@api/characters/characters.resolvers';
 import {scenarioResolverFactory, scenariosResolver} from '@api/scenarios/scenarios.resolvers';
+import {worldResolverFactory, worldsResolver} from '@api/worlds';
+import {EditWorldPage} from './worlds/edit/edit-world-page';
 
 const routes: Routes = [
   {
@@ -24,6 +26,16 @@ const routes: Routes = [
       {
         path: 'worlds',
         component: WorldsOverviewPage,
+        resolve: {
+          worlds: worldsResolver
+        }
+      },
+      {
+        path: 'worlds/:worldId',
+        component: EditWorldPage,
+        resolve: {
+          world: worldResolverFactory('worldId')
+        }
       },
       {
         path: 'characters',
