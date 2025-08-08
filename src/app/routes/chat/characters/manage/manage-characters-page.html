@@ -10,7 +10,7 @@
          (click)="selectedTag.set(null)">All
     </div>
     @for (tag of allTags(); track tag.id) {
-      <div class="badge bg-body-tertiary me-2 mb-2"
+      <div class="badge bg-body-secondary me-2 mb-2"
            [class.active]="selectedTag()?.id === tag.id"
            (click)="selectedTag.set(tag)">
         <div>{{ tag.label }}</div>

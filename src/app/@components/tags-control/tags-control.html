@@ -3,7 +3,7 @@
     <span class="form-text text-muted mb-2">No tags assigned</span>
   }
   @for (tag of currentTags(); track tag.id) {
-    <div class="badge d-flex align-items-center bg-body-tertiary me-2 mb-2">
+    <div class="badge d-flex align-items-center bg-body-secondary me-2 mb-2">
       <div>{{ tag.label }}</div>
       @if (!isDisabled()) {
         <button
