@@ -28,6 +28,7 @@ export class SSE {
   }
 
   connect() {
+    this.reconnectAttempts = 0;
     this.reconnect()
   }
 
@@ -36,12 +37,14 @@ export class SSE {
     this.reconnectAttempts = this.maxReconnectAttempts;
     if (this.eventSource) {
       this.eventSource.close();
+      this.eventSource = null;
     }
   }
 
   private reconnect() {
     if (this.eventSource) {
       this.eventSource.close();
+      this.eventSource = null;
     }
 
     const s = new EventSource(`${this.config.apiBaseUrl}/sse`);
@@ -73,7 +76,7 @@ export class SSE {
         const delay = this.reconnectionDelay * (this.reconnectAttempts * this.reconnectAttempts);
 
         console.log(`SSE connection error. Reconnecting in ${delay}ms...`);
-        timer(delay).subscribe(() => this.connect());
+        timer(delay).subscribe(() => this.reconnect());
       } else {
         console.error('Max reconnection attempts reached');
         s.close();
