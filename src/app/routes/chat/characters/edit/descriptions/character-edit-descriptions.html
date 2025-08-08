@@ -23,7 +23,10 @@
           </div>
         </div>
       } @else if (!!appearanceValue()) {
-        <code>{{ appearanceValue() }}</code>
+        <app-rendered-message
+          [message]="appearanceValue()"
+          [renderOptions]="{enableOOC: false, enableActions: false}"/>
+        <app-token-count class="mt-2 float-end" [text]="appearanceValue()"></app-token-count>
       } @else {
         <p class="form-text mb-0">
           No appearance description supplied.
@@ -56,7 +59,10 @@
           </div>
         </div>
       } @else if (!!personalityValue()) {
-        <code>{{ personalityValue() }}</code>
+        <app-rendered-message
+          [message]="personalityValue()"
+          [renderOptions]="{enableOOC: false, enableActions: false}"/>
+        <app-token-count class="mt-2 float-end" [text]="personalityValue()"></app-token-count>
       } @else {
         <p class="form-text mb-0">
           No personality description supplied.
@@ -90,7 +96,10 @@
           </div>
         </div>
       } @else if (!!historyValue()) {
-        <code>{{ historyValue() }}</code>
+        <app-rendered-message
+          [message]="historyValue()"
+          [renderOptions]="{enableOOC: false, enableActions: false}"/>
+        <app-token-count class="mt-2 float-end" [text]="historyValue()"></app-token-count>
       } @else {
         <p class="form-text mb-0">
           No history supplied.
