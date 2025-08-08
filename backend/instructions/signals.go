@@ -1,7 +1,16 @@
 package instructions
 
-import "github.com/maniartech/signals"
+import (
+	"github.com/maniartech/signals"
+	"juraji.nl/chat-quest/sse"
+)
 
-var InstructionTemplateCreatedSignal = signals.New[*InstructionTemplate]()
-var InstructionTemplateUpdatedSignal = signals.New[*InstructionTemplate]()
-var InstructionTemplateDeletedSignal = signals.New[int64]()
+var InstructionCreatedSignal = signals.New[*InstructionTemplate]()
+var InstructionUpdatedSignal = signals.New[*InstructionTemplate]()
+var InstructionDeletedSignal = signals.New[int64]()
+
+func init() {
+	sse.RegisterSseSourceSignal("InstructionCreated", InstructionCreatedSignal)
+	sse.RegisterSseSourceSignal("InstructionUpdated", InstructionUpdatedSignal)
+	sse.RegisterSseSourceSignal("InstructionDeleted", InstructionDeletedSignal)
+}

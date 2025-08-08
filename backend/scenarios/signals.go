@@ -1,7 +1,16 @@
 package scenarios
 
-import "github.com/maniartech/signals"
+import (
+	"github.com/maniartech/signals"
+	"juraji.nl/chat-quest/sse"
+)
 
 var ScenarioCreatedSignal = signals.New[*Scenario]()
 var ScenarioUpdatedSignal = signals.New[*Scenario]()
 var ScenarioDeletedSignal = signals.New[int64]()
+
+func init() {
+	sse.RegisterSseSourceSignal("ScenarioCreated", ScenarioCreatedSignal)
+	sse.RegisterSseSourceSignal("ScenarioUpdated", ScenarioUpdatedSignal)
+	sse.RegisterSseSourceSignal("ScenarioDeleted", ScenarioDeletedSignal)
+}

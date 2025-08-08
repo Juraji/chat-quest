@@ -1,7 +1,16 @@
 package characters
 
-import "github.com/maniartech/signals"
+import (
+	"github.com/maniartech/signals"
+	"juraji.nl/chat-quest/sse"
+)
 
 var CharacterCreatedSignal = signals.New[*Character]()
 var CharacterUpdatedSignal = signals.New[*Character]()
 var CharacterDeletedSignal = signals.New[int64]()
+
+func init() {
+	sse.RegisterSseSourceSignal("CharacterCreated", CharacterCreatedSignal)
+	sse.RegisterSseSourceSignal("CharacterUpdated", CharacterUpdatedSignal)
+	sse.RegisterSseSourceSignal("CharacterDeleted", CharacterDeletedSignal)
+}

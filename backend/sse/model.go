@@ -10,7 +10,7 @@ type messageBody struct {
 	Payload any    `json:"payload"`
 }
 
-type SourceSignal struct {
+type sourceSignal struct {
 	sourceName string
 	signal     anySignalInterface
 }
@@ -34,11 +34,4 @@ func (sw *signalWrapper[T]) AddListener(listener func(context.Context, any), key
 
 func (sw *signalWrapper[T]) RemoveListener(key string) {
 	sw.signal.RemoveListener(key)
-}
-
-func NewSourceSignal[T any](name string, s signals.Signal[T]) SourceSignal {
-	return SourceSignal{
-		sourceName: name,
-		signal:     &signalWrapper[T]{signal: s},
-	}
 }

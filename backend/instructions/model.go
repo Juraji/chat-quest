@@ -45,7 +45,7 @@ func CreateInstructionPrompt(db *sql.DB, prompt *InstructionTemplate) error {
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction}
 
 	err := database.InsertRecord(db, query, args, &prompt.ID)
-	defer util.EmitOnSuccess(InstructionTemplateCreatedSignal, prompt, err)
+	defer util.EmitOnSuccess(InstructionCreatedSignal, prompt, err)
 
 	return err
 }
@@ -63,7 +63,7 @@ func UpdateInstructionPrompt(db *sql.DB, id int64, prompt *InstructionTemplate) 
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction, id}
 
 	err := database.UpdateRecord(db, query, args)
-	defer util.EmitOnSuccess(InstructionTemplateUpdatedSignal, prompt, err)
+	defer util.EmitOnSuccess(InstructionUpdatedSignal, prompt, err)
 
 	return err
 }
@@ -73,7 +73,7 @@ func DeleteInstructionPrompt(db *sql.DB, id int64) error {
 	args := []any{id}
 
 	err := database.DeleteRecord(db, query, args)
-	defer util.EmitOnSuccess(InstructionTemplateDeletedSignal, id, err)
+	defer util.EmitOnSuccess(InstructionDeletedSignal, id, err)
 
 	return err
 }
