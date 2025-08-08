@@ -2,7 +2,8 @@ CREATE TABLE worlds
 (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   name        VARCHAR(100) NOT NULL,
-  description TEXT         NOT NULL
+  description TEXT NOT NULL,
+  avatar_url  TEXT DEFAULT NULL
 );
 
 CREATE TABLE chat_preferences

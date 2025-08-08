@@ -36,6 +36,7 @@ export class EditWorldPage {
     id: readOnlyControl(),
     name: formControl('', [Validators.required]),
     description: formControl(''),
+    avatarUrl: formControl<Nullable<string>>(null),
   })
 
   readonly descriptionValue: Signal<string> = toControlValueSignal(this.formGroup, 'description')

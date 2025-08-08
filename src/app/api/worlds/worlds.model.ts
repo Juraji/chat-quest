@@ -3,6 +3,7 @@ import {ChatQuestModel} from '@api/common';
 export interface World extends ChatQuestModel {
   name: string
   description: string
+  avatarUrl: Nullable<string>
 }
 
 export interface ChatPreferences {

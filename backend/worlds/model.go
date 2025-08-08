@@ -7,9 +7,10 @@ import (
 )
 
 type World struct {
-	ID          int64  `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	ID          int64   `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	AvatarUrl   *string `json:"avatarUrl"`
 }
 
 type ChatPreferences struct {
@@ -22,6 +23,7 @@ func worldScanner(scanner database.RowScanner, dest *World) error {
 		&dest.ID,
 		&dest.Name,
 		&dest.Description,
+		&dest.AvatarUrl,
 	)
 }
 func chatPreferencesScanner(scanner database.RowScanner, dest *ChatPreferences) error {
@@ -44,8 +46,10 @@ func WorldById(db *sql.DB, id int64) (*World, error) {
 }
 
 func CreateWorld(db *sql.DB, newWorld *World) error {
-	query := "INSERT INTO worlds (name, description) VALUES ($1, $2) RETURNING id"
-	args := []any{newWorld.Name, newWorld.Description}
+	util.EmptyStrPtrToNil(&newWorld.AvatarUrl)
+
+	query := "INSERT INTO worlds (name, description, avatar_url) VALUES ($1, $2, $3) RETURNING id"
+	args := []any{newWorld.Name, newWorld.Description, newWorld.AvatarUrl}
 
 	err := database.InsertRecord(db, query, args, &newWorld.ID)
 	defer util.EmitOnSuccess(WorldCreatedSignal, newWorld, err)
@@ -54,11 +58,14 @@ func CreateWorld(db *sql.DB, newWorld *World) error {
 }
 
 func UpdateWorld(db *sql.DB, id int64, world *World) error {
+	util.EmptyStrPtrToNil(&world.AvatarUrl)
+
 	query := `UPDATE worlds
             SET name=$2,
-                description=$3
+                description=$3,
+                avatar_url=$4
             WHERE id=$1`
-	args := []any{id, world.Name, world.Description}
+	args := []any{id, world.Name, world.Description, world.AvatarUrl}
 
 	err := database.UpdateRecord(db, query, args)
 	defer util.EmitOnSuccess(WorldUpdatedSignal, world, err)

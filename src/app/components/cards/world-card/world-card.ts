@@ -12,4 +12,5 @@ import {World} from '@api/worlds';
 export class WorldCard {
   readonly world: InputSignal<World> = input.required()
   readonly name = computed(() => this.world().name)
+  readonly avatarUrl = computed(() => this.world().avatarUrl)
 }
