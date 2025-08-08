@@ -1,11 +1,11 @@
 import {Component, computed, inject, signal, Signal, WritableSignal} from '@angular/core';
 import {ActivatedRoute, RouterLink} from '@angular/router';
 import {routeDataSignal} from '@util/ng';
-import {CharacterWithTags, Tag} from '@api/model';
 import {PageHeader} from '@components/page-header';
-import {CharacterCard} from '@components/cards/character-card/character-card';
-import {Tags} from '@api/clients';
-import {NewItemCard} from '@components/cards/new-item-card/new-item-card';
+import {CharacterCard} from '@components/cards/character-card';
+import {NewItemCard} from '@components/cards/new-item-card';
+import {Tag, Tags} from '@api/tags';
+import {CharacterWithTags} from '@api/characters';
 
 @Component({
   selector: 'app-manage-characters',

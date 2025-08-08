@@ -3,9 +3,9 @@ import {CharacterEditFormService} from '../character-edit-form.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {booleanSignal, toControlValueSignal} from '@util/ng';
 import {EmptyPipe} from '@components/empty-pipe';
-import {RenderedMessage} from '@components/rendered-message/rendered-message';
+import {RenderedMessage} from '@components/rendered-message';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {TokenCount} from '@components/token-count/token-count';
+import {TokenCount} from '@components/token-count';
 
 @Component({
   selector: 'app-character-edit-chat-settings',
@@ -22,8 +22,6 @@ export class CharacterEditChatSettings {
   private readonly formService = inject(CharacterEditFormService)
 
   readonly formGroup = this.formService.formGroup
-
-  readonly characterDetailsFG = this.formService.characterDetailsFG
 
   readonly editDialogueExamples = booleanSignal(false)
   readonly dialogueExamplesFA = this.formService.dialogueExamplesFA

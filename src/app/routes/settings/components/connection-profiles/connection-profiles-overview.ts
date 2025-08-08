@@ -1,7 +1,7 @@
 import {Component, input, InputSignal} from '@angular/core';
 import {RouterLink} from '@angular/router';
-import {ConnectionProfile} from '@api/model';
 import {EmptyPipe} from '@components/empty-pipe';
+import {ConnectionProfile} from '@api/providers';
 
 @Component({
   selector: 'connection-profiles-overview',

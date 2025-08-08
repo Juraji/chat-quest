@@ -1,14 +1,20 @@
 import {Routes} from '@angular/router';
 import {ChatPage} from './chat-page';
 import {ManageCharactersPage} from './characters/manage/manage-characters-page';
-import {manageCharactersResolver} from './characters/manage/manage-characters.resolver';
 import {EditCharacterPage} from './characters/edit/edit-character-page';
-import {editCharacterResolver,} from './characters/edit/edit-character.resolver';
 import {WorldsOverviewPage} from './worlds/overview/worlds-overview-page';
 import {ScenariosOverview} from './scenarios/overview/scenarios-overview';
-import {scenariosOverviewResolver} from './scenarios/overview/scenarios-overview.resolver';
 import {EditScenarioPage} from './scenarios/edit/edit-scenario-page';
-import {editScenarioResolver} from './scenarios/edit/edit-scenario.resolver';
+import {
+  characterDetailsResolverFactory,
+  characterDialogExamplesResolverFactory,
+  characterGreetingsResolverFactory,
+  characterGroupGreetingsResolverFactory,
+  characterResolverFactory,
+  charactersResolver,
+  characterTagsResolverFactory
+} from '@api/characters/characters.resolvers';
+import {scenarioResolverFactory, scenariosResolver} from '@api/scenarios/scenarios.resolvers';
 
 const routes: Routes = [
   {
@@ -23,7 +29,7 @@ const routes: Routes = [
         path: 'characters',
         component: ManageCharactersPage,
         resolve: {
-          characters: manageCharactersResolver,
+          characters: charactersResolver,
         }
       },
       {
@@ -32,14 +38,19 @@ const routes: Routes = [
         runGuardsAndResolvers: "paramsOrQueryParamsChange",
         loadChildren: () => import("./characters/edit/character-edit.routes"),
         resolve: {
-          characterFormData: editCharacterResolver,
+          character: characterResolverFactory('characterId'),
+          characterDetails: characterDetailsResolverFactory('characterId'),
+          tags: characterTagsResolverFactory('characterId'),
+          dialogueExamples: characterDialogExamplesResolverFactory('characterId'),
+          greetings: characterGreetingsResolverFactory('characterId'),
+          groupGreetings: characterGroupGreetingsResolverFactory('characterId'),
         }
       },
       {
         path: 'scenarios',
         component: ScenariosOverview,
         resolve: {
-          scenarios: scenariosOverviewResolver
+          scenarios: scenariosResolver
         }
       },
       {
@@ -47,7 +58,7 @@ const routes: Routes = [
         component: EditScenarioPage,
         runGuardsAndResolvers: "paramsOrQueryParamsChange",
         resolve: {
-          scenario: editScenarioResolver,
+          scenario: scenarioResolverFactory('scenarioId'),
         }
       },
       {

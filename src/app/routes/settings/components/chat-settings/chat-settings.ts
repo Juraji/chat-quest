@@ -1,9 +1,11 @@
 import {Component, computed, effect, inject, input, InputSignal} from '@angular/core';
 import {formControl, formGroup} from '@util/ng';
-import {ChatPreferences, InstructionTemplate, LlmModelView} from '@api/model';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
-import {Worlds} from '@api/clients/worlds';
+import {Worlds} from '@api/worlds/worlds.service';
 import {Notifications} from '@components/notifications';
+import {ChatPreferences} from '@api/worlds';
+import {Instruction} from '@api/instructions';
+import {LlmModelView} from '@api/providers';
 
 @Component({
   selector: 'chat-settings',
@@ -17,7 +19,7 @@ export class ChatSettings {
   private readonly notifications = inject(Notifications);
 
   readonly preferences: InputSignal<ChatPreferences> = input.required()
-  readonly instructionTemplates: InputSignal<InstructionTemplate[]> = input.required()
+  readonly instructionTemplates: InputSignal<Instruction[]> = input.required()
   readonly llmModelViews: InputSignal<LlmModelView[]> = input.required()
 
   readonly chatInstructionTemplates = computed(() => {

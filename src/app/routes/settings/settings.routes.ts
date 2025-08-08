@@ -1,27 +1,27 @@
 import {Routes} from '@angular/router';
 import {SettingsPage} from './settings-page';
-import {connectionProfilesOverviewResolver} from './components/connection-profiles';
 import {
-  EditConnectionProfile,
-  editConnectionProfileLlmModelsResolver,
-  editConnectionProfileResolver,
-  editConnectionProfileTemplatesResolver
-} from "./connection-profiles"
-import {instructionTemplatesOverviewResolver} from './components/instruction-templates';
-import {EditInstructionTemplate, editInstructionTemplateResolver} from './edit-instruction-templates';
-import {chatSettingsResolver} from './components/chat-settings';
-import {memorySettingsResolver} from './components/memory-settings';
-import {llmModelViewsResolver} from './llm-model-views.resolver';
+  connectionProfileResolverFactory,
+  connectionProfilesResolver,
+  connectionProfileTemplatesResolver,
+  llmModelsResolverFactory,
+  llmModelViewsResolver
+} from '@api/providers/providers.resolvers';
+import {EditConnectionProfile,} from "./connection-profiles"
+import {instructionResolverFactory, instructionsResolver} from '@api/instructions/instructions.resolvers';
+import {EditInstruction} from './edit-instruction-templates';
+import {chatSettingsResolver} from '@api/worlds/worlds.resolvers';
+import {memoryPreferencesResolver} from '@api/memories/memories.resolvers';
 
 const routes: Routes = [
   {
     path: '',
     component: SettingsPage,
     resolve: {
-      profiles: connectionProfilesOverviewResolver,
-      templates: instructionTemplatesOverviewResolver,
+      profiles: connectionProfilesResolver,
+      templates: instructionsResolver,
       chatPreferences: chatSettingsResolver,
-      memoryPreferences: memorySettingsResolver,
+      memoryPreferences: memoryPreferencesResolver,
       llmModelViews: llmModelViewsResolver
     }
   },
@@ -30,17 +30,17 @@ const routes: Routes = [
     component: EditConnectionProfile,
     runGuardsAndResolvers: "paramsOrQueryParamsChange",
     resolve: {
-      profile: editConnectionProfileResolver,
-      models: editConnectionProfileLlmModelsResolver,
-      providers: editConnectionProfileTemplatesResolver,
+      profile: connectionProfileResolverFactory('profileId'),
+      models: llmModelsResolverFactory('profileId'),
+      providers: connectionProfileTemplatesResolver,
     }
   },
   {
-    path: 'instruction-templates/:templateId',
-    component: EditInstructionTemplate,
+    path: 'instruction-templates/:instructionId',
+    component: EditInstruction,
     runGuardsAndResolvers: "paramsOrQueryParamsChange",
     resolve: {
-      template: editInstructionTemplateResolver,
+      template: instructionResolverFactory('instructionId'),
     }
   }
 ]

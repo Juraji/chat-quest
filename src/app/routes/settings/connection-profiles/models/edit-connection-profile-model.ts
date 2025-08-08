@@ -1,10 +1,9 @@
 import {Component, computed, effect, inject, input, InputSignal, Signal} from '@angular/core';
-import {LlmModel} from '@api/model';
 import {BooleanSignal, booleanSignal, formControl, formGroup, readOnlyControl, toControlValueSignal} from '@util/ng';
 import {AbstractControl, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Notifications} from '@components/notifications';
-import {ConnectionProfiles} from '@api/clients';
 import {ActivatedRoute, Router} from '@angular/router';
+import {LlmModel, Providers} from '@api/providers';
 
 @Component({
   selector: 'app-edit-connection-profile-model',
@@ -17,7 +16,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 })
 export class EditConnectionProfileModel {
   private readonly notifications = inject(Notifications)
-  private readonly connectionProfiles = inject(ConnectionProfiles)
+  private readonly connectionProfiles = inject(Providers)
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
 

@@ -1,6 +1,5 @@
 import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
-import {Scenarios} from '@api/clients';
 import {Notifications} from '@components/notifications';
 import {
   BooleanSignal,
@@ -11,12 +10,13 @@ import {
   routeDataSignal,
   toControlValueSignal
 } from '@util/ng';
-import {isNew, Scenario} from '@api/model';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {PageHeader} from '@components/page-header';
 import {AvatarControl} from '@components/avatar-control';
-import {RenderedMessage} from '@components/rendered-message/rendered-message';
-import {TokenCount} from '@components/token-count/token-count';
+import {RenderedMessage} from '@components/rendered-message';
+import {TokenCount} from '@components/token-count';
+import {Scenario, Scenarios} from '@api/scenarios';
+import {isNew} from '@api/common';
 
 @Component({
   selector: 'app-edit-scenario',

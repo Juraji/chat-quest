@@ -16,13 +16,19 @@
     "module": "preserve",
     "paths": {
       "@api/*": [
-        "./src/app/@api/*"
+        "./src/app/api/*"
       ],
       "@components/*": [
-        "./src/app/@components/*"
+        "./src/app/components/*"
+      ],
+      "@config/*": [
+        "./src/app/config/*"
+      ],
+      "@resolvers/*": [
+        "./src/app/resolvers/*"
       ],
       "@util/*": [
-        "./src/app/@util/*"
+        "./src/app/util/*"
       ]
     }
   },

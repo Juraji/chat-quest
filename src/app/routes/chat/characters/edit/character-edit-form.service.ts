@@ -10,8 +10,9 @@ import {
   TypedFormGroup
 } from '@util/ng';
 import {FormArray, Validators} from '@angular/forms';
-import {Character, CharacterDetails, Tag} from '@api/model';
 import {Observable, Subject} from 'rxjs';
+import {Character, CharacterDetails} from '@api/characters';
+import {Tag} from '@api/tags';
 
 @Injectable()
 export class CharacterEditFormService {

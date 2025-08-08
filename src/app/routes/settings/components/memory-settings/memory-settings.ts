@@ -1,9 +1,10 @@
 import {Component, computed, effect, inject, input, InputSignal} from '@angular/core';
-import {InstructionTemplate, LlmModelView, MemoryPreferences} from '@api/model';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {formControl, formGroup} from '@util/ng';
 import {Notifications} from '@components/notifications';
-import {Memories} from '@api/clients/memories';
+import {Memories, MemoryPreferences} from '@api/memories';
+import {Instruction} from '@api/instructions';
+import {LlmModelView} from '@api/providers';
 
 @Component({
   selector: 'memory-settings',
@@ -17,7 +18,7 @@ export class MemorySettings {
   private readonly notifications = inject(Notifications);
 
   readonly preferences: InputSignal<MemoryPreferences> = input.required()
-  readonly instructionTemplates: InputSignal<InstructionTemplate[]> = input.required()
+  readonly instructionTemplates: InputSignal<Instruction[]> = input.required()
   readonly llmModelViews: InputSignal<LlmModelView[]> = input.required()
 
   readonly memInstructionTemplates = computed(() => {

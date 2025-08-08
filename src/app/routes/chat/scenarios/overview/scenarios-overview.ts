@@ -2,9 +2,9 @@ import {Component, inject, Signal} from '@angular/core';
 import {PageHeader} from "@components/page-header";
 import {ActivatedRoute, RouterLink} from '@angular/router';
 import {routeDataSignal} from '@util/ng';
-import {NewItemCard} from '@components/cards/new-item-card/new-item-card';
-import {Scenario} from '@api/model';
-import {ScenarioCard} from '@components/cards/scenario-card/scenario-card';
+import {NewItemCard} from '@components/cards/new-item-card';
+import {ScenarioCard} from '@components/cards/scenario-card';
+import {Scenario} from '@api/scenarios';
 
 @Component({
   selector: 'app-scenarios-overview',

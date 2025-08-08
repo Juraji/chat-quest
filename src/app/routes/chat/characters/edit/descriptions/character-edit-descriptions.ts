@@ -3,8 +3,8 @@ import {CharacterEditFormService} from '../character-edit-form.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {booleanSignal, BooleanSignal, toControlValueSignal} from '@util/ng';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {RenderedMessage} from '@components/rendered-message/rendered-message';
-import {TokenCount} from '@components/token-count/token-count';
+import {RenderedMessage} from '@components/rendered-message';
+import {TokenCount} from '@components/token-count';
 
 @Component({
   selector: 'app-character-edit-descriptions',

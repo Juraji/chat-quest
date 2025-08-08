@@ -1,13 +1,13 @@
 import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {Notifications} from '@components/notifications';
-import {ConnectionProfiles} from '@api/clients';
 import {ActivatedRoute, Router} from '@angular/router';
 import {PageHeader} from '@components/page-header';
 import {formControl, formGroup, readOnlyControl, routeDataSignal} from '@util/ng';
-import {AiProviders, ConnectionProfile, isNew, LlmModel, ProviderType} from '@api/model';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {EditConnectionProfileModel} from './models/edit-connection-profile-model';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
+import {AiProviders, ConnectionProfile, LlmModel, Providers, ProviderType} from '@api/providers';
+import {isNew} from '@api/common';
 
 @Component({
   selector: 'app-edit-connection-profile',
@@ -26,7 +26,7 @@ export class EditConnectionProfile {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router)
   private readonly notifications = inject(Notifications);
-  private readonly connectionProfiles = inject(ConnectionProfiles)
+  private readonly connectionProfiles = inject(Providers)
 
   readonly providers: Signal<AiProviders> = routeDataSignal(this.activatedRoute, 'providers')
   readonly profile: Signal<ConnectionProfile> = routeDataSignal(this.activatedRoute, 'profile')

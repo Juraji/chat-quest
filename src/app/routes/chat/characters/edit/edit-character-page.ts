@@ -1,9 +1,8 @@
 import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {routeDataSignal} from '@util/ng';
-import {isNew} from '@api/model';
+import {isNew} from '@api/common';
 import {ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 import {Notifications} from '@components/notifications';
-import {Characters} from '@api/clients';
 import {ReactiveFormsModule} from '@angular/forms';
 import {PageHeader} from '@components/page-header';
 import {AvatarControl} from '@components/avatar-control';
@@ -12,6 +11,8 @@ import {defer, forkJoin, mergeMap, tap} from 'rxjs';
 import {TagsControl} from '@components/tags-control/tags-control';
 import {CharacterEditFormService} from './character-edit-form.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {Character, CharacterDetails, Characters} from '@api/characters';
+import {Tag} from '@api/tags';
 
 @Component({
   selector: 'app-edit-character-page',
@@ -37,9 +38,21 @@ export class EditCharacterPage {
 
   private readonly formService = inject(CharacterEditFormService)
 
-  readonly characterFormData: Signal<CharacterFormData> = routeDataSignal(this.activatedRoute, 'characterFormData')
+  readonly character: Signal<Character> = routeDataSignal(this.activatedRoute, 'character')
+  readonly characterDetails: Signal<CharacterDetails> = routeDataSignal(this.activatedRoute, 'characterDetails')
+  readonly tags: Signal<Tag[]> = routeDataSignal(this.activatedRoute, 'tags')
+  readonly dialogueExamples: Signal<string[]> = routeDataSignal(this.activatedRoute, 'dialogueExamples')
+  readonly greetings: Signal<string[]> = routeDataSignal(this.activatedRoute, 'greetings')
+  readonly groupGreetings: Signal<string[]> = routeDataSignal(this.activatedRoute, 'groupGreetings')
+  readonly characterFormData: Signal<CharacterFormData> = computed(() => ({
+    character: this.character(),
+    characterDetails: this.characterDetails(),
+    tags: this.tags(),
+    dialogueExamples: this.dialogueExamples(),
+    greetings: this.greetings(),
+    groupGreetings: this.groupGreetings(),
+  }))
 
-  readonly character = computed(() => this.characterFormData()?.character)
   readonly isNew = computed(() => isNew(this.character()))
   readonly name = computed(() => this.character().name)
   readonly favorite = computed(() => this.character().favorite)
@@ -67,10 +80,8 @@ export class EditCharacterPage {
     if (this.formGroup.invalid) return
 
     const isNew = this.isNew()
-    const {
-      character,
-      characterDetails,
-    } = this.characterFormData()
+    const character = this.character()
+    const characterDetails = this.characterDetails()
 
     const characterFG = this.formService.characterFG;
     const characterDetailsFG = this.formService.characterDetailsFG;
