@@ -30,7 +30,7 @@ func AllScenarios(db *sql.DB) ([]*Scenario, error) {
 }
 
 func ScenarioById(db *sql.DB, id int64) (*Scenario, error) {
-	query := "SELECT * FROM scenarios WHERE id=$1"
+	query := "SELECT * FROM scenarios WHERE id=?"
 	args := []any{id}
 	return database.QueryForRecord(db, query, args, scenarioScanner)
 }
@@ -39,7 +39,7 @@ func CreateScenario(db *sql.DB, scenario *Scenario) error {
 	util.EmptyStrPtrToNil(&scenario.AvatarUrl)
 
 	query := `INSERT INTO scenarios (name, description, avatar_url, linked_character_id)
-            VALUES ($1, $2, $3, $4) RETURNING id`
+            VALUES (?, ?, ?, ?) RETURNING id`
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId}
 
 	err := database.InsertRecord(db, query, args, &scenario.ID)
@@ -52,11 +52,11 @@ func UpdateScenario(db *sql.DB, id int64, scenario *Scenario) error {
 	util.EmptyStrPtrToNil(&scenario.AvatarUrl)
 
 	query := `UPDATE scenarios
-            SET name=$1,
-                description=$2,
-                avatar_url=$3,
-                linked_character_id=$4
-            WHERE id=$5`
+            SET name=?,
+                description=?,
+                avatar_url=?,
+                linked_character_id=?
+            WHERE id=?`
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId, id}
 
 	err := database.UpdateRecord(db, query, args)
@@ -66,7 +66,7 @@ func UpdateScenario(db *sql.DB, id int64, scenario *Scenario) error {
 }
 
 func DeleteScenario(db *sql.DB, id int64) error {
-	query := "DELETE FROM scenarios WHERE id=$1"
+	query := "DELETE FROM scenarios WHERE id=?"
 	args := []interface{}{id}
 
 	err := database.DeleteRecord(db, query, args)

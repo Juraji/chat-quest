@@ -32,7 +32,7 @@ func AllInstructionPrompts(db *sql.DB) ([]*InstructionTemplate, error) {
 }
 
 func InstructionPromptById(db *sql.DB, id int64) (*InstructionTemplate, error) {
-	query := "SELECT * FROM instruction_templates WHERE id = $1"
+	query := "SELECT * FROM instruction_templates WHERE id = ?"
 	args := []any{id}
 	return database.QueryForRecord(db, query, args, instructionPromptScanner)
 }
@@ -41,7 +41,7 @@ func CreateInstructionPrompt(db *sql.DB, prompt *InstructionTemplate) error {
 	util.NegFloat64PtrToNil(&prompt.Temperature)
 
 	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, instruction)
-            VALUES ($1, $2, $3, $4, $5) RETURNING id`
+            VALUES (?, ?, ?, ?, ?) RETURNING id`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction}
 
 	err := database.InsertRecord(db, query, args, &prompt.ID)
@@ -54,12 +54,12 @@ func UpdateInstructionPrompt(db *sql.DB, id int64, prompt *InstructionTemplate) 
 	util.NegFloat64PtrToNil(&prompt.Temperature)
 
 	query := `UPDATE instruction_templates
-            SET name = $1,
-                type = $2,
-                temperature = $3,
-                system_prompt = $4,
-                instruction = $5
-            WHERE id = $6`
+            SET name = ?,
+                type = ?,
+                temperature = ?,
+                system_prompt = ?,
+                instruction = ?
+            WHERE id = ?`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction, id}
 
 	err := database.UpdateRecord(db, query, args)
@@ -69,7 +69,7 @@ func UpdateInstructionPrompt(db *sql.DB, id int64, prompt *InstructionTemplate) 
 }
 
 func DeleteInstructionPrompt(db *sql.DB, id int64) error {
-	query := "DELETE FROM instruction_templates WHERE id = $1"
+	query := "DELETE FROM instruction_templates WHERE id = ?"
 	args := []any{id}
 
 	err := database.DeleteRecord(db, query, args)

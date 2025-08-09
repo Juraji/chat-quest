@@ -39,7 +39,7 @@ func GetAllWorlds(db *sql.DB) ([]*World, error) {
 }
 
 func WorldById(db *sql.DB, id int64) (*World, error) {
-	query := "SELECT * FROM worlds WHERE id=$1"
+	query := "SELECT * FROM worlds WHERE id=?"
 	args := []any{id}
 
 	return database.QueryForRecord(db, query, args, worldScanner)
@@ -49,7 +49,7 @@ func CreateWorld(db *sql.DB, newWorld *World) error {
 	util.EmptyStrPtrToNil(&newWorld.Description)
 	util.EmptyStrPtrToNil(&newWorld.AvatarUrl)
 
-	query := "INSERT INTO worlds (name, description, avatar_url) VALUES ($1, $2, $3) RETURNING id"
+	query := "INSERT INTO worlds (name, description, avatar_url) VALUES (?, ?, ?) RETURNING id"
 	args := []any{newWorld.Name, newWorld.Description, newWorld.AvatarUrl}
 
 	err := database.InsertRecord(db, query, args, &newWorld.ID)
@@ -63,11 +63,16 @@ func UpdateWorld(db *sql.DB, id int64, world *World) error {
 	util.EmptyStrPtrToNil(&world.AvatarUrl)
 
 	query := `UPDATE worlds
-            SET name=$2,
-                description=$3,
-                avatar_url=$4
-            WHERE id=$1`
-	args := []any{id, world.Name, world.Description, world.AvatarUrl}
+            SET name=?,
+                description=?,
+                avatar_url=?
+            WHERE id=?`
+	args := []any{
+		world.Name,
+		world.Description,
+		world.AvatarUrl,
+		id,
+	}
 
 	err := database.UpdateRecord(db, query, args)
 	defer util.EmitOnSuccess(WorldUpdatedSignal, world, err)
@@ -76,7 +81,7 @@ func UpdateWorld(db *sql.DB, id int64, world *World) error {
 }
 
 func DeleteWorld(db *sql.DB, id int64) error {
-	query := "DELETE FROM worlds WHERE id=$1"
+	query := "DELETE FROM worlds WHERE id=?"
 	args := []any{id}
 
 	err := database.DeleteRecord(db, query, args)
@@ -92,8 +97,8 @@ func GetChatPreferences(db *sql.DB) (*ChatPreferences, error) {
 
 func UpdateChatPreferences(db *sql.DB, prefs *ChatPreferences) error {
 	query := `UPDATE chat_preferences
-            SET chat_model_id = $1,
-                chat_instruction_id = $2
+            SET chat_model_id = ?,
+                chat_instruction_id = ?
             WHERE id = 0`
 	args := []any{
 		prefs.ChatModelID,

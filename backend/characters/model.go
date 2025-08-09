@@ -93,7 +93,7 @@ func AllCharactersWithTags(db *sql.DB) ([]*CharacterWithTags, error) {
 }
 
 func CharacterById(db *sql.DB, id int64) (*Character, error) {
-	query := "SELECT * FROM characters WHERE id = $1"
+	query := "SELECT * FROM characters WHERE id = ?"
 	args := []any{id}
 
 	return database.QueryForRecord(db, query, args, characterScanner)
@@ -109,7 +109,7 @@ func CreateCharacter(db *sql.DB, newCharacter *Character) error {
 
 	util.EmptyStrPtrToNil(&newCharacter.AvatarUrl)
 
-	query := "INSERT INTO characters (name, favorite, avatar_url) VALUES ($1, $2, $3) RETURNING id, created_at"
+	query := "INSERT INTO characters (name, favorite, avatar_url) VALUES (?, ?, ?) RETURNING id, created_at"
 	args := []any{newCharacter.Name, newCharacter.Favorite, newCharacter.AvatarUrl}
 
 	if err := database.InsertRecord(tx, query, args, &newCharacter.ID, &newCharacter.CreatedAt); err != nil {
@@ -133,7 +133,7 @@ func CreateCharacter(db *sql.DB, newCharacter *Character) error {
 func UpdateCharacter(db *sql.DB, id int64, character *Character) error {
 	util.EmptyStrPtrToNil(&character.AvatarUrl)
 
-	query := "UPDATE characters SET name = $1, favorite = $2, avatar_url = $3 WHERE id = $4"
+	query := "UPDATE characters SET name = ?, favorite = ?, avatar_url = ? WHERE id = ?"
 	args := []any{character.Name, character.Favorite, character.AvatarUrl, id}
 
 	err := database.UpdateRecord(db, query, args)
@@ -143,7 +143,7 @@ func UpdateCharacter(db *sql.DB, id int64, character *Character) error {
 }
 
 func DeleteCharacterById(db *sql.DB, id int64) error {
-	query := "DELETE FROM characters WHERE id = $1"
+	query := "DELETE FROM characters WHERE id = ?"
 	args := []any{id}
 
 	err := database.DeleteRecord(db, query, args)
@@ -152,7 +152,7 @@ func DeleteCharacterById(db *sql.DB, id int64) error {
 }
 
 func CharacterDetailsByCharacterId(db *sql.DB, characterId int64) (*CharacterDetails, error) {
-	query := "SELECT * FROM character_details WHERE character_id = $1"
+	query := "SELECT * FROM character_details WHERE character_id = ?"
 	args := []any{characterId}
 
 	return database.QueryForRecord(db, query, args, characterDetailsScanner)
@@ -171,7 +171,7 @@ func updateCharacterDetails(db database.QueryExecutor, characterId int64, charac
 	query := `
     INSERT OR REPLACE INTO character_details
       (character_id, appearance, personality, history, group_talkativeness)
-    VALUES ($1, $2, $3, $4, $5)
+    VALUES (?,?,?,?,?)
   `
 	args := []any{
 		characterId,
@@ -189,7 +189,7 @@ func TagsByCharacterId(db *sql.DB, characterId int64) ([]*Tag, error) {
     SELECT t.*
     FROM character_tags ct
         JOIN tags t ON ct.tag_id = t.id
-    WHERE ct.character_id = $1
+    WHERE ct.character_id = ?
   `
 	args := []any{characterId}
 
@@ -197,14 +197,14 @@ func TagsByCharacterId(db *sql.DB, characterId int64) ([]*Tag, error) {
 }
 
 func AddCharacterTag(db *sql.DB, characterId int64, tagId int64) error {
-	query := "INSERT INTO character_tags (character_id, tag_id) VALUES ($1, $2)"
+	query := "INSERT INTO character_tags (character_id, tag_id) VALUES (?, ?)"
 	args := []any{characterId, tagId}
 
 	return database.UpdateRecord(db, query, args)
 }
 
 func RemoveCharacterTag(db *sql.DB, characterId int64, tagId int64) error {
-	query := "DELETE FROM character_tags WHERE character_id = $1 AND tag_id = $2"
+	query := "DELETE FROM character_tags WHERE character_id = ? AND tag_id = ?"
 	args := []any{characterId, tagId}
 
 	return database.DeleteRecord(db, query, args)
@@ -217,7 +217,7 @@ func SetCharacterTags(db *sql.DB, characterId int64, tagIds []int64) error {
 	}
 	defer database.RollBackOnErr(tx, err)
 
-	deleteQuery := "DELETE FROM character_tags WHERE character_id = $1"
+	deleteQuery := "DELETE FROM character_tags WHERE character_id = ?"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
 		return fmt.Errorf("failed to delete existing tag ids: %w", err)
 	}
@@ -226,7 +226,7 @@ func SetCharacterTags(db *sql.DB, characterId int64, tagIds []int64) error {
 		return tx.Commit()
 	}
 
-	insertQuery := "INSERT INTO character_tags (character_id, tag_id) VALUES ($1, $2)"
+	insertQuery := "INSERT INTO character_tags (character_id, tag_id) VALUES (?, ?)"
 	for _, tagId := range tagIds {
 		if err := database.InsertRecord(tx, insertQuery, []any{characterId, tagId}); err != nil {
 			return fmt.Errorf("failed to insert tag id: %w", err)
@@ -237,7 +237,7 @@ func SetCharacterTags(db *sql.DB, characterId int64, tagIds []int64) error {
 }
 
 func DialogueExamplesByCharacterId(db *sql.DB, characterId int64) ([]*string, error) {
-	query := "SELECT text FROM character_dialogue_examples WHERE character_id = $1"
+	query := "SELECT text FROM character_dialogue_examples WHERE character_id = ?"
 	args := []any{characterId}
 	scanFunc := func(rows database.RowScanner, dest *string) error {
 		return rows.Scan(dest)
@@ -253,7 +253,7 @@ func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []
 	}
 	defer database.RollBackOnErr(tx, err)
 
-	deleteQuery := "DELETE FROM character_dialogue_examples WHERE character_id = $1"
+	deleteQuery := "DELETE FROM character_dialogue_examples WHERE character_id = ?"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
 		return fmt.Errorf("failed to delete existing dialogue examples: %w", err)
 	}
@@ -262,7 +262,7 @@ func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []
 		return tx.Commit()
 	}
 
-	insertQuery := "INSERT INTO character_dialogue_examples (character_id, text) VALUES ($1, $2)"
+	insertQuery := "INSERT INTO character_dialogue_examples (character_id, text) VALUES (?, ?)"
 	for _, example := range examples {
 		if err := database.InsertRecord(tx, insertQuery, []any{characterId, example}); err != nil {
 			return fmt.Errorf("failed to insert dialogue example: %w", err)
@@ -273,7 +273,7 @@ func SetDialogueExamplesByCharacterId(db *sql.DB, characterId int64, examples []
 }
 
 func CharacterGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*string, error) {
-	query := "SELECT text FROM character_greetings WHERE character_id = $1"
+	query := "SELECT text FROM character_greetings WHERE character_id = ?"
 	args := []any{characterId}
 	scanFunc := func(rows database.RowScanner, dest *string) error {
 		return rows.Scan(dest)
@@ -289,7 +289,7 @@ func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string
 	}
 	defer database.RollBackOnErr(tx, err)
 
-	deleteQuery := "DELETE FROM character_greetings WHERE character_id = $1"
+	deleteQuery := "DELETE FROM character_greetings WHERE character_id = ?"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
 		return fmt.Errorf("failed to delete existing greetings: %w", err)
 	}
@@ -298,7 +298,7 @@ func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string
 		return tx.Commit()
 	}
 
-	insertQuery := "INSERT INTO character_greetings (character_id, text) VALUES ($1, $2)"
+	insertQuery := "INSERT INTO character_greetings (character_id, text) VALUES (?, ?)"
 	for _, greeting := range greetings {
 		if err := database.InsertRecord(tx, insertQuery, []any{characterId, greeting}); err != nil {
 			return fmt.Errorf("failed to insert greeting: %w", err)
@@ -309,7 +309,7 @@ func SetGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []string
 }
 
 func CharacterGroupGreetingsByCharacterId(db *sql.DB, characterId int64) ([]*string, error) {
-	query := "SELECT text FROM character_group_greetings WHERE character_id = $1"
+	query := "SELECT text FROM character_group_greetings WHERE character_id = ?"
 	args := []any{characterId}
 	scanFunc := func(rows database.RowScanner, dest *string) error {
 		return rows.Scan(dest)
@@ -329,7 +329,7 @@ func SetGroupGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []s
 		}
 	}(tx, err)
 
-	deleteQuery := "DELETE FROM character_greetings WHERE character_id = $1"
+	deleteQuery := "DELETE FROM character_greetings WHERE character_id = ?"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
 		return fmt.Errorf("failed to delete existing greetings: %w", err)
 	}
@@ -338,7 +338,7 @@ func SetGroupGreetingsByCharacterId(db *sql.DB, characterId int64, greetings []s
 		return tx.Commit()
 	}
 
-	insertQuery := "INSERT INTO character_greetings (character_id, text) VALUES ($1, $2)"
+	insertQuery := "INSERT INTO character_greetings (character_id, text) VALUES (?, ?)"
 	for _, greeting := range greetings {
 		if err := database.InsertRecord(tx, insertQuery, []any{characterId, greeting}); err != nil {
 			return fmt.Errorf("failed to insert greeting: %w", err)
@@ -354,7 +354,7 @@ func AllTags(db *sql.DB) ([]*Tag, error) {
 }
 
 func TagById(db *sql.DB, id int64) (*Tag, error) {
-	query := "SELECT * FROM tags WHERE id = $1"
+	query := "SELECT * FROM tags WHERE id = ?"
 	args := []any{id}
 	return database.QueryForRecord(db, query, args, tagScanner)
 }
@@ -362,7 +362,7 @@ func TagById(db *sql.DB, id int64) (*Tag, error) {
 func CreateTag(db *sql.DB, newTag *Tag) error {
 	newTag.Lowercase = strings.ToLower(newTag.Label)
 
-	query := "INSERT INTO tags(label, lowercase) VALUES ($1, $2) RETURNING id"
+	query := "INSERT INTO tags(label, lowercase) VALUES (?, ?) RETURNING id"
 	args := []any{newTag.Label, newTag.Lowercase}
 
 	return database.InsertRecord(db, query, args, &newTag.ID)
@@ -371,14 +371,14 @@ func CreateTag(db *sql.DB, newTag *Tag) error {
 func UpdateTag(db *sql.DB, id int64, tag *Tag) error {
 	tag.Lowercase = strings.ToLower(tag.Label)
 
-	query := "UPDATE tags SET label = $1, lowercase = $2 WHERE id = $3"
+	query := "UPDATE tags SET label = ?, lowercase = ? WHERE id = ?"
 	args := []any{id, tag.Label, tag.Lowercase}
 
 	return database.UpdateRecord(db, query, args)
 }
 
 func DeleteTagById(db *sql.DB, id int64) error {
-	query := "DELETE FROM tags WHERE id = $1"
+	query := "DELETE FROM tags WHERE id = ?"
 	args := []any{id}
 
 	return database.DeleteRecord(db, query, args)

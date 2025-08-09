@@ -35,6 +35,7 @@ type MemoryPreferences struct {
 func memoryScanner(scanner database.RowScanner, dest *Memory) error {
 	return scanner.Scan(
 		&dest.ID,
+		&dest.WorldId,
 		&dest.ChatSessionId,
 		&dest.CharacterId,
 		&dest.CreatedAt,
@@ -63,7 +64,7 @@ func GetMemoriesByWorldId(db *sql.DB, worldId int64) ([]*Memory, error) {
                    created_at,
                    content
             FROM memories
-            WHERE world_id = $1`
+            WHERE world_id = ?`
 	args := []interface{}{worldId}
 
 	return database.QueryForList(db, query, args, memoryScanner)
@@ -81,7 +82,7 @@ func GetMemoriesByWorldAndCharacterId(
                    created_at,
                    content
             FROM memories
-            WHERE world_id = $1 AND character_id = $2`
+            WHERE world_id = ? AND character_id = ?`
 	args := []interface{}{worldId, characterId}
 
 	return database.QueryForList(db, query, args, memoryScanner)
@@ -92,7 +93,7 @@ func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 	worldId int64,
 	characterId int64,
 ) ([]*Memory, error) {
-	query := `SELECT * FROM memories m WHERE world_id = $1 AND character_id = $2`
+	query := `SELECT * FROM memories m WHERE world_id = ? AND character_id = ?`
 	args := []interface{}{worldId, characterId}
 
 	return database.QueryForList(db, query, args, memoryScanner)
@@ -100,7 +101,7 @@ func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 
 func CreateMemory(db *sql.DB, memory *Memory) error {
 	query := `INSERT INTO memories (world_id, chat_session_id, character_id, created_at, content, embedding, embedding_model_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
+            VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`
 	args := []any{
 		memory.WorldId,
 		memory.ChatSessionId,
@@ -118,8 +119,8 @@ func CreateMemory(db *sql.DB, memory *Memory) error {
 }
 
 func UpdateMemory(db *sql.DB, id int64, memory *Memory) error {
-	query := `UPDATE memories SET content = $2, embedding = $3, embedding_model_id = $4 WHERE id = $1`
-	args := []any{id, memory.Content, memory.Embedding, memory.EmbeddingModelId}
+	query := `UPDATE memories SET content = ?, embedding = ?, embedding_model_id = ? WHERE id = ?`
+	args := []any{memory.Content, memory.Embedding, memory.EmbeddingModelId, id}
 
 	err := database.UpdateRecord(db, query, args)
 	defer util.EmitOnSuccess(MemoryUpdatedSignal, memory, err)
@@ -128,7 +129,7 @@ func UpdateMemory(db *sql.DB, id int64, memory *Memory) error {
 }
 
 func DeleteMemory(db *sql.DB, id int64) error {
-	query := `DELETE FROM memories WHERE id = $1`
+	query := `DELETE FROM memories WHERE id = ?`
 	args := []any{id}
 
 	err := database.DeleteRecord(db, query, args)
@@ -145,19 +146,19 @@ func GetMemoryPreferences(db *sql.DB) (*MemoryPreferences, error) {
                    memory_trigger_after,
                    memory_window_size
             FROM memory_preferences
-            WHERE id = 0`
+            WHERE id = ?`
 	return database.QueryForRecord(db, query, nil, memoryPreferencesScanner)
 }
 
 func UpdateMemoryPreferences(db *sql.DB, prefs *MemoryPreferences) error {
 	query := `UPDATE memory_preferences
-            SET memories_model_id = $1,
-                memories_instruction_id = $2,
-                embedding_model_id = $3,
-                memory_min_p = $4,
-                memory_trigger_after = $5,
-                memory_window_size = $6
-            WHERE id = 0`
+            SET memories_model_id = ?,
+                memories_instruction_id = ?,
+                embedding_model_id = ?,
+                memory_min_p = ?,
+                memory_trigger_after = ?,
+                memory_window_size = ?
+            WHERE id = ?`
 	args := []any{
 		prefs.MemoriesModelID,
 		prefs.MemoriesInstructionID,

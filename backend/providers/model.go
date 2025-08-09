@@ -73,7 +73,7 @@ func AllConnectionProfiles(db *sql.DB) ([]*ConnectionProfile, error) {
 }
 
 func ConnectionProfileById(db *sql.DB, id int64) (*ConnectionProfile, error) {
-	query := "SELECT * FROM connection_profiles WHERE id = $1"
+	query := "SELECT * FROM connection_profiles WHERE id = ?"
 	args := []any{id}
 	return database.QueryForRecord(db, query, args, connectionProfileScanner)
 }
@@ -87,7 +87,7 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels [
 	defer util.EmitOnSuccess(ConnectionProfileCreatedSignal, profile, err)
 	defer util.EmitAllOnSuccess(LlmModelCreatedSignal, llmModels, err)
 
-	query := "INSERT INTO connection_profiles (name, provider_type, base_url, api_key) VALUES ($1, $2, $3, $4) RETURNING id"
+	query := "INSERT INTO connection_profiles (name, provider_type, base_url, api_key) VALUES (?, ?, ?, ?) RETURNING id"
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey}
 
 	if err = database.InsertRecord(tx, query, args, &profile.ID); err != nil {
@@ -107,11 +107,11 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels [
 
 func UpdateConnectionProfile(db *sql.DB, id int64, profile *ConnectionProfile) error {
 	query := `UPDATE connection_profiles
-            SET name = $1,
-                provider_type = $2,
-                base_url = $3,
-                api_key = $4
-            WHERE id = $5`
+            SET name = ?,
+                provider_type = ?,
+                base_url = ?,
+                api_key = ?
+            WHERE id = ?`
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey, id}
 
 	err := database.UpdateRecord(db, query, args)
@@ -121,7 +121,7 @@ func UpdateConnectionProfile(db *sql.DB, id int64, profile *ConnectionProfile) e
 }
 
 func DeleteConnectionProfileById(db *sql.DB, id int64) error {
-	query := "DELETE FROM connection_profiles WHERE id = $1"
+	query := "DELETE FROM connection_profiles WHERE id = ?"
 	args := []any{id}
 
 	err := database.DeleteRecord(db, query, args)
@@ -131,7 +131,7 @@ func DeleteConnectionProfileById(db *sql.DB, id int64) error {
 }
 
 func LlmModelsByConnectionProfileId(db *sql.DB, profileId int64) ([]*LlmModel, error) {
-	query := "SELECT * FROM llm_models WHERE connection_profile_id = $1"
+	query := "SELECT * FROM llm_models WHERE connection_profile_id = ?"
 	args := []any{profileId}
 	return database.QueryForList(db, query, args, llmModelScanner)
 }
@@ -147,7 +147,7 @@ func createLlmModel(db database.QueryExecutor, profileId int64, llmModel *LlmMod
 
 	query := `INSERT INTO llm_models
             (connection_profile_id, model_id, temperature, max_tokens, top_p, stream, stop_sequences, disabled)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
 	args := []any{
 		llmModel.ConnectionProfileId,
 		llmModel.ModelId,
@@ -164,13 +164,13 @@ func createLlmModel(db database.QueryExecutor, profileId int64, llmModel *LlmMod
 
 func UpdateLlmModel(db *sql.DB, id int64, llmModel *LlmModel) error {
 	query := `UPDATE llm_models
-              SET temperature = $1,
-                  max_tokens = $2,
-                  top_p = $3,
-                  stream = $4,
-                  stop_sequences = $5,
-                  disabled = $6
-              WHERE id = $7`
+              SET temperature = ?,
+                  max_tokens = ?,
+                  top_p = ?,
+                  stream = ?,
+                  stop_sequences = ?,
+                  disabled = ?
+              WHERE id = ?`
 	args := []any{
 		llmModel.Temperature,
 		llmModel.MaxTokens,
@@ -195,7 +195,7 @@ func DeleteLlmModelById(db *sql.DB, id int64) error {
 }
 
 func deleteLlmModelById(db database.QueryExecutor, id int64) error {
-	query := "DELETE FROM llm_models WHERE id = $1"
+	query := "DELETE FROM llm_models WHERE id = ?"
 	args := []any{id}
 
 	return database.DeleteRecord(db, query, args)
@@ -258,6 +258,6 @@ func GetAllLlmModelViews(db database.QueryExecutor) ([]*LlmModelView, error) {
                    p.name     AS profile_name
             FROM llm_models lm
                      JOIN connection_profiles p on p.id = lm.connection_profile_id
-                     WHERE lm.disabled = FALSE`
-	return database.QueryForList(db, query, nil, llModelViewScanner)
+                     WHERE lm.disabled = ?`
+	return database.QueryForList(db, query, []any{false}, llModelViewScanner)
 }

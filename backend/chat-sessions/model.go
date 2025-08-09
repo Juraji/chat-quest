@@ -52,14 +52,14 @@ func chatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
 }
 
 func GetAllChatSessionsByWorldId(db *sql.DB, worldId int64) ([]*ChatSession, error) {
-	query := "SELECT * FROM chat_sessions WHERE world_id=$1"
+	query := "SELECT * FROM chat_sessions WHERE world_id=?"
 	args := []any{worldId}
 
 	return database.QueryForList(db, query, args, chatSessionScanner)
 }
 
 func GetChatSessionById(db *sql.DB, worldId int64, id int64) (*ChatSession, error) {
-	query := "SELECT * FROM chat_sessions WHERE world_id=$1 AND id=$2"
+	query := "SELECT * FROM chat_sessions WHERE world_id=? AND id=?"
 	args := []any{worldId, id}
 	return database.QueryForRecord(db, query, args, chatSessionScanner)
 }
@@ -70,7 +70,7 @@ func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession) erro
 	chatSession.CreatedAt = nil
 
 	query := `INSERT INTO chat_sessions (world_id, created_at, name, scenario_id, enable_memories)
-            VALUES ($1, $2, $3, $4, $5) RETURNING id`
+            VALUES (?, ?, ?, ?, ?) RETURNING id`
 	args := []any{
 		chatSession.WorldID,
 		chatSession.CreatedAt,
@@ -87,17 +87,17 @@ func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession) erro
 
 func UpdateChatSession(db *sql.DB, worldId int64, id int64, chatSession *ChatSession) error {
 	query := `UPDATE chat_sessions
-            SET name = $3,
-                scenario_id = $4,
-                enable_memories = $5
-            WHERE world_id = $1
-              AND id = $2`
+            SET name = ?,
+                scenario_id = ?,
+                enable_memories = ?
+            WHERE world_id = ?
+              AND id = ?`
 	args := []any{
-		worldId,
-		id,
 		chatSession.Name,
 		chatSession.ScenarioID,
 		chatSession.EnableMemories,
+		worldId,
+		id,
 	}
 
 	err := database.UpdateRecord(db, query, args)
@@ -107,7 +107,7 @@ func UpdateChatSession(db *sql.DB, worldId int64, id int64, chatSession *ChatSes
 }
 
 func DeleteChatSessionById(db *sql.DB, worldId int64, id int64) error {
-	query := "DELETE FROM chat_sessions WHERE world_id=$1 AND id=$2"
+	query := "DELETE FROM chat_sessions WHERE world_id=? AND id=?"
 	args := []any{worldId, id}
 
 	err := database.DeleteRecord(db, query, args)
@@ -117,7 +117,7 @@ func DeleteChatSessionById(db *sql.DB, worldId int64, id int64) error {
 }
 
 func GetChatMessages(db *sql.DB, sessionId int64) ([]*ChatMessage, error) {
-	query := "SELECT * FROM chat_messages WHERE chat_session_id=$1"
+	query := "SELECT * FROM chat_messages WHERE chat_session_id=?"
 	args := []any{sessionId}
 	return database.QueryForList(db, query, args, chatMessageScanner)
 }
@@ -127,7 +127,7 @@ func CreateChatMessage(db *sql.DB, sessionId int64, chatMessage *ChatMessage) er
 	chatMessage.CreatedAt = nil
 
 	query := `INSERT INTO chat_messages (chat_session_id, is_user, character_id, content)
-            VALUES ($1, $2, $3, $4) RETURNING id`
+            VALUES (?, ?, ?, ?) RETURNING id`
 	args := []any{
 		chatMessage.ChatSessionID,
 		chatMessage.IsUser,
@@ -143,10 +143,10 @@ func CreateChatMessage(db *sql.DB, sessionId int64, chatMessage *ChatMessage) er
 
 func UpdateChatMessage(db *sql.DB, sessionId int64, id int64, chatMessage *ChatMessage) error {
 	query := `UPDATE chat_messages
-            SET content = $2
-            WHERE chat_session_id = $1
-              AND id = $3`
-	args := []any{sessionId, id, chatMessage.Content}
+            SET content = ?
+            WHERE chat_session_id = ?
+              AND id = ?`
+	args := []any{chatMessage.Content, sessionId, id}
 
 	err := database.UpdateRecord(db, query, args)
 	defer util.EmitOnSuccess(ChatMessageUpdatedSignal, chatMessage, err)
@@ -156,8 +156,8 @@ func UpdateChatMessage(db *sql.DB, sessionId int64, id int64, chatMessage *ChatM
 
 func DeleteChatMessagesFrom(db *sql.DB, sessionId int64, id int64) error {
 	query := `DELETE FROM chat_messages
-            WHERE chat_session_id = $1
-              AND id >= $2`
+            WHERE chat_session_id = ?
+              AND id >= ?`
 	args := []any{sessionId, id}
 
 	err := database.DeleteRecord(db, query, args)
