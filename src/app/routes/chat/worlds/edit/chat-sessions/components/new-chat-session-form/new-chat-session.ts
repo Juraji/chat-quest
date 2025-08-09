@@ -4,11 +4,11 @@ import {Scenario} from '@api/scenarios';
 import {
   BooleanSignal,
   booleanSignal,
+  controlValueSignal,
   formControl,
   formGroup,
   readOnlyControl,
-  routeDataSignal,
-  toControlValueSignal
+  routeDataSignal
 } from '@util/ng';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {ChatSession} from '@api/chat-sessions';
@@ -46,7 +46,7 @@ export class NewChatSession {
   })
 
   readonly useCustomName: BooleanSignal = booleanSignal(false)
-  readonly selectedScenarioId: Signal<Nullable<number>> = toControlValueSignal(this.formGroup, 'scenarioId');
+  readonly selectedScenarioId: Signal<Nullable<number>> = controlValueSignal(this.formGroup, 'scenarioId');
   readonly selectedCharacterIds: WritableSignal<number[]> = signal([])
 
   constructor() {

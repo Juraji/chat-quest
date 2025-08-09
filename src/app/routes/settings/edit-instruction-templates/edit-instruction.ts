@@ -1,7 +1,7 @@
 import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {PageHeader} from '@components/page-header';
-import {booleanSignal, formControl, formGroup, readOnlyControl, routeDataSignal, toControlValueSignal} from '@util/ng';
+import {booleanSignal, controlValueSignal, formControl, formGroup, readOnlyControl, routeDataSignal} from '@util/ng';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Notifications} from '@components/notifications';
 import {RenderedMessage} from '@components/rendered-message/rendered-message';
@@ -40,10 +40,10 @@ export class EditInstruction {
   })
 
   readonly editSystemPrompt = booleanSignal(false)
-  readonly systemPromptValue: Signal<string> = toControlValueSignal(this.formGroup, 'systemPrompt')
+  readonly systemPromptValue: Signal<string> = controlValueSignal(this.formGroup, 'systemPrompt')
 
   readonly editInstruction = booleanSignal(false)
-  readonly instructionValue: Signal<string> = toControlValueSignal(this.formGroup, 'instruction')
+  readonly instructionValue: Signal<string> = controlValueSignal(this.formGroup, 'instruction')
 
   constructor() {
     effect(() => {

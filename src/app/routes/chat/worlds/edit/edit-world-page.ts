@@ -2,7 +2,7 @@ import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {PageHeader} from '@components/page-header';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {ActivatedRoute, Router, RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
-import {formControl, formGroup, readOnlyControl, routeDataSignal, toControlValueSignal} from '@util/ng';
+import {controlValueSignal, formControl, formGroup, readOnlyControl, routeDataSignal} from '@util/ng';
 import {World, Worlds} from '@api/worlds';
 import {isNew} from '@api/common';
 import {AvatarControl} from '@components/avatar-control';
@@ -39,7 +39,7 @@ export class EditWorldPage {
     avatarUrl: formControl<Nullable<string>>(null),
   })
 
-  readonly descriptionValue: Signal<string> = toControlValueSignal(this.formGroup, 'description')
+  readonly descriptionValue: Signal<string> = controlValueSignal(this.formGroup, 'description')
 
   readonly subMenuItems = [
     {route: 'chat-sessions', label: 'Chat Sessions'},

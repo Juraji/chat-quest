@@ -1,7 +1,7 @@
 import {Component, inject} from '@angular/core';
 import {CharacterEditFormService} from '../character-edit-form.service';
 import {ReactiveFormsModule} from '@angular/forms';
-import {booleanSignal, toControlValueSignal} from '@util/ng';
+import {booleanSignal, controlValueSignal} from '@util/ng';
 import {EmptyPipe} from '@components/empty-pipe';
 import {RenderedMessage} from '@components/rendered-message';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
@@ -25,15 +25,15 @@ export class CharacterEditChatSettings {
 
   readonly editDialogueExamples = booleanSignal(false)
   readonly dialogueExamplesFA = this.formService.dialogueExamplesFA
-  readonly dialogueExamples = toControlValueSignal(this.dialogueExamplesFA)
+  readonly dialogueExamples = controlValueSignal(this.dialogueExamplesFA)
 
   readonly editGreetings = booleanSignal(false)
   readonly greetingsFA = this.formService.greetingsFA
-  readonly greetings = toControlValueSignal(this.greetingsFA)
+  readonly greetings = controlValueSignal(this.greetingsFA)
 
   readonly editGroupGreetings = booleanSignal(false)
   readonly groupGreetingsFA = this.formService.groupGreetingsFA
-  readonly groupGreetings = toControlValueSignal(this.groupGreetingsFA)
+  readonly groupGreetings = controlValueSignal(this.groupGreetingsFA)
 
   readonly onFormSubmit = this.formService.requestSubmitFn()
   readonly onAddControl = this.formService.addControlFn()

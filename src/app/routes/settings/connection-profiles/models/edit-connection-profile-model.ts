@@ -1,5 +1,5 @@
 import {Component, computed, effect, inject, input, InputSignal, Signal} from '@angular/core';
-import {BooleanSignal, booleanSignal, formControl, formGroup, readOnlyControl, toControlValueSignal} from '@util/ng';
+import {BooleanSignal, booleanSignal, controlValueSignal, formControl, formGroup, readOnlyControl} from '@util/ng';
 import {AbstractControl, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Notifications} from '@components/notifications';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -36,7 +36,7 @@ export class EditConnectionProfileModel {
   })
 
   readonly modelDisabled: Signal<boolean> = computed(() => this.model().disabled)
-  readonly formModelDisabled: Signal<boolean> = toControlValueSignal(this.formGroup, 'disabled');
+  readonly formModelDisabled: Signal<boolean> = controlValueSignal(this.formGroup, 'disabled');
 
   constructor() {
     effect(() => {

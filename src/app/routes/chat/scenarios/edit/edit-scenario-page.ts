@@ -4,11 +4,11 @@ import {Notifications} from '@components/notifications';
 import {
   BooleanSignal,
   booleanSignal,
+  controlValueSignal,
   formControl,
   formGroup,
   readOnlyControl,
-  routeDataSignal,
-  toControlValueSignal
+  routeDataSignal
 } from '@util/ng';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {PageHeader} from '@components/page-header';
@@ -49,7 +49,7 @@ export class EditScenarioPage {
   })
 
   readonly editDescription: BooleanSignal = booleanSignal(false)
-  readonly descriptionValue: Signal<string> = toControlValueSignal(this.formGroup, 'description')
+  readonly descriptionValue: Signal<string> = controlValueSignal(this.formGroup, 'description')
 
   constructor() {
     effect(() => {

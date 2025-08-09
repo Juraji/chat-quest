@@ -44,9 +44,9 @@ export function readOnlyControl<T>(value: T = "" as T): AbstractControl<T, T> {
   return new FormControl<T>({value, disabled: true}, {nonNullable: true})
 }
 
-export function toControlValueSignal<T>(control: AbstractControl<T>): Signal<T>
-export function toControlValueSignal<T>(control: AbstractControl, path: string | (string | number)[]): Signal<T>
-export function toControlValueSignal<T>(control: AbstractControl, path?: string | (string | number)[]): Signal<T> {
+export function controlValueSignal<T>(control: AbstractControl<T>): Signal<T>
+export function controlValueSignal<T>(control: AbstractControl, path: string | (string | number)[]): Signal<T>
+export function controlValueSignal<T>(control: AbstractControl, path?: string | (string | number)[]): Signal<T> {
   if(!!path) {
     const ctrl = control.get(path);
     if (!ctrl) throw new Error(`Could not find control for path: ${path}`);
