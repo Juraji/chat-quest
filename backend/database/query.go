@@ -108,7 +108,7 @@ func UpdateRecord(
 	}
 
 	if rowsAffected == 0 {
-		return sql.ErrNoRows
+		return errors.New("no rows affected")
 	}
 
 	return nil

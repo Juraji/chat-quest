@@ -9,7 +9,7 @@ import (
 type World struct {
 	ID          int64   `json:"id"`
 	Name        string  `json:"name"`
-	Description string  `json:"description"`
+	Description *string `json:"description"`
 	AvatarUrl   *string `json:"avatarUrl"`
 }
 
@@ -46,6 +46,7 @@ func WorldById(db *sql.DB, id int64) (*World, error) {
 }
 
 func CreateWorld(db *sql.DB, newWorld *World) error {
+	util.EmptyStrPtrToNil(&newWorld.Description)
 	util.EmptyStrPtrToNil(&newWorld.AvatarUrl)
 
 	query := "INSERT INTO worlds (name, description, avatar_url) VALUES ($1, $2, $3) RETURNING id"
@@ -58,6 +59,7 @@ func CreateWorld(db *sql.DB, newWorld *World) error {
 }
 
 func UpdateWorld(db *sql.DB, id int64, world *World) error {
+	util.EmptyStrPtrToNil(&world.Description)
 	util.EmptyStrPtrToNil(&world.AvatarUrl)
 
 	query := `UPDATE worlds

@@ -35,7 +35,7 @@ export class EditWorldPage {
   readonly formGroup = formGroup<World>({
     id: readOnlyControl(),
     name: formControl('', [Validators.required]),
-    description: formControl(''),
+    description: formControl<Nullable<string>>(null),
     avatarUrl: formControl<Nullable<string>>(null),
   })
 

@@ -19,7 +19,7 @@ export function worldResolverFactory(idParam: string): ResolveFn<World> {
       () => ({
         id: NEW_ID,
         name: '',
-        description: '',
+        description: null,
         avatarUrl: null
       }),
       id => service.get(id)
