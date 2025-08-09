@@ -69,17 +69,16 @@ func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession) erro
 	chatSession.WorldID = worldId
 	chatSession.CreatedAt = nil
 
-	query := `INSERT INTO chat_sessions (world_id, created_at, name, scenario_id, enable_memories)
-            VALUES (?, ?, ?, ?, ?) RETURNING id`
+	query := `INSERT INTO chat_sessions (world_id, name, scenario_id, enable_memories)
+            VALUES (?, ?, ?, ?) RETURNING id, created_at`
 	args := []any{
 		chatSession.WorldID,
-		chatSession.CreatedAt,
 		chatSession.Name,
 		chatSession.ScenarioID,
 		chatSession.EnableMemories,
 	}
 
-	err := database.InsertRecord(db, query, args, &chatSession.ID)
+	err := database.InsertRecord(db, query, args, &chatSession.ID, &chatSession.CreatedAt)
 	defer util.EmitOnSuccess(ChatSessionCreatedSignal, chatSession, err)
 
 	return err
@@ -127,7 +126,7 @@ func CreateChatMessage(db *sql.DB, sessionId int64, chatMessage *ChatMessage) er
 	chatMessage.CreatedAt = nil
 
 	query := `INSERT INTO chat_messages (chat_session_id, is_user, character_id, content)
-            VALUES (?, ?, ?, ?) RETURNING id`
+            VALUES (?, ?, ?, ?) RETURNING id, created_at`
 	args := []any{
 		chatMessage.ChatSessionID,
 		chatMessage.IsUser,
@@ -135,7 +134,7 @@ func CreateChatMessage(db *sql.DB, sessionId int64, chatMessage *ChatMessage) er
 		chatMessage.Content,
 	}
 
-	err := database.InsertRecord(db, query, args, &chatMessage.ID)
+	err := database.InsertRecord(db, query, args, &chatMessage.ID, &chatMessage.CreatedAt)
 	defer util.EmitOnSuccess(ChatMessageCreatedSignal, chatMessage, err)
 
 	return err
