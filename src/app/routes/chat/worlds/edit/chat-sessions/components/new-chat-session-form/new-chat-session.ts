@@ -102,7 +102,7 @@ export class NewChatSession {
     const characterIds = this.selectedCharacterIds()
 
     this.router.navigate(
-      [{outlets: {primary: ['chat', 'worlds', 1, 'chat']}}],
+      [{outlets: {primary: ['chat', 'worlds', 1, 'chat', 'new']}}],
       {
         queryParams: {
           with: characterIds,
