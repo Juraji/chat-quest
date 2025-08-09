@@ -1,10 +1,10 @@
 import {ResolveFn} from '@angular/router';
 import {inject} from '@angular/core';
-import {resolveNewOrExisting} from '@util/resolvers';
 import {Character, CharacterDetails, CharacterWithTags} from './characters.model';
 import {Characters} from './characters.service';
 import {NEW_ID} from '@api/common';
 import {Tag} from '@api/tags';
+import {resolveNewOrExisting} from '@util/ng';
 
 export const charactersResolver: ResolveFn<CharacterWithTags[]> = () => {
   const service = inject(Characters)

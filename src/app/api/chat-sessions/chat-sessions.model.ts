@@ -2,7 +2,7 @@ import {ChatQuestModel} from "@api/common"
 
 export interface ChatSession extends ChatQuestModel {
   worldId: number
-  createdAt: Nullable<number>
+  createdAt: Nullable<string>
   name: string
   scenarioId: Nullable<number>
   enableMemories: boolean
@@ -10,7 +10,7 @@ export interface ChatSession extends ChatQuestModel {
 
 export interface ChatMessage extends ChatQuestModel {
   chatSessionId: number
-  createdAt: Nullable<number>
+  createdAt: Nullable<string>
   isUser: boolean
   characterId: number
   content: string

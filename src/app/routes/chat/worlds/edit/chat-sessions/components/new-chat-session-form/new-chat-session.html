@@ -1,8 +1,8 @@
 <form [formGroup]="formGroup" (submit)="onNewChatSession()">
   <div class="card">
     <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="card-title mb-0">New Chat Session</h5>
+      <div class="d-flex align-items-center mb-2">
+        <h5 class="card-title mb-0 flex-grow-1 cursor-pointer">New Chat Session</h5>
         <button class="btn btn-primary btn-magical"
                 [disabled]="formGroup.invalid || formGroup.pristine">Start Chat
         </button>

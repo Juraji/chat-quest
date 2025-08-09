@@ -1,4 +1,5 @@
 import {InjectionToken, Provider} from '@angular/core';
+import {DATE_PIPE_DEFAULT_OPTIONS} from '@angular/common';
 
 export interface ChatQuestConfig {
   apiBaseUrl: string,
@@ -18,9 +19,17 @@ const DEFAULT_CONFIG: ChatQuestConfig = {
 
 export const ChatQuestConfig = new InjectionToken<ChatQuestConfig>('chat_quest_config')
 
-export function provideChatQuestConfig(config: Nullable<ChatQuestConfig>): Provider {
-  return {
-    provide: ChatQuestConfig,
-    useValue: config ?? DEFAULT_CONFIG
-  }
+export function provideChatQuestConfig(config: Nullable<ChatQuestConfig>): Provider[] {
+  return [
+    {
+      provide: ChatQuestConfig,
+      useValue: config ?? DEFAULT_CONFIG
+    },
+    {
+      provide: DATE_PIPE_DEFAULT_OPTIONS,
+      useValue: {
+        dateFormat: 'medium',
+      }
+    }
+  ]
 }

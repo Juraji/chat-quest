@@ -1,9 +1,9 @@
 import {ResolveFn} from '@angular/router';
 import {inject} from '@angular/core';
-import {resolveNewOrExisting} from '@util/resolvers';
 import {AiProviders, ConnectionProfile, LlmModel, LlmModelView} from './providers.model';
 import {Providers} from './providers.service';
 import {NEW_ID} from '@api/common';
+import {resolveNewOrExisting} from '@util/ng';
 
 export const connectionProfilesResolver: ResolveFn<ConnectionProfile[]> = () => {
   const service = inject(Providers)

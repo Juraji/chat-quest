@@ -2,6 +2,8 @@ package chat_sessions
 
 import (
 	"database/sql"
+	"fmt"
+	"juraji.nl/chat-quest/characters"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/util"
 	"time"
@@ -26,6 +28,11 @@ type ChatMessage struct {
 
 	// Managed by memories
 	MemoryID *int64 `json:"memoryId"`
+}
+
+type ChatParticipant struct {
+	ChatSessionID int64 `json:"chatSessionId"`
+	CharacterID   int64 `json:"characterId"`
 }
 
 func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
@@ -64,10 +71,16 @@ func GetChatSessionById(db *sql.DB, worldId int64, id int64) (*ChatSession, erro
 	return database.QueryForRecord(db, query, args, chatSessionScanner)
 }
 
-func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession) error {
-
+func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession, characterIds []int64) error {
 	chatSession.WorldID = worldId
 	chatSession.CreatedAt = nil
+
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer database.RollBackOnErr(tx, err)
+	defer util.EmitOnSuccess(ChatSessionCreatedSignal, chatSession, err)
 
 	query := `INSERT INTO chat_sessions (world_id, name, scenario_id, enable_memories)
             VALUES (?, ?, ?, ?) RETURNING id, created_at`
@@ -78,8 +91,29 @@ func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession) erro
 		chatSession.EnableMemories,
 	}
 
-	err := database.InsertRecord(db, query, args, &chatSession.ID, &chatSession.CreatedAt)
-	defer util.EmitOnSuccess(ChatSessionCreatedSignal, chatSession, err)
+	err = database.InsertRecord(tx, query, args, &chatSession.ID, &chatSession.CreatedAt)
+	if err != nil {
+		return fmt.Errorf("failed to insert chat session: %w", err)
+	}
+
+	for _, characterId := range characterIds {
+		err = addChatSessionParticipant(tx, chatSession.ID, characterId)
+		if err != nil {
+			return fmt.Errorf("failed to insert chat participant (%d -> %d):  %w", chatSession.ID, characterId, err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	for _, characterId := range characterIds {
+		util.EmitOnSuccess(ChatParticipantAddedSignal, &ChatParticipant{
+			chatSession.ID,
+			characterId,
+		}, nil)
+	}
 
 	return err
 }
@@ -161,6 +195,36 @@ func DeleteChatMessagesFrom(db *sql.DB, sessionId int64, id int64) error {
 
 	err := database.DeleteRecord(db, query, args)
 	defer util.EmitOnSuccess(ChatMessageDeletedSignal, id, err)
+
+	return err
+}
+
+func GetChatSessionParticipants(db *sql.DB, chatSessionId int64) ([]*characters.Character, error) {
+	query := `SELECT c.* FROM chat_participants cp
+                JOIN characters c ON cp.character_id = c.id
+            WHERE cp.chat_session_id = ?`
+	args := []any{chatSessionId}
+	return database.QueryForList(db, query, args, characters.CharacterScanner)
+}
+
+func AddChatSessionParticipant(db *sql.DB, chatSessionId int64, characterId int64) error {
+	err := addChatSessionParticipant(db, chatSessionId, characterId)
+	defer util.EmitOnSuccess(ChatParticipantAddedSignal, &ChatParticipant{chatSessionId, characterId}, err)
+	return err
+}
+
+func addChatSessionParticipant(db database.QueryExecutor, chatSessionId int64, characterId int64) error {
+	query := `INSERT INTO chat_participants (chat_session_id, character_id) VALUES (?, ?)`
+	args := []any{chatSessionId, characterId}
+	return database.InsertRecord(db, query, args)
+}
+
+func RemoveChatSessionParticipant(db *sql.DB, chatSessionId int64, characterId int64) error {
+	query := `DELETE FROM chat_participants WHERE chat_session_id = ? AND character_id = ?`
+	args := []any{chatSessionId, characterId}
+
+	err := database.DeleteRecord(db, query, args)
+	defer util.EmitOnSuccess(ChatParticipantRemovedSignal, &ChatParticipant{chatSessionId, characterId}, err)
 
 	return err
 }

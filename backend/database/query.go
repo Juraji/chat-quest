@@ -74,12 +74,12 @@ func QueryForRecord[T any](
 
 func InsertRecord(
 	q QueryExecutor,
-	query string, args []any,
+	query string,
+	args []any,
 	scanTo ...any,
 ) error {
-	row := q.QueryRow(query, args...)
-
 	if len(scanTo) != 0 {
+		row := q.QueryRow(query, args...)
 		err := row.Scan(scanTo...)
 
 		if errors.Is(err, sql.ErrNoRows) {
@@ -87,9 +87,23 @@ func InsertRecord(
 		}
 
 		return err
-	}
+	} else {
+		res, err := q.Exec(query, args...)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		rowsAffected, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+
+		if rowsAffected == 0 {
+			return errors.New("no rows affected")
+		}
+
+		return nil
+	}
 }
 
 func UpdateRecord(

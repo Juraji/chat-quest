@@ -14,6 +14,24 @@ func GetIDParam(c *gin.Context, key string) (int64, error) {
 	return id, err
 }
 
+func GetIDsFromQuery(c *gin.Context, key string) ([]int64, error) {
+	values, ok := c.GetQueryArray(key)
+	if !ok {
+		return nil, nil
+	}
+
+	ids := make([]int64, len(values))
+	for i, idStr := range values {
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		ids[i] = id
+	}
+
+	return ids, nil
+}
+
 func RespondList[T any](c *gin.Context, records []T, err error) {
 	if err != nil {
 		RespondInternalError(c, err)

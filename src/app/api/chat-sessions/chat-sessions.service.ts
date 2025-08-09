@@ -1,8 +1,9 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Observable} from 'rxjs';
+import {Observable, throwError} from 'rxjs';
 import {ChatMessage, ChatSession} from './chat-sessions.model';
 import {isNew} from '@api/common';
+import {Character} from '@api/characters';
 
 @Injectable({
   providedIn: 'root'
@@ -18,9 +19,17 @@ export class ChatSessions {
     return this.http.get<ChatSession>(`/worlds/${worldId}/chat-sessions/${sessionId}`)
   }
 
+  create(worldId: number, session: ChatSession, characterIds: number[]): Observable<ChatSession> {
+    return this.http.post<ChatSession>(
+      `/worlds/${worldId}/chat-sessions`,
+      session,
+      {params: {characterId: characterIds}}
+    )
+  }
+
   save(worldId: number, session: ChatSession): Observable<ChatSession> {
     if (isNew(session)) {
-      return this.http.post<ChatSession>(`/worlds/${worldId}/chat-sessions`, session)
+      return throwError(() => 'Create sessions using create()');
     } else {
       return this.http.put<ChatSession>(`/worlds/${worldId}/chat-sessions/${session.id}`, session)
     }
@@ -28,6 +37,18 @@ export class ChatSessions {
 
   delete(worldId: number, sessionId: number): Observable<void> {
     return this.http.delete<void>(`/worlds/${worldId}/chat-sessions/${sessionId}`)
+  }
+
+  getParticipants(worldId: number, sessionId: number): Observable<Character[]> {
+    return this.http.get<Character[]>(`/worlds/${worldId}/chat-sessions/${sessionId}/participants`);
+  }
+
+  addParticipant(worldId: number, sessionId: number, characterId: number): Observable<void> {
+    return this.http.post<void>(`/worlds/${worldId}/chat-sessions/${sessionId}/participants/${characterId}`, null);
+  }
+
+  removeParticipant(worldId: number, sessionId: number, characterId: number): Observable<void> {
+    return this.http.delete<void>(`/worlds/${worldId}/chat-sessions/${sessionId}/participants/${characterId}`);
   }
 
   getMessages(worldId: number, sessionId: number): Observable<ChatMessage[]> {

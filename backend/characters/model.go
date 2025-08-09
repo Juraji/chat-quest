@@ -41,7 +41,7 @@ type Tag struct {
 	Lowercase string `json:"lowercase"`
 }
 
-func characterScanner(scanner database.RowScanner, dest *Character) error {
+func CharacterScanner(scanner database.RowScanner, dest *Character) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.CreatedAt,
@@ -70,12 +70,12 @@ func tagScanner(scanner database.RowScanner, dest *Tag) error {
 
 func AllCharacters(db *sql.DB) ([]*Character, error) {
 	query := "SELECT * FROM characters"
-	return database.QueryForList(db, query, nil, characterScanner)
+	return database.QueryForList(db, query, nil, CharacterScanner)
 }
 
 func AllCharactersWithTags(db *sql.DB) ([]*CharacterWithTags, error) {
 	query := "SELECT * FROM characters"
-	characters, err := database.QueryForList(db, query, nil, characterScanner)
+	characters, err := database.QueryForList(db, query, nil, CharacterScanner)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func CharacterById(db *sql.DB, id int64) (*Character, error) {
 	query := "SELECT * FROM characters WHERE id = ?"
 	args := []any{id}
 
-	return database.QueryForRecord(db, query, args, characterScanner)
+	return database.QueryForRecord(db, query, args, CharacterScanner)
 }
 
 func CreateCharacter(db *sql.DB, newCharacter *Character) error {

@@ -6,8 +6,8 @@ import {PageHeader} from '@components/page-header';
   imports: [
     PageHeader
   ],
-  templateUrl: './chat-with-page.html'
+  templateUrl: './chat-session-page.html'
 })
-export class ChatWithPage {
+export class ChatSessionPage {
 
 }

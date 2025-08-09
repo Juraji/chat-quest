@@ -4,7 +4,7 @@ export interface Memory extends ChatQuestModel {
   worldId: number
   chatSessionId: number
   characterId: number
-  createdAt: Nullable<number>
+  createdAt: Nullable<string>
   content: string
 }
 

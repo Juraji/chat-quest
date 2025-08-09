@@ -18,14 +18,9 @@ export const newChatSessionGuard: CanActivateFn = (route) => {
   const q = route.queryParamMap;
   const worldId = parseInt(p.get('worldId')!);
   const sessionName = q.get('sessionName') ?? 'New Session';
-  const characterIds = q.getAll('with')
+  const characterIds = q.getAll('with').map(id => parseInt(id))
   const scenarioId = q.has('scenarioId') ? parseInt(q.get('scenarioId')!) : null;
   const enableMemories = q.has('enableMemories') ? q.get('enableMemories') === 'true' : true;
-
-  if (characterIds.length === 0) {
-    console.error("No character ids set")
-    return false;
-  }
 
   const newChatSession: ChatSession = {
     id: NEW_ID,
@@ -37,7 +32,7 @@ export const newChatSessionGuard: CanActivateFn = (route) => {
   }
 
   return service
-    .save(worldId, newChatSession)
+    .create(worldId, newChatSession, characterIds)
     .pipe(map(res => {
       const urlTree = router.createUrlTree(['chat', 'worlds', worldId, 'chat', res.id])
 

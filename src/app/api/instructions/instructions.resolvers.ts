@@ -1,9 +1,9 @@
 import {ResolveFn} from '@angular/router';
 import {inject} from '@angular/core';
-import {resolveNewOrExisting} from '@util/resolvers';
 import {Instructions} from './instructions.service';
 import {Instruction} from './instructions.model';
 import {NEW_ID} from '@api/common';
+import {resolveNewOrExisting} from "@util/ng";
 
 export const instructionsResolver: ResolveFn<Instruction[]> = () => {
   const service = inject(Instructions)
