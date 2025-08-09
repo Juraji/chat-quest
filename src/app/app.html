@@ -1,14 +1,24 @@
-<nav class="navbar bg-primary">
+<nav class="navbar bg-primary mb-3">
   <div class="container-fluid">
     <a class="navbar-brand" routerLink="/">
-        <img src="/tree_small.png" alt="Logo"
-             class="d-inline-block align-text-top navbar-img">
+      <img src="/tree_small.png" alt="Logo"
+           class="d-inline-block align-text-top navbar-img">
       ChatQuest
     </a>
     <ul class="navbar-nav mx-auto">
       <li class="nav-item">
-        <a routerLink="/chat" class="nav-link" routerLinkActive="active">
-          <span class="bi bi-chat"></span> Chat
+        <a routerLink="/chat/worlds" class="nav-link" routerLinkActive="active">
+          <span class="bi bi-globe-europe-africa"></span> Worlds
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/chat/characters" class="nav-link" routerLinkActive="active">
+          <span class="bi bi-person"></span> Characters
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/chat/scenarios" class="nav-link" routerLinkActive="active">
+          <span class="bi bi-book"></span> Scenarios
         </a>
       </li>
       <li class="nav-item">
