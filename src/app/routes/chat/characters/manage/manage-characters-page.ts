@@ -6,6 +6,8 @@ import {CharacterCard} from '@components/cards/character-card';
 import {NewItemCard} from '@components/cards/new-item-card';
 import {Tag, Tags} from '@api/tags';
 import {CharacterWithTags} from '@api/characters';
+import {World} from '@api/worlds';
+import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
 
 @Component({
   selector: 'app-manage-characters',
@@ -13,7 +15,10 @@ import {CharacterWithTags} from '@api/characters';
     PageHeader,
     RouterLink,
     CharacterCard,
-    NewItemCard
+    NewItemCard,
+    DropdownContainer,
+    DropdownMenu,
+    DropdownToggle
   ],
   templateUrl: './manage-characters-page.html',
   styleUrls: ['./manage-characters-page.scss'],
@@ -24,6 +29,7 @@ export class ManageCharactersPage {
 
   readonly allTags: Signal<Tag[]> = this.tags.cachedTags
   readonly characters: Signal<CharacterWithTags[]> = routeDataSignal(this.activatedRoute, 'characters');
+  readonly worlds: Signal<World[]> = routeDataSignal(this.activatedRoute, 'worlds');
 
   readonly selectedTag: WritableSignal<Tag | null> = signal(null)
   readonly filteredCharacters: Signal<CharacterWithTags[]> = computed(() => {

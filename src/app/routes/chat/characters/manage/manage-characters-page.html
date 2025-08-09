@@ -22,9 +22,22 @@
     @for (char of filteredCharacters(); track char.id) {
       <div class="g-col-6 g-col-lg-3">
         <app-character-card [character]="char" [routerLink]="['.', char.id]" class="cursor-pointer">
-          <a class="btn" [routerLink]="['/chat/with', char.id]" (click)="$event.stopPropagation()">
-            <span class="bi bi-chat-fill"></span>
-          </a>
+          <div dropdown class="action" (click)="$event.stopPropagation()">
+            <ul class="mt-1" dropdownMenu>
+              <li><h6 class="dropdown-header">New chat with {{ char.name }} in:</h6></li>
+              @for (w of worlds(); track w.id) {
+                <li>
+                  <a class="dropdown-item"
+                     [routerLink]="['/chat', 'worlds', w.id, 'chat', 'new']"
+                     [queryParams]="{with: char.id}">{{ w.name }}</a>
+                </li>
+              }
+            </ul>
+            <button type="button" class="btn" dropdownToggle title="New Chat Session">
+              <span class="bi bi-chat-fill"></span>
+            </button>
+          </div>
+
           <button class="btn">
             <span class="bi bi-pencil"></span>
           </button>

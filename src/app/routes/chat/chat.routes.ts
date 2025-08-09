@@ -51,6 +51,7 @@ const routes: Routes = [
         component: ManageCharactersPage,
         resolve: {
           characters: charactersResolver,
+          worlds: worldsResolver
         }
       },
       {
