@@ -188,13 +188,19 @@ func UpdateChatMessage(db *sql.DB, sessionId int64, id int64, chatMessage *ChatM
 }
 
 func DeleteChatMessagesFrom(db *sql.DB, sessionId int64, id int64) error {
-	query := `DELETE FROM chat_messages
+	//language=SQL
+	query := `DELETE
+            FROM chat_messages
             WHERE chat_session_id = ?
-              AND id >= ?`
+              AND id >= ?
+            RETURNING id`
 	args := []any{sessionId, id}
 
-	err := database.DeleteRecord(db, query, args)
-	defer util.EmitOnSuccess(ChatMessageDeletedSignal, id, err)
+	deletedIds, err := database.QueryForList(db, query, args, func(scanner database.RowScanner, dest *int64) error {
+		return scanner.Scan(&dest)
+	})
+
+	defer util.EmitAllNonNilOnSuccess(ChatMessageDeletedSignal, deletedIds, err)
 
 	return err
 }

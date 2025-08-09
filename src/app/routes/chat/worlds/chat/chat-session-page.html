@@ -1,5 +1,14 @@
 <div class="container-fluid">
   <app-page-header backUrl="../">
-    <span class="page-title">Chat</span>
+    <span class="page-title"><small class="text-muted">Chat:</small>&nbsp;{{ chatSessionName() }}</span>
   </app-page-header>
+
+  <div class="grid chat-grid">
+    <div class="g-col-3 chat-grid-column">
+    </div>
+    <div class="g-col-6 chat-grid-column">
+    </div>
+    <div class="g-col-3 chat-grid-column">
+    </div>
+  </div>
 </div>

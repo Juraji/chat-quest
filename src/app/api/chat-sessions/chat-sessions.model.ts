@@ -16,3 +16,8 @@ export interface ChatMessage extends ChatQuestModel {
   content: string
   readonly memoryId: Nullable<number>
 }
+
+export interface ChatParticipant {
+  chatSessionId: number
+  characterId: number
+}

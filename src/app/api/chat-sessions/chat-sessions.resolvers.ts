@@ -13,6 +13,15 @@ export function chatSessionsResolverFactory(worldIdParam: string): ResolveFn<Cha
   }
 }
 
+export function chatSessionResolverFactory(worldIdParam: string, sessionIdParam: string): ResolveFn<ChatSession> {
+  return route => {
+    const service = inject(ChatSessions)
+    const worldId = paramAsNumber(route, worldIdParam)
+    const sessionId = paramAsNumber(route, sessionIdParam)
+    return service.get(worldId, sessionId)
+  }
+}
+
 export function chatParticipantsResolverFactory(worldIdParam: string, sessionIdParam: string): ResolveFn<Character[]> {
   return route => {
     const service = inject(ChatSessions)

@@ -19,6 +19,11 @@ import {worldResolverFactory, worldsResolver} from '@api/worlds';
 import {EditWorldPage} from './worlds/edit/edit-world-page';
 import {ChatSessionPage} from './worlds/chat/chat-session-page';
 import {newChatSessionGuard} from './worlds/chat/new-chat-session-guard';
+import {
+  chatMessagesResolverFactory,
+  chatParticipantsResolverFactory,
+  chatSessionResolverFactory
+} from '@api/chat-sessions';
 
 const routes: Routes = [
   {
@@ -36,6 +41,13 @@ const routes: Routes = [
         path: 'worlds/:worldId/chat/:chatSessionId',
         component: ChatSessionPage,
         canActivate: [newChatSessionGuard],
+        resolve: {
+          world: worldResolverFactory('worldId'),
+          chatSession: chatSessionResolverFactory('worldId', 'chatSessionId'),
+          participants: chatParticipantsResolverFactory('worldId', 'chatSessionId'),
+          messages: chatMessagesResolverFactory('worldId', 'chatSessionId'),
+          allCharacters: charactersResolver
+        }
       },
       {
         path: 'worlds/:worldId',
