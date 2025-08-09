@@ -23,7 +23,26 @@
     </app-page-header>
 
     <div class="grid">
-      <div class="g-col-12 g-col-lg-6 g-col-xl-4">
+      @if (!isNew()) {
+        <div class="g-col-12 g-col-md-6 g-col-lg-8">
+          <ul class="nav nav-underline mb-3">
+            @for (item of subMenuItems; track item.route) {
+              <li class="nav-item">
+                <a class="nav-link"
+                   [routerLink]="item.route"
+                   routerLinkActive="active"
+                   queryParamsHandling="preserve"
+                   replaceUrl
+                   [relativeTo]="activatedRoute">{{ item.label }}</a>
+              </li>
+            }
+          </ul>
+
+          <router-outlet></router-outlet>
+        </div>
+      }
+
+      <div class="g-col-12 g-col-md-6 g-col-lg-4">
         <div class="card mb-3">
           <div class="card-body">
             <h5 class="card-title">Base information</h5>
@@ -59,24 +78,6 @@
           </div>
         </div>
       </div>
-      @if (!isNew()) {
-        <div class="g-col-12 g-col-lg-6 g-col-xl-8">
-          <ul class="nav nav-underline mb-3">
-            @for (item of subMenuItems; track item.route) {
-              <li class="nav-item">
-                <a class="nav-link"
-                   [routerLink]="item.route"
-                   routerLinkActive="active"
-                   queryParamsHandling="preserve"
-                   replaceUrl
-                   [relativeTo]="activatedRoute">{{ item.label }}</a>
-              </li>
-            }
-          </ul>
-
-          <router-outlet></router-outlet>
-        </div>
-      }
     </div>
   </div>
 </form>

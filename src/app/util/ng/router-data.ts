@@ -20,10 +20,10 @@ export function routeParamSignal(route: ActivatedRoute, paramName: string): Sign
 export function routeDataSignal<T>(route: ActivatedRoute, key: string): Signal<T> {
   const obs$ = route.data.pipe(
     map(data => {
-      if (data[key] === undefined) {
-        throw new Error(`Route data does not contain the required key: ${key}`);
+      if (key in data) {
+        return data[key];
       }
-      return data[key];
+      throw new Error(`Route data does not contain the required key: ${key}`);
     })
   )
 

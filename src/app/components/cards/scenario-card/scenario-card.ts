@@ -12,5 +12,8 @@ import {Scenario} from '@api/scenarios';
 export class ScenarioCard {
   readonly scenario: InputSignal<Scenario> = input.required()
   readonly name: Signal<string> = computed(() => this.scenario().name)
-  readonly avatarUrl: Signal<Nullable<string>> = computed(() => this.scenario().avatarUrl)
+  protected readonly avatarUrl: Signal<Nullable<string>> = computed(() => {
+    const u = this.scenario().avatarUrl
+    return !!u ? `url(${u})` : null;
+  })
 }

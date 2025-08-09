@@ -1,0 +1,72 @@
+<form [formGroup]="formGroup" (submit)="onNewChatSession()">
+  <div class="card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="card-title mb-0">New Chat Session</h5>
+        <button class="btn btn-primary btn-magical"
+                [disabled]="formGroup.invalid || formGroup.pristine">Start Chat
+        </button>
+      </div>
+
+      <div class="mb-3">
+        <label for="chatNameInput">Name</label>
+        <div class="input-group">
+          <input type="text" class="form-control"
+                 id="chatNameInput"
+                 formControlName="name"/>
+          <button type="button"
+                  class="btn"
+                  [class.btn-outline-primary]="!useCustomName()"
+                  [class.btn-primary]="useCustomName()"
+                  (click)="useCustomName.toggle()">
+            <span class="bi bi-pencil"></span>
+          </button>
+        </div>
+      </div>
+      <div class="grid mb-3">
+        <div class="g-col-12 g-col-xl-4">
+          <label for="chatScenarioInput">Scenario</label>
+          <select class="form-select"
+                  id="chatScenarioInput"
+                  formControlName="scenarioId">
+            <option [ngValue]="null">No Scenario *</option>
+            @for (scene of scenarios(); track scene.id) {
+              <option [ngValue]="scene.id">{{ scene.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="g-col-12 g-col-xl-4">
+          <div class="form-check mt-xl-4">
+            <input class="form-check-input" type="checkbox" id="enableMemoriesInput"
+                   formControlName="enableMemories"/>
+            <label class="form-check-label" for="enableMemoriesInput">
+              Enable memories
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <label>Invite Characters</label>
+      <div class="character-choices">
+        <div class="grid">
+          @for (char of characters(); track char.id) {
+            @let charIsSelected = selectedCharacterIds().includes(char.id);
+            <div class="g-col-12 g-col-lg-6 g-col-xl-3">
+              <app-character-card
+                [character]="char"
+                class="chat-quest-card-small cursor-pointer"
+                [class.chat-quest-card-active]="charIsSelected"
+                (click)="onToggleCharacter(char)">
+                <button type="button" class="btn btn-sm">
+                <span class="bi"
+                      [class.bi-x]="charIsSelected"
+                      [class.bi-plus-lg]="!charIsSelected"></span>
+                </button>
+              </app-character-card>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

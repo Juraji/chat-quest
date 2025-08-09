@@ -22,8 +22,11 @@ export class CharacterCard {
   protected readonly id: Signal<number> = computed(() => this.character().id)
   protected readonly name: Signal<string> = computed(() => this.character().name)
   protected readonly favorite: Signal<boolean> = computed(() => this.character().favorite)
-  protected readonly avatarUrl: Signal<Nullable<string>> = computed(() => this.character().avatarUrl)
   protected readonly tags: WritableSignal<Tag[]> = signal([])
+  protected readonly avatarUrl: Signal<Nullable<string>> = computed(() => {
+    const u = this.character().avatarUrl
+    return !!u ? `url(${u})` : null;
+  })
 
   constructor() {
     effect(() => {

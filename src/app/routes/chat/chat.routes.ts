@@ -17,6 +17,7 @@ import {
 import {scenarioResolverFactory, scenariosResolver} from '@api/scenarios/scenarios.resolvers';
 import {worldResolverFactory, worldsResolver} from '@api/worlds';
 import {EditWorldPage} from './worlds/edit/edit-world-page';
+import {ChatWithPage} from './worlds/chat/chat-with-page';
 
 const routes: Routes = [
   {
@@ -31,10 +32,15 @@ const routes: Routes = [
         }
       },
       {
+        path: 'worlds/:worldId/chat',
+        component: ChatWithPage,
+        // loadChildren: () => import("./worlds/chat/worlds-chat.routes")
+      },
+      {
         path: 'worlds/:worldId',
         component: EditWorldPage,
         runGuardsAndResolvers: "paramsOrQueryParamsChange",
-        loadChildren: () => import("./worlds/edit/world.routes"),
+        loadChildren: () => import("./worlds/edit/edit-world.routes"),
         resolve: {
           world: worldResolverFactory('worldId')
         }
