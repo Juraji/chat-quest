@@ -5,3 +5,9 @@ export function chatSessionSortingTransformer(characters: ChatSession[]): ChatSe
     return b.createdAt!.localeCompare(a.createdAt!);
   })
 }
+
+export function sessionEntityFilter<T extends { chatSessionId: number }>(
+  chatSessionId: () => number,
+): (input: T) => boolean {
+  return input => input.chatSessionId === chatSessionId()
+}

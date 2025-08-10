@@ -14,6 +14,7 @@ import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Character, characterSortingTransformer} from '@api/characters';
 import {CharacterCard} from '@components/cards/character-card';
 import {ChatSession} from '@api/chat-sessions';
+import {arrayAddItem, arrayRemoveItem} from '@util/array';
 
 @Component({
   selector: 'new-chat-session-form',
@@ -84,8 +85,8 @@ export class NewChatSession {
   onToggleCharacter(c: Character) {
     this.selectedCharacterIds.update(ids =>
       ids.includes(c.id)
-        ? ids.filter(id => id !== c.id)
-        : [...ids, c.id])
+        ? arrayRemoveItem(ids, id => id === c.id)
+        : arrayAddItem(ids, c.id))
   }
 
   onNewChatSession() {
@@ -95,7 +96,7 @@ export class NewChatSession {
     const characterIds = this.selectedCharacterIds()
 
     this.router.navigate(
-      [{outlets: {primary: ['chat', 'worlds', 1, 'chat', 'new']}}],
+      [{outlets: {primary: ['chat', 'worlds', 1, 'session', 'new']}}],
       {
         queryParams: {
           with: characterIds,

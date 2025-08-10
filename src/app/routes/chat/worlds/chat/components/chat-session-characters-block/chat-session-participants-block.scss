@@ -1,0 +1,12 @@
+:host {
+  .card-stack {
+    padding: 0.5rem;
+    overflow-y: hidden;
+    overflow-x: scroll;
+
+    .card-stack-item {
+      display: inline-block;
+      max-width: 5rem;
+    }
+  }
+}

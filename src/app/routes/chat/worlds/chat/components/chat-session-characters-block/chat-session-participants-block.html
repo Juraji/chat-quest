@@ -1,0 +1,40 @@
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Participants</h5>
+
+    <div class="mb-1 card-stack current-participants">
+      @for (char of participants(); track char.id) {
+        <div class="card-stack-item">
+          <app-character-card
+            [character]="char"
+            class="chat-quest-card-small">
+            <button type="button" class="btn btn-sm"
+                    (click)="onRemoveParticipant(char)">
+              <span class="bi bi-x"></span>
+            </button>
+          </app-character-card>
+        </div>
+      }
+    </div>
+
+    <button class="btn btn-sm btn-outline-primary"
+            (click)="ac.toggle()">
+      Add Participants <span class="bi" [class.bi-chevron-down]="ac.collapsed()"
+                             [class.bi-chevron-up]="!ac.collapsed()"></span>
+    </button>
+    <div class="card-stack available-participants" appCollapse #ac=collapse>
+      @for (char of available(); track char.id) {
+        <div class="card-stack-item">
+          <app-character-card
+            [character]="char"
+            class="chat-quest-card-small">
+            <button type="button" class="btn btn-sm"
+                    (click)="onAddParticipant(char)">
+              <span class="bi bi-plus-lg"></span>
+            </button>
+          </app-character-card>
+        </div>
+      }
+    </div>
+  </div>
+</div>

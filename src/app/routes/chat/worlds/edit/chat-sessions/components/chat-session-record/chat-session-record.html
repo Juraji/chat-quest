@@ -5,7 +5,7 @@
       <small class="text-muted">Started on {{ sessionCreatedAt() | date }}</small>
       <div class="btn-toolbar gap-1">
         <button type="button" class="btn btn-outline-danger" (click)="onDeletedChatSession()">Delete</button>
-        <a class="btn btn-primary" [routerLink]="['/chat', 'worlds', worldId(), 'chat', sessionId()]">Continue</a>
+        <a class="btn btn-primary" [routerLink]="['/chat', 'worlds', worldId(), 'session', sessionId()]">Continue</a>
       </div>
     </div>
   </div>

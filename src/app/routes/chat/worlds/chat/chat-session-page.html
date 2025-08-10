@@ -1,14 +1,28 @@
-<div class="container-fluid">
+<div class="container-fluid d-flex flex-column chat-session-container">
   <app-page-header backUrl="../">
-    <span class="page-title"><small class="text-muted">Chat:</small>&nbsp;{{ chatSessionName() }}</span>
+    <span class="page-title">{{ chatSessionName() }}</span>
   </app-page-header>
 
-  <div class="grid chat-grid">
-    <div class="g-col-3 chat-grid-column">
+  <div class="grid gap-3 flex-grow-1 overflow-y-hidden chat-grid">
+    <div class="g-col-3 h-100 pb-4 overflow-y-auto chat-grid-column">
+      <chat-session-edit-base-session-block
+        class="d-block mb-3"
+        [world]="world()"
+        [chatSession]="chatSession()"/>
+      <chat-session-participants-block
+        [worldId]="worldId()"
+        [chatSessionId]="chatSessionId()"/>
     </div>
-    <div class="g-col-6 chat-grid-column">
+    <div class="g-col-6 h-100 overflow-y-hidden d-flex flex-column gap-2 chat-grid-column">
+      <chat-session-messages-block
+        class="d-block flex-grow-1 overflow-y-scroll"
+        [chatSessionId]="chatSessionId()"/>
+      <chat-session-chat-input-block
+        class="d-block mb-2"
+        [worldId]="worldId()"
+        [chatSessionId]="chatSessionId()"/>
     </div>
-    <div class="g-col-3 chat-grid-column">
+    <div class="g-col-3 h-100 pb-4 overflow-y-auto chat-grid-column">
     </div>
   </div>
 </div>

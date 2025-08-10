@@ -1,4 +1,5 @@
 import {Injectable, Signal, signal, WritableSignal} from '@angular/core';
+import {arrayRemoveItem} from '@util/array';
 
 type ToastType = "INFO" | "WARNING" | "DANGER"
 
@@ -64,7 +65,7 @@ export class Notifications {
         }
 
         // Remove the toast from the array and return the updated array
-        return [...toasts.slice(0, index), ...toasts.slice(index + 1)]
+        return arrayRemoveItem(toasts, index)
       }
 
       return toasts

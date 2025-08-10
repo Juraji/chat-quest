@@ -4,7 +4,7 @@ import {Worlds} from '@api/worlds';
 import {Memories} from '@api/memories';
 import {forkJoin, map} from 'rxjs';
 
-export const validatePreferencesGuard: CanActivateFn = route => {
+export const validatePreferencesGuard: CanActivateFn = () => {
   const router = inject(Router)
 
   const worlds = inject(Worlds)

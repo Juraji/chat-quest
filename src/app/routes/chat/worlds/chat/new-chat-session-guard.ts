@@ -36,7 +36,7 @@ export const newChatSessionGuard: CanActivateFn = (route) => {
   return service
     .create(worldId, newChatSession, characterIds)
     .pipe(map(res => {
-      const urlTree = router.createUrlTree(['chat', 'worlds', worldId, 'chat', res.id])
+      const urlTree = router.createUrlTree(['chat', 'worlds', worldId, 'session', res.id])
 
       return new RedirectCommand(urlTree, {replaceUrl: true});
     }));

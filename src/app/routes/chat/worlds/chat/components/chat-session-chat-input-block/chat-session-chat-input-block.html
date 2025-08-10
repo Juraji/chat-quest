@@ -1,0 +1,20 @@
+<form [formGroup]="formGroup" (submit)="onSendMessage()">
+  <div class="input-group">
+      <textarea type="text" class="form-control" rows="2"
+                placeholder="Send your message!"
+                id="messageInput"
+                aria-describedby="messageInputHelp"
+                formControlName="message"
+                (keydown)="onInputKeyDown($event)"></textarea>
+    <button class="btn btn-primary"
+            [disabled]="formGroup.invalid || formGroup.pristine">
+      <span class="bi bi-send"></span>
+    </button>
+  </div>
+  <div class="d-flex align-items-center justify-content-between">
+    <div id="messageInputHelp" class="form-text d-inline">
+      Press <kbd>Ctrl + Enter</kbd> to send.
+    </div>
+    <app-token-count [text]="messageValue()"/>
+  </div>
+</form>

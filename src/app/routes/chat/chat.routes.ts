@@ -37,7 +37,7 @@ const routes: Routes = [
         }
       },
       {
-        path: 'worlds/:worldId/chat/:chatSessionId',
+        path: 'worlds/:worldId/session/:chatSessionId',
         component: ChatSessionPage,
         canActivate: [
           validatePreferencesGuard,

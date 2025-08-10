@@ -1,0 +1,10 @@
+<div class="card">
+  <div class="card-body">
+    @if (isUser()) {
+      <small class="text-muted">You</small>
+    } @else {
+      <small class="text-muted">{{ character()?.name }}</small>
+    }
+    <app-rendered-message [message]="content()"/>
+  </div>
+</div>

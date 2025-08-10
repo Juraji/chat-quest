@@ -16,6 +16,7 @@ import {filter, iif, map, mergeMap, of, toArray} from 'rxjs';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '../dropdown';
 import {Tag, Tags} from '@api/tags';
 import {isNew, NEW_ID} from '@api/common';
+import {arrayAddItem, arrayMerge} from '@util/array';
 
 @Component({
   selector: 'app-tags-control',
@@ -86,7 +87,7 @@ export class TagsControl implements ControlValueAccessor {
   }
 
   onAddFromMenu(t: Tag) {
-    this.currentTags.update(tags => [...tags, t])
+    this.currentTags.update(tags => arrayAddItem(tags, t))
     this.onChange(this.currentTags())
   }
 
@@ -113,7 +114,7 @@ export class TagsControl implements ControlValueAccessor {
         toArray()
       )
       .subscribe(newTags => {
-        this.currentTags.update(tags => [...tags, ...newTags])
+        this.currentTags.update(tags => arrayMerge(tags, newTags, (a, b) => a.id === b.id))
         this.onChange(this.currentTags())
         this.inputText.set('')
       })

@@ -1,0 +1,17 @@
+:host {
+  $navbar-height: 4.5rem;
+
+  .chat-session-container {
+    height: calc(100vh - $navbar-height);
+  }
+}
+
+::ng-deep {
+  body {
+    overflow: hidden;
+  }
+
+  .page-content {
+    padding: 0 !important;
+  }
+}

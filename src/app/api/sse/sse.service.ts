@@ -1,7 +1,7 @@
 import {DestroyRef, inject, Injectable, Signal, signal} from '@angular/core';
 import {map, Observable, Subject, timer} from 'rxjs';
-import {filter, share} from 'rxjs/operators';
-import {SseMessageBody} from './sse.model';
+import {filter as filterOp, share} from 'rxjs/operators';
+import {SseEvent, SseMessageBody} from './sse.model';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {ChatQuestConfig} from '@config/config';
 
@@ -18,12 +18,18 @@ export class SSE {
   private readonly _connectionState = signal<number>(EventSource.CLOSED);
   readonly connectionState: Signal<number> = this._connectionState;
 
-  on<T>(source: string): Observable<T> {
+  on<T>(
+    eventType: SseEvent<T>,
+    filter: (payload: T) => boolean = () => true,
+    destroyRef?: DestroyRef,
+  ): Observable<T> {
     return this.events.pipe(
-      filter(message => message.source === source),
+      takeUntilDestroyed(this.destroyRef),
+      filterOp(message => message.source === eventType),
       map(message => message.payload),
+      filterOp(filter),
       share(),
-      takeUntilDestroyed(this.destroyRef)
+      takeUntilDestroyed(destroyRef)
     );
   }
 

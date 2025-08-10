@@ -3,6 +3,7 @@ import {HttpClient} from '@angular/common/http';
 import {Observable, tap} from 'rxjs';
 import {Tag} from './tags.model';
 import {isNew} from '@api/common';
+import {arrayAddItem, arrayRemoveItem, arrayUpsertItem} from '@util/array';
 
 @Injectable({
   providedIn: 'root'
@@ -26,38 +27,28 @@ export class Tags {
   get(tagId: number): Observable<Tag> {
     return this.http
       .get<Tag>(`/tags/${tagId}`)
-      .pipe(tap(tag => this._cachedTags.update(prev => {
-        return prev.some(t => t.id === tag.id)
-          ? prev
-          : [...prev, tag]
-      })))
+      .pipe(tap(tag => this._cachedTags
+        .update(prev => arrayUpsertItem(prev, tag, ({id}) => id === tag.id))))
   }
 
   save(tag: Tag): Observable<Tag> {
     if (isNew(tag)) {
       return this.http
         .post<Tag>(`/tags`, tag)
-        .pipe(tap(tag => this._cachedTags.update(prev => [...prev, tag])))
+        .pipe(tap(tag => this._cachedTags
+          .update(prev => arrayAddItem(prev, tag))))
     } else {
       return this.http
         .put<Tag>(`/tags/${tag.id}`, tag)
-        .pipe(tap(tag => this._cachedTags.update(prev => {
-          const idx = prev.findIndex(t => t.id === tag.id);
-          return idx === -1
-            ? [...prev, tag]
-            : [...prev.slice(0, idx), tag, ...prev.slice(idx + 1)]
-        })))
+        .pipe(tap(tag => this._cachedTags
+          .update(prev => arrayUpsertItem(prev, tag, ({id}) => id === tag.id))))
     }
   }
 
   delete(tagId: number): Observable<void> {
     return this.http
       .delete<void>(`/tags/${tagId}`)
-      .pipe(tap(() => this._cachedTags.update(prev => {
-        const idx = prev.findIndex(t => t.id === tagId);
-        return idx === -1
-          ? prev
-          : prev.slice().splice(idx, 1)
-      })))
+      .pipe(tap(() => this._cachedTags
+        .update(prev => arrayRemoveItem(prev, ({id}) => id === tagId))))
   }
 }
