@@ -9,7 +9,7 @@
       <small class="text-body-secondary">{{ toast.createdAt | timeAgo | async }}</small>
       <button type="button" class="btn-close" aria-label="Close" (click)="notifications.removeToast(toast.id)"></button>
     </div>
-    <div class="toast-body">{{toast.message}}</div>
+      <div class="toast-body" [innerHtml]="toast.message"></div>
   </div>
   }
 </div>

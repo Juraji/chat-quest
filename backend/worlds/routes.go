@@ -29,6 +29,25 @@ func preferencesRoutes(router *gin.RouterGroup, db *sql.DB) {
 		err := UpdateChatPreferences(db, &update)
 		util.RespondSingle(c, &update, err)
 	})
+
+	prefsRouter.GET("/is-valid", func(c *gin.Context) {
+		var messages []string
+
+		prefs, err := GetChatPreferences(db)
+		if err != nil {
+			util.RespondInternalError(c, err)
+			return
+		}
+
+		if prefs.ChatModelID == nil {
+			messages = append(messages, "No chat model set")
+		}
+		if prefs.ChatInstructionID == nil {
+			messages = append(messages, "No chat instruction set")
+		}
+
+		util.RespondSingle(c, &messages, nil)
+	})
 }
 
 func worldsRoutes(router *gin.RouterGroup, db *sql.DB) {

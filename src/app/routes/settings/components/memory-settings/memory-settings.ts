@@ -1,10 +1,11 @@
-import {Component, computed, effect, inject, input, InputSignal} from '@angular/core';
+import {booleanAttribute, Component, computed, effect, inject, input, InputSignal} from '@angular/core';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
-import {formControl, formGroup} from '@util/ng';
+import {formControl, formGroup, routeQueryParamSignal} from '@util/ng';
 import {Notifications} from '@components/notifications';
 import {Memories, MemoryPreferences} from '@api/memories';
 import {Instruction} from '@api/instructions';
 import {LlmModelView} from '@api/providers';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'memory-settings',
@@ -14,8 +15,11 @@ import {LlmModelView} from '@api/providers';
   templateUrl: './memory-settings.html',
 })
 export class MemorySettings {
+  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly memories = inject(Memories)
   private readonly notifications = inject(Notifications);
+
+  readonly validate = routeQueryParamSignal(this.activatedRoute, 'validate', booleanAttribute)
 
   readonly preferences: InputSignal<MemoryPreferences> = input.required()
   readonly instructionTemplates: InputSignal<Instruction[]> = input.required()
@@ -38,6 +42,11 @@ export class MemorySettings {
     effect(() => {
       const p = this.preferences()
       this.formGroup.reset(p)
+    });
+    effect(() => {
+      if (this.validate()) {
+        this.formGroup.markAllAsDirty()
+      }
     });
   }
 

@@ -30,11 +30,15 @@ export class Worlds {
     return this.http.delete<void>(`/worlds/${worldId}`)
   }
 
-  getChatPreferences(): Observable<ChatPreferences> {
+  getPreferences(): Observable<ChatPreferences> {
     return this.http.get<ChatPreferences>(`/worlds/preferences`)
   }
 
-  saveChatPreferences(preferences: ChatPreferences): Observable<ChatPreferences> {
+  savePreferences(preferences: ChatPreferences): Observable<ChatPreferences> {
     return this.http.put<ChatPreferences>(`/worlds/preferences`, preferences)
+  }
+
+  validatePreferences(): Observable<string[] | null> {
+    return this.http.get<string[]>(`/worlds/preferences/is-valid`)
   }
 }

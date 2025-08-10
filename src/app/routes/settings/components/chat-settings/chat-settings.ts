@@ -1,11 +1,12 @@
-import {Component, computed, effect, inject, input, InputSignal} from '@angular/core';
-import {formControl, formGroup} from '@util/ng';
+import {booleanAttribute, Component, computed, effect, inject, input, InputSignal} from '@angular/core';
+import {formControl, formGroup, routeQueryParamSignal} from '@util/ng';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Worlds} from '@api/worlds/worlds.service';
 import {Notifications} from '@components/notifications';
 import {ChatPreferences} from '@api/worlds';
 import {Instruction} from '@api/instructions';
 import {LlmModelView} from '@api/providers';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'chat-settings',
@@ -15,8 +16,11 @@ import {LlmModelView} from '@api/providers';
   templateUrl: './chat-settings.html'
 })
 export class ChatSettings {
+  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly worlds = inject(Worlds)
   private readonly notifications = inject(Notifications);
+
+  readonly validate = routeQueryParamSignal(this.activatedRoute, 'validate', booleanAttribute)
 
   readonly preferences: InputSignal<ChatPreferences> = input.required()
   readonly instructionTemplates: InputSignal<Instruction[]> = input.required()
@@ -36,6 +40,11 @@ export class ChatSettings {
       const p = this.preferences()
       this.formGroup.reset(p)
     });
+    effect(() => {
+      if (this.validate()) {
+        this.formGroup.markAllAsDirty()
+      }
+    });
   }
 
   onFormSubmit() {
@@ -44,7 +53,7 @@ export class ChatSettings {
     const update: ChatPreferences = this.formGroup.getRawValue()
 
     this.worlds
-      .saveChatPreferences(update)
+      .savePreferences(update)
       .subscribe(res => {
         this.formGroup.reset(res)
         this.notifications.toast("Chat settings updated!")

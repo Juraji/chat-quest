@@ -117,4 +117,26 @@ func prefsRoutes(router *gin.RouterGroup, db *sql.DB) {
 		err := UpdateMemoryPreferences(db, &update)
 		util.RespondSingle(c, &update, err)
 	})
+
+	prefsRouter.GET("/is-valid", func(c *gin.Context) {
+		var messages []string
+
+		prefs, err := GetMemoryPreferences(db)
+		if err != nil {
+			util.RespondInternalError(c, err)
+			return
+		}
+
+		if prefs.MemoriesModelID == nil {
+			messages = append(messages, "No memory model set")
+		}
+		if prefs.MemoriesInstructionID == nil {
+			messages = append(messages, "No memory instruction set")
+		}
+		if prefs.EmbeddingModelID == nil {
+			messages = append(messages, "No memory embedding model set")
+		}
+
+		util.RespondSingle(c, &messages, nil)
+	})
 }

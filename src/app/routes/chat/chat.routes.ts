@@ -17,8 +17,7 @@ import {
 import {scenarioResolverFactory, scenariosResolver} from '@api/scenarios/scenarios.resolvers';
 import {worldResolverFactory, worldsResolver} from '@api/worlds';
 import {EditWorldPage} from './worlds/edit/edit-world-page';
-import {ChatSessionPage} from './worlds/chat/chat-session-page';
-import {newChatSessionGuard} from './worlds/chat/new-chat-session-guard';
+import {ChatSessionPage, newChatSessionGuard, validatePreferencesGuard} from './worlds/chat';
 import {
   chatMessagesResolverFactory,
   chatParticipantsResolverFactory,
@@ -40,7 +39,10 @@ const routes: Routes = [
       {
         path: 'worlds/:worldId/chat/:chatSessionId',
         component: ChatSessionPage,
-        canActivate: [newChatSessionGuard],
+        canActivate: [
+          validatePreferencesGuard,
+          newChatSessionGuard
+        ],
         resolve: {
           world: worldResolverFactory('worldId'),
           chatSession: chatSessionResolverFactory('worldId', 'chatSessionId'),

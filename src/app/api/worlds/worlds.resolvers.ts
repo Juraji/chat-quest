@@ -29,5 +29,5 @@ export function worldResolverFactory(idParam: string): ResolveFn<World> {
 
 export const chatSettingsResolver: ResolveFn<ChatPreferences> = () => {
   const service = inject(Worlds)
-  return service.getChatPreferences();
+  return service.getPreferences();
 };

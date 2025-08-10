@@ -37,4 +37,8 @@ export class Memories {
   savePreferences(preferences: MemoryPreferences): Observable<MemoryPreferences> {
     return this.http.put<MemoryPreferences>(`/memories/preferences`, preferences)
   }
+
+  validatePreferences(): Observable<string[] | null> {
+    return this.http.get<string[]>(`/memories/preferences/is-valid`)
+  }
 }

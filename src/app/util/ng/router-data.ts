@@ -3,43 +3,51 @@ import {Signal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {map} from 'rxjs';
 
-export function routeParamSignal(route: ActivatedRoute, key: string): Signal<string> {
-  const obs$ = route.params.pipe(
-    map(data => {
-      if (key in data) {
-        return data[key];
-      } else {
-        const fromTree = findParamInRouteTree(route.snapshot, key);
-        if (!!fromTree) {
-          return fromTree;
-        } else {
-          throw new Error(`Route params does not contain the required key: ${key}`);
-        }
-      }
-    })
+export function routeQueryParamSignal(
+  route: ActivatedRoute,
+  key: string,
+): Signal<string | null>
+export function routeQueryParamSignal<R>(
+  route: ActivatedRoute,
+  key: string,
+  transform: (value: string | null) => R
+): Signal<R>
+export function routeQueryParamSignal<R = string>(
+  route: ActivatedRoute,
+  key: string,
+  transform?: (value: string | null) => R,
+): Signal<R | null> {
+  const obs$ = route.queryParamMap.pipe(
+    map(queryParamMap => queryParamMap.get(key)),
+    map(data => !!transform ? transform(data) : data as R)
   )
 
-  return toSignal(obs$);
+  return toSignal(obs$, {initialValue: null});
 }
 
-export function routeDataSignal<T, R = T>(route: ActivatedRoute, key: string, transform?: (value: T) => R): Signal<R> {
+export function routeDataSignal<T>(
+  route: ActivatedRoute,
+  key: string
+): Signal<T>
+export function routeDataSignal<T, R>(
+  route: ActivatedRoute,
+  key: string,
+  transform: (value: T) => R
+): Signal<R>
+export function routeDataSignal<T, R = T>(
+  route: ActivatedRoute,
+  key: string,
+  transform?: (value: T) => R
+): Signal<R> {
   const obs$ = route.data.pipe(
     map(data => {
       if (key in data) {
         return data[key];
       } else {
-        const fromTree = findDataInRouteTree(route.snapshot, key);
-        if (!!fromTree) {
-          return fromTree;
-        } else {
-          throw new Error(`Route data does not contain the required key: ${key}`);
-        }
+        throw new Error(`Route data does not contain the required key: ${key}`);
       }
     }),
-    map(data => {
-      if (!!transform) return transform(data);
-      return data;
-    })
+    map(data => !!transform ? transform(data) : data)
   )
 
   return toSignal(obs$);
@@ -51,112 +59,25 @@ export function resolveNewOrExisting<T>(
   onNew: () => MaybeAsync<T | RedirectCommand>,
   onExisting: (id: number) => MaybeAsync<T | RedirectCommand>,
 ): MaybeAsync<T | RedirectCommand> {
-  if (!(idParam in route.params)) {
-    throw new Error(`Parameter "${idParam}" not found in route.params`);
-  }
-
-  const idStr = findParamInRouteTree(route, idParam, '');
+  const idStr = route.paramMap.get(idParam);
+  if (idStr == null) throw new Error(`Parameter "${idParam}" not found in route.params`);
   if (idStr === 'new') return onNew()
-
-  const idNum = paramAsNumber(idStr)
-  return onExisting(idNum)
+  return onExisting(paramAsId(idStr))
 }
 
-export function paramAsNumber(paramValue: string): number
-export function paramAsNumber(route: ActivatedRouteSnapshot, param: string): number
-export function paramAsNumber(...args: any): number {
+export function paramAsId(paramValue: string): number
+export function paramAsId(route: ActivatedRouteSnapshot, param: string): number
+export function paramAsId(...args: any): number {
   const arg0 = args[0]
   const arg1 = args[1]
 
   const idStr = arg0 instanceof ActivatedRouteSnapshot
-    ? findParamInRouteTree(arg0, arg1)
+    ? arg0.paramMap.get(arg1)
     : arg0;
 
   const idNum = Number(idStr)
-  if (isNaN(idNum)) {
-    throw new Error(`Invalid id [${idStr}], expected a number`)
-  }
-  if (idNum <= 0) {
-    throw new Error(`Invalid id [${idStr}], id should be a positive number`)
-  }
+  if (isNaN(idNum)) throw new Error(`Invalid id [${idStr}], expected a number`)
+  if (idNum <= 0) throw new Error(`Invalid id [${idStr}], id should be a positive number`)
 
   return idNum
-}
-
-export function findParamInRouteTree(
-  routeSnapshot: ActivatedRouteSnapshot,
-  paramName: string,
-  fallback: string,
-): string
-export function findParamInRouteTree(
-  routeSnapshot: ActivatedRouteSnapshot,
-  paramName: string,
-): string | null
-export function findParamInRouteTree(
-  routeSnapshot: ActivatedRouteSnapshot,
-  paramName: string,
-  fallback?: string,
-): string | null {
-  let current: ActivatedRouteSnapshot | null = routeSnapshot
-
-  while (current != null) {
-    if (paramName in current.params) {
-      return current.params[paramName];
-    }
-    current = current.parent
-  }
-
-  return fallback || null
-}
-
-export function findQueryParamInRouteTree(
-  routeSnapshot: ActivatedRouteSnapshot,
-  paramName: string,
-  fallback: string,
-): string
-export function findQueryParamInRouteTree(
-  routeSnapshot: ActivatedRouteSnapshot,
-  paramName: string,
-): string | null
-export function findQueryParamInRouteTree(
-  routeSnapshot: ActivatedRouteSnapshot,
-  paramName: string,
-  fallback?: string,
-): string | null {
-  let current: ActivatedRouteSnapshot | null = routeSnapshot
-
-  while (current != null) {
-    if (paramName in current.queryParams) {
-      return current.queryParams[paramName];
-    }
-    current = current.parent
-  }
-
-  return fallback || null
-}
-
-export function findDataInRouteTree(
-  routeSnapshot: ActivatedRouteSnapshot,
-  paramName: string,
-  fallback: string,
-): string
-export function findDataInRouteTree(
-  routeSnapshot: ActivatedRouteSnapshot,
-  paramName: string,
-): string | null
-export function findDataInRouteTree(
-  routeSnapshot: ActivatedRouteSnapshot,
-  paramName: string,
-  fallback?: string,
-): string | null {
-  let current: ActivatedRouteSnapshot | null = routeSnapshot
-
-  while (current != null) {
-    if (paramName in current.data) {
-      return current.data[paramName];
-    }
-    current = current.parent
-  }
-
-  return fallback || null
 }

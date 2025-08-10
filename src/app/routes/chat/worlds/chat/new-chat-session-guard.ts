@@ -1,12 +1,14 @@
 import {CanActivateFn, RedirectCommand, Router} from '@angular/router';
 import {ChatSession, ChatSessions} from '@api/chat-sessions';
-import {inject} from '@angular/core';
+import {booleanAttribute, inject} from '@angular/core';
 import {NEW_ID} from '@api/common';
 import {map} from 'rxjs';
+import {paramAsId} from '@util/ng';
 
 export const newChatSessionGuard: CanActivateFn = (route) => {
-  const p = route.paramMap;
-  const sessionId = p.get('chatSessionId')!;
+  const params = route.paramMap
+
+  const sessionId = params.get('chatSessionId') || 'new';
 
   if (sessionId !== 'new') {
     return true;
@@ -14,13 +16,13 @@ export const newChatSessionGuard: CanActivateFn = (route) => {
 
   const service = inject(ChatSessions)
   const router = inject(Router);
+  const query = route.queryParamMap
 
-  const q = route.queryParamMap;
-  const worldId = parseInt(p.get('worldId')!);
-  const sessionName = q.get('sessionName') ?? 'New Session';
-  const characterIds = q.getAll('with').map(id => parseInt(id))
-  const scenarioId = q.has('scenarioId') ? parseInt(q.get('scenarioId')!) : null;
-  const enableMemories = q.has('enableMemories') ? q.get('enableMemories') === 'true' : true;
+  const worldId = paramAsId(route, 'worldId');
+  const sessionName = query.get('sessionName') || 'New Session'
+  const characterIds = query.getAll('with').map(paramAsId)
+  const scenarioId = query.has('scenarioId') ? paramAsId(query.get('scenarioId')!) : null
+  const enableMemories = booleanAttribute(query.get('enableMemories'))
 
   const newChatSession: ChatSession = {
     id: NEW_ID,
