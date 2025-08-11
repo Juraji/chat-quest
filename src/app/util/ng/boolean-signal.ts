@@ -1,16 +1,25 @@
-import {signal, WritableSignal} from '@angular/core';
+import {linkedSignal, signal, WritableSignal} from '@angular/core';
 
 export interface BooleanSignal extends WritableSignal<boolean> {
   toggle(): void;
 }
 
-export function booleanSignal(initial: boolean): BooleanSignal {
-  const base = signal(initial);
-  Object.defineProperty(base, 'toggle', {
-    value: () => base.update(s => !s),
+export function booleanSignal(initial: boolean | (() => boolean)): BooleanSignal {
+  if (typeof initial === 'boolean') {
+    return wrapSignal(signal(initial))
+  } else {
+    return wrapSignal(linkedSignal(initial))
+  }
+}
+
+function wrapSignal(signal: WritableSignal<boolean>): BooleanSignal {
+  Object.defineProperty(signal, 'toggle', {
+    value: function (this: BooleanSignal) {
+      this.update(s => !s)
+    },
     writable: false,
     configurable: false,
     enumerable: false
   });
-  return base as BooleanSignal
+  return signal as BooleanSignal
 }

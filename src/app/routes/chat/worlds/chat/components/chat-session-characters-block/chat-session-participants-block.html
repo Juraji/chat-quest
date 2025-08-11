@@ -22,7 +22,7 @@
       Add Participants <span class="bi" [class.bi-chevron-down]="ac.collapsed()"
                              [class.bi-chevron-up]="!ac.collapsed()"></span>
     </button>
-    <div class="card-stack available-participants" appCollapse #ac=collapse>
+    <div class="card-stack available-participants" collapse #ac=collapse>
       @for (char of available(); track char.id) {
         <div class="card-stack-item">
           <app-character-card
