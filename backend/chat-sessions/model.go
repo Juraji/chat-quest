@@ -197,7 +197,7 @@ func DeleteChatMessagesFrom(db *sql.DB, sessionId int64, id int64) error {
 	args := []any{sessionId, id}
 
 	deletedIds, err := database.QueryForList(db, query, args, func(scanner database.RowScanner, dest *int64) error {
-		return scanner.Scan(&dest)
+		return scanner.Scan(dest)
 	})
 
 	defer util.EmitAllNonNilOnSuccess(ChatMessageDeletedSignal, deletedIds, err)

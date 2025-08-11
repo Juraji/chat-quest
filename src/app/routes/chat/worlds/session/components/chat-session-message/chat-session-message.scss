@@ -1,0 +1,17 @@
+:host {
+  .character-avatar {
+    width: 2rem;
+    border-radius: var(--bs-border-radius);
+  }
+
+  .message-actions {
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  &:hover {
+    .message-actions {
+      opacity: 1;
+    }
+  }
+}

@@ -25,11 +25,11 @@ export class SSE {
   ): Observable<T> {
     return this.events.pipe(
       takeUntilDestroyed(this.destroyRef),
+      takeUntilDestroyed(destroyRef),
       filterOp(message => message.source === eventType),
       map(message => message.payload),
       filterOp(filter),
       share(),
-      takeUntilDestroyed(destroyRef)
     );
   }
 

@@ -2,7 +2,7 @@ import {Component, inject} from '@angular/core';
 import {CharacterEditFormService} from '../character-edit-form.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {booleanSignal, controlValueSignal} from '@util/ng';
-import {EmptyPipe} from '@components/empty-pipe';
+import {EmptyPipe} from '@components/empty.pipe';
 import {RenderedMessage} from '@components/rendered-message';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {TokenCount} from '@components/token-count';

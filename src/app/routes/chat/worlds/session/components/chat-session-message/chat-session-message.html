@@ -1,10 +1,23 @@
-<div class="card">
-  <div class="card-body">
-    @if (isUser()) {
-      <small class="text-muted">You</small>
-    } @else {
-      <small class="text-muted">{{ character()?.name }}</small>
+<div class="card bg-secondary"
+     [class.me-5]="!isUser()"
+     [class.ms-5]="isUser()">
+  <div class="card-header d-flex align-items-center gap-2">
+    @if (characterAvatar(); as url) {
+      <img class="character-avatar" [src]="url" alt="Character avatar"/>
     }
-    <app-rendered-message [message]="content()"/>
+    <h6 class="mb-0 flex-grow-1">{{ characterName() }}</h6>
+    <div class="btn-toolbar gap-1 message-actions">
+      <button type="button" class="btn btn-sm btn-secondary"
+              (click)="manageMemoryRequest.emit()">
+        <span class="bi bi-sd-card"></span>
+      </button>
+      <button type="button" class="btn btn-sm btn-danger"
+              (click)="deleteMessageRequest.emit()">
+        <span class="bi bi-trash"></span>
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <app-rendered-message [message]="content()" [renderOptions]="{enableVariables: false}"/>
   </div>
 </div>

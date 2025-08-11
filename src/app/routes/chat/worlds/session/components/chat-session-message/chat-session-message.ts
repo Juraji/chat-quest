@@ -1,9 +1,7 @@
-import {Component, computed, inject, input, InputSignal, Signal} from '@angular/core';
+import {Component, computed, input, InputSignal, output, Signal} from '@angular/core';
 import {ChatMessage} from '@api/chat-sessions';
 import {RenderedMessage} from '@components/rendered-message';
 import {Character} from '@api/characters';
-import {routeDataSignal} from '@util/ng';
-import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'chat-session-message',
@@ -14,19 +12,17 @@ import {ActivatedRoute} from '@angular/router';
   styleUrl: './chat-session-message.scss'
 })
 export class ChatSessionMessage {
-  private readonly activatedRoute = inject(ActivatedRoute);
-
-  private readonly allCharacters: Signal<Character[]> = routeDataSignal(this.activatedRoute, 'allCharacters')
-
+  readonly character: InputSignal<Nullable<Character>> = input()
   readonly message: InputSignal<ChatMessage> = input.required()
+
+  readonly manageMemoryRequest = output()
+  readonly deleteMessageRequest = output()
 
   readonly content: Signal<string> = computed(() => this.message().content)
   readonly isUser: Signal<boolean> = computed(() => this.message().isUser)
   readonly createdAt: Signal<string> = computed(() => this.message().createdAt!)
   readonly memoryId: Signal<Nullable<number>> = computed(() => this.message().memoryId)
-  readonly character: Signal<Nullable<Character>> = computed(() => {
-    const cId = this.message().characterId
-    const allCharacters = this.allCharacters();
-    return !!cId ? allCharacters.find(c => c.id === cId) : null;
-  })
+
+  readonly characterName = computed(() => this.character()?.name || 'You')
+  readonly characterAvatar = computed(() => this.character()?.avatarUrl)
 }

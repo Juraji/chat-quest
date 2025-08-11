@@ -1,6 +1,6 @@
 import {Component, input, InputSignal} from '@angular/core';
 import {RouterLink} from '@angular/router';
-import {EmptyPipe} from '@components/empty-pipe';
+import {EmptyPipe} from '@components/empty.pipe';
 import {ConnectionProfile} from '@api/providers';
 
 @Component({
