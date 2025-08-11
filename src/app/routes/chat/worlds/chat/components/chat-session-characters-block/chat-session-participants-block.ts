@@ -7,17 +7,16 @@ import {ChatParticipantAdded, ChatParticipantRemoved, ChatSessions, sessionEntit
 import {map} from 'rxjs';
 import {arrayAddItem, arrayRemoveItem} from '@util/array';
 import {CharacterCard} from '@components/cards/character-card';
-import {Collapse} from '@components/collapse';
 import {Notifications} from '@components/notifications';
+import {Scalable} from '@components/scalable/scalable';
 
 @Component({
   selector: 'chat-session-participants-block',
   imports: [
     CharacterCard,
-    Collapse
+    Scalable
   ],
   templateUrl: './chat-session-participants-block.html',
-  styleUrls: ['./chat-session-participants-block.scss']
 })
 export class ChatSessionParticipantsBlock {
   private readonly activatedRoute = inject(ActivatedRoute);

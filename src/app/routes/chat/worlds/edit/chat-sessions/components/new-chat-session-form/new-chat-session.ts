@@ -15,15 +15,16 @@ import {Character, characterSortingTransformer} from '@api/characters';
 import {CharacterCard} from '@components/cards/character-card';
 import {ChatSession} from '@api/chat-sessions';
 import {arrayAddItem, arrayRemoveItem} from '@util/array';
+import {Scalable} from '@components/scalable/scalable';
 
 @Component({
   selector: 'new-chat-session-form',
   imports: [
     ReactiveFormsModule,
-    CharacterCard
+    CharacterCard,
+    Scalable
   ],
   templateUrl: './new-chat-session.html',
-  styleUrls: ['./new-chat-session.scss'],
 })
 export class NewChatSession {
   private readonly activatedRoute = inject(ActivatedRoute);

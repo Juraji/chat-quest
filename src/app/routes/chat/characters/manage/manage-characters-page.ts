@@ -8,6 +8,7 @@ import {Tag, Tags} from '@api/tags';
 import {CharacterWithTags} from '@api/characters';
 import {World} from '@api/worlds';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
+import {Scalable} from '@components/scalable/scalable';
 
 @Component({
   selector: 'app-manage-characters',
@@ -18,7 +19,8 @@ import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropd
     NewItemCard,
     DropdownContainer,
     DropdownMenu,
-    DropdownToggle
+    DropdownToggle,
+    Scalable
   ],
   templateUrl: './manage-characters-page.html',
   styleUrls: ['./manage-characters-page.scss'],

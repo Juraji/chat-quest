@@ -6,7 +6,7 @@ import {Scenario} from '@api/scenarios';
   imports: [],
   templateUrl: './scenario-card.html',
   host: {
-    '[class.chat-quest-card]': 'true',
+    '[class.item-card]': 'true',
   }
 })
 export class ScenarioCard {

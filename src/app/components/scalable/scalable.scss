@@ -1,0 +1,11 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  .scale-content {
+    width: fit-content;
+    height: fit-content;
+    transform-origin: top left;
+  }
+}

@@ -52,17 +52,19 @@
           @for (char of characters(); track char.id) {
             @let charIsSelected = selectedCharacterIds().includes(char.id);
             <div class="g-col-12 g-col-lg-6 g-col-xl-3">
-              <app-character-card
-                [character]="char"
-                class="chat-quest-card-small cursor-pointer"
-                [class.chat-quest-card-active]="charIsSelected"
-                (click)="onToggleCharacter(char)">
-                <button type="button" class="btn btn-sm">
-                <span class="bi"
-                      [class.bi-x]="charIsSelected"
-                      [class.bi-plus-lg]="!charIsSelected"></span>
-                </button>
-              </app-character-card>
+              <scalable class="mx-auto">
+                <app-character-card
+                  [character]="char"
+                  class="cursor-pointer"
+                  [class.item-card-active]="charIsSelected"
+                  (click)="onToggleCharacter(char)">
+                  <button type="button" class="btn btn-sm">
+                    <span class="bi"
+                          [class.bi-x]="charIsSelected"
+                          [class.bi-plus-lg]="!charIsSelected"></span>
+                  </button>
+                </app-character-card>
+              </scalable>
             </div>
           }
         </div>

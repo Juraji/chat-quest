@@ -11,7 +11,7 @@ import {Tag} from '@api/tags';
   templateUrl: './character-card.html',
   styleUrl: './character-card.scss',
   host: {
-    '[class.chat-quest-card]': 'true',
+    '[class.item-card]': 'true',
     '[class.favorite]': 'favorite()'
   }
 })

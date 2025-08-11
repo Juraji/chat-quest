@@ -6,7 +6,7 @@ import {World} from '@api/worlds';
   imports: [],
   templateUrl: './world-card.html',
   host: {
-    '[class.chat-quest-card]': 'true',
+    '[class.item-card]': 'true',
   }
 })
 export class WorldCard {

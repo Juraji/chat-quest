@@ -6,7 +6,7 @@ import {Component} from '@angular/core';
   templateUrl: './new-item-card.html',
   styleUrl: './new-item-card.scss',
   host: {
-    '[class.chat-quest-card]': 'true',
+    '[class.item-card]': 'true',
   }
 })
 export class NewItemCard {

@@ -2,37 +2,39 @@
   <div class="card-body">
     <h5 class="card-title">Participants</h5>
 
-    <div class="mb-1 card-stack current-participants">
+    <div class="mb-4 grid gap-1">
       @for (char of participants(); track char.id) {
-        <div class="card-stack-item">
-          <app-character-card
-            [character]="char"
-            class="chat-quest-card-small">
-            <button type="button" class="btn btn-sm"
-                    (click)="onRemoveParticipant(char)">
-              <span class="bi bi-x"></span>
-            </button>
-          </app-character-card>
+        <div class="g-col-6 g-col-xl-4">
+          <scalable class="mx-auto">
+            <app-character-card
+              title="Click to remove!"
+              class="cursor-pointer"
+              (click)="onRemoveParticipant(char)"
+              [character]="char">
+              <button type="button" class="btn btn-sm">
+                <span class="bi bi-x"></span>
+              </button>
+            </app-character-card>
+          </scalable>
         </div>
       }
     </div>
 
-    <button class="btn btn-sm btn-outline-primary"
-            (click)="ac.toggle()">
-      Add Participants <span class="bi" [class.bi-chevron-down]="ac.collapsed()"
-                             [class.bi-chevron-up]="!ac.collapsed()"></span>
-    </button>
-    <div class="card-stack available-participants" collapse #ac=collapse>
+    <label>Add Participants</label>
+    <div class="grid gap-1">
       @for (char of available(); track char.id) {
-        <div class="card-stack-item">
-          <app-character-card
-            [character]="char"
-            class="chat-quest-card-small">
-            <button type="button" class="btn btn-sm"
-                    (click)="onAddParticipant(char)">
-              <span class="bi bi-plus-lg"></span>
-            </button>
-          </app-character-card>
+        <div class="g-col-4 g-col-xl-2">
+          <scalable class="mx-auto">
+            <app-character-card
+              title="Click to add!"
+              class="cursor-pointer"
+              (click)="onAddParticipant(char)"
+              [character]="char">
+              <button type="button" class="btn btn-sm">
+                <span class="bi bi-plus-lg"></span>
+              </button>
+            </app-character-card>
+          </scalable>
         </div>
       }
     </div>
