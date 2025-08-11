@@ -17,7 +17,7 @@ import {
 import {scenarioResolverFactory, scenariosResolver} from '@api/scenarios/scenarios.resolvers';
 import {worldResolverFactory, worldsResolver} from '@api/worlds';
 import {EditWorldPage} from './worlds/edit/edit-world-page';
-import {ChatSessionPage, newChatSessionGuard, validatePreferencesGuard} from './worlds/chat';
+import {ChatSessionPage, newChatSessionGuard, validatePreferencesGuard} from './worlds/session';
 import {
   chatMessagesResolverFactory,
   chatParticipantsResolverFactory,
