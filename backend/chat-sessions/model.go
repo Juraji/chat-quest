@@ -1,9 +1,9 @@
 package chat_sessions
 
 import (
-	"database/sql"
 	"fmt"
 	"juraji.nl/chat-quest/characters"
+	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/util"
 	"time"
@@ -58,29 +58,28 @@ func chatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
 	)
 }
 
-func GetAllChatSessionsByWorldId(db *sql.DB, worldId int64) ([]*ChatSession, error) {
+func GetAllChatSessionsByWorldId(cq *cq.ChatQuestContext, worldId int64) ([]*ChatSession, error) {
 	query := "SELECT * FROM chat_sessions WHERE world_id=?"
 	args := []any{worldId}
 
-	return database.QueryForList(db, query, args, chatSessionScanner)
+	return database.QueryForList(cq.DB(), query, args, chatSessionScanner)
 }
 
-func GetChatSessionById(db *sql.DB, worldId int64, id int64) (*ChatSession, error) {
+func GetChatSessionById(cq *cq.ChatQuestContext, worldId int64, id int64) (*ChatSession, error) {
 	query := "SELECT * FROM chat_sessions WHERE world_id=? AND id=?"
 	args := []any{worldId, id}
-	return database.QueryForRecord(db, query, args, chatSessionScanner)
+	return database.QueryForRecord(cq.DB(), query, args, chatSessionScanner)
 }
 
-func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession, characterIds []int64) error {
+func CreateChatSession(cq *cq.ChatQuestContext, worldId int64, chatSession *ChatSession, characterIds []int64) error {
 	chatSession.WorldID = worldId
 	chatSession.CreatedAt = nil
 
-	tx, err := db.Begin()
+	tx, err := cq.DB().Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer database.RollBackOnErr(tx, err)
-	defer util.EmitOnSuccess(ChatSessionCreatedSignal, chatSession, err)
 
 	query := `INSERT INTO chat_sessions (world_id, name, scenario_id, enable_memories)
             VALUES (?, ?, ?, ?) RETURNING id, created_at`
@@ -108,17 +107,16 @@ func CreateChatSession(db *sql.DB, worldId int64, chatSession *ChatSession, char
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
+	ChatSessionCreatedSignal.Emit(cq.Context(), chatSession)
 	for _, characterId := range characterIds {
-		util.EmitOnSuccess(ChatParticipantAddedSignal, &ChatParticipant{
-			chatSession.ID,
-			characterId,
-		}, nil)
+		participant := ChatParticipant{chatSession.ID, characterId}
+		ChatParticipantAddedSignal.Emit(cq.Context(), &participant)
 	}
 
-	return err
+	return nil
 }
 
-func UpdateChatSession(db *sql.DB, worldId int64, id int64, chatSession *ChatSession) error {
+func UpdateChatSession(cq *cq.ChatQuestContext, worldId int64, id int64, chatSession *ChatSession) error {
 	query := `UPDATE chat_sessions
             SET name = ?,
                 scenario_id = ?,
@@ -133,29 +131,35 @@ func UpdateChatSession(db *sql.DB, worldId int64, id int64, chatSession *ChatSes
 		id,
 	}
 
-	err := database.UpdateRecord(db, query, args)
-	defer util.EmitOnSuccess(ChatSessionUpdatedSignal, chatSession, err)
+	err := database.UpdateRecord(cq.DB(), query, args)
+	if err != nil {
+		return err
+	}
 
-	return err
+	ChatSessionUpdatedSignal.Emit(cq.Context(), chatSession)
+	return nil
 }
 
-func DeleteChatSessionById(db *sql.DB, worldId int64, id int64) error {
+func DeleteChatSessionById(cq *cq.ChatQuestContext, worldId int64, id int64) error {
 	query := "DELETE FROM chat_sessions WHERE world_id=? AND id=?"
 	args := []any{worldId, id}
 
-	err := database.DeleteRecord(db, query, args)
-	defer util.EmitOnSuccess(ChatSessionDeletedSignal, worldId, err)
+	err := database.DeleteRecord(cq.DB(), query, args)
+	if err != nil {
+		return err
+	}
 
-	return err
+	ChatSessionDeletedSignal.Emit(cq.Context(), worldId)
+	return nil
 }
 
-func GetChatMessages(db *sql.DB, sessionId int64) ([]*ChatMessage, error) {
+func GetChatMessages(cq *cq.ChatQuestContext, sessionId int64) ([]*ChatMessage, error) {
 	query := "SELECT * FROM chat_messages WHERE chat_session_id=?"
 	args := []any{sessionId}
-	return database.QueryForList(db, query, args, chatMessageScanner)
+	return database.QueryForList(cq.DB(), query, args, chatMessageScanner)
 }
 
-func CreateChatMessage(db *sql.DB, sessionId int64, chatMessage *ChatMessage) error {
+func CreateChatMessage(cq *cq.ChatQuestContext, sessionId int64, chatMessage *ChatMessage) error {
 	chatMessage.ChatSessionID = sessionId
 	chatMessage.CreatedAt = nil
 
@@ -168,26 +172,33 @@ func CreateChatMessage(db *sql.DB, sessionId int64, chatMessage *ChatMessage) er
 		chatMessage.Content,
 	}
 
-	err := database.InsertRecord(db, query, args, &chatMessage.ID, &chatMessage.CreatedAt)
-	defer util.EmitOnSuccess(ChatMessageCreatedSignal, chatMessage, err)
+	err := database.InsertRecord(cq.DB(), query, args, &chatMessage.ID, &chatMessage.CreatedAt)
+	if err != nil {
+		return err
+	}
 
-	return err
+	ChatMessageCreatedSignal.Emit(cq.Context(), chatMessage)
+
+	return nil
 }
 
-func UpdateChatMessage(db *sql.DB, sessionId int64, id int64, chatMessage *ChatMessage) error {
+func UpdateChatMessage(cq *cq.ChatQuestContext, sessionId int64, id int64, chatMessage *ChatMessage) error {
 	query := `UPDATE chat_messages
             SET content = ?
             WHERE chat_session_id = ?
               AND id = ?`
 	args := []any{chatMessage.Content, sessionId, id}
 
-	err := database.UpdateRecord(db, query, args)
-	defer util.EmitOnSuccess(ChatMessageUpdatedSignal, chatMessage, err)
+	err := database.UpdateRecord(cq.DB(), query, args)
+	if err != nil {
+		return err
+	}
 
-	return err
+	ChatMessageUpdatedSignal.Emit(cq.Context(), chatMessage)
+	return nil
 }
 
-func DeleteChatMessagesFrom(db *sql.DB, sessionId int64, id int64) error {
+func DeleteChatMessagesFrom(cq *cq.ChatQuestContext, sessionId int64, id int64) error {
 	//language=SQL
 	query := `DELETE
             FROM chat_messages
@@ -196,27 +207,34 @@ func DeleteChatMessagesFrom(db *sql.DB, sessionId int64, id int64) error {
             RETURNING id`
 	args := []any{sessionId, id}
 
-	deletedIds, err := database.QueryForList(db, query, args, func(scanner database.RowScanner, dest *int64) error {
+	deletedIds, err := database.QueryForList(cq.DB(), query, args, func(scanner database.RowScanner, dest *int64) error {
 		return scanner.Scan(dest)
 	})
+	if err != nil {
+		return err
+	}
 
-	defer util.EmitAllNonNilOnSuccess(ChatMessageDeletedSignal, deletedIds, err)
-
-	return err
+	util.EmitAllNonNil(cq, ChatMessageDeletedSignal, deletedIds)
+	return nil
 }
 
-func GetChatSessionParticipants(db *sql.DB, chatSessionId int64) ([]*characters.Character, error) {
+func GetChatSessionParticipants(cq *cq.ChatQuestContext, chatSessionId int64) ([]*characters.Character, error) {
 	query := `SELECT c.* FROM chat_participants cp
                 JOIN characters c ON cp.character_id = c.id
             WHERE cp.chat_session_id = ?`
 	args := []any{chatSessionId}
-	return database.QueryForList(db, query, args, characters.CharacterScanner)
+	return database.QueryForList(cq.DB(), query, args, characters.CharacterScanner)
 }
 
-func AddChatSessionParticipant(db *sql.DB, chatSessionId int64, characterId int64) error {
-	err := addChatSessionParticipant(db, chatSessionId, characterId)
-	defer util.EmitOnSuccess(ChatParticipantAddedSignal, &ChatParticipant{chatSessionId, characterId}, err)
-	return err
+func AddChatSessionParticipant(cq *cq.ChatQuestContext, chatSessionId int64, characterId int64) error {
+	err := addChatSessionParticipant(cq.DB(), chatSessionId, characterId)
+	if err != nil {
+		return err
+	}
+
+	participant := ChatParticipant{chatSessionId, characterId}
+	ChatParticipantAddedSignal.Emit(cq.Context(), &participant)
+	return nil
 }
 
 func addChatSessionParticipant(db database.QueryExecutor, chatSessionId int64, characterId int64) error {
@@ -225,12 +243,16 @@ func addChatSessionParticipant(db database.QueryExecutor, chatSessionId int64, c
 	return database.InsertRecord(db, query, args)
 }
 
-func RemoveChatSessionParticipant(db *sql.DB, chatSessionId int64, characterId int64) error {
+func RemoveChatSessionParticipant(cq *cq.ChatQuestContext, chatSessionId int64, characterId int64) error {
 	query := `DELETE FROM chat_participants WHERE chat_session_id = ? AND character_id = ?`
 	args := []any{chatSessionId, characterId}
 
-	err := database.DeleteRecord(db, query, args)
-	defer util.EmitOnSuccess(ChatParticipantRemovedSignal, &ChatParticipant{chatSessionId, characterId}, err)
+	err := database.DeleteRecord(cq.DB(), query, args)
+	if err != nil {
+		return err
+	}
 
-	return err
+	participant := ChatParticipant{chatSessionId, characterId}
+	ChatParticipantRemovedSignal.Emit(cq.Context(), &participant)
+	return nil
 }

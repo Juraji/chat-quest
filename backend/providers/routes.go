@@ -1,31 +1,37 @@
 package providers
 
 import (
-	"database/sql"
 	"github.com/gin-gonic/gin"
+	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/util"
 )
 
-func Routes(router *gin.RouterGroup, db *sql.DB) {
+func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 	connectionProfilesRouter := router.Group("/connection-profiles")
 
 	connectionProfilesRouter.GET("", func(c *gin.Context) {
-		profiles, err := AllConnectionProfiles(db)
+		cq = cq.WithContext(c.Request.Context())
+
+		profiles, err := AllConnectionProfiles(cq)
 		util.RespondList(c, profiles, err)
 	})
 
 	connectionProfilesRouter.GET("/:profileId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid connection profile ID")
 			return
 		}
 
-		profile, err := ConnectionProfileById(db, profileId)
+		profile, err := ConnectionProfileById(cq, profileId)
 		util.RespondSingle(c, profile, err)
 	})
 
 	connectionProfilesRouter.POST("", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		var newProfile ConnectionProfile
 		if err := c.ShouldBindJSON(&newProfile); err != nil {
 			util.RespondBadRequest(c, "Invalid connection profile data")
@@ -38,11 +44,13 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = CreateConnectionProfile(db, &newProfile, llmModels)
+		err = CreateConnectionProfile(cq, &newProfile, llmModels)
 		util.RespondSingle(c, &newProfile, err)
 	})
 
 	connectionProfilesRouter.PUT("/:profileId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid connection profile ID")
@@ -54,40 +62,46 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = UpdateConnectionProfile(db, profileId, &profile)
+		err = UpdateConnectionProfile(cq, profileId, &profile)
 		util.RespondSingle(c, &profile, err)
 	})
 
 	connectionProfilesRouter.DELETE("/:profileId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid connection profile ID")
 			return
 		}
 
-		err = DeleteConnectionProfileById(db, profileId)
+		err = DeleteConnectionProfileById(cq, profileId)
 		util.RespondDeleted(c, err)
 	})
 
 	connectionProfilesRouter.GET("/:profileId/models", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid connection profile ID")
 			return
 		}
 
-		models, err := LlmModelsByConnectionProfileId(db, profileId)
+		models, err := LlmModelsByConnectionProfileId(cq, profileId)
 		util.RespondList(c, models, err)
 	})
 
 	connectionProfilesRouter.POST("/:profileId/models/refresh", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid connection profile ID")
 			return
 		}
 
-		profile, err := ConnectionProfileById(db, profileId)
+		profile, err := ConnectionProfileById(cq, profileId)
 		if err != nil {
 			util.RespondEmpty(c, err)
 			return
@@ -99,11 +113,13 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = MergeLlmModels(db, profileId, llmModels)
+		err = MergeLlmModels(cq, profileId, llmModels)
 		util.RespondEmpty(c, err)
 	})
 
 	connectionProfilesRouter.POST("/:profileId/models", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid connection profile ID")
@@ -116,11 +132,13 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = CreateLlmModel(db, profileId, &newLlmModel)
+		err = CreateLlmModel(cq, profileId, &newLlmModel)
 		util.RespondSingle(c, &newLlmModel, err)
 	})
 
 	connectionProfilesRouter.PUT("/:profileId/models/:modelId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		modelId, err := util.GetIDParam(c, "modelId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid model ID")
@@ -133,23 +151,27 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = UpdateLlmModel(db, modelId, &llmModel)
+		err = UpdateLlmModel(cq, modelId, &llmModel)
 		util.RespondSingle(c, &llmModel, err)
 	})
 
 	connectionProfilesRouter.DELETE("/:profileId/models/:modelId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		modelId, err := util.GetIDParam(c, "modelId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid model ID")
 			return
 		}
 
-		err = DeleteLlmModelById(db, modelId)
+		err = DeleteLlmModelById(cq, modelId)
 		util.RespondDeleted(c, err)
 	})
 
 	connectionProfilesRouter.GET("/model-views", func(c *gin.Context) {
-		views, err := GetAllLlmModelViews(db)
+		cq = cq.WithContext(c.Request.Context())
+
+		views, err := GetAllLlmModelViews(cq)
 		util.RespondList(c, views, err)
 	})
 }

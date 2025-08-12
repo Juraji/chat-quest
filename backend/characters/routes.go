@@ -1,52 +1,62 @@
 package characters
 
 import (
-	"database/sql"
 	"github.com/gin-gonic/gin"
+	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/util"
 )
 
-func Routes(router *gin.RouterGroup, db *sql.DB) {
-	charactersRoutes(router, db)
-	tagsRoutes(router, db)
+func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
+	charactersRoutes(cq, router)
+	tagsRoutes(cq, router)
 }
 
-func charactersRoutes(router *gin.RouterGroup, db *sql.DB) {
+func charactersRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 	charactersRouter := router.Group("/characters")
 
 	charactersRouter.GET("", func(c *gin.Context) {
-		characters, err := AllCharacters(db)
+		cq = cq.WithContext(c.Request.Context())
+
+		characters, err := AllCharacters(cq)
 		util.RespondList(c, characters, err)
 	})
 
 	charactersRouter.GET("/with-tags", func(c *gin.Context) {
-		characters, err := AllCharactersWithTags(db)
+		cq = cq.WithContext(c.Request.Context())
+
+		characters, err := AllCharactersWithTags(cq)
 		util.RespondList(c, characters, err)
 	})
 
 	charactersRouter.GET("/:characterId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		character, err := CharacterById(db, characterId)
+		character, err := CharacterById(cq, characterId)
 		util.RespondSingle(c, character, err)
 	})
 
 	charactersRouter.POST("", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		var newCharacter Character
 		if err := c.ShouldBind(&newCharacter); err != nil {
 			util.RespondBadRequest(c, "Invalid character data")
 			return
 		}
 
-		err := CreateCharacter(db, &newCharacter)
+		err := CreateCharacter(cq, &newCharacter)
 		util.RespondSingle(c, &newCharacter, err)
 	})
 
 	charactersRouter.PUT("/:characterId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
@@ -59,33 +69,39 @@ func charactersRoutes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = UpdateCharacter(db, characterId, &character)
+		err = UpdateCharacter(cq, characterId, &character)
 		util.RespondSingle(c, &character, err)
 	})
 
 	charactersRouter.DELETE("/:characterId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		err = DeleteCharacterById(db, characterId)
+		err = DeleteCharacterById(cq, characterId)
 		util.RespondDeleted(c, err)
 	})
 
 	charactersRouter.GET("/:characterId/details", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		details, err := CharacterDetailsByCharacterId(db, characterId)
+		details, err := CharacterDetailsByCharacterId(cq, characterId)
 		util.RespondSingle(c, details, err)
 	})
 
 	charactersRouter.PUT("/:characterId/details", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
@@ -98,22 +114,26 @@ func charactersRoutes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = UpdateCharacterDetails(db, characterId, &details)
+		err = UpdateCharacterDetails(cq, characterId, &details)
 		util.RespondSingle(c, &details, err)
 	})
 
 	charactersRouter.GET("/:characterId/tags", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		tags, err := TagsByCharacterId(db, characterId)
+		tags, err := TagsByCharacterId(cq, characterId)
 		util.RespondList(c, tags, err)
 	})
 
 	charactersRouter.POST("/:characterId/tags", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
@@ -126,11 +146,13 @@ func charactersRoutes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = SetCharacterTags(db, characterId, tagIds)
+		err = SetCharacterTags(cq, characterId, tagIds)
 		util.RespondEmpty(c, err)
 	})
 
 	charactersRouter.POST("/:characterId/tags/:tagId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
@@ -142,11 +164,13 @@ func charactersRoutes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = AddCharacterTag(db, characterId, tagId)
+		err = AddCharacterTag(cq, characterId, tagId)
 		util.RespondEmpty(c, err)
 	})
 
 	charactersRouter.DELETE("/:characterId/tags/:tagId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
@@ -158,22 +182,26 @@ func charactersRoutes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = RemoveCharacterTag(db, characterId, tagId)
+		err = RemoveCharacterTag(cq, characterId, tagId)
 		util.RespondDeleted(c, err)
 	})
 
 	charactersRouter.GET("/:characterId/dialogue-examples", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		examples, err := DialogueExamplesByCharacterId(db, characterId)
+		examples, err := DialogueExamplesByCharacterId(cq, characterId)
 		util.RespondList(c, examples, err)
 	})
 
 	charactersRouter.POST("/:characterId/dialogue-examples", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
@@ -186,22 +214,26 @@ func charactersRoutes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = SetDialogueExamplesByCharacterId(db, characterId, examples)
+		err = SetDialogueExamplesByCharacterId(cq, characterId, examples)
 		util.RespondEmpty(c, err)
 	})
 
 	charactersRouter.GET("/:characterId/greetings", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		greetings, err := CharacterGreetingsByCharacterId(db, characterId)
+		greetings, err := CharacterGreetingsByCharacterId(cq, characterId)
 		util.RespondList(c, greetings, err)
 	})
 
 	charactersRouter.POST("/:characterId/greetings", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
@@ -214,22 +246,26 @@ func charactersRoutes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = SetGreetingsByCharacterId(db, characterId, greetings)
+		err = SetGreetingsByCharacterId(cq, characterId, greetings)
 		util.RespondEmpty(c, err)
 	})
 
 	charactersRouter.GET("/:characterId/group-greetings", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		greetings, err := CharacterGroupGreetingsByCharacterId(db, characterId)
+		greetings, err := CharacterGroupGreetingsByCharacterId(cq, characterId)
 		util.RespondList(c, greetings, err)
 	})
 
 	charactersRouter.POST("/:characterId/group-greetings", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid character ID")
@@ -242,42 +278,50 @@ func charactersRoutes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = SetGroupGreetingsByCharacterId(db, characterId, greetings)
+		err = SetGroupGreetingsByCharacterId(cq, characterId, greetings)
 		util.RespondEmpty(c, err)
 	})
 }
 
-func tagsRoutes(router *gin.RouterGroup, db *sql.DB) {
+func tagsRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 	tagsRouter := router.Group("/tags")
 
 	tagsRouter.GET("", func(c *gin.Context) {
-		tags, err := AllTags(db)
+		cq = cq.WithContext(c.Request.Context())
+
+		tags, err := AllTags(cq)
 		util.RespondList(c, tags, err)
 	})
 
 	tagsRouter.GET("/:id", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		id, err := util.GetIDParam(c, "id")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid tag ID")
 			return
 		}
 
-		tag, err := TagById(db, id)
+		tag, err := TagById(cq, id)
 		util.RespondSingle(c, tag, err)
 	})
 
 	tagsRouter.POST("", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		var newTag Tag
 		if err := c.ShouldBind(&newTag); err != nil {
 			util.RespondBadRequest(c, "Invalid tag data")
 			return
 		}
 
-		err := CreateTag(db, &newTag)
+		err := CreateTag(cq, &newTag)
 		util.RespondSingle(c, &newTag, err)
 	})
 
 	tagsRouter.PUT("/:id", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		id, err := util.GetIDParam(c, "id")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid tag ID")
@@ -290,18 +334,20 @@ func tagsRoutes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = UpdateTag(db, id, &tag)
+		err = UpdateTag(cq, id, &tag)
 		util.RespondSingle(c, &tag, err)
 	})
 
 	tagsRouter.DELETE("/:id", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		id, err := util.GetIDParam(c, "id")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid tag ID")
 			return
 		}
 
-		err = DeleteTagById(db, id)
+		err = DeleteTagById(cq, id)
 		util.RespondDeleted(c, err)
 	})
 }

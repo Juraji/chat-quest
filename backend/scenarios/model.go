@@ -1,7 +1,7 @@
 package scenarios
 
 import (
-	"database/sql"
+	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/util"
 )
@@ -24,31 +24,34 @@ func scenarioScanner(scanner database.RowScanner, dest *Scenario) error {
 	)
 }
 
-func AllScenarios(db *sql.DB) ([]*Scenario, error) {
+func AllScenarios(cq *cq.ChatQuestContext) ([]*Scenario, error) {
 	query := "SELECT * FROM scenarios"
-	return database.QueryForList(db, query, nil, scenarioScanner)
+	return database.QueryForList(cq.DB(), query, nil, scenarioScanner)
 }
 
-func ScenarioById(db *sql.DB, id int64) (*Scenario, error) {
+func ScenarioById(cq *cq.ChatQuestContext, id int64) (*Scenario, error) {
 	query := "SELECT * FROM scenarios WHERE id=?"
 	args := []any{id}
-	return database.QueryForRecord(db, query, args, scenarioScanner)
+	return database.QueryForRecord(cq.DB(), query, args, scenarioScanner)
 }
 
-func CreateScenario(db *sql.DB, scenario *Scenario) error {
+func CreateScenario(cq *cq.ChatQuestContext, scenario *Scenario) error {
 	util.EmptyStrPtrToNil(&scenario.AvatarUrl)
 
 	query := `INSERT INTO scenarios (name, description, avatar_url, linked_character_id)
             VALUES (?, ?, ?, ?) RETURNING id`
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId}
 
-	err := database.InsertRecord(db, query, args, &scenario.ID)
-	defer util.EmitOnSuccess(ScenarioCreatedSignal, scenario, err)
+	err := database.InsertRecord(cq.DB(), query, args, &scenario.ID)
+	if err != nil {
+		return err
+	}
 
-	return err
+	ScenarioCreatedSignal.Emit(cq.Context(), scenario)
+	return nil
 }
 
-func UpdateScenario(db *sql.DB, id int64, scenario *Scenario) error {
+func UpdateScenario(cq *cq.ChatQuestContext, id int64, scenario *Scenario) error {
 	util.EmptyStrPtrToNil(&scenario.AvatarUrl)
 
 	query := `UPDATE scenarios
@@ -59,18 +62,24 @@ func UpdateScenario(db *sql.DB, id int64, scenario *Scenario) error {
             WHERE id=?`
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId, id}
 
-	err := database.UpdateRecord(db, query, args)
-	defer util.EmitOnSuccess(ScenarioUpdatedSignal, scenario, err)
+	err := database.UpdateRecord(cq.DB(), query, args)
+	if err != nil {
+		return err
+	}
 
-	return err
+	ScenarioUpdatedSignal.Emit(cq.Context(), scenario)
+	return nil
 }
 
-func DeleteScenario(db *sql.DB, id int64) error {
+func DeleteScenario(cq *cq.ChatQuestContext, id int64) error {
 	query := "DELETE FROM scenarios WHERE id=?"
 	args := []interface{}{id}
 
-	err := database.DeleteRecord(db, query, args)
-	defer util.EmitOnSuccess(ScenarioDeletedSignal, id, err)
+	err := database.DeleteRecord(cq.DB(), query, args)
+	if err != nil {
+		return err
+	}
 
-	return err
+	ScenarioDeletedSignal.Emit(cq.Context(), id)
+	return nil
 }

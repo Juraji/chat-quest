@@ -1,42 +1,50 @@
 package instructions
 
 import (
-	"database/sql"
 	"github.com/gin-gonic/gin"
+	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/util"
 )
 
-func Routes(router *gin.RouterGroup, db *sql.DB) {
+func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 	instructionPromptsRouter := router.Group("/instruction-templates")
 
 	instructionPromptsRouter.GET("", func(c *gin.Context) {
-		prompts, err := AllInstructionPrompts(db)
+		cq = cq.WithContext(c.Request.Context())
+
+		prompts, err := AllInstructionPrompts(cq)
 		util.RespondList(c, prompts, err)
 	})
 
 	instructionPromptsRouter.GET("/:templateId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		templateId, err := util.GetIDParam(c, "templateId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid prompt ID")
 			return
 		}
 
-		prompts, err := InstructionPromptById(db, templateId)
+		prompts, err := InstructionPromptById(cq, templateId)
 		util.RespondSingle(c, prompts, err)
 	})
 
 	instructionPromptsRouter.POST("", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		var newPrompt InstructionTemplate
 		if err := c.ShouldBind(&newPrompt); err != nil {
 			util.RespondBadRequest(c, "Invalid prompt data")
 			return
 		}
 
-		err := CreateInstructionPrompt(db, &newPrompt)
+		err := CreateInstructionPrompt(cq, &newPrompt)
 		util.RespondSingle(c, &newPrompt, err)
 	})
 
 	instructionPromptsRouter.PUT("/:templateId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		templateId, err := util.GetIDParam(c, "templateId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid prompt ID")
@@ -48,18 +56,20 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = UpdateInstructionPrompt(db, templateId, &prompt)
+		err = UpdateInstructionPrompt(cq, templateId, &prompt)
 		util.RespondSingle(c, &prompt, err)
 	})
 
 	instructionPromptsRouter.DELETE("/:templateId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		templateId, err := util.GetIDParam(c, "templateId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid prompt ID")
 			return
 		}
 
-		err = DeleteInstructionPrompt(db, templateId)
+		err = DeleteInstructionPrompt(cq, templateId)
 		util.RespondDeleted(c, err)
 	})
 }

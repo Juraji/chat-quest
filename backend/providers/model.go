@@ -1,8 +1,8 @@
 package providers
 
 import (
-	"database/sql"
 	"fmt"
+	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/util"
 )
@@ -67,25 +67,23 @@ func llModelViewScanner(scanner database.RowScanner, dest *LlmModelView) error {
 	)
 }
 
-func AllConnectionProfiles(db *sql.DB) ([]*ConnectionProfile, error) {
+func AllConnectionProfiles(cq *cq.ChatQuestContext) ([]*ConnectionProfile, error) {
 	query := "SELECT * FROM connection_profiles"
-	return database.QueryForList(db, query, nil, connectionProfileScanner)
+	return database.QueryForList(cq.DB(), query, nil, connectionProfileScanner)
 }
 
-func ConnectionProfileById(db *sql.DB, id int64) (*ConnectionProfile, error) {
+func ConnectionProfileById(cq *cq.ChatQuestContext, id int64) (*ConnectionProfile, error) {
 	query := "SELECT * FROM connection_profiles WHERE id = ?"
 	args := []any{id}
-	return database.QueryForRecord(db, query, args, connectionProfileScanner)
+	return database.QueryForRecord(cq.DB(), query, args, connectionProfileScanner)
 }
 
-func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels []*LlmModel) error {
-	tx, err := db.Begin()
+func CreateConnectionProfile(cq *cq.ChatQuestContext, profile *ConnectionProfile, llmModels []*LlmModel) error {
+	tx, err := cq.DB().Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	defer database.RollBackOnErr(tx, err)
-	defer util.EmitOnSuccess(ConnectionProfileCreatedSignal, profile, err)
-	defer util.EmitAllOnSuccess(LlmModelCreatedSignal, llmModels, err)
 
 	query := "INSERT INTO connection_profiles (name, provider_type, base_url, api_key) VALUES (?, ?, ?, ?) RETURNING id"
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey}
@@ -102,10 +100,16 @@ func CreateConnectionProfile(db *sql.DB, profile *ConnectionProfile, llmModels [
 	}
 
 	err = tx.Commit()
-	return err
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	ConnectionProfileCreatedSignal.Emit(cq.Context(), profile)
+	util.EmitAll(cq, LlmModelCreatedSignal, llmModels)
+	return nil
 }
 
-func UpdateConnectionProfile(db *sql.DB, id int64, profile *ConnectionProfile) error {
+func UpdateConnectionProfile(cq *cq.ChatQuestContext, id int64, profile *ConnectionProfile) error {
 	query := `UPDATE connection_profiles
             SET name = ?,
                 provider_type = ?,
@@ -114,34 +118,44 @@ func UpdateConnectionProfile(db *sql.DB, id int64, profile *ConnectionProfile) e
             WHERE id = ?`
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey, id}
 
-	err := database.UpdateRecord(db, query, args)
-	defer util.EmitOnSuccess(ConnectionProfileUpdatedSignal, profile, err)
+	err := database.UpdateRecord(cq.DB(), query, args)
+	if err != nil {
+		return err
+	}
 
-	return err
+	ConnectionProfileUpdatedSignal.Emit(cq.Context(), profile)
+	return nil
 }
 
-func DeleteConnectionProfileById(db *sql.DB, id int64) error {
+func DeleteConnectionProfileById(cq *cq.ChatQuestContext, id int64) error {
 	query := "DELETE FROM connection_profiles WHERE id = ?"
 	args := []any{id}
 
-	err := database.DeleteRecord(db, query, args)
-	defer util.EmitOnSuccess(ConnectionProfileDeletedSignal, id, err)
+	err := database.DeleteRecord(cq.DB(), query, args)
+	if err != nil {
+		return err
+	}
 
-	return err
+	ConnectionProfileDeletedSignal.Emit(cq.Context(), id)
+	return nil
 }
 
-func LlmModelsByConnectionProfileId(db *sql.DB, profileId int64) ([]*LlmModel, error) {
+func LlmModelsByConnectionProfileId(cq *cq.ChatQuestContext, profileId int64) ([]*LlmModel, error) {
 	query := "SELECT * FROM llm_models WHERE connection_profile_id = ?"
 	args := []any{profileId}
-	return database.QueryForList(db, query, args, llmModelScanner)
+	return database.QueryForList(cq.DB(), query, args, llmModelScanner)
 }
 
-func CreateLlmModel(db *sql.DB, profileId int64, llmModel *LlmModel) error {
-	err := createLlmModel(db, profileId, llmModel)
-	defer util.EmitOnSuccess(LlmModelCreatedSignal, llmModel, err)
+func CreateLlmModel(cq *cq.ChatQuestContext, profileId int64, llmModel *LlmModel) error {
+	err := createLlmModel(cq.DB(), profileId, llmModel)
+	if err != nil {
+		return err
+	}
 
-	return err
+	LlmModelCreatedSignal.Emit(cq.Context(), llmModel)
+	return nil
 }
+
 func createLlmModel(db database.QueryExecutor, profileId int64, llmModel *LlmModel) error {
 	llmModel.ConnectionProfileId = profileId
 
@@ -162,7 +176,7 @@ func createLlmModel(db database.QueryExecutor, profileId int64, llmModel *LlmMod
 	return database.InsertRecord(db, query, args, &llmModel.ID)
 }
 
-func UpdateLlmModel(db *sql.DB, id int64, llmModel *LlmModel) error {
+func UpdateLlmModel(cq *cq.ChatQuestContext, id int64, llmModel *LlmModel) error {
 	query := `UPDATE llm_models
               SET temperature = ?,
                   max_tokens = ?,
@@ -181,17 +195,23 @@ func UpdateLlmModel(db *sql.DB, id int64, llmModel *LlmModel) error {
 		id,
 	}
 
-	err := database.UpdateRecord(db, query, args)
-	defer util.EmitOnSuccess(LlmModelUpdatedSignal, llmModel, err)
+	err := database.UpdateRecord(cq.DB(), query, args)
+	if err != nil {
+		return err
+	}
 
-	return err
+	LlmModelUpdatedSignal.Emit(cq.Context(), llmModel)
+	return nil
 }
 
-func DeleteLlmModelById(db *sql.DB, id int64) error {
-	err := deleteLlmModelById(db, id)
-	util.EmitOnSuccess(LlmModelDeletedSignal, id, err)
+func DeleteLlmModelById(cq *cq.ChatQuestContext, id int64) error {
+	err := deleteLlmModelById(cq.DB(), id)
+	if err != nil {
+		return err
+	}
 
-	return err
+	LlmModelDeletedSignal.Emit(cq.Context(), id)
+	return nil
 }
 
 func deleteLlmModelById(db database.QueryExecutor, id int64) error {
@@ -201,8 +221,8 @@ func deleteLlmModelById(db database.QueryExecutor, id int64) error {
 	return database.DeleteRecord(db, query, args)
 }
 
-func MergeLlmModels(db *sql.DB, profileId int64, newModels []*LlmModel) error {
-	tx, err := db.Begin()
+func MergeLlmModels(cq *cq.ChatQuestContext, profileId int64, newModels []*LlmModel) error {
+	tx, err := cq.DB().Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -214,7 +234,7 @@ func MergeLlmModels(db *sql.DB, profileId int64, newModels []*LlmModel) error {
 	})
 
 	// Existing model id set
-	existingModels, err := LlmModelsByConnectionProfileId(db, profileId)
+	existingModels, err := LlmModelsByConnectionProfileId(cq, profileId)
 	if err != nil {
 		return err
 	}
@@ -225,7 +245,6 @@ func MergeLlmModels(db *sql.DB, profileId int64, newModels []*LlmModel) error {
 
 	// Add new models
 	var createdModels []*LlmModel
-	defer util.EmitAllOnSuccess(LlmModelCreatedSignal, createdModels, err)
 	for _, newModel := range newModels {
 		if existingModelIdSet.NotContains(newModel.ModelId) {
 			if err = createLlmModel(tx, profileId, newModel); err != nil {
@@ -237,7 +256,6 @@ func MergeLlmModels(db *sql.DB, profileId int64, newModels []*LlmModel) error {
 
 	// Remove models not in new set
 	var deletedModelIds []int64
-	defer util.EmitAllOnSuccess(LlmModelDeletedSignal, deletedModelIds, err)
 	for _, existingModel := range existingModels {
 		if newModelIdSet.NotContains(existingModel.ModelId) {
 			if err = deleteLlmModelById(tx, existingModel.ID); err != nil {
@@ -248,10 +266,16 @@ func MergeLlmModels(db *sql.DB, profileId int64, newModels []*LlmModel) error {
 	}
 
 	err = tx.Commit()
-	return err
+	if err != nil {
+		return err
+	}
+
+	util.EmitAll(cq, LlmModelCreatedSignal, createdModels)
+	util.EmitAll(cq, LlmModelDeletedSignal, deletedModelIds)
+	return nil
 }
 
-func GetAllLlmModelViews(db database.QueryExecutor) ([]*LlmModelView, error) {
+func GetAllLlmModelViews(cq *cq.ChatQuestContext) ([]*LlmModelView, error) {
 	query := `SELECT lm.id       AS model_id,
                    lm.model_id AS model_model_id,
                    p.id       AS profile_id,
@@ -259,5 +283,5 @@ func GetAllLlmModelViews(db database.QueryExecutor) ([]*LlmModelView, error) {
             FROM llm_models lm
                      JOIN connection_profiles p on p.id = lm.connection_profile_id
                      WHERE lm.disabled = ?`
-	return database.QueryForList(db, query, []any{false}, llModelViewScanner)
+	return database.QueryForList(cq.DB(), query, []any{false}, llModelViewScanner)
 }

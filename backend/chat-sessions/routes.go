@@ -1,26 +1,30 @@
 package chat_sessions
 
 import (
-	"database/sql"
 	"github.com/gin-gonic/gin"
+	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/util"
 )
 
-func Routes(router *gin.RouterGroup, db *sql.DB) {
+func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 	sessionRouter := router.Group("/worlds/:worldId/chat-sessions")
 
 	sessionRouter.GET("", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid world ID")
 			return
 		}
 
-		sessions, err := GetAllChatSessionsByWorldId(db, worldId)
+		sessions, err := GetAllChatSessionsByWorldId(cq, worldId)
 		util.RespondList(c, sessions, err)
 	})
 
 	sessionRouter.GET("/:sessionId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid world ID")
@@ -32,11 +36,13 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		session, err := GetChatSessionById(db, worldId, sessionId)
+		session, err := GetChatSessionById(cq, worldId, sessionId)
 		util.RespondSingle(c, session, err)
 	})
 
 	sessionRouter.POST("", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid world ID")
@@ -55,11 +61,13 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = CreateChatSession(db, worldId, &session, characterIds)
+		err = CreateChatSession(cq, worldId, &session, characterIds)
 		util.RespondSingle(c, &session, err)
 	})
 
 	sessionRouter.PUT("/:sessionId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid world ID")
@@ -77,11 +85,13 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = UpdateChatSession(db, worldId, sessionId, &session)
+		err = UpdateChatSession(cq, worldId, sessionId, &session)
 		util.RespondSingle(c, &session, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid world ID")
@@ -93,22 +103,26 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = DeleteChatSessionById(db, worldId, sessionId)
+		err = DeleteChatSessionById(cq, worldId, sessionId)
 		util.RespondDeleted(c, err)
 	})
 
 	sessionRouter.GET("/:sessionId/chat-messages", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid session ID")
 			return
 		}
 
-		messages, err := GetChatMessages(db, sessionId)
+		messages, err := GetChatMessages(cq, sessionId)
 		util.RespondList(c, messages, err)
 	})
 
 	sessionRouter.POST("/:sessionId/chat-messages", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid session ID")
@@ -125,11 +139,13 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 		//       go func...
 		// TODO: Trigger chat truncation (creating memories)
 
-		err = CreateChatMessage(db, sessionId, &message)
+		err = CreateChatMessage(cq, sessionId, &message)
 		util.RespondSingle(c, &message, err)
 	})
 
 	sessionRouter.PUT("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid session ID")
@@ -150,11 +166,13 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 
 		// TODO: Trigger updating of memories
 
-		err = UpdateChatMessage(db, sessionId, messageId, &message)
+		err = UpdateChatMessage(cq, sessionId, messageId, &message)
 		util.RespondSingle(c, &message, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid session ID")
@@ -166,22 +184,26 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = DeleteChatMessagesFrom(db, sessionId, messageId)
+		err = DeleteChatMessagesFrom(cq, sessionId, messageId)
 		util.RespondDeleted(c, err)
 	})
 
 	sessionRouter.GET("/:sessionId/participants", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid session ID")
 			return
 		}
 
-		participants, err := GetChatSessionParticipants(db, sessionId)
+		participants, err := GetChatSessionParticipants(cq, sessionId)
 		util.RespondList(c, participants, err)
 	})
 
 	sessionRouter.POST("/:sessionId/participants/:characterId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid session ID")
@@ -193,11 +215,13 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = AddChatSessionParticipant(db, sessionId, characterId)
+		err = AddChatSessionParticipant(cq, sessionId, characterId)
 		util.RespondEmpty(c, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId/participants/:characterId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid session ID")
@@ -209,7 +233,7 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = RemoveChatSessionParticipant(db, sessionId, characterId)
+		err = RemoveChatSessionParticipant(cq, sessionId, characterId)
 		util.RespondEmpty(c, err)
 	})
 }

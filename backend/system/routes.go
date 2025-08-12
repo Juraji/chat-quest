@@ -1,8 +1,8 @@
 package system
 
 import (
-	"database/sql"
 	"github.com/gin-gonic/gin"
+	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/providers"
 	"juraji.nl/chat-quest/util"
@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func Routes(router *gin.RouterGroup, db *sql.DB) {
+func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 	systemRouter := router.Group("/system")
 
 	systemRouter.POST("/tokenizer/count", func(c *gin.Context) {
@@ -35,7 +35,7 @@ func Routes(router *gin.RouterGroup, db *sql.DB) {
 	systemRouter.POST("/migrations/goto/:version", func(c *gin.Context) {
 		version, _ := util.GetIDParam(c, "version")
 		log.Printf("Migrating to version: %d", version)
-		err := database.GoToVersion(db, uint(version))
+		err := database.GoToVersion(cq.DB(), uint(version))
 		util.RespondEmpty(c, err)
 	})
 

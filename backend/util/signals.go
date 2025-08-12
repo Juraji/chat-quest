@@ -1,36 +1,28 @@
 package util
 
 import (
-	"context"
 	"github.com/maniartech/signals"
+	"juraji.nl/chat-quest/cq"
 )
 
-func EmitOnSuccess[T any](signal signals.Signal[T], value T, cancelOnErr error) {
-	if cancelOnErr != nil {
-		return
-	}
-
-	signal.Emit(context.TODO(), value)
-}
-
-func EmitAllOnSuccess[T any](signal signals.Signal[T], values []T, cancelOnErr error) {
-	if cancelOnErr != nil {
-		return
-	}
-
+func EmitAll[T any](
+	cq *cq.ChatQuestContext,
+	signal signals.Signal[T],
+	values []T,
+) {
 	for _, value := range values {
-		signal.Emit(context.TODO(), value)
+		signal.Emit(cq.Context(), value)
 	}
 }
 
-func EmitAllNonNilOnSuccess[T any](signal signals.Signal[T], values []*T, cancelOnErr error) {
-	if cancelOnErr != nil {
-		return
-	}
-
+func EmitAllNonNil[T any](
+	cq *cq.ChatQuestContext,
+	signal signals.Signal[T],
+	values []*T,
+) {
 	for _, value := range values {
 		if value != nil {
-			signal.Emit(context.TODO(), *value)
+			signal.Emit(cq.Context(), *value)
 		}
 	}
 }

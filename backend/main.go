@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/characters"
 	"juraji.nl/chat-quest/chat-sessions"
+	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/instructions"
 	"juraji.nl/chat-quest/memories"
@@ -17,6 +19,7 @@ import (
 	"juraji.nl/chat-quest/util"
 	"juraji.nl/chat-quest/worlds"
 	"log"
+	"os"
 )
 
 var (
@@ -42,6 +45,8 @@ func init() {
 }
 
 func main() {
+	rootCtx := context.Background()
+
 	db, err := database.InitDB()
 	if err != nil {
 		log.Fatal("Failed to initialize database:", err)
@@ -53,6 +58,12 @@ func main() {
 			log.Fatal("Failed to close database:", err)
 		}
 	}(db)
+
+	chatQuestContext := cq.NewChatQuestContext(
+		rootCtx,
+		db,
+		log.New(os.Stdout, "", log.LstdFlags),
+	)
 
 	router := gin.New()
 
@@ -68,14 +79,14 @@ func main() {
 	apiRouter := router.Group(ApiBasePath)
 	{
 		log.Println("Registering routes...")
-		system.Routes(apiRouter, db)
-		characters.Routes(apiRouter, db)
-		instructions.Routes(apiRouter, db)
-		providers.Routes(apiRouter, db)
-		scenarios.Routes(apiRouter, db)
-		worlds.Routes(apiRouter, db)
-		chat_sessions.Routes(apiRouter, db)
-		memories.Routes(apiRouter, db)
+		system.Routes(chatQuestContext, apiRouter)
+		characters.Routes(chatQuestContext, apiRouter)
+		instructions.Routes(chatQuestContext, apiRouter)
+		providers.Routes(chatQuestContext, apiRouter)
+		scenarios.Routes(chatQuestContext, apiRouter)
+		worlds.Routes(chatQuestContext, apiRouter)
+		chat_sessions.Routes(chatQuestContext, apiRouter)
+		memories.Routes(chatQuestContext, apiRouter)
 		sse.Routes(apiRouter)
 	}
 

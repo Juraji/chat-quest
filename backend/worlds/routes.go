@@ -1,39 +1,45 @@
 package worlds
 
 import (
-	"database/sql"
 	"github.com/gin-gonic/gin"
+	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/util"
 )
 
-func Routes(router *gin.RouterGroup, db *sql.DB) {
-	preferencesRoutes(router, db)
-	worldsRoutes(router, db)
+func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
+	preferencesRoutes(cq, router)
+	worldsRoutes(cq, router)
 }
 
-func preferencesRoutes(router *gin.RouterGroup, db *sql.DB) {
+func preferencesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 	prefsRouter := router.Group("/worlds/preferences")
 
 	prefsRouter.GET("", func(c *gin.Context) {
-		prefs, err := GetChatPreferences(db)
+		cq = cq.WithContext(c.Request.Context())
+
+		prefs, err := GetChatPreferences(cq)
 		util.RespondSingle(c, prefs, err)
 	})
 
 	prefsRouter.PUT("", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		var update ChatPreferences
 		if err := c.ShouldBind(&update); err != nil {
 			util.RespondBadRequest(c, "Invalid preference data")
 			return
 		}
 
-		err := UpdateChatPreferences(db, &update)
+		err := UpdateChatPreferences(cq, &update)
 		util.RespondSingle(c, &update, err)
 	})
 
 	prefsRouter.GET("/is-valid", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		var messages []string
 
-		prefs, err := GetChatPreferences(db)
+		prefs, err := GetChatPreferences(cq)
 		if err != nil {
 			util.RespondInternalError(c, err)
 			return
@@ -50,37 +56,43 @@ func preferencesRoutes(router *gin.RouterGroup, db *sql.DB) {
 	})
 }
 
-func worldsRoutes(router *gin.RouterGroup, db *sql.DB) {
+func worldsRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 	worldsRouter := router.Group("/worlds")
 
 	worldsRouter.GET("", func(c *gin.Context) {
-		worlds, err := GetAllWorlds(db)
+		worlds, err := GetAllWorlds(cq)
 		util.RespondList(c, worlds, err)
 	})
 
 	worldsRouter.GET("/:worldId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid world ID")
 			return
 		}
 
-		world, err := WorldById(db, worldId)
+		world, err := WorldById(cq, worldId)
 		util.RespondSingle(c, world, err)
 	})
 
 	worldsRouter.POST("", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		var newWorld World
 		if err := c.ShouldBind(&newWorld); err != nil {
 			util.RespondBadRequest(c, "Invalid world data")
 			return
 		}
 
-		err := CreateWorld(db, &newWorld)
+		err := CreateWorld(cq, &newWorld)
 		util.RespondSingle(c, &newWorld, err)
 	})
 
 	worldsRouter.PUT("/:worldId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid world ID")
@@ -93,18 +105,20 @@ func worldsRoutes(router *gin.RouterGroup, db *sql.DB) {
 			return
 		}
 
-		err = UpdateWorld(db, worldId, &world)
+		err = UpdateWorld(cq, worldId, &world)
 		util.RespondSingle(c, &world, err)
 	})
 
 	worldsRouter.DELETE("/:worldId", func(c *gin.Context) {
+		cq = cq.WithContext(c.Request.Context())
+
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
 			util.RespondBadRequest(c, "Invalid world ID")
 			return
 		}
 
-		err = DeleteWorld(db, worldId)
+		err = DeleteWorld(cq, worldId)
 		util.RespondDeleted(c, err)
 	})
 }

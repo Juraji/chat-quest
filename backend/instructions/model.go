@@ -1,7 +1,7 @@
 package instructions
 
 import (
-	"database/sql"
+	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/util"
 )
@@ -26,31 +26,34 @@ func instructionPromptScanner(scanner database.RowScanner, dest *InstructionTemp
 	)
 }
 
-func AllInstructionPrompts(db *sql.DB) ([]*InstructionTemplate, error) {
+func AllInstructionPrompts(cq *cq.ChatQuestContext) ([]*InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates"
-	return database.QueryForList(db, query, nil, instructionPromptScanner)
+	return database.QueryForList(cq.DB(), query, nil, instructionPromptScanner)
 }
 
-func InstructionPromptById(db *sql.DB, id int64) (*InstructionTemplate, error) {
+func InstructionPromptById(cq *cq.ChatQuestContext, id int64) (*InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates WHERE id = ?"
 	args := []any{id}
-	return database.QueryForRecord(db, query, args, instructionPromptScanner)
+	return database.QueryForRecord(cq.DB(), query, args, instructionPromptScanner)
 }
 
-func CreateInstructionPrompt(db *sql.DB, prompt *InstructionTemplate) error {
+func CreateInstructionPrompt(cq *cq.ChatQuestContext, prompt *InstructionTemplate) error {
 	util.NegFloat64PtrToNil(&prompt.Temperature)
 
 	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, instruction)
             VALUES (?, ?, ?, ?, ?) RETURNING id`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction}
 
-	err := database.InsertRecord(db, query, args, &prompt.ID)
-	defer util.EmitOnSuccess(InstructionCreatedSignal, prompt, err)
+	err := database.InsertRecord(cq.DB(), query, args, &prompt.ID)
+	if err != nil {
+		return err
+	}
 
-	return err
+	InstructionCreatedSignal.Emit(cq.Context(), prompt)
+	return nil
 }
 
-func UpdateInstructionPrompt(db *sql.DB, id int64, prompt *InstructionTemplate) error {
+func UpdateInstructionPrompt(cq *cq.ChatQuestContext, id int64, prompt *InstructionTemplate) error {
 	util.NegFloat64PtrToNil(&prompt.Temperature)
 
 	query := `UPDATE instruction_templates
@@ -62,18 +65,24 @@ func UpdateInstructionPrompt(db *sql.DB, id int64, prompt *InstructionTemplate) 
             WHERE id = ?`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction, id}
 
-	err := database.UpdateRecord(db, query, args)
-	defer util.EmitOnSuccess(InstructionUpdatedSignal, prompt, err)
+	err := database.UpdateRecord(cq.DB(), query, args)
+	if err != nil {
+		return err
+	}
 
-	return err
+	InstructionUpdatedSignal.Emit(cq.Context(), prompt)
+	return nil
 }
 
-func DeleteInstructionPrompt(db *sql.DB, id int64) error {
+func DeleteInstructionPrompt(cq *cq.ChatQuestContext, id int64) error {
 	query := "DELETE FROM instruction_templates WHERE id = ?"
 	args := []any{id}
 
-	err := database.DeleteRecord(db, query, args)
-	defer util.EmitOnSuccess(InstructionDeletedSignal, id, err)
+	err := database.DeleteRecord(cq.DB(), query, args)
+	if err != nil {
+		return err
+	}
 
-	return err
+	InstructionDeletedSignal.Emit(cq.Context(), id)
+	return nil
 }
