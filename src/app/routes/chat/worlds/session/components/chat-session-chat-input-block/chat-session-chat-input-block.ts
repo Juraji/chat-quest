@@ -58,7 +58,7 @@ export class ChatSessionChatInputBlock {
   }
 
   onInputKeyDown(e: KeyboardEvent) {
-    if (e.ctrlKey && e.code === 'Enter') {
+    if (e.ctrlKey && (e.code === 'Enter' || e.code === 'NumpadEnter')) {
       e.preventDefault();
       this.onSendMessage()
     }
