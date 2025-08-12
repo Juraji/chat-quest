@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/cq"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -17,6 +18,8 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 	sseRouter.GET("", func(c *gin.Context) {
 		clientIp := c.ClientIP()
+		// Generate a unique connection ID for this SSE connection
+		connectionId := generateConnectionId()
 
 		c.Header("Content-Type", "text/event-stream")
 		c.Header("Cache-Control", "no-cache")
@@ -32,7 +35,8 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 		for _, source := range sseSourceSignals {
 			sourceName := source.sourceName
 			signal := source.signal
-			key := "SSE_" + clientIp + "_" + sourceName
+
+			key := fmt.Sprintf("SSE_%s_%s_%s", clientIp, connectionId, sourceName)
 
 			listenerKeys[sourceName] = key
 			signal.AddListener(func(ctx context.Context, payload any) {
@@ -40,9 +44,12 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 			}, key)
 		}
 
-		// Write initial message to confirm connection
-		if err := writeAndFlushEvent(c, "connection", "SSE connected!"); err != nil {
-			cq.Logger().Error("failed to send 'SSE connected' event to client", zap.Error(err), zap.String("clientIp", clientIp))
+		// Write initial message to confirm connection with connection ID
+		if err := writeAndFlushEvent(c, "connection", fmt.Sprintf("SSE connected! Connection ID: %s", connectionId)); err != nil {
+			cq.Logger().Error("failed to send 'SSE connected' event to client",
+				zap.Error(err),
+				zap.String("clientIp", clientIp),
+				zap.String("connectionId", connectionId))
 		}
 
 		for {
@@ -57,23 +64,37 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 			case msg := <-clientChan:
 				j, err := json.Marshal(msg)
 				if err != nil {
-					cq.Logger().Error("failed to marshal event", zap.Error(err), zap.String("clientIp", clientIp))
+					cq.Logger().Error("failed to marshal event",
+						zap.Error(err),
+						zap.String("clientIp", clientIp),
+						zap.String("connectionId", connectionId))
 					continue
 				}
 
 				if err = writeAndFlushEvent(c, "message", string(j)); err != nil {
-					cq.Logger().Error("failed to write message to client", zap.Error(err), zap.String("clientIp", clientIp))
+					cq.Logger().Error("failed to write message to client",
+						zap.Error(err),
+						zap.String("clientIp", clientIp),
+						zap.String("connectionId", connectionId))
 				}
 
 			case <-pingTicker.C:
-				// Ping for keep-alive on client side
+				// Ping for keep-alive on client side with connection ID
 				timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 				if err := writeAndFlushEvent(c, "ping", timestamp); err != nil {
-					cq.Logger().Error("failed to write ping to client", zap.Error(err), zap.String("clientIp", clientIp))
+					cq.Logger().Error("failed to write ping to client",
+						zap.Error(err),
+						zap.String("clientIp", clientIp),
+						zap.String("connectionId", connectionId))
 				}
 			}
 		}
 	})
+}
+
+func generateConnectionId() string {
+	// Simple implementation - in production you might want something more robust
+	return fmt.Sprintf("%d-%d", time.Now().UnixNano(), rand.Intn(10000))
 }
 
 func writeAndFlushEvent(c *gin.Context, event string, data string) error {

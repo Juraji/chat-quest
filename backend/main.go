@@ -49,12 +49,15 @@ func main() {
 		panic(err)
 	}
 
+	logger.Info("ChatQuest starting...")
 	rootCtx := context.Background()
 
-	db, err := database.InitDB(logger)
+	logger.Info("Connecting to database...")
+	db, err := database.InitDB()
 	if err != nil {
 		logger.Fatal("Failed to initialize database:", zap.Error(err))
 	}
+	logger.Info("Database initialized successfully!")
 
 	defer func(db *sql.DB) {
 		err := db.Close()
