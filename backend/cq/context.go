@@ -3,24 +3,24 @@ package cq
 import (
 	"context"
 	"database/sql"
-	"log"
+	"go.uber.org/zap"
 )
 
 type ChatQuestContext struct {
-	ctx context.Context
-	db  *sql.DB
-	log *log.Logger
+	ctx    context.Context
+	db     *sql.DB
+	logger *zap.Logger
 }
 
 func NewChatQuestContext(
 	rootCtx context.Context,
 	db *sql.DB,
-	log *log.Logger,
+	log *zap.Logger,
 ) *ChatQuestContext {
 	return &ChatQuestContext{
-		ctx: rootCtx,
-		db:  db,
-		log: log,
+		ctx:    rootCtx,
+		db:     db,
+		logger: log,
 	}
 }
 
@@ -32,14 +32,14 @@ func (cq *ChatQuestContext) DB() *sql.DB {
 	return cq.db
 }
 
-func (cq *ChatQuestContext) Logger() *log.Logger {
-	return cq.log
+func (cq *ChatQuestContext) Logger() *zap.Logger {
+	return cq.logger
 }
 
 func (cq *ChatQuestContext) WithContext(newContext context.Context) *ChatQuestContext {
 	return &ChatQuestContext{
-		ctx: newContext,
-		db:  cq.db,
-		log: cq.log,
+		ctx:    newContext,
+		db:     cq.db,
+		logger: cq.logger,
 	}
 }

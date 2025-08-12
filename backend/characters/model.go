@@ -105,7 +105,7 @@ func CreateCharacter(cq *cq.ChatQuestContext, newCharacter *Character) error {
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer database.RollBackOnErr(tx, err)
+	defer database.RollBackOnErr(cq, tx, err)
 
 	util.EmptyStrPtrToNil(&newCharacter.AvatarUrl)
 
@@ -223,7 +223,7 @@ func SetCharacterTags(cq *cq.ChatQuestContext, characterId int64, tagIds []int64
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer database.RollBackOnErr(tx, err)
+	defer database.RollBackOnErr(cq, tx, err)
 
 	deleteQuery := "DELETE FROM character_tags WHERE character_id = ?"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
@@ -259,7 +259,7 @@ func SetDialogueExamplesByCharacterId(cq *cq.ChatQuestContext, characterId int64
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer database.RollBackOnErr(tx, err)
+	defer database.RollBackOnErr(cq, tx, err)
 
 	deleteQuery := "DELETE FROM character_dialogue_examples WHERE character_id = ?"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
@@ -295,7 +295,7 @@ func SetGreetingsByCharacterId(cq *cq.ChatQuestContext, characterId int64, greet
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer database.RollBackOnErr(tx, err)
+	defer database.RollBackOnErr(cq, tx, err)
 
 	deleteQuery := "DELETE FROM character_greetings WHERE character_id = ?"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {

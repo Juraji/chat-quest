@@ -13,7 +13,7 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 		cq = cq.WithContext(c.Request.Context())
 
 		profiles, err := AllConnectionProfiles(cq)
-		util.RespondList(c, profiles, err)
+		util.RespondList(cq, c, profiles, err)
 	})
 
 	connectionProfilesRouter.GET("/:profileId", func(c *gin.Context) {
@@ -21,12 +21,12 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid connection profile ID")
+			util.RespondBadRequest(cq, c, "Invalid connection profile ID")
 			return
 		}
 
 		profile, err := ConnectionProfileById(cq, profileId)
-		util.RespondSingle(c, profile, err)
+		util.RespondSingle(cq, c, profile, err)
 	})
 
 	connectionProfilesRouter.POST("", func(c *gin.Context) {
@@ -34,18 +34,18 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		var newProfile ConnectionProfile
 		if err := c.ShouldBindJSON(&newProfile); err != nil {
-			util.RespondBadRequest(c, "Invalid connection profile data")
+			util.RespondBadRequest(cq, c, "Invalid connection profile data")
 			return
 		}
 
 		llmModels, err := newProfile.GetAvailableModels()
 		if err != nil {
-			util.RespondNotAcceptable(c, "Connection test failed (Failed to get available models)", err)
+			util.RespondNotAcceptable(cq, c, "Connection test failed (Failed to get available models)", err)
 			return
 		}
 
 		err = CreateConnectionProfile(cq, &newProfile, llmModels)
-		util.RespondSingle(c, &newProfile, err)
+		util.RespondSingle(cq, c, &newProfile, err)
 	})
 
 	connectionProfilesRouter.PUT("/:profileId", func(c *gin.Context) {
@@ -53,17 +53,17 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid connection profile ID")
+			util.RespondBadRequest(cq, c, "Invalid connection profile ID")
 			return
 		}
 		var profile ConnectionProfile
 		if err := c.ShouldBindJSON(&profile); err != nil {
-			util.RespondBadRequest(c, "Invalid connection profile data")
+			util.RespondBadRequest(cq, c, "Invalid connection profile data")
 			return
 		}
 
 		err = UpdateConnectionProfile(cq, profileId, &profile)
-		util.RespondSingle(c, &profile, err)
+		util.RespondSingle(cq, c, &profile, err)
 	})
 
 	connectionProfilesRouter.DELETE("/:profileId", func(c *gin.Context) {
@@ -71,12 +71,12 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid connection profile ID")
+			util.RespondBadRequest(cq, c, "Invalid connection profile ID")
 			return
 		}
 
 		err = DeleteConnectionProfileById(cq, profileId)
-		util.RespondDeleted(c, err)
+		util.RespondDeleted(cq, c, err)
 	})
 
 	connectionProfilesRouter.GET("/:profileId/models", func(c *gin.Context) {
@@ -84,12 +84,12 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid connection profile ID")
+			util.RespondBadRequest(cq, c, "Invalid connection profile ID")
 			return
 		}
 
 		models, err := LlmModelsByConnectionProfileId(cq, profileId)
-		util.RespondList(c, models, err)
+		util.RespondList(cq, c, models, err)
 	})
 
 	connectionProfilesRouter.POST("/:profileId/models/refresh", func(c *gin.Context) {
@@ -97,24 +97,24 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid connection profile ID")
+			util.RespondBadRequest(cq, c, "Invalid connection profile ID")
 			return
 		}
 
 		profile, err := ConnectionProfileById(cq, profileId)
 		if err != nil {
-			util.RespondEmpty(c, err)
+			util.RespondEmpty(cq, c, err)
 			return
 		}
 
 		llmModels, err := profile.GetAvailableModels()
 		if err != nil {
-			util.RespondNotAcceptable(c, "Connection test failed (Failed to get available models)", err)
+			util.RespondNotAcceptable(cq, c, "Connection test failed (Failed to get available models)", err)
 			return
 		}
 
 		err = MergeLlmModels(cq, profileId, llmModels)
-		util.RespondEmpty(c, err)
+		util.RespondEmpty(cq, c, err)
 	})
 
 	connectionProfilesRouter.POST("/:profileId/models", func(c *gin.Context) {
@@ -122,18 +122,18 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		profileId, err := util.GetIDParam(c, "profileId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid connection profile ID")
+			util.RespondBadRequest(cq, c, "Invalid connection profile ID")
 			return
 		}
 
 		var newLlmModel LlmModel
 		if err := c.ShouldBindJSON(&newLlmModel); err != nil {
-			util.RespondBadRequest(c, "Invalid llm model data")
+			util.RespondBadRequest(cq, c, "Invalid llm model data")
 			return
 		}
 
 		err = CreateLlmModel(cq, profileId, &newLlmModel)
-		util.RespondSingle(c, &newLlmModel, err)
+		util.RespondSingle(cq, c, &newLlmModel, err)
 	})
 
 	connectionProfilesRouter.PUT("/:profileId/models/:modelId", func(c *gin.Context) {
@@ -141,18 +141,18 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		modelId, err := util.GetIDParam(c, "modelId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid model ID")
+			util.RespondBadRequest(cq, c, "Invalid model ID")
 			return
 		}
 
 		var llmModel LlmModel
 		if err := c.ShouldBindJSON(&llmModel); err != nil {
-			util.RespondBadRequest(c, "Invalid model data")
+			util.RespondBadRequest(cq, c, "Invalid model data")
 			return
 		}
 
 		err = UpdateLlmModel(cq, modelId, &llmModel)
-		util.RespondSingle(c, &llmModel, err)
+		util.RespondSingle(cq, c, &llmModel, err)
 	})
 
 	connectionProfilesRouter.DELETE("/:profileId/models/:modelId", func(c *gin.Context) {
@@ -160,18 +160,18 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		modelId, err := util.GetIDParam(c, "modelId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid model ID")
+			util.RespondBadRequest(cq, c, "Invalid model ID")
 			return
 		}
 
 		err = DeleteLlmModelById(cq, modelId)
-		util.RespondDeleted(c, err)
+		util.RespondDeleted(cq, c, err)
 	})
 
 	connectionProfilesRouter.GET("/model-views", func(c *gin.Context) {
 		cq = cq.WithContext(c.Request.Context())
 
 		views, err := GetAllLlmModelViews(cq)
-		util.RespondList(c, views, err)
+		util.RespondList(cq, c, views, err)
 	})
 }

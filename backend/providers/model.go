@@ -83,7 +83,7 @@ func CreateConnectionProfile(cq *cq.ChatQuestContext, profile *ConnectionProfile
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer database.RollBackOnErr(tx, err)
+	defer database.RollBackOnErr(cq, tx, err)
 
 	query := "INSERT INTO connection_profiles (name, provider_type, base_url, api_key) VALUES (?, ?, ?, ?) RETURNING id"
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey}
@@ -226,7 +226,7 @@ func MergeLlmModels(cq *cq.ChatQuestContext, profileId int64, newModels []*LlmMo
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer database.RollBackOnErr(tx, err)
+	defer database.RollBackOnErr(cq, tx, err)
 
 	// New model id set
 	newModelIdSet := util.NewSetFrom(newModels, func(t *LlmModel) string {

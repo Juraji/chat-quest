@@ -13,7 +13,7 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 		cq = cq.WithContext(c.Request.Context())
 
 		scenarios, err := AllScenarios(cq)
-		util.RespondList(c, scenarios, err)
+		util.RespondList(cq, c, scenarios, err)
 	})
 
 	scenariosRouter.GET("/:scenarioId", func(c *gin.Context) {
@@ -21,12 +21,12 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		scenarioId, err := util.GetIDParam(c, "scenarioId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid scenario ID")
+			util.RespondBadRequest(cq, c, "Invalid scenario ID")
 			return
 		}
 
 		scenarios, err := ScenarioById(cq, scenarioId)
-		util.RespondSingle(c, scenarios, err)
+		util.RespondSingle(cq, c, scenarios, err)
 	})
 
 	scenariosRouter.POST("", func(c *gin.Context) {
@@ -34,12 +34,12 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		var newScenario Scenario
 		if err := c.ShouldBind(&newScenario); err != nil {
-			util.RespondBadRequest(c, "Invalid scenario data")
+			util.RespondBadRequest(cq, c, "Invalid scenario data")
 			return
 		}
 
 		err := CreateScenario(cq, &newScenario)
-		util.RespondSingle(c, &newScenario, err)
+		util.RespondSingle(cq, c, &newScenario, err)
 	})
 
 	scenariosRouter.PUT("/:scenarioId", func(c *gin.Context) {
@@ -47,18 +47,18 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		scenarioId, err := util.GetIDParam(c, "scenarioId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid scenario ID")
+			util.RespondBadRequest(cq, c, "Invalid scenario ID")
 			return
 		}
 
 		var scenario Scenario
 		if err = c.ShouldBind(&scenario); err != nil {
-			util.RespondBadRequest(c, "Invalid scenario data")
+			util.RespondBadRequest(cq, c, "Invalid scenario data")
 			return
 		}
 
 		err = UpdateScenario(cq, scenarioId, &scenario)
-		util.RespondSingle(c, &scenario, err)
+		util.RespondSingle(cq, c, &scenario, err)
 	})
 
 	scenariosRouter.DELETE("/:scenarioId", func(c *gin.Context) {
@@ -66,11 +66,11 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		scenarioId, err := util.GetIDParam(c, "scenarioId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid scenario ID")
+			util.RespondBadRequest(cq, c, "Invalid scenario ID")
 			return
 		}
 
 		err = DeleteScenario(cq, scenarioId)
-		util.RespondDeleted(c, err)
+		util.RespondDeleted(cq, c, err)
 	})
 }

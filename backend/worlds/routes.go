@@ -18,7 +18,7 @@ func preferencesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 		cq = cq.WithContext(c.Request.Context())
 
 		prefs, err := GetChatPreferences(cq)
-		util.RespondSingle(c, prefs, err)
+		util.RespondSingle(cq, c, prefs, err)
 	})
 
 	prefsRouter.PUT("", func(c *gin.Context) {
@@ -26,12 +26,12 @@ func preferencesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		var update ChatPreferences
 		if err := c.ShouldBind(&update); err != nil {
-			util.RespondBadRequest(c, "Invalid preference data")
+			util.RespondBadRequest(cq, c, "Invalid preference data")
 			return
 		}
 
 		err := UpdateChatPreferences(cq, &update)
-		util.RespondSingle(c, &update, err)
+		util.RespondSingle(cq, c, &update, err)
 	})
 
 	prefsRouter.GET("/is-valid", func(c *gin.Context) {
@@ -41,7 +41,7 @@ func preferencesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		prefs, err := GetChatPreferences(cq)
 		if err != nil {
-			util.RespondInternalError(c, err)
+			util.RespondInternalError(cq, c, err)
 			return
 		}
 
@@ -52,7 +52,7 @@ func preferencesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 			messages = append(messages, "No chat instruction set")
 		}
 
-		util.RespondSingle(c, &messages, nil)
+		util.RespondSingle(cq, c, &messages, nil)
 	})
 }
 
@@ -61,7 +61,7 @@ func worldsRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 	worldsRouter.GET("", func(c *gin.Context) {
 		worlds, err := GetAllWorlds(cq)
-		util.RespondList(c, worlds, err)
+		util.RespondList(cq, c, worlds, err)
 	})
 
 	worldsRouter.GET("/:worldId", func(c *gin.Context) {
@@ -69,12 +69,12 @@ func worldsRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 
 		world, err := WorldById(cq, worldId)
-		util.RespondSingle(c, world, err)
+		util.RespondSingle(cq, c, world, err)
 	})
 
 	worldsRouter.POST("", func(c *gin.Context) {
@@ -82,12 +82,12 @@ func worldsRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		var newWorld World
 		if err := c.ShouldBind(&newWorld); err != nil {
-			util.RespondBadRequest(c, "Invalid world data")
+			util.RespondBadRequest(cq, c, "Invalid world data")
 			return
 		}
 
 		err := CreateWorld(cq, &newWorld)
-		util.RespondSingle(c, &newWorld, err)
+		util.RespondSingle(cq, c, &newWorld, err)
 	})
 
 	worldsRouter.PUT("/:worldId", func(c *gin.Context) {
@@ -95,18 +95,18 @@ func worldsRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 
 		var world World
 		if err := c.ShouldBind(&world); err != nil {
-			util.RespondBadRequest(c, "Invalid world data")
+			util.RespondBadRequest(cq, c, "Invalid world data")
 			return
 		}
 
 		err = UpdateWorld(cq, worldId, &world)
-		util.RespondSingle(c, &world, err)
+		util.RespondSingle(cq, c, &world, err)
 	})
 
 	worldsRouter.DELETE("/:worldId", func(c *gin.Context) {
@@ -114,11 +114,11 @@ func worldsRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 
 		err = DeleteWorld(cq, worldId)
-		util.RespondDeleted(c, err)
+		util.RespondDeleted(cq, c, err)
 	})
 }

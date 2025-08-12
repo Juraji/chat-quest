@@ -79,7 +79,7 @@ func CreateChatSession(cq *cq.ChatQuestContext, worldId int64, chatSession *Chat
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer database.RollBackOnErr(tx, err)
+	defer database.RollBackOnErr(cq, tx, err)
 
 	query := `INSERT INTO chat_sessions (world_id, name, scenario_id, enable_memories)
             VALUES (?, ?, ?, ?) RETURNING id, created_at`

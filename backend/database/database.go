@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
-	"log"
+	"go.uber.org/zap"
 )
 
-func InitDB() (*sql.DB, error) {
-	log.Println("Connecting to database...")
+func InitDB(logger *zap.Logger) (*sql.DB, error) {
+	logger.Info("Connecting to database...")
 	db, err := sql.Open("sqlite3", "./chat-quest.db")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
@@ -19,11 +19,11 @@ func InitDB() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to enable foreign keys: %w", err)
 	}
 
-	log.Println("Running migrations...")
+	logger.Info("Running migrations...")
 	if err = RunMigrations(db); err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	log.Println("Database initialized successfully!")
+	logger.Info("Database initialized successfully!")
 	return db, nil
 }

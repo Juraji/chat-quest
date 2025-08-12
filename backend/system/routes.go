@@ -2,11 +2,11 @@ package system
 
 import (
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/providers"
 	"juraji.nl/chat-quest/util"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -18,7 +18,7 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 	systemRouter.POST("/tokenizer/count", func(c *gin.Context) {
 		body, err := c.GetRawData()
 		if err != nil {
-			util.RespondBadRequest(c, "Failed to read request body")
+			util.RespondBadRequest(cq, c, "Failed to read request body")
 			return
 		}
 
@@ -34,14 +34,14 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 	systemRouter.POST("/migrations/goto/:version", func(c *gin.Context) {
 		version, _ := util.GetIDParam(c, "version")
-		log.Printf("Migrating to version: %d", version)
+		cq.Logger().Info("Migrating to version", zap.Int64("version", version))
 		err := database.GoToVersion(cq.DB(), uint(version))
-		util.RespondEmpty(c, err)
+		util.RespondEmpty(cq, c, err)
 	})
 
 	systemRouter.POST("/shutdown", func(c *gin.Context) {
 		c.String(http.StatusOK, "Shutting down...")
-		log.Print("Shutdown requested from API, goodbye!")
+		cq.Logger().Info("Shutting down by API...")
 
 		go func() {
 			// Give Gin some time to process and send the response

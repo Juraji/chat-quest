@@ -19,12 +19,12 @@ func memoriesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 
 		memories, err := GetMemoriesByWorldId(cq, worldId)
-		util.RespondList(c, memories, err)
+		util.RespondList(cq, c, memories, err)
 	})
 
 	memoriesRouter.GET("/by-character/:characterId", func(c *gin.Context) {
@@ -32,18 +32,18 @@ func memoriesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+			util.RespondBadRequest(cq, c, "Invalid character ID")
 			return
 		}
 
 		memories, err := GetMemoriesByWorldAndCharacterId(cq, worldId, characterId)
-		util.RespondList(c, memories, err)
+		util.RespondList(cq, c, memories, err)
 	})
 
 	memoriesRouter.POST("", func(c *gin.Context) {
@@ -51,13 +51,13 @@ func memoriesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 
 		var newMemory Memory
 		if err := c.Bind(&newMemory); err != nil {
-			util.RespondBadRequest(c, "Invalid memory data")
+			util.RespondBadRequest(cq, c, "Invalid memory data")
 			return
 		}
 
@@ -65,7 +65,7 @@ func memoriesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		// TODO: Generate embeddings!
 		err = CreateMemory(cq, &newMemory)
-		util.RespondSingle(c, &newMemory, err)
+		util.RespondSingle(cq, c, &newMemory, err)
 	})
 
 	memoriesRouter.PUT("/:memoryId", func(c *gin.Context) {
@@ -73,18 +73,18 @@ func memoriesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 		memoryId, err := util.GetIDParam(c, "memoryId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid memory ID")
+			util.RespondBadRequest(cq, c, "Invalid memory ID")
 			return
 		}
 
 		var memory Memory
 		if err := c.Bind(&memory); err != nil {
-			util.RespondBadRequest(c, "Invalid memory data")
+			util.RespondBadRequest(cq, c, "Invalid memory data")
 			return
 		}
 
@@ -92,7 +92,7 @@ func memoriesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		// TODO: Generate embeddings!
 		err = UpdateMemory(cq, memoryId, &memory)
-		util.RespondSingle(c, &memory, err)
+		util.RespondSingle(cq, c, &memory, err)
 	})
 
 	memoriesRouter.DELETE("/:memoryId", func(c *gin.Context) {
@@ -100,12 +100,12 @@ func memoriesRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		memoryId, err := util.GetIDParam(c, "memoryId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid memory ID")
+			util.RespondBadRequest(cq, c, "Invalid memory ID")
 			return
 		}
 
 		err = DeleteMemory(cq, memoryId)
-		util.RespondDeleted(c, err)
+		util.RespondDeleted(cq, c, err)
 	})
 }
 
@@ -116,7 +116,7 @@ func prefsRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 		cq = cq.WithContext(c.Request.Context())
 
 		prefs, err := GetMemoryPreferences(cq)
-		util.RespondSingle(c, prefs, err)
+		util.RespondSingle(cq, c, prefs, err)
 	})
 
 	prefsRouter.PUT("", func(c *gin.Context) {
@@ -124,12 +124,12 @@ func prefsRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		var update MemoryPreferences
 		if err := c.ShouldBind(&update); err != nil {
-			util.RespondBadRequest(c, "Invalid preference data")
+			util.RespondBadRequest(cq, c, "Invalid preference data")
 			return
 		}
 
 		err := UpdateMemoryPreferences(cq, &update)
-		util.RespondSingle(c, &update, err)
+		util.RespondSingle(cq, c, &update, err)
 	})
 
 	prefsRouter.GET("/is-valid", func(c *gin.Context) {
@@ -139,7 +139,7 @@ func prefsRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		prefs, err := GetMemoryPreferences(cq)
 		if err != nil {
-			util.RespondInternalError(c, err)
+			util.RespondInternalError(cq, c, err)
 			return
 		}
 
@@ -153,6 +153,6 @@ func prefsRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 			messages = append(messages, "No memory embedding model set")
 		}
 
-		util.RespondSingle(c, &messages, nil)
+		util.RespondSingle(cq, c, &messages, nil)
 	})
 }

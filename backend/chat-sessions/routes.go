@@ -14,12 +14,12 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 
 		sessions, err := GetAllChatSessionsByWorldId(cq, worldId)
-		util.RespondList(c, sessions, err)
+		util.RespondList(cq, c, sessions, err)
 	})
 
 	sessionRouter.GET("/:sessionId", func(c *gin.Context) {
@@ -27,17 +27,17 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
+			util.RespondBadRequest(cq, c, "Invalid session ID")
 			return
 		}
 
 		session, err := GetChatSessionById(cq, worldId, sessionId)
-		util.RespondSingle(c, session, err)
+		util.RespondSingle(cq, c, session, err)
 	})
 
 	sessionRouter.POST("", func(c *gin.Context) {
@@ -45,24 +45,24 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 
 		characterIds, err := util.GetIDsFromQuery(c, "characterId")
 		if err != nil {
-			util.RespondBadRequest(c, "invalid characterId in query")
+			util.RespondBadRequest(cq, c, "invalid characterId in query")
 			return
 		}
 
 		var session ChatSession
 		if err := c.ShouldBindJSON(&session); err != nil {
-			util.RespondBadRequest(c, "Invalid session data")
+			util.RespondBadRequest(cq, c, "Invalid session data")
 			return
 		}
 
 		err = CreateChatSession(cq, worldId, &session, characterIds)
-		util.RespondSingle(c, &session, err)
+		util.RespondSingle(cq, c, &session, err)
 	})
 
 	sessionRouter.PUT("/:sessionId", func(c *gin.Context) {
@@ -70,23 +70,23 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
+			util.RespondBadRequest(cq, c, "Invalid session ID")
 			return
 		}
 
 		var session ChatSession
 		if err := c.ShouldBindJSON(&session); err != nil {
-			util.RespondBadRequest(c, "Invalid session data")
+			util.RespondBadRequest(cq, c, "Invalid session data")
 			return
 		}
 
 		err = UpdateChatSession(cq, worldId, sessionId, &session)
-		util.RespondSingle(c, &session, err)
+		util.RespondSingle(cq, c, &session, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId", func(c *gin.Context) {
@@ -94,17 +94,17 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		worldId, err := util.GetIDParam(c, "worldId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+			util.RespondBadRequest(cq, c, "Invalid world ID")
 			return
 		}
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
+			util.RespondBadRequest(cq, c, "Invalid session ID")
 			return
 		}
 
 		err = DeleteChatSessionById(cq, worldId, sessionId)
-		util.RespondDeleted(c, err)
+		util.RespondDeleted(cq, c, err)
 	})
 
 	sessionRouter.GET("/:sessionId/chat-messages", func(c *gin.Context) {
@@ -112,12 +112,12 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
+			util.RespondBadRequest(cq, c, "Invalid session ID")
 			return
 		}
 
 		messages, err := GetChatMessages(cq, sessionId)
-		util.RespondList(c, messages, err)
+		util.RespondList(cq, c, messages, err)
 	})
 
 	sessionRouter.POST("/:sessionId/chat-messages", func(c *gin.Context) {
@@ -125,13 +125,13 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
+			util.RespondBadRequest(cq, c, "Invalid session ID")
 			return
 		}
 
 		var message ChatMessage
 		if err := c.ShouldBindJSON(&message); err != nil {
-			util.RespondBadRequest(c, "Invalid chat message data")
+			util.RespondBadRequest(cq, c, "Invalid chat message data")
 			return
 		}
 
@@ -140,7 +140,7 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 		// TODO: Trigger chat truncation (creating memories)
 
 		err = CreateChatMessage(cq, sessionId, &message)
-		util.RespondSingle(c, &message, err)
+		util.RespondSingle(cq, c, &message, err)
 	})
 
 	sessionRouter.PUT("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
@@ -148,26 +148,26 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
+			util.RespondBadRequest(cq, c, "Invalid session ID")
 			return
 		}
 
 		messageId, err := util.GetIDParam(c, "messageId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid chat message ID")
+			util.RespondBadRequest(cq, c, "Invalid chat message ID")
 			return
 		}
 
 		var message ChatMessage
 		if err := c.ShouldBindJSON(&message); err != nil {
-			util.RespondBadRequest(c, "Invalid chat message data")
+			util.RespondBadRequest(cq, c, "Invalid chat message data")
 			return
 		}
 
 		// TODO: Trigger updating of memories
 
 		err = UpdateChatMessage(cq, sessionId, messageId, &message)
-		util.RespondSingle(c, &message, err)
+		util.RespondSingle(cq, c, &message, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
@@ -175,17 +175,17 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
+			util.RespondBadRequest(cq, c, "Invalid session ID")
 			return
 		}
 		messageId, err := util.GetIDParam(c, "messageId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid chat message ID")
+			util.RespondBadRequest(cq, c, "Invalid chat message ID")
 			return
 		}
 
 		err = DeleteChatMessagesFrom(cq, sessionId, messageId)
-		util.RespondDeleted(c, err)
+		util.RespondDeleted(cq, c, err)
 	})
 
 	sessionRouter.GET("/:sessionId/participants", func(c *gin.Context) {
@@ -193,12 +193,12 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
+			util.RespondBadRequest(cq, c, "Invalid session ID")
 			return
 		}
 
 		participants, err := GetChatSessionParticipants(cq, sessionId)
-		util.RespondList(c, participants, err)
+		util.RespondList(cq, c, participants, err)
 	})
 
 	sessionRouter.POST("/:sessionId/participants/:characterId", func(c *gin.Context) {
@@ -206,17 +206,17 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
+			util.RespondBadRequest(cq, c, "Invalid session ID")
 			return
 		}
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+			util.RespondBadRequest(cq, c, "Invalid character ID")
 			return
 		}
 
 		err = AddChatSessionParticipant(cq, sessionId, characterId)
-		util.RespondEmpty(c, err)
+		util.RespondEmpty(cq, c, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId/participants/:characterId", func(c *gin.Context) {
@@ -224,16 +224,16 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 		sessionId, err := util.GetIDParam(c, "sessionId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
+			util.RespondBadRequest(cq, c, "Invalid session ID")
 			return
 		}
 		characterId, err := util.GetIDParam(c, "characterId")
 		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+			util.RespondBadRequest(cq, c, "Invalid character ID")
 			return
 		}
 
 		err = RemoveChatSessionParticipant(cq, sessionId, characterId)
-		util.RespondEmpty(c, err)
+		util.RespondEmpty(cq, c, err)
 	})
 }
