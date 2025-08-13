@@ -1,90 +1,159 @@
 package providers
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"errors"
 	"fmt"
+	openai "github.com/sashabaranov/go-openai"
 	"io"
-	"net/http"
+	"juraji.nl/chat-quest/util"
+	"math"
 )
 
 type openAIProvider struct {
 	connectionProfile *ConnectionProfile
+	client            *openai.Client
+	ctx               context.Context
 }
 
-type openAIListResponse[T interface{}] struct {
-	Data []T `json:"data"`
-}
+func newOpenAiProvider(profile *ConnectionProfile) *openAIProvider {
+	config := openai.DefaultConfig(profile.ApiKey)
+	config.BaseURL = profile.BaseUrl
 
-type modelData struct {
-	ID      string `json:"id"`
-	Object  string `json:"object"`
-	OwnedBy string `json:"owned_by"`
-}
-
-type embeddingRequestData struct {
-	Input string `json:"input"`
-	Model string `json:"model"`
-}
-
-type embeddingData struct {
-	Embedding Embeddings `json:"embedding"`
-}
-
-func (o *openAIProvider) doRequest(method, path string, body io.Reader, v interface{}) error {
-	url := o.connectionProfile.BaseUrl + path
-
-	req, err := http.NewRequest(method, url, body)
-	if err != nil {
-		return fmt.Errorf("request: %w", err)
+	return &openAIProvider{
+		connectionProfile: profile,
+		client:            openai.NewClientWithConfig(config),
+		ctx:               context.Background(),
 	}
-
-	req.Header.Set("Authorization", "Bearer "+o.connectionProfile.ApiKey)
-
-	resp, err := (&http.Client{}).Do(req)
-	if err != nil {
-		return fmt.Errorf("client: %w", err)
-	}
-	defer func(Body io.ReadCloser) {
-		_ = Body.Close()
-	}(resp.Body)
-
-	data, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("read body: %w", err)
-	}
-
-	if v == nil {
-		return nil
-	} // caller only wants status
-	return json.Unmarshal(data, v)
 }
 
 func (o *openAIProvider) getAvailableModels() ([]*LlmModel, error) {
-	var resp openAIListResponse[modelData]
-	if err := o.doRequest("GET", "/models", nil, &resp); err != nil {
-		return nil, fmt.Errorf("get models: %w", err)
+	models, err := o.client.ListModels(o.ctx)
+	if err != nil {
+		return nil, fmt.Errorf("openAIProvider failed to list models: %w", err)
 	}
 
-	models := make([]*LlmModel, len(resp.Data))
-	for i, d := range resp.Data {
-		models[i] = defaultLlmModel(o.connectionProfile.ID, d.ID)
+	llmModels := make([]*LlmModel, len(models.Models))
+	for i, model := range models.Models {
+		llmModels[i] = defaultLlmModel(o.connectionProfile.ID, model.ID)
 	}
-	return models, nil
+
+	return llmModels, nil
 }
 
-func (o *openAIProvider) generateEmbeddings(input, modelID string) (Embeddings, error) {
-	reqBody := embeddingRequestData{Input: input, Model: modelID}
-	bodyBytes, _ := json.Marshal(reqBody)
-
-	var resp openAIListResponse[embeddingData]
-	if err := o.doRequest("POST", "/embeddings", bytes.NewReader(bodyBytes), &resp); err != nil {
-		return nil, fmt.Errorf("generate embeddings: %w", err)
-	}
-	if len(resp.Data) == 0 {
-		return nil, errors.New("no embeddings returned")
+func (o *openAIProvider) generateEmbeddings(input, modelID string) (util.Embeddings, error) {
+	request := openai.EmbeddingRequest{
+		Input: input,
+		Model: openai.EmbeddingModel(modelID),
 	}
 
-	return resp.Data[0].Embedding, nil
+	embeddings, err := o.client.CreateEmbeddings(o.ctx, request)
+	if err != nil {
+		return nil, fmt.Errorf("openAIProvider failed to create embeddings: %w", err)
+	}
+	if len(embeddings.Data) == 0 {
+		return nil, errors.New("openAIProvider no embeddings returned")
+	}
+
+	return embeddings.Data[0].Embedding, nil
+}
+
+func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) chan ChatGenerateResponse {
+	messages := make([]openai.ChatCompletionMessage, len(request.Messages))
+	for i, msg := range request.Messages {
+		var role string
+		switch msg.Role {
+		case RoleSystem:
+			role = openai.ChatMessageRoleSystem
+		case RoleUser:
+			role = openai.ChatMessageRoleUser
+		case RoleAssistant:
+			role = openai.ChatMessageRoleAssistant
+		default:
+			responseChannel := make(chan ChatGenerateResponse)
+			go func() {
+				defer close(responseChannel)
+				responseChannel <- ChatGenerateResponse{
+					Error: fmt.Errorf("openAIProvider unknown role: %s", msg.Role),
+				}
+			}()
+			return responseChannel
+		}
+
+		messages[i] = openai.ChatCompletionMessage{
+			Role:    role,
+			Content: msg.Content,
+		}
+	}
+
+	completionRequest := openai.ChatCompletionRequest{
+		Model:               request.ModelId,
+		Messages:            messages,
+		MaxTokens:           int(request.MaxTokens),
+		MaxCompletionTokens: int(request.MaxTokens),
+		Temperature:         float32(math.Max(math.SmallestNonzeroFloat32, request.Temperature)),
+		TopP:                float32(request.TopP),
+		Stream:              request.Stream,
+		Stop:                request.StopSequences,
+		PresencePenalty:     0,
+		FrequencyPenalty:    0,
+		StreamOptions:       nil,
+		Store:               false,
+		Prediction:          nil,
+	}
+
+	responseChannel := make(chan ChatGenerateResponse, len(messages))
+	go func() {
+		defer close(responseChannel)
+
+		if request.Stream {
+			stream, err := o.client.CreateChatCompletionStream(o.ctx, completionRequest)
+			if err != nil {
+				responseChannel <- ChatGenerateResponse{
+					Error: fmt.Errorf("openAIProvider failed to create chat completion stream: %w", err),
+				}
+				return
+			}
+			defer stream.Close()
+
+			for {
+				response, err := stream.Recv()
+				if errors.Is(err, io.EOF) {
+					return
+				}
+
+				if err != nil {
+					responseChannel <- ChatGenerateResponse{
+						Error: fmt.Errorf("openAIProvider chat completion stream error: %w", err),
+					}
+					return
+				}
+
+				responseChannel <- ChatGenerateResponse{
+					Content: response.Choices[0].Delta.Content,
+				}
+			}
+		} else {
+			completion, err := o.client.CreateChatCompletion(o.ctx, completionRequest)
+			if err != nil {
+				responseChannel <- ChatGenerateResponse{
+					Error: fmt.Errorf("openAIProvider failed to create completion: %w", err),
+				}
+				return
+			}
+
+			if len(completion.Choices) == 0 {
+				responseChannel <- ChatGenerateResponse{
+					Error: errors.New("openAIProvider no chat completions returned"),
+				}
+				return
+			}
+
+			responseChannel <- ChatGenerateResponse{
+				Content: completion.Choices[0].Message.Content,
+			}
+		}
+	}()
+
+	return responseChannel
 }

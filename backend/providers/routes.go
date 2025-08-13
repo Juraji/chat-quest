@@ -61,6 +61,10 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 			util.RespondBadRequest(cq, c, "Invalid connection profile data")
 			return
 		}
+		if !profile.ProviderType.IsValid() {
+			util.RespondBadRequest(cq, c, "Invalid connection profile type")
+			return
+		}
 
 		err = UpdateConnectionProfile(cq, profileId, &profile)
 		util.RespondSingle(cq, c, &profile, err)

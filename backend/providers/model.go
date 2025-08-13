@@ -5,14 +5,30 @@ import (
 	"juraji.nl/chat-quest/cq"
 	"juraji.nl/chat-quest/database"
 	"juraji.nl/chat-quest/util"
+	"strings"
 )
 
+type ProviderType string
+
+const (
+	ProviderOpenAi ProviderType = "OPEN_AI"
+)
+
+func (p ProviderType) IsValid() bool {
+	switch p {
+	case ProviderOpenAi:
+		return true
+	default:
+		return false
+	}
+}
+
 type ConnectionProfile struct {
-	ID           int64  `json:"id"`
-	Name         string `json:"name"`
-	ProviderType string `json:"providerType"`
-	BaseUrl      string `json:"baseUrl"`
-	ApiKey       string `json:"apiKey"`
+	ID           int64        `json:"id"`
+	Name         string       `json:"name"`
+	ProviderType ProviderType `json:"providerType"`
+	BaseUrl      string       `json:"baseUrl"`
+	ApiKey       string       `json:"apiKey"`
 }
 
 type LlmModel struct {
@@ -32,6 +48,18 @@ type LlmModelView struct {
 	ModelId               string `json:"modelId"`
 	ConnectionProfileId   int64  `json:"profileId"`
 	ConnectionProfileName string `json:"profileName"`
+}
+
+func (lm *LlmModel) GetStopSequences() []string {
+	if lm.StopSequences == nil || *lm.StopSequences == "" {
+		return nil
+	}
+
+	sequences := strings.Split(*lm.StopSequences, ",")
+	for i := range sequences {
+		sequences[i] = strings.TrimSpace(sequences[i])
+	}
+	return sequences
 }
 
 func connectionProfileScanner(scanner database.RowScanner, dest *ConnectionProfile) error {
