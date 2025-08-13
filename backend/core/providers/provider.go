@@ -8,7 +8,7 @@ import (
 type Provider interface {
 	getAvailableModelIds() ([]string, error)
 	generateEmbeddings(input string, modelId string) (util.Embeddings, error)
-	generateChatResponse(request *ChatGenerateRequest) chan ChatGenerateResponse
+	generateChatResponse(request *ChatGenerateRequest) <-chan ChatGenerateResponse
 }
 
 type ChatGenerateRequest struct {
@@ -77,7 +77,7 @@ func (p *ConnectionProfile) GenerateChatResponse(
 	messages []*ChatGenerateRequestMessage,
 	llmModel LlmModel,
 	overrideTemperature *float32,
-) chan ChatGenerateResponse {
+) <-chan ChatGenerateResponse {
 	provider := newProvider(p)
 
 	var temperature float32

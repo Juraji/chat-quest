@@ -56,30 +56,11 @@ func (o *openAIProvider) generateEmbeddings(input, modelID string) (util.Embeddi
 	return embeddings.Data[0].Embedding, nil
 }
 
-func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) chan ChatGenerateResponse {
+func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) <-chan ChatGenerateResponse {
 	messages := make([]openai.ChatCompletionMessage, len(request.Messages))
 	for i, msg := range request.Messages {
-		var role string
-		switch msg.Role {
-		case RoleSystem:
-			role = openai.ChatMessageRoleSystem
-		case RoleUser:
-			role = openai.ChatMessageRoleUser
-		case RoleAssistant:
-			role = openai.ChatMessageRoleAssistant
-		default:
-			responseChannel := make(chan ChatGenerateResponse)
-			go func() {
-				defer close(responseChannel)
-				responseChannel <- ChatGenerateResponse{
-					Error: fmt.Errorf("openAIProvider unknown role: %s", msg.Role),
-				}
-			}()
-			return responseChannel
-		}
-
 		messages[i] = openai.ChatCompletionMessage{
-			Role:    role,
+			Role:    msg.Role.asOpenAiRole(),
 			Content: msg.Content,
 		}
 	}
@@ -101,58 +82,93 @@ func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) chan
 		Prediction:          nil,
 	}
 
-	responseChannel := make(chan ChatGenerateResponse, len(messages))
+	if request.Stream {
+		return generateChatResponseStream(o.ctx, o.client, completionRequest)
+	} else {
+		return generateChatResponseSingle(o.ctx, o.client, completionRequest)
+	}
+}
+
+func (r ChatRequestMessageRole) asOpenAiRole() string {
+	switch r {
+	case RoleSystem:
+		return openai.ChatMessageRoleSystem
+	case RoleUser:
+		return openai.ChatMessageRoleUser
+	case RoleAssistant:
+		return openai.ChatMessageRoleAssistant
+	default:
+		// Dev error, missing branch?
+		panic(fmt.Sprintf("invalid role %v", r))
+	}
+}
+
+func generateChatResponseSingle(
+	ctx context.Context,
+	client *openai.Client,
+	completionRequest openai.ChatCompletionRequest,
+) <-chan ChatGenerateResponse {
+	responseChannel := make(chan ChatGenerateResponse, 1)
 	go func() {
 		defer close(responseChannel)
 
-		if request.Stream {
-			stream, err := o.client.CreateChatCompletionStream(o.ctx, completionRequest)
-			if err != nil {
-				responseChannel <- ChatGenerateResponse{
-					Error: fmt.Errorf("openAIProvider failed to create chat completion stream: %w", err),
-				}
+		completion, err := client.CreateChatCompletion(ctx, completionRequest)
+		if err != nil {
+			responseChannel <- ChatGenerateResponse{
+				Error: fmt.Errorf("openAIProvider failed to create completion: %w", err),
+			}
+			return
+		}
+
+		if len(completion.Choices) == 0 {
+			responseChannel <- ChatGenerateResponse{
+				Error: errors.New("openAIProvider no chat completions returned"),
+			}
+			return
+		}
+
+		responseChannel <- ChatGenerateResponse{
+			Content: completion.Choices[0].Message.Content,
+		}
+	}()
+	return responseChannel
+}
+
+func generateChatResponseStream(
+	ctx context.Context,
+	client *openai.Client,
+	completionRequest openai.ChatCompletionRequest,
+) <-chan ChatGenerateResponse {
+	responseChannel := make(chan ChatGenerateResponse)
+	go func() {
+		defer close(responseChannel)
+
+		stream, err := client.CreateChatCompletionStream(ctx, completionRequest)
+		if err != nil {
+			responseChannel <- ChatGenerateResponse{
+				Error: fmt.Errorf("openAIProvider failed to create chat completion stream: %w", err),
+			}
+			return
+		}
+		defer stream.Close()
+
+		for {
+			response, err := stream.Recv()
+			if errors.Is(err, io.EOF) {
 				return
 			}
-			defer stream.Close()
 
-			for {
-				response, err := stream.Recv()
-				if errors.Is(err, io.EOF) {
-					return
-				}
-
-				if err != nil {
-					responseChannel <- ChatGenerateResponse{
-						Error: fmt.Errorf("openAIProvider chat completion stream error: %w", err),
-					}
-					return
-				}
-
-				responseChannel <- ChatGenerateResponse{
-					Content: response.Choices[0].Delta.Content,
-				}
-			}
-		} else {
-			completion, err := o.client.CreateChatCompletion(o.ctx, completionRequest)
 			if err != nil {
 				responseChannel <- ChatGenerateResponse{
-					Error: fmt.Errorf("openAIProvider failed to create completion: %w", err),
-				}
-				return
-			}
-
-			if len(completion.Choices) == 0 {
-				responseChannel <- ChatGenerateResponse{
-					Error: errors.New("openAIProvider no chat completions returned"),
+					Error: fmt.Errorf("openAIProvider chat completion stream error: %w", err),
 				}
 				return
 			}
 
 			responseChannel <- ChatGenerateResponse{
-				Content: completion.Choices[0].Message.Content,
+				Content: response.Choices[0].Delta.Content,
 			}
 		}
 	}()
-
 	return responseChannel
 }
