@@ -7,18 +7,19 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"juraji.nl/chat-quest/characters"
-	"juraji.nl/chat-quest/chat-sessions"
-	"juraji.nl/chat-quest/cq"
-	"juraji.nl/chat-quest/database"
-	"juraji.nl/chat-quest/instructions"
-	"juraji.nl/chat-quest/memories"
-	"juraji.nl/chat-quest/providers"
-	"juraji.nl/chat-quest/scenarios"
-	"juraji.nl/chat-quest/sse"
-	"juraji.nl/chat-quest/system"
-	"juraji.nl/chat-quest/util"
-	"juraji.nl/chat-quest/worlds"
+	"juraji.nl/chat-quest/core"
+	"juraji.nl/chat-quest/core/database"
+	"juraji.nl/chat-quest/core/logging"
+	"juraji.nl/chat-quest/core/providers"
+	"juraji.nl/chat-quest/core/sse"
+	"juraji.nl/chat-quest/core/system"
+	"juraji.nl/chat-quest/core/util"
+	"juraji.nl/chat-quest/model/characters"
+	"juraji.nl/chat-quest/model/chat-sessions"
+	"juraji.nl/chat-quest/model/instructions"
+	"juraji.nl/chat-quest/model/memories"
+	"juraji.nl/chat-quest/model/scenarios"
+	"juraji.nl/chat-quest/model/worlds"
 )
 
 var (
@@ -44,7 +45,7 @@ func init() {
 }
 
 func main() {
-	logger, err := cq.SetupLogger(false)
+	logger, err := logging.SetupLogger(false)
 	if err != nil {
 		panic(err)
 	}
@@ -66,7 +67,7 @@ func main() {
 		}
 	}(db)
 
-	chatQuestContext := cq.NewChatQuestContext(rootCtx, db, logger)
+	chatQuestContext := core.NewChatQuestContext(rootCtx, db, logger)
 
 	router := gin.New()
 
