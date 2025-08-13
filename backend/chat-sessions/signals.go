@@ -7,11 +7,11 @@ import (
 
 var ChatSessionCreatedSignal = signals.New[*ChatSession]()
 var ChatSessionUpdatedSignal = signals.New[*ChatSession]()
-var ChatSessionDeletedSignal = signals.New[int64]()
+var ChatSessionDeletedSignal = signals.New[int]()
 
 var ChatMessageCreatedSignal = signals.New[*ChatMessage]()
 var ChatMessageUpdatedSignal = signals.New[*ChatMessage]()
-var ChatMessageDeletedSignal = signals.New[int64]()
+var ChatMessageDeletedSignal = signals.New[int]()
 
 var ChatParticipantAddedSignal = signals.New[*ChatParticipant]()
 var ChatParticipantRemovedSignal = signals.New[*ChatParticipant]()

@@ -7,11 +7,11 @@ import (
 )
 
 type Scenario struct {
-	ID                int64   `json:"id"`
+	ID                int     `json:"id"`
 	Name              string  `json:"name"`
 	Description       string  `json:"description"`
 	AvatarUrl         *string `json:"avatarUrl"`
-	LinkedCharacterId *int64  `json:"linkedCharacterId"`
+	LinkedCharacterId *int    `json:"linkedCharacterId"`
 }
 
 func scenarioScanner(scanner database.RowScanner, dest *Scenario) error {
@@ -29,7 +29,7 @@ func AllScenarios(cq *cq.ChatQuestContext) ([]*Scenario, error) {
 	return database.QueryForList(cq.DB(), query, nil, scenarioScanner)
 }
 
-func ScenarioById(cq *cq.ChatQuestContext, id int64) (*Scenario, error) {
+func ScenarioById(cq *cq.ChatQuestContext, id int) (*Scenario, error) {
 	query := "SELECT * FROM scenarios WHERE id=?"
 	args := []any{id}
 	return database.QueryForRecord(cq.DB(), query, args, scenarioScanner)
@@ -51,7 +51,7 @@ func CreateScenario(cq *cq.ChatQuestContext, scenario *Scenario) error {
 	return nil
 }
 
-func UpdateScenario(cq *cq.ChatQuestContext, id int64, scenario *Scenario) error {
+func UpdateScenario(cq *cq.ChatQuestContext, id int, scenario *Scenario) error {
 	util.EmptyStrPtrToNil(&scenario.AvatarUrl)
 
 	query := `UPDATE scenarios
@@ -71,7 +71,7 @@ func UpdateScenario(cq *cq.ChatQuestContext, id int64, scenario *Scenario) error
 	return nil
 }
 
-func DeleteScenario(cq *cq.ChatQuestContext, id int64) error {
+func DeleteScenario(cq *cq.ChatQuestContext, id int) error {
 	query := "DELETE FROM scenarios WHERE id=?"
 	args := []interface{}{id}
 

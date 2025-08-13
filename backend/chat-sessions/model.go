@@ -10,29 +10,29 @@ import (
 )
 
 type ChatSession struct {
-	ID             int64      `json:"id"`
-	WorldID        int64      `json:"worldId"`
+	ID             int        `json:"id"`
+	WorldID        int        `json:"worldId"`
 	CreatedAt      *time.Time `json:"createdAt"`
 	Name           string     `json:"name"`
-	ScenarioID     *int64     `json:"scenarioId"`
+	ScenarioID     *int       `json:"scenarioId"`
 	EnableMemories bool       `json:"enableMemories"`
 }
 
 type ChatMessage struct {
-	ID            int64      `json:"id"`
-	ChatSessionID int64      `json:"chatSessionId"`
+	ID            int        `json:"id"`
+	ChatSessionID int        `json:"chatSessionId"`
 	CreatedAt     *time.Time `json:"createdAt"`
 	IsUser        bool       `json:"isUser"`
-	CharacterID   *int64     `json:"characterId"`
+	CharacterID   *int       `json:"characterId"`
 	Content       string     `json:"content"`
 
 	// Managed by memories
-	MemoryID *int64 `json:"memoryId"`
+	MemoryID *int `json:"memoryId"`
 }
 
 type ChatParticipant struct {
-	ChatSessionID int64 `json:"chatSessionId"`
-	CharacterID   int64 `json:"characterId"`
+	ChatSessionID int `json:"chatSessionId"`
+	CharacterID   int `json:"characterId"`
 }
 
 func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
@@ -58,20 +58,20 @@ func chatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
 	)
 }
 
-func GetAllChatSessionsByWorldId(cq *cq.ChatQuestContext, worldId int64) ([]*ChatSession, error) {
+func GetAllChatSessionsByWorldId(cq *cq.ChatQuestContext, worldId int) ([]*ChatSession, error) {
 	query := "SELECT * FROM chat_sessions WHERE world_id=?"
 	args := []any{worldId}
 
 	return database.QueryForList(cq.DB(), query, args, chatSessionScanner)
 }
 
-func GetChatSessionById(cq *cq.ChatQuestContext, worldId int64, id int64) (*ChatSession, error) {
+func GetChatSessionById(cq *cq.ChatQuestContext, worldId int, id int) (*ChatSession, error) {
 	query := "SELECT * FROM chat_sessions WHERE world_id=? AND id=?"
 	args := []any{worldId, id}
 	return database.QueryForRecord(cq.DB(), query, args, chatSessionScanner)
 }
 
-func CreateChatSession(cq *cq.ChatQuestContext, worldId int64, chatSession *ChatSession, characterIds []int64) error {
+func CreateChatSession(cq *cq.ChatQuestContext, worldId int, chatSession *ChatSession, characterIds []int) error {
 	chatSession.WorldID = worldId
 	chatSession.CreatedAt = nil
 
@@ -116,7 +116,7 @@ func CreateChatSession(cq *cq.ChatQuestContext, worldId int64, chatSession *Chat
 	return nil
 }
 
-func UpdateChatSession(cq *cq.ChatQuestContext, worldId int64, id int64, chatSession *ChatSession) error {
+func UpdateChatSession(cq *cq.ChatQuestContext, worldId int, id int, chatSession *ChatSession) error {
 	query := `UPDATE chat_sessions
             SET name = ?,
                 scenario_id = ?,
@@ -140,7 +140,7 @@ func UpdateChatSession(cq *cq.ChatQuestContext, worldId int64, id int64, chatSes
 	return nil
 }
 
-func DeleteChatSessionById(cq *cq.ChatQuestContext, worldId int64, id int64) error {
+func DeleteChatSessionById(cq *cq.ChatQuestContext, worldId int, id int) error {
 	query := "DELETE FROM chat_sessions WHERE world_id=? AND id=?"
 	args := []any{worldId, id}
 
@@ -153,13 +153,13 @@ func DeleteChatSessionById(cq *cq.ChatQuestContext, worldId int64, id int64) err
 	return nil
 }
 
-func GetChatMessages(cq *cq.ChatQuestContext, sessionId int64) ([]*ChatMessage, error) {
+func GetChatMessages(cq *cq.ChatQuestContext, sessionId int) ([]*ChatMessage, error) {
 	query := "SELECT * FROM chat_messages WHERE chat_session_id=?"
 	args := []any{sessionId}
 	return database.QueryForList(cq.DB(), query, args, chatMessageScanner)
 }
 
-func CreateChatMessage(cq *cq.ChatQuestContext, sessionId int64, chatMessage *ChatMessage) error {
+func CreateChatMessage(cq *cq.ChatQuestContext, sessionId int, chatMessage *ChatMessage) error {
 	chatMessage.ChatSessionID = sessionId
 	chatMessage.CreatedAt = nil
 
@@ -182,7 +182,7 @@ func CreateChatMessage(cq *cq.ChatQuestContext, sessionId int64, chatMessage *Ch
 	return nil
 }
 
-func UpdateChatMessage(cq *cq.ChatQuestContext, sessionId int64, id int64, chatMessage *ChatMessage) error {
+func UpdateChatMessage(cq *cq.ChatQuestContext, sessionId int, id int, chatMessage *ChatMessage) error {
 	query := `UPDATE chat_messages
             SET content = ?
             WHERE chat_session_id = ?
@@ -198,7 +198,7 @@ func UpdateChatMessage(cq *cq.ChatQuestContext, sessionId int64, id int64, chatM
 	return nil
 }
 
-func DeleteChatMessagesFrom(cq *cq.ChatQuestContext, sessionId int64, id int64) error {
+func DeleteChatMessagesFrom(cq *cq.ChatQuestContext, sessionId int, id int) error {
 	//language=SQL
 	query := `DELETE
             FROM chat_messages
@@ -207,7 +207,7 @@ func DeleteChatMessagesFrom(cq *cq.ChatQuestContext, sessionId int64, id int64) 
             RETURNING id`
 	args := []any{sessionId, id}
 
-	deletedIds, err := database.QueryForList(cq.DB(), query, args, func(scanner database.RowScanner, dest *int64) error {
+	deletedIds, err := database.QueryForList(cq.DB(), query, args, func(scanner database.RowScanner, dest *int) error {
 		return scanner.Scan(dest)
 	})
 	if err != nil {
@@ -218,7 +218,7 @@ func DeleteChatMessagesFrom(cq *cq.ChatQuestContext, sessionId int64, id int64) 
 	return nil
 }
 
-func GetChatSessionParticipants(cq *cq.ChatQuestContext, chatSessionId int64) ([]*characters.Character, error) {
+func GetChatSessionParticipants(cq *cq.ChatQuestContext, chatSessionId int) ([]*characters.Character, error) {
 	query := `SELECT c.* FROM chat_participants cp
                 JOIN characters c ON cp.character_id = c.id
             WHERE cp.chat_session_id = ?`
@@ -226,7 +226,7 @@ func GetChatSessionParticipants(cq *cq.ChatQuestContext, chatSessionId int64) ([
 	return database.QueryForList(cq.DB(), query, args, characters.CharacterScanner)
 }
 
-func AddChatSessionParticipant(cq *cq.ChatQuestContext, chatSessionId int64, characterId int64) error {
+func AddChatSessionParticipant(cq *cq.ChatQuestContext, chatSessionId int, characterId int) error {
 	err := addChatSessionParticipant(cq.DB(), chatSessionId, characterId)
 	if err != nil {
 		return err
@@ -237,13 +237,13 @@ func AddChatSessionParticipant(cq *cq.ChatQuestContext, chatSessionId int64, cha
 	return nil
 }
 
-func addChatSessionParticipant(db database.QueryExecutor, chatSessionId int64, characterId int64) error {
+func addChatSessionParticipant(db database.QueryExecutor, chatSessionId int, characterId int) error {
 	query := `INSERT INTO chat_participants (chat_session_id, character_id) VALUES (?, ?)`
 	args := []any{chatSessionId, characterId}
 	return database.InsertRecord(db, query, args)
 }
 
-func RemoveChatSessionParticipant(cq *cq.ChatQuestContext, chatSessionId int64, characterId int64) error {
+func RemoveChatSessionParticipant(cq *cq.ChatQuestContext, chatSessionId int, characterId int) error {
 	query := `DELETE FROM chat_participants WHERE chat_session_id = ? AND character_id = ?`
 	args := []any{chatSessionId, characterId}
 

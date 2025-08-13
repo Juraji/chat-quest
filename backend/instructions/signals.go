@@ -7,7 +7,7 @@ import (
 
 var InstructionCreatedSignal = signals.New[*InstructionTemplate]()
 var InstructionUpdatedSignal = signals.New[*InstructionTemplate]()
-var InstructionDeletedSignal = signals.New[int64]()
+var InstructionDeletedSignal = signals.New[int]()
 
 func init() {
 	sse.RegisterSseSourceSignal("InstructionCreated", InstructionCreatedSignal)

@@ -7,11 +7,11 @@ import (
 
 var ConnectionProfileCreatedSignal = signals.New[*ConnectionProfile]()
 var ConnectionProfileUpdatedSignal = signals.New[*ConnectionProfile]()
-var ConnectionProfileDeletedSignal = signals.New[int64]()
+var ConnectionProfileDeletedSignal = signals.New[int]()
 
 var LlmModelCreatedSignal = signals.New[*LlmModel]()
 var LlmModelUpdatedSignal = signals.New[*LlmModel]()
-var LlmModelDeletedSignal = signals.New[int64]()
+var LlmModelDeletedSignal = signals.New[int]()
 
 func init() {
 	sse.RegisterSseSourceSignal("ConnectionProfileCreated", ConnectionProfileCreatedSignal)

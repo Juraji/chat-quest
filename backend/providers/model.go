@@ -24,7 +24,7 @@ func (p ProviderType) IsValid() bool {
 }
 
 type ConnectionProfile struct {
-	ID           int64        `json:"id"`
+	ID           int          `json:"id"`
 	Name         string       `json:"name"`
 	ProviderType ProviderType `json:"providerType"`
 	BaseUrl      string       `json:"baseUrl"`
@@ -32,21 +32,21 @@ type ConnectionProfile struct {
 }
 
 type LlmModel struct {
-	ID                  int64   `json:"id"`
-	ConnectionProfileId int64   `json:"profileId"`
+	ID                  int     `json:"id"`
+	ConnectionProfileId int     `json:"profileId"`
 	ModelId             string  `json:"modelId"`
-	Temperature         float64 `json:"temperature"`
-	MaxTokens           int64   `json:"maxTokens"`
-	TopP                float64 `json:"topP"`
+	Temperature         float32 `json:"temperature"`
+	MaxTokens           int     `json:"maxTokens"`
+	TopP                float32 `json:"topP"`
 	Stream              bool    `json:"stream"`
 	StopSequences       *string `json:"stopSequences"`
 	Disabled            bool    `json:"disabled"`
 }
 
 type LlmModelView struct {
-	ID                    int64  `json:"id"`
+	ID                    int    `json:"id"`
 	ModelId               string `json:"modelId"`
-	ConnectionProfileId   int64  `json:"profileId"`
+	ConnectionProfileId   int    `json:"profileId"`
 	ConnectionProfileName string `json:"profileName"`
 }
 
@@ -100,7 +100,7 @@ func AllConnectionProfiles(cq *cq.ChatQuestContext) ([]*ConnectionProfile, error
 	return database.QueryForList(cq.DB(), query, nil, connectionProfileScanner)
 }
 
-func ConnectionProfileById(cq *cq.ChatQuestContext, id int64) (*ConnectionProfile, error) {
+func ConnectionProfileById(cq *cq.ChatQuestContext, id int) (*ConnectionProfile, error) {
 	query := "SELECT * FROM connection_profiles WHERE id = ?"
 	args := []any{id}
 	return database.QueryForRecord(cq.DB(), query, args, connectionProfileScanner)
@@ -137,7 +137,7 @@ func CreateConnectionProfile(cq *cq.ChatQuestContext, profile *ConnectionProfile
 	return nil
 }
 
-func UpdateConnectionProfile(cq *cq.ChatQuestContext, id int64, profile *ConnectionProfile) error {
+func UpdateConnectionProfile(cq *cq.ChatQuestContext, id int, profile *ConnectionProfile) error {
 	query := `UPDATE connection_profiles
             SET name = ?,
                 provider_type = ?,
@@ -155,7 +155,7 @@ func UpdateConnectionProfile(cq *cq.ChatQuestContext, id int64, profile *Connect
 	return nil
 }
 
-func DeleteConnectionProfileById(cq *cq.ChatQuestContext, id int64) error {
+func DeleteConnectionProfileById(cq *cq.ChatQuestContext, id int) error {
 	query := "DELETE FROM connection_profiles WHERE id = ?"
 	args := []any{id}
 
@@ -168,13 +168,13 @@ func DeleteConnectionProfileById(cq *cq.ChatQuestContext, id int64) error {
 	return nil
 }
 
-func LlmModelsByConnectionProfileId(cq *cq.ChatQuestContext, profileId int64) ([]*LlmModel, error) {
+func LlmModelsByConnectionProfileId(cq *cq.ChatQuestContext, profileId int) ([]*LlmModel, error) {
 	query := "SELECT * FROM llm_models WHERE connection_profile_id = ?"
 	args := []any{profileId}
 	return database.QueryForList(cq.DB(), query, args, llmModelScanner)
 }
 
-func CreateLlmModel(cq *cq.ChatQuestContext, profileId int64, llmModel *LlmModel) error {
+func CreateLlmModel(cq *cq.ChatQuestContext, profileId int, llmModel *LlmModel) error {
 	err := createLlmModel(cq.DB(), profileId, llmModel)
 	if err != nil {
 		return err
@@ -184,7 +184,7 @@ func CreateLlmModel(cq *cq.ChatQuestContext, profileId int64, llmModel *LlmModel
 	return nil
 }
 
-func createLlmModel(db database.QueryExecutor, profileId int64, llmModel *LlmModel) error {
+func createLlmModel(db database.QueryExecutor, profileId int, llmModel *LlmModel) error {
 	llmModel.ConnectionProfileId = profileId
 
 	query := `INSERT INTO llm_models
@@ -204,7 +204,7 @@ func createLlmModel(db database.QueryExecutor, profileId int64, llmModel *LlmMod
 	return database.InsertRecord(db, query, args, &llmModel.ID)
 }
 
-func UpdateLlmModel(cq *cq.ChatQuestContext, id int64, llmModel *LlmModel) error {
+func UpdateLlmModel(cq *cq.ChatQuestContext, id int, llmModel *LlmModel) error {
 	query := `UPDATE llm_models
               SET temperature = ?,
                   max_tokens = ?,
@@ -232,7 +232,7 @@ func UpdateLlmModel(cq *cq.ChatQuestContext, id int64, llmModel *LlmModel) error
 	return nil
 }
 
-func DeleteLlmModelById(cq *cq.ChatQuestContext, id int64) error {
+func DeleteLlmModelById(cq *cq.ChatQuestContext, id int) error {
 	err := deleteLlmModelById(cq.DB(), id)
 	if err != nil {
 		return err
@@ -242,14 +242,14 @@ func DeleteLlmModelById(cq *cq.ChatQuestContext, id int64) error {
 	return nil
 }
 
-func deleteLlmModelById(db database.QueryExecutor, id int64) error {
+func deleteLlmModelById(db database.QueryExecutor, id int) error {
 	query := "DELETE FROM llm_models WHERE id = ?"
 	args := []any{id}
 
 	return database.DeleteRecord(db, query, args)
 }
 
-func MergeLlmModels(cq *cq.ChatQuestContext, profileId int64, newModels []*LlmModel) error {
+func MergeLlmModels(cq *cq.ChatQuestContext, profileId int, newModels []*LlmModel) error {
 	tx, err := cq.DB().Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -283,7 +283,7 @@ func MergeLlmModels(cq *cq.ChatQuestContext, profileId int64, newModels []*LlmMo
 	}
 
 	// Remove models not in new set
-	var deletedModelIds []int64
+	var deletedModelIds []int
 	for _, existingModel := range existingModels {
 		if newModelIdSet.NotContains(existingModel.ModelId) {
 			if err = deleteLlmModelById(tx, existingModel.ID); err != nil {

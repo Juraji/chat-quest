@@ -9,13 +9,13 @@ import (
 
 type Memory struct {
 	ID               int        `json:"id"`
-	WorldId          int64      `json:"worldId"`
-	ChatSessionId    int64      `json:"chatSessionId"`
-	CharacterId      int64      `json:"characterId"`
+	WorldId          int        `json:"worldId"`
+	ChatSessionId    int        `json:"chatSessionId"`
+	CharacterId      int        `json:"characterId"`
 	CreatedAt        *time.Time `json:"createdAt"`
 	Content          string     `json:"content"`
 	Embedding        util.Embeddings
-	EmbeddingModelId *int64
+	EmbeddingModelId *int
 }
 
 func (m *Memory) CosineSimilarity(other util.Embeddings) (float32, error) {
@@ -23,12 +23,12 @@ func (m *Memory) CosineSimilarity(other util.Embeddings) (float32, error) {
 }
 
 type MemoryPreferences struct {
-	MemoriesModelID       *int64  `json:"memoriesModelId"`
-	MemoriesInstructionID *int64  `json:"memoriesInstructionId"`
-	EmbeddingModelID      *int64  `json:"embeddingModelId"`
-	MemoryMinP            float64 `json:"memoryMinP"`
-	MemoryTriggerAfter    int64   `json:"memoryTriggerAfter"`
-	MemoryWindowSize      int64   `json:"memoryWindowSize"`
+	MemoriesModelID       *int    `json:"memoriesModelId"`
+	MemoriesInstructionID *int    `json:"memoriesInstructionId"`
+	EmbeddingModelID      *int    `json:"embeddingModelId"`
+	MemoryMinP            float32 `json:"memoryMinP"`
+	MemoryTriggerAfter    int     `json:"memoryTriggerAfter"`
+	MemoryWindowSize      int     `json:"memoryWindowSize"`
 }
 
 func memoryScanner(scanner database.RowScanner, dest *Memory) error {
@@ -55,7 +55,7 @@ func memoryPreferencesScanner(scanner database.RowScanner, dest *MemoryPreferenc
 	)
 }
 
-func GetMemoriesByWorldId(cq *cq.ChatQuestContext, worldId int64) ([]*Memory, error) {
+func GetMemoriesByWorldId(cq *cq.ChatQuestContext, worldId int) ([]*Memory, error) {
 	query := `SELECT id,
                    world_id,
                    chat_session_id,
@@ -71,8 +71,8 @@ func GetMemoriesByWorldId(cq *cq.ChatQuestContext, worldId int64) ([]*Memory, er
 
 func GetMemoriesByWorldAndCharacterId(
 	cq *cq.ChatQuestContext,
-	worldId int64,
-	characterId int64,
+	worldId int,
+	characterId int,
 ) ([]*Memory, error) {
 	query := `SELECT id,
                    world_id,
@@ -89,8 +89,8 @@ func GetMemoriesByWorldAndCharacterId(
 
 func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 	cq *cq.ChatQuestContext,
-	worldId int64,
-	characterId int64,
+	worldId int,
+	characterId int,
 ) ([]*Memory, error) {
 	query := `SELECT * FROM memories m WHERE world_id = ? AND character_id = ?`
 	args := []interface{}{worldId, characterId}
@@ -120,7 +120,7 @@ func CreateMemory(cq *cq.ChatQuestContext, memory *Memory) error {
 	return nil
 }
 
-func UpdateMemory(cq *cq.ChatQuestContext, id int64, memory *Memory) error {
+func UpdateMemory(cq *cq.ChatQuestContext, id int, memory *Memory) error {
 	query := `UPDATE memories SET content = ?, embedding = ?, embedding_model_id = ? WHERE id = ?`
 	args := []any{memory.Content, memory.Embedding, memory.EmbeddingModelId, id}
 
@@ -133,7 +133,7 @@ func UpdateMemory(cq *cq.ChatQuestContext, id int64, memory *Memory) error {
 	return nil
 }
 
-func DeleteMemory(cq *cq.ChatQuestContext, id int64) error {
+func DeleteMemory(cq *cq.ChatQuestContext, id int) error {
 	query := `DELETE FROM memories WHERE id = ?`
 	args := []any{id}
 

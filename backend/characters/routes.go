@@ -140,7 +140,7 @@ func charactersRoutes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 			return
 		}
 
-		var tagIds []int64
+		var tagIds []int
 		if err := c.ShouldBind(&tagIds); err != nil {
 			util.RespondBadRequest(cq, c, "Invalid dialogue examples data")
 			return

@@ -8,26 +8,26 @@ import (
 	"strconv"
 )
 
-func GetIDParam(c *gin.Context, key string) (int64, error) {
+func GetIDParam(c *gin.Context, key string) (int, error) {
 	idStr := c.Param(key)
 	id, err := strconv.ParseInt(idStr, 10, 64)
 
-	return id, err
+	return int(id), err
 }
 
-func GetIDsFromQuery(c *gin.Context, key string) ([]int64, error) {
+func GetIDsFromQuery(c *gin.Context, key string) ([]int, error) {
 	values, ok := c.GetQueryArray(key)
 	if !ok {
 		return nil, nil
 	}
 
-	ids := make([]int64, len(values))
+	ids := make([]int, len(values))
 	for i, idStr := range values {
 		id, err := strconv.ParseInt(idStr, 10, 64)
 		if err != nil {
 			return nil, err
 		}
-		ids[i] = id
+		ids[i] = int(id)
 	}
 
 	return ids, nil

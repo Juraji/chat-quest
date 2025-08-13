@@ -1,6 +1,6 @@
 package providers
 
-func defaultLlmModel(ConnectionProfileId int64, ModelId string, opts ...func(*LlmModel)) *LlmModel {
+func defaultLlmModel(ConnectionProfileId int, ModelId string, opts ...func(*LlmModel)) *LlmModel {
 	model := LlmModel{
 		ConnectionProfileId: ConnectionProfileId,
 		ModelId:             ModelId,

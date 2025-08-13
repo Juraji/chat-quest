@@ -7,15 +7,15 @@ import (
 )
 
 type World struct {
-	ID          int64   `json:"id"`
+	ID          int     `json:"id"`
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
 	AvatarUrl   *string `json:"avatarUrl"`
 }
 
 type ChatPreferences struct {
-	ChatModelID       *int64 `json:"chatModelId"`
-	ChatInstructionID *int64 `json:"chatInstructionId"`
+	ChatModelID       *int `json:"chatModelId"`
+	ChatInstructionID *int `json:"chatInstructionId"`
 }
 
 func worldScanner(scanner database.RowScanner, dest *World) error {
@@ -38,7 +38,7 @@ func GetAllWorlds(cq *cq.ChatQuestContext) ([]*World, error) {
 	return database.QueryForList(cq.DB(), query, nil, worldScanner)
 }
 
-func WorldById(cq *cq.ChatQuestContext, id int64) (*World, error) {
+func WorldById(cq *cq.ChatQuestContext, id int) (*World, error) {
 	query := "SELECT * FROM worlds WHERE id=?"
 	args := []any{id}
 
@@ -61,7 +61,7 @@ func CreateWorld(cq *cq.ChatQuestContext, newWorld *World) error {
 	return nil
 }
 
-func UpdateWorld(cq *cq.ChatQuestContext, id int64, world *World) error {
+func UpdateWorld(cq *cq.ChatQuestContext, id int, world *World) error {
 	util.EmptyStrPtrToNil(&world.Description)
 	util.EmptyStrPtrToNil(&world.AvatarUrl)
 
@@ -86,7 +86,7 @@ func UpdateWorld(cq *cq.ChatQuestContext, id int64, world *World) error {
 	return nil
 }
 
-func DeleteWorld(cq *cq.ChatQuestContext, id int64) error {
+func DeleteWorld(cq *cq.ChatQuestContext, id int) error {
 	query := "DELETE FROM worlds WHERE id=?"
 	args := []any{id}
 

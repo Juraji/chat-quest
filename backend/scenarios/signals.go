@@ -7,7 +7,7 @@ import (
 
 var ScenarioCreatedSignal = signals.New[*Scenario]()
 var ScenarioUpdatedSignal = signals.New[*Scenario]()
-var ScenarioDeletedSignal = signals.New[int64]()
+var ScenarioDeletedSignal = signals.New[int]()
 
 func init() {
 	sse.RegisterSseSourceSignal("ScenarioCreated", ScenarioCreatedSignal)

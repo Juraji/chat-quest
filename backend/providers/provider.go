@@ -14,9 +14,9 @@ type Provider interface {
 type ChatGenerateRequest struct {
 	Messages      []*ChatGenerateRequestMessage
 	ModelId       string
-	MaxTokens     int64
-	Temperature   float64
-	TopP          float64
+	MaxTokens     int
+	Temperature   float32
+	TopP          float32
 	Stream        bool
 	StopSequences []string
 }
@@ -68,14 +68,25 @@ func (p *ConnectionProfile) GenerateEmbeddings(input string, llmModel LlmModel) 
 	return embedding, nil
 }
 
-func (p *ConnectionProfile) GenerateChatResponse(messages []*ChatGenerateRequestMessage, llmModel LlmModel) chan ChatGenerateResponse {
+func (p *ConnectionProfile) GenerateChatResponse(
+	messages []*ChatGenerateRequestMessage,
+	llmModel LlmModel,
+	overrideTemperature *float32,
+) chan ChatGenerateResponse {
 	provider := newProvider(p)
+
+	var temperature float32
+	if overrideTemperature != nil {
+		temperature = *overrideTemperature
+	} else {
+		temperature = llmModel.Temperature
+	}
 
 	request := &ChatGenerateRequest{
 		Messages:      messages,
 		ModelId:       llmModel.ModelId,
 		MaxTokens:     llmModel.MaxTokens,
-		Temperature:   llmModel.Temperature,
+		Temperature:   temperature,
 		TopP:          llmModel.TopP,
 		Stream:        llmModel.Stream,
 		StopSequences: llmModel.GetStopSequences(),

@@ -7,10 +7,10 @@ import (
 )
 
 type InstructionTemplate struct {
-	ID           int64    `json:"id"`
+	ID           int      `json:"id"`
 	Name         string   `json:"name"`
 	Type         string   `json:"type"`
-	Temperature  *float64 `json:"temperature"`
+	Temperature  *float32 `json:"temperature"`
 	SystemPrompt string   `json:"systemPrompt"`
 	Instruction  string   `json:"instruction"`
 }
@@ -31,14 +31,14 @@ func AllInstructionPrompts(cq *cq.ChatQuestContext) ([]*InstructionTemplate, err
 	return database.QueryForList(cq.DB(), query, nil, instructionPromptScanner)
 }
 
-func InstructionPromptById(cq *cq.ChatQuestContext, id int64) (*InstructionTemplate, error) {
+func InstructionPromptById(cq *cq.ChatQuestContext, id int) (*InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates WHERE id = ?"
 	args := []any{id}
 	return database.QueryForRecord(cq.DB(), query, args, instructionPromptScanner)
 }
 
 func CreateInstructionPrompt(cq *cq.ChatQuestContext, prompt *InstructionTemplate) error {
-	util.NegFloat64PtrToNil(&prompt.Temperature)
+	util.NegFloat32PtrToNil(&prompt.Temperature)
 
 	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, instruction)
             VALUES (?, ?, ?, ?, ?) RETURNING id`
@@ -53,8 +53,8 @@ func CreateInstructionPrompt(cq *cq.ChatQuestContext, prompt *InstructionTemplat
 	return nil
 }
 
-func UpdateInstructionPrompt(cq *cq.ChatQuestContext, id int64, prompt *InstructionTemplate) error {
-	util.NegFloat64PtrToNil(&prompt.Temperature)
+func UpdateInstructionPrompt(cq *cq.ChatQuestContext, id int, prompt *InstructionTemplate) error {
+	util.NegFloat32PtrToNil(&prompt.Temperature)
 
 	query := `UPDATE instruction_templates
             SET name = ?,
@@ -74,7 +74,7 @@ func UpdateInstructionPrompt(cq *cq.ChatQuestContext, id int64, prompt *Instruct
 	return nil
 }
 
-func DeleteInstructionPrompt(cq *cq.ChatQuestContext, id int64) error {
+func DeleteInstructionPrompt(cq *cq.ChatQuestContext, id int) error {
 	query := "DELETE FROM instruction_templates WHERE id = ?"
 	args := []any{id}
 

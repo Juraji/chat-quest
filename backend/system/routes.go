@@ -34,7 +34,7 @@ func Routes(cq *cq.ChatQuestContext, router *gin.RouterGroup) {
 
 	systemRouter.POST("/migrations/goto/:version", func(c *gin.Context) {
 		version, _ := util.GetIDParam(c, "version")
-		cq.Logger().Info("Migrating to version", zap.Int64("version", version))
+		cq.Logger().Info("Migrating to version", zap.Int("version", version))
 		err := database.GoToVersion(cq.DB(), uint(version))
 		util.RespondEmpty(cq, c, err)
 	})

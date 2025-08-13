@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	openai "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai"
 	"io"
 	"juraji.nl/chat-quest/util"
 	"math"
@@ -86,13 +86,14 @@ func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) chan
 		}
 	}
 
+	//goland:noinspection GoDeprecation for MaxTokens, we supply it for compat reasons
 	completionRequest := openai.ChatCompletionRequest{
 		Model:               request.ModelId,
 		Messages:            messages,
-		MaxTokens:           int(request.MaxTokens),
-		MaxCompletionTokens: int(request.MaxTokens),
-		Temperature:         float32(math.Max(math.SmallestNonzeroFloat32, request.Temperature)),
-		TopP:                float32(request.TopP),
+		MaxTokens:           request.MaxTokens,
+		MaxCompletionTokens: request.MaxTokens,
+		Temperature:         util.MaxFloat32(math.SmallestNonzeroFloat32, request.Temperature),
+		TopP:                request.TopP,
 		Stream:              request.Stream,
 		Stop:                request.StopSequences,
 		PresencePenalty:     0,
