@@ -1,12 +1,23 @@
-package logging
+package log
 
 import (
+	"fmt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"os"
 )
 
-func SetupLogger(enableFileLogging bool) (*zap.Logger, error) {
+var loggerInstance *zap.Logger
+
+func Get() *zap.Logger {
+	if loggerInstance == nil {
+		panic("logger not initialized")
+	}
+
+	return loggerInstance
+}
+
+func InitLogger(enableFileLogging bool) error {
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "time",
 		LevelKey:       "level",
@@ -25,9 +36,9 @@ func SetupLogger(enableFileLogging bool) (*zap.Logger, error) {
 
 	var core zapcore.Core
 	if enableFileLogging {
-		file, err := os.OpenFile("app.logger", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		file, err := os.OpenFile("chat-quest.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			return nil, err
+			return fmt.Errorf("error opening log file: %w", err)
 		}
 
 		fileWriter := zapcore.AddSync(file)
@@ -52,5 +63,6 @@ func SetupLogger(enableFileLogging bool) (*zap.Logger, error) {
 		zap.AddStacktrace(zap.ErrorLevel), // Add stack trace for error logs
 	)
 
-	return logger, nil
+	loggerInstance = logger
+	return nil
 }

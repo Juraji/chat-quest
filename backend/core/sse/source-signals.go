@@ -13,5 +13,5 @@ func RegisterSseSourceSignal[T any](name string, s signals.Signal[T]) {
 	}
 
 	sseSourceSignals = append(sseSourceSignals, source)
-	//log.Printf("Registered SSE signal for event '%s' with type [%v]", name, reflect.TypeOf(*new(T)))
+	//log.Get().Printf("Registered SSE signal for event '%s' with type [%v]", name, reflect.TypeOf(*new(T)))
 }

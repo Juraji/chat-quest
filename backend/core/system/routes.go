@@ -3,8 +3,8 @@ package system
 import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"juraji.nl/chat-quest/core"
 	"juraji.nl/chat-quest/core/database"
+	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/providers"
 	"juraji.nl/chat-quest/core/util"
 	"net/http"
@@ -12,13 +12,13 @@ import (
 	"time"
 )
 
-func Routes(cq *core.ChatQuestContext, router *gin.RouterGroup) {
+func Routes(router *gin.RouterGroup) {
 	systemRouter := router.Group("/system")
 
 	systemRouter.POST("/tokenizer/count", func(c *gin.Context) {
 		body, err := c.GetRawData()
 		if err != nil {
-			util.RespondBadRequest(cq, c, "Failed to read request body")
+			util.RespondBadRequest(c, "Failed to read request body")
 			return
 		}
 
@@ -34,14 +34,14 @@ func Routes(cq *core.ChatQuestContext, router *gin.RouterGroup) {
 
 	systemRouter.POST("/migrations/goto/:version", func(c *gin.Context) {
 		version, _ := util.GetIDParam(c, "version")
-		cq.Logger().Info("Migrating to version", zap.Int("version", version))
-		err := database.GoToVersion(cq.DB(), uint(version))
-		util.RespondEmpty(cq, c, err)
+		log.Get().Info("Migrating to version", zap.Int("version", version))
+		err := database.GoToVersion(uint(version))
+		util.RespondEmpty(c, err)
 	})
 
 	systemRouter.POST("/shutdown", func(c *gin.Context) {
 		c.String(http.StatusOK, "Shutting down...")
-		cq.Logger().Info("Shutting down by API...")
+		log.Get().Info("Shutting down by API...")
 
 		go func() {
 			// Give Gin some time to process and send the response

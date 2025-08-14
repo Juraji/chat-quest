@@ -1,7 +1,6 @@
 package memories
 
 import (
-	"juraji.nl/chat-quest/core"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/util"
 	"time"
@@ -55,7 +54,7 @@ func memoryPreferencesScanner(scanner database.RowScanner, dest *MemoryPreferenc
 	)
 }
 
-func GetMemoriesByWorldId(cq *core.ChatQuestContext, worldId int) ([]*Memory, error) {
+func GetMemoriesByWorldId(worldId int) ([]*Memory, error) {
 	query := `SELECT id,
                    world_id,
                    chat_session_id,
@@ -66,11 +65,10 @@ func GetMemoriesByWorldId(cq *core.ChatQuestContext, worldId int) ([]*Memory, er
             WHERE world_id = ?`
 	args := []interface{}{worldId}
 
-	return database.QueryForList(cq.DB(), query, args, memoryScanner)
+	return database.QueryForList(database.GetDB(), query, args, memoryScanner)
 }
 
 func GetMemoriesByWorldAndCharacterId(
-	cq *core.ChatQuestContext,
 	worldId int,
 	characterId int,
 ) ([]*Memory, error) {
@@ -84,21 +82,20 @@ func GetMemoriesByWorldAndCharacterId(
             WHERE world_id = ? AND character_id = ?`
 	args := []interface{}{worldId, characterId}
 
-	return database.QueryForList(cq.DB(), query, args, memoryScanner)
+	return database.QueryForList(database.GetDB(), query, args, memoryScanner)
 }
 
 func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
-	cq *core.ChatQuestContext,
 	worldId int,
 	characterId int,
 ) ([]*Memory, error) {
 	query := `SELECT * FROM memories m WHERE world_id = ? AND character_id = ?`
 	args := []interface{}{worldId, characterId}
 
-	return database.QueryForList(cq.DB(), query, args, memoryScanner)
+	return database.QueryForList(database.GetDB(), query, args, memoryScanner)
 }
 
-func CreateMemory(cq *core.ChatQuestContext, memory *Memory) error {
+func CreateMemory(memory *Memory) error {
 	query := `INSERT INTO memories (world_id, chat_session_id, character_id, created_at, content, embedding, embedding_model_id)
             VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`
 	args := []any{
@@ -111,42 +108,42 @@ func CreateMemory(cq *core.ChatQuestContext, memory *Memory) error {
 		memory.EmbeddingModelId,
 	}
 
-	err := database.InsertRecord(cq.DB(), query, args, &memory.ID)
+	err := database.InsertRecord(database.GetDB(), query, args, &memory.ID)
 	if err != nil {
 		return err
 	}
 
-	MemoryCreatedSignal.Emit(cq.Context(), memory)
+	util.Emit(MemoryCreatedSignal, memory)
 	return nil
 }
 
-func UpdateMemory(cq *core.ChatQuestContext, id int, memory *Memory) error {
+func UpdateMemory(id int, memory *Memory) error {
 	query := `UPDATE memories SET content = ?, embedding = ?, embedding_model_id = ? WHERE id = ?`
 	args := []any{memory.Content, memory.Embedding, memory.EmbeddingModelId, id}
 
-	err := database.UpdateRecord(cq.DB(), query, args)
+	err := database.UpdateRecord(database.GetDB(), query, args)
 	if err != nil {
 		return err
 	}
 
-	MemoryUpdatedSignal.Emit(cq.Context(), memory)
+	util.Emit(MemoryUpdatedSignal, memory)
 	return nil
 }
 
-func DeleteMemory(cq *core.ChatQuestContext, id int) error {
+func DeleteMemory(id int) error {
 	query := `DELETE FROM memories WHERE id = ?`
 	args := []any{id}
 
-	err := database.DeleteRecord(cq.DB(), query, args)
+	err := database.DeleteRecord(database.GetDB(), query, args)
 	if err != nil {
 		return err
 	}
 
-	defer MemoryDeletedSignal.Emit(cq.Context(), id)
+	util.Emit(MemoryDeletedSignal, id)
 	return nil
 }
 
-func GetMemoryPreferences(cq *core.ChatQuestContext) (*MemoryPreferences, error) {
+func GetMemoryPreferences() (*MemoryPreferences, error) {
 	query := `SELECT memories_model_id,
                    memories_instruction_id,
                    embedding_model_id,
@@ -155,10 +152,10 @@ func GetMemoryPreferences(cq *core.ChatQuestContext) (*MemoryPreferences, error)
                    memory_window_size
             FROM memory_preferences
             WHERE id = 0`
-	return database.QueryForRecord(cq.DB(), query, nil, memoryPreferencesScanner)
+	return database.QueryForRecord(database.GetDB(), query, nil, memoryPreferencesScanner)
 }
 
-func UpdateMemoryPreferences(cq *core.ChatQuestContext, prefs *MemoryPreferences) error {
+func UpdateMemoryPreferences(prefs *MemoryPreferences) error {
 	query := `UPDATE memory_preferences
             SET memories_model_id = ?,
                 memories_instruction_id = ?,
@@ -176,11 +173,11 @@ func UpdateMemoryPreferences(cq *core.ChatQuestContext, prefs *MemoryPreferences
 		prefs.MemoryWindowSize,
 	}
 
-	err := database.UpdateRecord(cq.DB(), query, args)
+	err := database.UpdateRecord(database.GetDB(), query, args)
 	if err != nil {
 		return err
 	}
 
-	MemoryPreferencesUpdatedSignal.Emit(cq.Context(), prefs)
+	util.Emit(MemoryPreferencesUpdatedSignal, prefs)
 	return nil
 }

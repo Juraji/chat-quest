@@ -1,7 +1,6 @@
 package instructions
 
 import (
-	"juraji.nl/chat-quest/core"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/util"
 )
@@ -26,34 +25,34 @@ func instructionPromptScanner(scanner database.RowScanner, dest *InstructionTemp
 	)
 }
 
-func AllInstructionPrompts(cq *core.ChatQuestContext) ([]*InstructionTemplate, error) {
+func AllInstructionPrompts() ([]*InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates"
-	return database.QueryForList(cq.DB(), query, nil, instructionPromptScanner)
+	return database.QueryForList(database.GetDB(), query, nil, instructionPromptScanner)
 }
 
-func InstructionPromptById(cq *core.ChatQuestContext, id int) (*InstructionTemplate, error) {
+func InstructionPromptById(id int) (*InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates WHERE id = ?"
 	args := []any{id}
-	return database.QueryForRecord(cq.DB(), query, args, instructionPromptScanner)
+	return database.QueryForRecord(database.GetDB(), query, args, instructionPromptScanner)
 }
 
-func CreateInstructionPrompt(cq *core.ChatQuestContext, prompt *InstructionTemplate) error {
+func CreateInstructionPrompt(prompt *InstructionTemplate) error {
 	util.NegFloat32PtrToNil(&prompt.Temperature)
 
 	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, instruction)
             VALUES (?, ?, ?, ?, ?) RETURNING id`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction}
 
-	err := database.InsertRecord(cq.DB(), query, args, &prompt.ID)
+	err := database.InsertRecord(database.GetDB(), query, args, &prompt.ID)
 	if err != nil {
 		return err
 	}
 
-	InstructionCreatedSignal.Emit(cq.Context(), prompt)
+	util.Emit(InstructionCreatedSignal, prompt)
 	return nil
 }
 
-func UpdateInstructionPrompt(cq *core.ChatQuestContext, id int, prompt *InstructionTemplate) error {
+func UpdateInstructionPrompt(id int, prompt *InstructionTemplate) error {
 	util.NegFloat32PtrToNil(&prompt.Temperature)
 
 	query := `UPDATE instruction_templates
@@ -65,24 +64,24 @@ func UpdateInstructionPrompt(cq *core.ChatQuestContext, id int, prompt *Instruct
             WHERE id = ?`
 	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction, id}
 
-	err := database.UpdateRecord(cq.DB(), query, args)
+	err := database.UpdateRecord(database.GetDB(), query, args)
 	if err != nil {
 		return err
 	}
 
-	InstructionUpdatedSignal.Emit(cq.Context(), prompt)
+	util.Emit(InstructionUpdatedSignal, prompt)
 	return nil
 }
 
-func DeleteInstructionPrompt(cq *core.ChatQuestContext, id int) error {
+func DeleteInstructionPrompt(id int) error {
 	query := "DELETE FROM instruction_templates WHERE id = ?"
 	args := []any{id}
 
-	err := database.DeleteRecord(cq.DB(), query, args)
+	err := database.DeleteRecord(database.GetDB(), query, args)
 	if err != nil {
 		return err
 	}
 
-	InstructionDeletedSignal.Emit(cq.Context(), id)
+	util.Emit(InstructionDeletedSignal, id)
 	return nil
 }

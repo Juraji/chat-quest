@@ -13,14 +13,14 @@ import (
 //go:embed sql/*.sql
 var migrationsFs embed.FS
 
-func RunMigrations(db *sql.DB) error {
+func runLatestMigrations(db *sql.DB) error {
 	return runUsingMigrations(db, func(m *migrate.Migrate) error {
 		return m.Up()
 	})
 }
 
-func GoToVersion(db *sql.DB, version uint) error {
-	return runUsingMigrations(db, func(m *migrate.Migrate) error {
+func GoToVersion(version uint) error {
+	return runUsingMigrations(GetDB(), func(m *migrate.Migrate) error {
 		return m.Migrate(version)
 	})
 }

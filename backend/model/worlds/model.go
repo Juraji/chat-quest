@@ -1,7 +1,6 @@
 package worlds
 
 import (
-	"juraji.nl/chat-quest/core"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/util"
 )
@@ -33,35 +32,35 @@ func chatPreferencesScanner(scanner database.RowScanner, dest *ChatPreferences) 
 	)
 }
 
-func GetAllWorlds(cq *core.ChatQuestContext) ([]*World, error) {
+func GetAllWorlds() ([]*World, error) {
 	query := "SELECT * FROM worlds"
-	return database.QueryForList(cq.DB(), query, nil, worldScanner)
+	return database.QueryForList(database.GetDB(), query, nil, worldScanner)
 }
 
-func WorldById(cq *core.ChatQuestContext, id int) (*World, error) {
+func WorldById(id int) (*World, error) {
 	query := "SELECT * FROM worlds WHERE id=?"
 	args := []any{id}
 
-	return database.QueryForRecord(cq.DB(), query, args, worldScanner)
+	return database.QueryForRecord(database.GetDB(), query, args, worldScanner)
 }
 
-func CreateWorld(cq *core.ChatQuestContext, newWorld *World) error {
+func CreateWorld(newWorld *World) error {
 	util.EmptyStrPtrToNil(&newWorld.Description)
 	util.EmptyStrPtrToNil(&newWorld.AvatarUrl)
 
 	query := "INSERT INTO worlds (name, description, avatar_url) VALUES (?, ?, ?) RETURNING id"
 	args := []any{newWorld.Name, newWorld.Description, newWorld.AvatarUrl}
 
-	err := database.InsertRecord(cq.DB(), query, args, &newWorld.ID)
+	err := database.InsertRecord(database.GetDB(), query, args, &newWorld.ID)
 	if err != nil {
 		return err
 	}
 
-	WorldCreatedSignal.Emit(cq.Context(), newWorld)
+	util.Emit(WorldCreatedSignal, newWorld)
 	return nil
 }
 
-func UpdateWorld(cq *core.ChatQuestContext, id int, world *World) error {
+func UpdateWorld(id int, world *World) error {
 	util.EmptyStrPtrToNil(&world.Description)
 	util.EmptyStrPtrToNil(&world.AvatarUrl)
 
@@ -77,34 +76,34 @@ func UpdateWorld(cq *core.ChatQuestContext, id int, world *World) error {
 		id,
 	}
 
-	err := database.UpdateRecord(cq.DB(), query, args)
+	err := database.UpdateRecord(database.GetDB(), query, args)
 	if err != nil {
 		return err
 	}
 
-	WorldUpdatedSignal.Emit(cq.Context(), world)
+	util.Emit(WorldUpdatedSignal, world)
 	return nil
 }
 
-func DeleteWorld(cq *core.ChatQuestContext, id int) error {
+func DeleteWorld(id int) error {
 	query := "DELETE FROM worlds WHERE id=?"
 	args := []any{id}
 
-	err := database.DeleteRecord(cq.DB(), query, args)
+	err := database.DeleteRecord(database.GetDB(), query, args)
 	if err != nil {
 		return err
 	}
 
-	WorldDeletedSignal.Emit(cq.Context(), id)
+	util.Emit(WorldDeletedSignal, id)
 	return nil
 }
 
-func GetChatPreferences(cq *core.ChatQuestContext) (*ChatPreferences, error) {
+func GetChatPreferences() (*ChatPreferences, error) {
 	query := "SELECT chat_model_id, chat_instruction_id FROM chat_preferences WHERE id = 0"
-	return database.QueryForRecord(cq.DB(), query, nil, chatPreferencesScanner)
+	return database.QueryForRecord(database.GetDB(), query, nil, chatPreferencesScanner)
 }
 
-func UpdateChatPreferences(cq *core.ChatQuestContext, prefs *ChatPreferences) error {
+func UpdateChatPreferences(prefs *ChatPreferences) error {
 	query := `UPDATE chat_preferences
             SET chat_model_id = ?,
                 chat_instruction_id = ?
@@ -114,11 +113,11 @@ func UpdateChatPreferences(cq *core.ChatQuestContext, prefs *ChatPreferences) er
 		prefs.ChatInstructionID,
 	}
 
-	err := database.UpdateRecord(cq.DB(), query, args)
+	err := database.UpdateRecord(database.GetDB(), query, args)
 	if err != nil {
 		return err
 	}
 
-	ChatPreferencesUpdatedSignal.Emit(cq.Context(), prefs)
+	util.Emit(ChatPreferencesUpdatedSignal, prefs)
 	return nil
 }

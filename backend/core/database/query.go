@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"go.uber.org/zap"
-	"juraji.nl/chat-quest/core"
+	"juraji.nl/chat-quest/core/log"
 )
 
 // RowScanner interface that works with both sql.Row and sql.Rows
@@ -138,10 +138,10 @@ func DeleteRecord(
 	return err
 }
 
-func RollBackOnErr(cq *core.ChatQuestContext, tx *sql.Tx, err error) {
+func RollBackOnErr(tx *sql.Tx, err error) {
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
-			cq.Logger().Error("Rollback failed", zap.Error(rbErr))
+			log.Get().Error("Rollback failed", zap.Error(rbErr))
 		}
 	}
 }

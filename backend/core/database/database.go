@@ -6,7 +6,17 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func InitDB() (*sql.DB, error) {
+var dbInstance *sql.DB
+
+func GetDB() *sql.DB {
+	if dbInstance == nil {
+		panic("database not initialized")
+	}
+
+	return dbInstance
+}
+
+func InitDB() (func(), error) {
 	db, err := sql.Open("sqlite3", "./chat-quest.db")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
@@ -17,9 +27,16 @@ func InitDB() (*sql.DB, error) {
 		return nil, fmt.Errorf("failed to enable foreign keys: %w", err)
 	}
 
-	if err = RunMigrations(db); err != nil {
+	if err = runLatestMigrations(db); err != nil {
 		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
-	return db, nil
+	dbInstance = db
+	closeDB := func() {
+		err := db.Close()
+		if err != nil {
+			panic(fmt.Errorf("failed to close database: %w", err))
+		}
+	}
+	return closeDB, nil
 }

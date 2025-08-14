@@ -3,13 +3,13 @@ package system
 import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"juraji.nl/chat-quest/core"
+	"juraji.nl/chat-quest/core/log"
 	"net/http"
 	"os"
 	"path"
 )
 
-func ChatQuestUIHandler(cq *core.ChatQuestContext, chatQuestUIDir string) func(c *gin.Context) {
+func ChatQuestUIHandler(chatQuestUIDir string) func(c *gin.Context) {
 	fs := http.FileServer(http.Dir(chatQuestUIDir))
 
 	return func(c *gin.Context) {
@@ -22,7 +22,7 @@ func ChatQuestUIHandler(cq *core.ChatQuestContext, chatQuestUIDir string) func(c
 			c.File(path.Join(chatQuestUIDir, "index.html"))
 		} else {
 			c.AbortWithStatus(http.StatusInternalServerError)
-			cq.Logger().Error("Failed serving UI file", zap.String("path", filePath))
+			log.Get().Error("Failed serving UI file", zap.String("path", filePath))
 		}
 	}
 }

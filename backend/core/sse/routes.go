@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"juraji.nl/chat-quest/core"
+	"juraji.nl/chat-quest/core/log"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
 )
 
-func Routes(cq *core.ChatQuestContext, router *gin.RouterGroup) {
+func Routes(router *gin.RouterGroup) {
 	sseRouter := router.Group("/sse")
 
 	sseRouter.GET("", func(c *gin.Context) {
@@ -46,7 +46,7 @@ func Routes(cq *core.ChatQuestContext, router *gin.RouterGroup) {
 
 		// Write initial message to confirm connection with connection ID
 		if err := writeAndFlushEvent(c, "connection", fmt.Sprintf("SSE connected! Connection ID: %s", connectionId)); err != nil {
-			cq.Logger().Error("failed to send 'SSE connected' event to client",
+			log.Get().Error("failed to send 'SSE connected' event to client",
 				zap.Error(err),
 				zap.String("clientIp", clientIp),
 				zap.String("connectionId", connectionId))
@@ -64,7 +64,7 @@ func Routes(cq *core.ChatQuestContext, router *gin.RouterGroup) {
 			case msg := <-clientChan:
 				j, err := json.Marshal(msg)
 				if err != nil {
-					cq.Logger().Error("failed to marshal event",
+					log.Get().Error("failed to marshal event",
 						zap.Error(err),
 						zap.String("clientIp", clientIp),
 						zap.String("connectionId", connectionId))
@@ -72,7 +72,7 @@ func Routes(cq *core.ChatQuestContext, router *gin.RouterGroup) {
 				}
 
 				if err = writeAndFlushEvent(c, "message", string(j)); err != nil {
-					cq.Logger().Error("failed to write message to client",
+					log.Get().Error("failed to write message to client",
 						zap.Error(err),
 						zap.String("clientIp", clientIp),
 						zap.String("connectionId", connectionId))
@@ -82,7 +82,7 @@ func Routes(cq *core.ChatQuestContext, router *gin.RouterGroup) {
 				// Ping for keep-alive on client side with connection ID
 				timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 				if err := writeAndFlushEvent(c, "ping", timestamp); err != nil {
-					cq.Logger().Error("failed to write ping to client",
+					log.Get().Error("failed to write ping to client",
 						zap.Error(err),
 						zap.String("clientIp", clientIp),
 						zap.String("connectionId", connectionId))

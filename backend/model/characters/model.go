@@ -3,7 +3,6 @@ package characters
 import (
 	"database/sql"
 	"fmt"
-	"juraji.nl/chat-quest/core"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/util"
 	"strings"
@@ -69,21 +68,21 @@ func tagScanner(scanner database.RowScanner, dest *Tag) error {
 	)
 }
 
-func AllCharacters(cq *core.ChatQuestContext) ([]*Character, error) {
+func AllCharacters() ([]*Character, error) {
 	query := "SELECT * FROM characters"
-	return database.QueryForList(cq.DB(), query, nil, CharacterScanner)
+	return database.QueryForList(database.GetDB(), query, nil, CharacterScanner)
 }
 
-func AllCharactersWithTags(cq *core.ChatQuestContext) ([]*CharacterWithTags, error) {
+func AllCharactersWithTags() ([]*CharacterWithTags, error) {
 	query := "SELECT * FROM characters"
-	characters, err := database.QueryForList(cq.DB(), query, nil, CharacterScanner)
+	characters, err := database.QueryForList(database.GetDB(), query, nil, CharacterScanner)
 	if err != nil {
 		return nil, err
 	}
 
 	var charactersWithTags []*CharacterWithTags
 	for _, character := range characters {
-		tags, err := TagsByCharacterId(cq, character.ID)
+		tags, err := TagsByCharacterId(character.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -93,19 +92,19 @@ func AllCharactersWithTags(cq *core.ChatQuestContext) ([]*CharacterWithTags, err
 	return charactersWithTags, nil
 }
 
-func CharacterById(cq *core.ChatQuestContext, id int) (*Character, error) {
+func CharacterById(id int) (*Character, error) {
 	query := "SELECT * FROM characters WHERE id = ?"
 	args := []any{id}
 
-	return database.QueryForRecord(cq.DB(), query, args, CharacterScanner)
+	return database.QueryForRecord(database.GetDB(), query, args, CharacterScanner)
 }
 
-func CreateCharacter(cq *core.ChatQuestContext, newCharacter *Character) error {
-	tx, err := cq.DB().Begin()
+func CreateCharacter(newCharacter *Character) error {
+	tx, err := database.GetDB().Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer database.RollBackOnErr(cq, tx, err)
+	defer database.RollBackOnErr(tx, err)
 
 	util.EmptyStrPtrToNil(&newCharacter.AvatarUrl)
 
@@ -127,47 +126,47 @@ func CreateCharacter(cq *core.ChatQuestContext, newCharacter *Character) error {
 		return err
 	}
 
-	CharacterCreatedSignal.Emit(cq.Context(), newCharacter)
+	util.Emit(CharacterCreatedSignal, newCharacter)
 	return nil
 }
 
-func UpdateCharacter(cq *core.ChatQuestContext, id int, character *Character) error {
+func UpdateCharacter(id int, character *Character) error {
 	util.EmptyStrPtrToNil(&character.AvatarUrl)
 
 	query := "UPDATE characters SET name = ?, favorite = ?, avatar_url = ? WHERE id = ?"
 	args := []any{character.Name, character.Favorite, character.AvatarUrl, id}
 
-	err := database.UpdateRecord(cq.DB(), query, args)
+	err := database.UpdateRecord(database.GetDB(), query, args)
 	if err != nil {
 		return err
 	}
 
-	CharacterUpdatedSignal.Emit(cq.Context(), character)
+	util.Emit(CharacterUpdatedSignal, character)
 	return nil
 }
 
-func DeleteCharacterById(cq *core.ChatQuestContext, id int) error {
+func DeleteCharacterById(id int) error {
 	query := "DELETE FROM characters WHERE id = ?"
 	args := []any{id}
 
-	err := database.DeleteRecord(cq.DB(), query, args)
+	err := database.DeleteRecord(database.GetDB(), query, args)
 	if err != nil {
 		return err
 	}
 
-	CharacterDeletedSignal.Emit(cq.Context(), id)
+	util.Emit(CharacterDeletedSignal, id)
 	return nil
 }
 
-func CharacterDetailsByCharacterId(cq *core.ChatQuestContext, characterId int) (*CharacterDetails, error) {
+func CharacterDetailsByCharacterId(characterId int) (*CharacterDetails, error) {
 	query := "SELECT * FROM character_details WHERE character_id = ?"
 	args := []any{characterId}
 
-	return database.QueryForRecord(cq.DB(), query, args, characterDetailsScanner)
+	return database.QueryForRecord(database.GetDB(), query, args, characterDetailsScanner)
 }
 
-func UpdateCharacterDetails(cq *core.ChatQuestContext, characterId int, characterDetail *CharacterDetails) error {
-	return updateCharacterDetails(cq.DB(), characterId, characterDetail)
+func UpdateCharacterDetails(characterId int, characterDetail *CharacterDetails) error {
+	return updateCharacterDetails(database.GetDB(), characterId, characterDetail)
 }
 
 func updateCharacterDetails(db database.QueryExecutor, characterId int, characterDetail *CharacterDetails) error {
@@ -192,7 +191,7 @@ func updateCharacterDetails(db database.QueryExecutor, characterId int, characte
 	return database.UpdateRecord(db, query, args)
 }
 
-func TagsByCharacterId(cq *core.ChatQuestContext, characterId int) ([]*Tag, error) {
+func TagsByCharacterId(characterId int) ([]*Tag, error) {
 	query := `
     SELECT t.*
     FROM character_tags ct
@@ -201,29 +200,29 @@ func TagsByCharacterId(cq *core.ChatQuestContext, characterId int) ([]*Tag, erro
   `
 	args := []any{characterId}
 
-	return database.QueryForList(cq.DB(), query, args, tagScanner)
+	return database.QueryForList(database.GetDB(), query, args, tagScanner)
 }
 
-func AddCharacterTag(cq *core.ChatQuestContext, characterId int, tagId int) error {
+func AddCharacterTag(characterId int, tagId int) error {
 	query := "INSERT INTO character_tags (character_id, tag_id) VALUES (?, ?)"
 	args := []any{characterId, tagId}
 
-	return database.UpdateRecord(cq.DB(), query, args)
+	return database.UpdateRecord(database.GetDB(), query, args)
 }
 
-func RemoveCharacterTag(cq *core.ChatQuestContext, characterId int, tagId int) error {
+func RemoveCharacterTag(characterId int, tagId int) error {
 	query := "DELETE FROM character_tags WHERE character_id = ? AND tag_id = ?"
 	args := []any{characterId, tagId}
 
-	return database.DeleteRecord(cq.DB(), query, args)
+	return database.DeleteRecord(database.GetDB(), query, args)
 }
 
-func SetCharacterTags(cq *core.ChatQuestContext, characterId int, tagIds []int) error {
-	tx, err := cq.DB().Begin()
+func SetCharacterTags(characterId int, tagIds []int) error {
+	tx, err := database.GetDB().Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer database.RollBackOnErr(cq, tx, err)
+	defer database.RollBackOnErr(tx, err)
 
 	deleteQuery := "DELETE FROM character_tags WHERE character_id = ?"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
@@ -244,22 +243,22 @@ func SetCharacterTags(cq *core.ChatQuestContext, characterId int, tagIds []int) 
 	return tx.Commit()
 }
 
-func DialogueExamplesByCharacterId(cq *core.ChatQuestContext, characterId int) ([]*string, error) {
+func DialogueExamplesByCharacterId(characterId int) ([]*string, error) {
 	query := "SELECT text FROM character_dialogue_examples WHERE character_id = ?"
 	args := []any{characterId}
 	scanFunc := func(rows database.RowScanner, dest *string) error {
 		return rows.Scan(dest)
 	}
 
-	return database.QueryForList(cq.DB(), query, args, scanFunc)
+	return database.QueryForList(database.GetDB(), query, args, scanFunc)
 }
 
-func SetDialogueExamplesByCharacterId(cq *core.ChatQuestContext, characterId int, examples []string) error {
-	tx, err := cq.DB().Begin()
+func SetDialogueExamplesByCharacterId(characterId int, examples []string) error {
+	tx, err := database.GetDB().Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer database.RollBackOnErr(cq, tx, err)
+	defer database.RollBackOnErr(tx, err)
 
 	deleteQuery := "DELETE FROM character_dialogue_examples WHERE character_id = ?"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
@@ -280,22 +279,22 @@ func SetDialogueExamplesByCharacterId(cq *core.ChatQuestContext, characterId int
 	return tx.Commit()
 }
 
-func CharacterGreetingsByCharacterId(cq *core.ChatQuestContext, characterId int) ([]*string, error) {
+func CharacterGreetingsByCharacterId(characterId int) ([]*string, error) {
 	query := "SELECT text FROM character_greetings WHERE character_id = ?"
 	args := []any{characterId}
 	scanFunc := func(rows database.RowScanner, dest *string) error {
 		return rows.Scan(dest)
 	}
 
-	return database.QueryForList(cq.DB(), query, args, scanFunc)
+	return database.QueryForList(database.GetDB(), query, args, scanFunc)
 }
 
-func SetGreetingsByCharacterId(cq *core.ChatQuestContext, characterId int, greetings []string) error {
-	tx, err := cq.DB().Begin()
+func SetGreetingsByCharacterId(characterId int, greetings []string) error {
+	tx, err := database.GetDB().Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer database.RollBackOnErr(cq, tx, err)
+	defer database.RollBackOnErr(tx, err)
 
 	deleteQuery := "DELETE FROM character_greetings WHERE character_id = ?"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
@@ -316,18 +315,18 @@ func SetGreetingsByCharacterId(cq *core.ChatQuestContext, characterId int, greet
 	return tx.Commit()
 }
 
-func CharacterGroupGreetingsByCharacterId(cq *core.ChatQuestContext, characterId int) ([]*string, error) {
+func CharacterGroupGreetingsByCharacterId(characterId int) ([]*string, error) {
 	query := "SELECT text FROM character_group_greetings WHERE character_id = ?"
 	args := []any{characterId}
 	scanFunc := func(rows database.RowScanner, dest *string) error {
 		return rows.Scan(dest)
 	}
 
-	return database.QueryForList(cq.DB(), query, args, scanFunc)
+	return database.QueryForList(database.GetDB(), query, args, scanFunc)
 }
 
-func SetGroupGreetingsByCharacterId(cq *core.ChatQuestContext, characterId int, greetings []string) error {
-	tx, err := cq.DB().Begin()
+func SetGroupGreetingsByCharacterId(characterId int, greetings []string) error {
+	tx, err := database.GetDB().Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -356,38 +355,38 @@ func SetGroupGreetingsByCharacterId(cq *core.ChatQuestContext, characterId int, 
 	return tx.Commit()
 }
 
-func AllTags(cq *core.ChatQuestContext) ([]*Tag, error) {
+func AllTags() ([]*Tag, error) {
 	query := "SELECT * FROM tags"
-	return database.QueryForList(cq.DB(), query, nil, tagScanner)
+	return database.QueryForList(database.GetDB(), query, nil, tagScanner)
 }
 
-func TagById(cq *core.ChatQuestContext, id int) (*Tag, error) {
+func TagById(id int) (*Tag, error) {
 	query := "SELECT * FROM tags WHERE id = ?"
 	args := []any{id}
-	return database.QueryForRecord(cq.DB(), query, args, tagScanner)
+	return database.QueryForRecord(database.GetDB(), query, args, tagScanner)
 }
 
-func CreateTag(cq *core.ChatQuestContext, newTag *Tag) error {
+func CreateTag(newTag *Tag) error {
 	newTag.Lowercase = strings.ToLower(newTag.Label)
 
 	query := "INSERT INTO tags(label, lowercase) VALUES (?, ?) RETURNING id"
 	args := []any{newTag.Label, newTag.Lowercase}
 
-	return database.InsertRecord(cq.DB(), query, args, &newTag.ID)
+	return database.InsertRecord(database.GetDB(), query, args, &newTag.ID)
 }
 
-func UpdateTag(cq *core.ChatQuestContext, id int, tag *Tag) error {
+func UpdateTag(id int, tag *Tag) error {
 	tag.Lowercase = strings.ToLower(tag.Label)
 
 	query := "UPDATE tags SET label = ?, lowercase = ? WHERE id = ?"
 	args := []any{id, tag.Label, tag.Lowercase}
 
-	return database.UpdateRecord(cq.DB(), query, args)
+	return database.UpdateRecord(database.GetDB(), query, args)
 }
 
-func DeleteTagById(cq *core.ChatQuestContext, id int) error {
+func DeleteTagById(id int) error {
 	query := "DELETE FROM tags WHERE id = ?"
 	args := []any{id}
 
-	return database.DeleteRecord(cq.DB(), query, args)
+	return database.DeleteRecord(database.GetDB(), query, args)
 }
