@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	"math/rand"
@@ -17,48 +18,37 @@ func Routes(router *gin.RouterGroup) {
 	sseRouter := router.Group("/sse")
 
 	sseRouter.GET("", func(c *gin.Context) {
-		clientIp := c.ClientIP()
-		// Generate a unique connection ID for this SSE connection
-		connectionId := generateConnectionId()
+		connectionId := fmt.Sprintf("SSE::%s::%s", c.ClientIP(), uuid.New())
 
 		c.Header("Content-Type", "text/event-stream")
 		c.Header("Cache-Control", "no-cache")
 		c.Header("Connection", "keep-alive")
 
+		log.Get().Info("New SSE subscriber",
+			zap.String("connectionId", connectionId))
+
 		ctx := c.Request.Context()
-		clientChan := make(chan messageBody, 10)
+		clientChan := make(chan message)
 		pingTicker := time.NewTicker(30 * time.Second)
 		defer pingTicker.Stop()
 
-		listenerKeys := make(map[string]string)
-
-		for _, source := range sseSourceSignals {
-			sourceName := source.sourceName
-			signal := source.signal
-
-			key := fmt.Sprintf("SSE_%s_%s_%s", clientIp, connectionId, sourceName)
-
-			listenerKeys[sourceName] = key
-			signal.AddListener(func(ctx context.Context, payload any) {
-				clientChan <- messageBody{sourceName, payload}
-			}, key)
-		}
+		sseCombinedSignal.AddListener(func(_ context.Context, m message) {
+			clientChan <- m
+		}, connectionId)
 
 		// Write initial message to confirm connection with connection ID
 		if err := writeAndFlushEvent(c, "connection", fmt.Sprintf("SSE connected! Connection ID: %s", connectionId)); err != nil {
 			log.Get().Error("failed to send 'SSE connected' event to client",
 				zap.Error(err),
-				zap.String("clientIp", clientIp),
 				zap.String("connectionId", connectionId))
 		}
 
 		for {
 			select {
 			case <-ctx.Done():
-				for _, source := range sseSourceSignals {
-					source.signal.RemoveListener(listenerKeys[source.sourceName])
-				}
+				sseCombinedSignal.RemoveListener(connectionId)
 				close(clientChan)
+				log.Get().Info("SSE subscriber left, connection closed", zap.String("connectionId", connectionId))
 				return
 
 			case msg := <-clientChan:
@@ -66,16 +56,16 @@ func Routes(router *gin.RouterGroup) {
 				if err != nil {
 					log.Get().Error("failed to marshal event",
 						zap.Error(err),
-						zap.String("clientIp", clientIp),
-						zap.String("connectionId", connectionId))
+						zap.String("connectionId", connectionId),
+						zap.Any("msg", msg))
 					continue
 				}
 
 				if err = writeAndFlushEvent(c, "message", string(j)); err != nil {
 					log.Get().Error("failed to write message to client",
 						zap.Error(err),
-						zap.String("clientIp", clientIp),
-						zap.String("connectionId", connectionId))
+						zap.String("connectionId", connectionId),
+						zap.Any("msg", msg))
 				}
 
 			case <-pingTicker.C:
@@ -84,7 +74,6 @@ func Routes(router *gin.RouterGroup) {
 				if err := writeAndFlushEvent(c, "ping", timestamp); err != nil {
 					log.Get().Error("failed to write ping to client",
 						zap.Error(err),
-						zap.String("clientIp", clientIp),
 						zap.String("connectionId", connectionId))
 				}
 			}

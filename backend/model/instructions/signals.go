@@ -10,7 +10,7 @@ var InstructionUpdatedSignal = signals.New[*InstructionTemplate]()
 var InstructionDeletedSignal = signals.New[int]()
 
 func init() {
-	sse.RegisterSseSourceSignal("InstructionCreated", InstructionCreatedSignal)
-	sse.RegisterSseSourceSignal("InstructionUpdated", InstructionUpdatedSignal)
-	sse.RegisterSseSourceSignal("InstructionDeleted", InstructionDeletedSignal)
+	sse.RegisterOnSSE("InstructionCreated", InstructionCreatedSignal)
+	sse.RegisterOnSSE("InstructionUpdated", InstructionUpdatedSignal)
+	sse.RegisterOnSSE("InstructionDeleted", InstructionDeletedSignal)
 }

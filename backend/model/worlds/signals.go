@@ -12,7 +12,7 @@ var WorldDeletedSignal = signals.New[int]()
 var ChatPreferencesUpdatedSignal = signals.New[*ChatPreferences]()
 
 func init() {
-	sse.RegisterSseSourceSignal("WorldCreated", WorldCreatedSignal)
-	sse.RegisterSseSourceSignal("WorldUpdated", WorldUpdatedSignal)
-	sse.RegisterSseSourceSignal("WorldDeleted", WorldDeletedSignal)
+	sse.RegisterOnSSE("WorldCreated", WorldCreatedSignal)
+	sse.RegisterOnSSE("WorldUpdated", WorldUpdatedSignal)
+	sse.RegisterOnSSE("WorldDeleted", WorldDeletedSignal)
 }

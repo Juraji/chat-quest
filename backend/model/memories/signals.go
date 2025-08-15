@@ -12,8 +12,8 @@ var MemoryDeletedSignal = signals.New[int]()
 var MemoryPreferencesUpdatedSignal = signals.New[*MemoryPreferences]()
 
 func init() {
-	sse.RegisterSseSourceSignal("MemoryCreated", MemoryCreatedSignal)
-	sse.RegisterSseSourceSignal("MemoryUpdated", MemoryUpdatedSignal)
-	sse.RegisterSseSourceSignal("MemoryDeleted", MemoryDeletedSignal)
-	sse.RegisterSseSourceSignal("MemoryPreferencesUpdated", MemoryPreferencesUpdatedSignal)
+	sse.RegisterOnSSE("MemoryCreated", MemoryCreatedSignal)
+	sse.RegisterOnSSE("MemoryUpdated", MemoryUpdatedSignal)
+	sse.RegisterOnSSE("MemoryDeleted", MemoryDeletedSignal)
+	sse.RegisterOnSSE("MemoryPreferencesUpdated", MemoryPreferencesUpdatedSignal)
 }

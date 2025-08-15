@@ -10,7 +10,7 @@ var ScenarioUpdatedSignal = signals.New[*Scenario]()
 var ScenarioDeletedSignal = signals.New[int]()
 
 func init() {
-	sse.RegisterSseSourceSignal("ScenarioCreated", ScenarioCreatedSignal)
-	sse.RegisterSseSourceSignal("ScenarioUpdated", ScenarioUpdatedSignal)
-	sse.RegisterSseSourceSignal("ScenarioDeleted", ScenarioDeletedSignal)
+	sse.RegisterOnSSE("ScenarioCreated", ScenarioCreatedSignal)
+	sse.RegisterOnSSE("ScenarioUpdated", ScenarioUpdatedSignal)
+	sse.RegisterOnSSE("ScenarioDeleted", ScenarioDeletedSignal)
 }

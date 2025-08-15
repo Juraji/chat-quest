@@ -14,10 +14,10 @@ var LlmModelUpdatedSignal = signals.New[*LlmModel]()
 var LlmModelDeletedSignal = signals.New[int]()
 
 func init() {
-	sse.RegisterSseSourceSignal("ConnectionProfileCreated", ConnectionProfileCreatedSignal)
-	sse.RegisterSseSourceSignal("ConnectionProfileUpdated", ConnectionProfileUpdatedSignal)
-	sse.RegisterSseSourceSignal("ConnectionProfileDeleted", ConnectionProfileDeletedSignal)
-	sse.RegisterSseSourceSignal("LlmModelCreated", LlmModelCreatedSignal)
-	sse.RegisterSseSourceSignal("LlmModelUpdated", LlmModelUpdatedSignal)
-	sse.RegisterSseSourceSignal("LlmModelDeleted", LlmModelDeletedSignal)
+	sse.RegisterOnSSE("ConnectionProfileCreated", ConnectionProfileCreatedSignal)
+	sse.RegisterOnSSE("ConnectionProfileUpdated", ConnectionProfileUpdatedSignal)
+	sse.RegisterOnSSE("ConnectionProfileDeleted", ConnectionProfileDeletedSignal)
+	sse.RegisterOnSSE("LlmModelCreated", LlmModelCreatedSignal)
+	sse.RegisterOnSSE("LlmModelUpdated", LlmModelUpdatedSignal)
+	sse.RegisterOnSSE("LlmModelDeleted", LlmModelDeletedSignal)
 }
