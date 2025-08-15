@@ -94,7 +94,7 @@ func llModelViewScanner(scanner database.RowScanner, dest *LlmModelView) error {
 	)
 }
 
-func AllConnectionProfiles() ([]*ConnectionProfile, error) {
+func AllConnectionProfiles() ([]ConnectionProfile, error) {
 	query := "SELECT * FROM connection_profiles"
 	return database.QueryForList(database.GetDB(), query, nil, connectionProfileScanner)
 }
@@ -167,7 +167,7 @@ func DeleteConnectionProfileById(id int) error {
 	return nil
 }
 
-func LlmModelsByConnectionProfileId(profileId int) ([]*LlmModel, error) {
+func LlmModelsByConnectionProfileId(profileId int) ([]LlmModel, error) {
 	query := "SELECT * FROM llm_models WHERE connection_profile_id = ?"
 	args := []any{profileId}
 	return database.QueryForList(database.GetDB(), query, args, llmModelScanner)
@@ -266,7 +266,7 @@ func MergeLlmModels(profileId int, newModels []*LlmModel) error {
 		return err
 	}
 
-	existingModelIdSet := util.NewSetFrom(existingModels, func(t *LlmModel) string {
+	existingModelIdSet := util.NewSetFrom(existingModels, func(t LlmModel) string {
 		return t.ModelId
 	})
 
@@ -302,7 +302,7 @@ func MergeLlmModels(profileId int, newModels []*LlmModel) error {
 	return nil
 }
 
-func GetAllLlmModelViews() ([]*LlmModelView, error) {
+func GetAllLlmModelViews() ([]LlmModelView, error) {
 	query := `SELECT lm.id       AS model_id,
                    lm.model_id AS model_model_id,
                    p.id       AS profile_id,

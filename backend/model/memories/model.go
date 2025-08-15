@@ -54,7 +54,7 @@ func memoryPreferencesScanner(scanner database.RowScanner, dest *MemoryPreferenc
 	)
 }
 
-func GetMemoriesByWorldId(worldId int) ([]*Memory, error) {
+func GetMemoriesByWorldId(worldId int) ([]Memory, error) {
 	query := `SELECT id,
                    world_id,
                    chat_session_id,
@@ -71,7 +71,7 @@ func GetMemoriesByWorldId(worldId int) ([]*Memory, error) {
 func GetMemoriesByWorldAndCharacterId(
 	worldId int,
 	characterId int,
-) ([]*Memory, error) {
+) ([]Memory, error) {
 	query := `SELECT id,
                    world_id,
                    chat_session_id,
@@ -88,7 +88,7 @@ func GetMemoriesByWorldAndCharacterId(
 func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 	worldId int,
 	characterId int,
-) ([]*Memory, error) {
+) ([]Memory, error) {
 	query := `SELECT * FROM memories m WHERE world_id = ? AND character_id = ?`
 	args := []interface{}{worldId, characterId}
 

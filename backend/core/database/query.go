@@ -24,8 +24,8 @@ func QueryForList[T any](
 	query string,
 	args []any,
 	scanFunc func(scanner RowScanner, dest *T) error,
-) ([]*T, error) {
-	records := make([]*T, 0)
+) ([]T, error) {
+	records := make([]T, 0)
 
 	rows, err := q.Query(query, args...)
 	if err != nil {
@@ -43,7 +43,7 @@ func QueryForList[T any](
 			return nil, err
 		}
 
-		records = append(records, &dest)
+		records = append(records, dest)
 	}
 
 	if err = rows.Err(); err != nil {
@@ -144,4 +144,16 @@ func RollBackOnErr(tx *sql.Tx, err error) {
 			log.Get().Error("Rollback failed", zap.Error(rbErr))
 		}
 	}
+}
+
+func IntScanner(scanner RowScanner, dest *int) error {
+	return scanner.Scan(dest)
+}
+
+func StringScanner(scanner RowScanner, dest *string) error {
+	return scanner.Scan(dest)
+}
+
+func BoolScanner(scanner RowScanner, dest *bool) error {
+	return scanner.Scan(dest)
 }

@@ -57,7 +57,19 @@ func chatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
 	)
 }
 
-func GetAllChatSessionsByWorldId(worldId int) ([]*ChatSession, error) {
+func NewChatMessage(sessionId int, isUser bool, characterId *int, content string) *ChatMessage {
+	return &ChatMessage{
+		ID:            0,
+		ChatSessionID: sessionId,
+		CreatedAt:     nil,
+		IsUser:        isUser,
+		CharacterID:   characterId,
+		Content:       content,
+		MemoryID:      nil,
+	}
+}
+
+func GetAllChatSessionsByWorldId(worldId int) ([]ChatSession, error) {
 	query := "SELECT * FROM chat_sessions WHERE world_id=?"
 	args := []any{worldId}
 
@@ -152,7 +164,7 @@ func DeleteChatSessionById(worldId int, id int) error {
 	return nil
 }
 
-func GetChatMessages(sessionId int) ([]*ChatMessage, error) {
+func GetChatMessages(sessionId int) ([]ChatMessage, error) {
 	query := "SELECT * FROM chat_messages WHERE chat_session_id=?"
 	args := []any{sessionId}
 	return database.QueryForList(database.GetDB(), query, args, chatMessageScanner)
@@ -213,16 +225,52 @@ func DeleteChatMessagesFrom(sessionId int, id int) error {
 		return err
 	}
 
-	util.EmitAllNonNil(ChatMessageDeletedSignal, deletedIds)
+	util.EmitAll(ChatMessageDeletedSignal, deletedIds)
 	return nil
 }
 
-func GetChatSessionParticipants(chatSessionId int) ([]*characters.Character, error) {
+func GetChatSessionParticipants(chatSessionId int) ([]characters.Character, error) {
 	query := `SELECT c.* FROM chat_participants cp
                 JOIN characters c ON cp.character_id = c.id
             WHERE cp.chat_session_id = ?`
 	args := []any{chatSessionId}
 	return database.QueryForList(database.GetDB(), query, args, characters.CharacterScanner)
+}
+
+func IsGroupChatSession(chatSessionId int) (bool, error) {
+	query := `SELECT COUNT(*) > 1 FROM chat_participants WHERE chat_session_id = ?`
+	args := []any{chatSessionId}
+	isGroupChat, err := database.QueryForRecord(database.GetDB(), query, args, database.BoolScanner)
+	if err != nil || isGroupChat == nil {
+		return false, err
+	}
+	return *isGroupChat, nil
+}
+
+// RandomChatSessionParticipantId selects a random character ID from a chat session,
+// biased by each character's group_talkativeness value. The query creates a weighted
+// probability distribution and uses it to select a participant with higher talkativeness
+// characters being more likely to be chosen.
+// Note that a character is always chosen, if there are any. Even if all are really not talkative.
+func RandomChatSessionParticipantId(chatSessionId int) (*int, error) {
+	// language=sqlite
+	query := `WITH ranked_characters AS (
+              SELECT
+                cp.character_id,
+                cd.group_talkativeness,
+                SUM(cd.group_talkativeness) OVER (ORDER BY RANDOM()) as running_sum,
+                SUM(cd.group_talkativeness) OVER () as total_sum
+              FROM chat_participants cp
+              JOIN character_details cd ON cp.character_id = cd.character_id
+              WHERE cp.chat_session_id = ?
+            )
+            SELECT character_id
+            FROM ranked_characters
+            WHERE RANDOM() * total_sum <= running_sum
+            LIMIT 1;`
+	args := []any{chatSessionId}
+
+	return database.QueryForRecord(database.GetDB(), query, args, database.IntScanner)
 }
 
 func AddChatSessionParticipant(chatSessionId int, characterId int) error {

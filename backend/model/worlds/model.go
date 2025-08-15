@@ -32,7 +32,7 @@ func chatPreferencesScanner(scanner database.RowScanner, dest *ChatPreferences) 
 	)
 }
 
-func GetAllWorlds() ([]*World, error) {
+func GetAllWorlds() ([]World, error) {
 	query := "SELECT * FROM worlds"
 	return database.QueryForList(database.GetDB(), query, nil, worldScanner)
 }

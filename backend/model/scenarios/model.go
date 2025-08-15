@@ -23,7 +23,7 @@ func scenarioScanner(scanner database.RowScanner, dest *Scenario) error {
 	)
 }
 
-func AllScenarios() ([]*Scenario, error) {
+func AllScenarios() ([]Scenario, error) {
 	query := "SELECT * FROM scenarios"
 	return database.QueryForList(database.GetDB(), query, nil, scenarioScanner)
 }

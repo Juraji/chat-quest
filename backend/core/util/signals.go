@@ -20,14 +20,3 @@ func EmitAll[T any](
 		signal.Emit(context.Background(), value)
 	}
 }
-
-func EmitAllNonNil[T any](
-	signal signals.Signal[T],
-	values []*T,
-) {
-	for _, value := range values {
-		if value != nil {
-			signal.Emit(context.Background(), *value)
-		}
-	}
-}

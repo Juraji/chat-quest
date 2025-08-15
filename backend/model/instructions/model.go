@@ -25,7 +25,7 @@ func instructionPromptScanner(scanner database.RowScanner, dest *InstructionTemp
 	)
 }
 
-func AllInstructionPrompts() ([]*InstructionTemplate, error) {
+func AllInstructionPrompts() ([]InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates"
 	return database.QueryForList(database.GetDB(), query, nil, instructionPromptScanner)
 }

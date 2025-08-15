@@ -19,7 +19,7 @@ type Character struct {
 
 type CharacterWithTags struct {
 	Character
-	Tags []*Tag `json:"tags"`
+	Tags []Tag `json:"tags"`
 }
 
 type CharacterDetails struct {
@@ -68,7 +68,7 @@ func tagScanner(scanner database.RowScanner, dest *Tag) error {
 	)
 }
 
-func AllCharacters() ([]*Character, error) {
+func AllCharacters() ([]Character, error) {
 	query := "SELECT * FROM characters"
 	return database.QueryForList(database.GetDB(), query, nil, CharacterScanner)
 }
@@ -86,7 +86,7 @@ func AllCharactersWithTags() ([]*CharacterWithTags, error) {
 		if err != nil {
 			return nil, err
 		}
-		charactersWithTags = append(charactersWithTags, &CharacterWithTags{*character, tags})
+		charactersWithTags = append(charactersWithTags, &CharacterWithTags{character, tags})
 	}
 
 	return charactersWithTags, nil
@@ -191,7 +191,7 @@ func updateCharacterDetails(db database.QueryExecutor, characterId int, characte
 	return database.UpdateRecord(db, query, args)
 }
 
-func TagsByCharacterId(characterId int) ([]*Tag, error) {
+func TagsByCharacterId(characterId int) ([]Tag, error) {
 	query := `
     SELECT t.*
     FROM character_tags ct
@@ -243,7 +243,7 @@ func SetCharacterTags(characterId int, tagIds []int) error {
 	return tx.Commit()
 }
 
-func DialogueExamplesByCharacterId(characterId int) ([]*string, error) {
+func DialogueExamplesByCharacterId(characterId int) ([]string, error) {
 	query := "SELECT text FROM character_dialogue_examples WHERE character_id = ?"
 	args := []any{characterId}
 	scanFunc := func(rows database.RowScanner, dest *string) error {
@@ -279,7 +279,7 @@ func SetDialogueExamplesByCharacterId(characterId int, examples []string) error 
 	return tx.Commit()
 }
 
-func CharacterGreetingsByCharacterId(characterId int) ([]*string, error) {
+func CharacterGreetingsByCharacterId(characterId int) ([]string, error) {
 	query := "SELECT text FROM character_greetings WHERE character_id = ?"
 	args := []any{characterId}
 	scanFunc := func(rows database.RowScanner, dest *string) error {
@@ -315,7 +315,7 @@ func SetGreetingsByCharacterId(characterId int, greetings []string) error {
 	return tx.Commit()
 }
 
-func CharacterGroupGreetingsByCharacterId(characterId int) ([]*string, error) {
+func CharacterGroupGreetingsByCharacterId(characterId int) ([]string, error) {
 	query := "SELECT text FROM character_group_greetings WHERE character_id = ?"
 	args := []any{characterId}
 	scanFunc := func(rows database.RowScanner, dest *string) error {
@@ -355,7 +355,16 @@ func SetGroupGreetingsByCharacterId(characterId int, greetings []string) error {
 	return tx.Commit()
 }
 
-func AllTags() ([]*Tag, error) {
+func RandomGreetingByCharacterId(characterId int, useGroupGreetings bool) (*string, error) {
+	query := `SELECT text FROM character_greetings WHERE character_id = ? ORDER BY RANDOM() LIMIT 1;`
+	if useGroupGreetings {
+		query = `SELECT text FROM character_group_greetings WHERE character_id = ? ORDER BY RANDOM() LIMIT 1;`
+	}
+	args := []any{characterId, useGroupGreetings}
+	return database.QueryForRecord(database.GetDB(), query, args, database.StringScanner)
+}
+
+func AllTags() ([]Tag, error) {
 	query := "SELECT * FROM tags"
 	return database.QueryForList(database.GetDB(), query, nil, tagScanner)
 }
