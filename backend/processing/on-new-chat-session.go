@@ -24,7 +24,7 @@ func onNewChatSessionHandleCharacterGreetings(
 
 	sessionLog := log.Get().With(zap.Int("chatSessionId", session.ID))
 
-	isGroupChat, err := chatsessions.IsGroupChatSession(session.ID)
+	isGroupChat, err := chatsessions.IsGroupSession(session.ID)
 	if err != nil {
 		sessionLog.Error("Error checking if group chat session is a group chat", zap.Error(err))
 	}
@@ -46,7 +46,7 @@ func createGroupSessionGreetings(ctx context.Context, sessionId int, sessionLog 
 			return
 		}
 
-		participantId, err := chatsessions.RandomChatSessionParticipantId(sessionId)
+		participantId, err := chatsessions.RandomParticipantId(sessionId)
 		if err != nil {
 			sessionLog.Error("Error getting random chat session participant in group session",
 				zap.Int("attempt", attempt), zap.Error(err))
@@ -56,13 +56,13 @@ func createGroupSessionGreetings(ctx context.Context, sessionId int, sessionLog 
 		greeting, err := characters.RandomGreetingByCharacterId(*participantId, true)
 		if err != nil {
 			sessionLog.Error("Error getting random group greeting",
-				zap.Int("participant_id", *participantId), zap.Int("attempt", attempt), zap.Error(err))
+				zap.Int("participantId", *participantId), zap.Int("attempt", attempt), zap.Error(err))
 			return
 		}
 
 		if greeting == nil {
 			sessionLog.Debug("No greeting found, re-rolling for participant",
-				zap.Int("participant_id", *participantId), zap.Int("attempt", attempt))
+				zap.Int("participantId", *participantId), zap.Int("attempt", attempt))
 			attempt++
 			continue
 		}
@@ -71,7 +71,7 @@ func createGroupSessionGreetings(ctx context.Context, sessionId int, sessionLog 
 		err = chatsessions.CreateChatMessage(sessionId, message)
 		if err != nil {
 			sessionLog.Error("Error creating chat message",
-				zap.Int("participant_id", *participantId), zap.String("message", *greeting), zap.Error(err))
+				zap.Int("participantId", *participantId), zap.String("message", *greeting), zap.Error(err))
 			return
 		}
 
@@ -88,7 +88,7 @@ func createSingleCharacterGreeting(ctx context.Context, sessionId int, sessionLo
 		return
 	}
 
-	participantId, err := chatsessions.RandomChatSessionParticipantId(sessionId)
+	participantId, err := chatsessions.RandomParticipantId(sessionId)
 	if err != nil {
 		sessionLog.Error("Error getting chat session participant in session", zap.Error(err))
 		return

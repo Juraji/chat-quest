@@ -1,214 +1,214 @@
 package chat_sessions
 
 import (
-	"github.com/gin-gonic/gin"
-	"juraji.nl/chat-quest/core/util"
+  "github.com/gin-gonic/gin"
+  "juraji.nl/chat-quest/core/util"
 )
 
 func Routes(router *gin.RouterGroup) {
-	sessionRouter := router.Group("/worlds/:worldId/chat-sessions")
+  sessionRouter := router.Group("/worlds/:worldId/chat-sessions")
 
-	sessionRouter.GET("", func(c *gin.Context) {
-		worldId, err := util.GetIDParam(c, "worldId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
-			return
-		}
+  sessionRouter.GET("", func(c *gin.Context) {
+    worldId, err := util.GetIDParam(c, "worldId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid world ID")
+      return
+    }
 
-		sessions, err := GetAllChatSessionsByWorldId(worldId)
-		util.RespondList(c, sessions, err)
-	})
+    sessions, err := GetAllByWorldId(worldId)
+    util.RespondList(c, sessions, err)
+  })
 
-	sessionRouter.GET("/:sessionId", func(c *gin.Context) {
-		worldId, err := util.GetIDParam(c, "worldId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
-			return
-		}
-		sessionId, err := util.GetIDParam(c, "sessionId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
-			return
-		}
+  sessionRouter.GET("/:sessionId", func(c *gin.Context) {
+    worldId, err := util.GetIDParam(c, "worldId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid world ID")
+      return
+    }
+    sessionId, err := util.GetIDParam(c, "sessionId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid session ID")
+      return
+    }
 
-		session, err := GetChatSessionById(worldId, sessionId)
-		util.RespondSingle(c, session, err)
-	})
+    session, err := GetById(worldId, sessionId)
+    util.RespondSingle(c, session, err)
+  })
 
-	sessionRouter.POST("", func(c *gin.Context) {
-		worldId, err := util.GetIDParam(c, "worldId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
-			return
-		}
+  sessionRouter.POST("", func(c *gin.Context) {
+    worldId, err := util.GetIDParam(c, "worldId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid world ID")
+      return
+    }
 
-		characterIds, err := util.GetIDsFromQuery(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "invalid characterId in query")
-			return
-		}
+    characterIds, err := util.GetIDsFromQuery(c, "characterId")
+    if err != nil {
+      util.RespondBadRequest(c, "invalid characterId in query")
+      return
+    }
 
-		var session ChatSession
-		if err := c.ShouldBindJSON(&session); err != nil {
-			util.RespondBadRequest(c, "Invalid session data")
-			return
-		}
+    var session ChatSession
+    if err := c.ShouldBindJSON(&session); err != nil {
+      util.RespondBadRequest(c, "Invalid session data")
+      return
+    }
 
-		err = CreateChatSession(worldId, &session, characterIds)
-		util.RespondSingle(c, &session, err)
-	})
+    err = Create(worldId, &session, characterIds)
+    util.RespondSingle(c, &session, err)
+  })
 
-	sessionRouter.PUT("/:sessionId", func(c *gin.Context) {
-		worldId, err := util.GetIDParam(c, "worldId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
-			return
-		}
-		sessionId, err := util.GetIDParam(c, "sessionId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
-			return
-		}
+  sessionRouter.PUT("/:sessionId", func(c *gin.Context) {
+    worldId, err := util.GetIDParam(c, "worldId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid world ID")
+      return
+    }
+    sessionId, err := util.GetIDParam(c, "sessionId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid session ID")
+      return
+    }
 
-		var session ChatSession
-		if err := c.ShouldBindJSON(&session); err != nil {
-			util.RespondBadRequest(c, "Invalid session data")
-			return
-		}
+    var session ChatSession
+    if err := c.ShouldBindJSON(&session); err != nil {
+      util.RespondBadRequest(c, "Invalid session data")
+      return
+    }
 
-		err = UpdateChatSession(worldId, sessionId, &session)
-		util.RespondSingle(c, &session, err)
-	})
+    err = Update(worldId, sessionId, &session)
+    util.RespondSingle(c, &session, err)
+  })
 
-	sessionRouter.DELETE("/:sessionId", func(c *gin.Context) {
-		worldId, err := util.GetIDParam(c, "worldId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
-			return
-		}
-		sessionId, err := util.GetIDParam(c, "sessionId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
-			return
-		}
+  sessionRouter.DELETE("/:sessionId", func(c *gin.Context) {
+    worldId, err := util.GetIDParam(c, "worldId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid world ID")
+      return
+    }
+    sessionId, err := util.GetIDParam(c, "sessionId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid session ID")
+      return
+    }
 
-		err = DeleteChatSessionById(worldId, sessionId)
-		util.RespondDeleted(c, err)
-	})
+    err = Delete(worldId, sessionId)
+    util.RespondDeleted(c, err)
+  })
 
-	sessionRouter.GET("/:sessionId/chat-messages", func(c *gin.Context) {
-		sessionId, err := util.GetIDParam(c, "sessionId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
-			return
-		}
+  sessionRouter.GET("/:sessionId/chat-messages", func(c *gin.Context) {
+    sessionId, err := util.GetIDParam(c, "sessionId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid session ID")
+      return
+    }
 
-		messages, err := GetChatMessages(sessionId)
-		util.RespondList(c, messages, err)
-	})
+    messages, err := GetChatMessages(sessionId)
+    util.RespondList(c, messages, err)
+  })
 
-	sessionRouter.POST("/:sessionId/chat-messages", func(c *gin.Context) {
-		sessionId, err := util.GetIDParam(c, "sessionId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
-			return
-		}
+  sessionRouter.POST("/:sessionId/chat-messages", func(c *gin.Context) {
+    sessionId, err := util.GetIDParam(c, "sessionId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid session ID")
+      return
+    }
 
-		var message ChatMessage
-		if err := c.ShouldBindJSON(&message); err != nil {
-			util.RespondBadRequest(c, "Invalid chat message data")
-			return
-		}
+    var message ChatMessage
+    if err := c.ShouldBindJSON(&message); err != nil {
+      util.RespondBadRequest(c, "Invalid chat message data")
+      return
+    }
 
-		// TODO: Trigger response (embedding, fetching memories, prompt building, chat completion)
-		//       go func...
-		// TODO: Trigger chat truncation (creating memories)
+    // TODO: Trigger response (embedding, fetching memories, prompt building, chat completion)
+    //       go func...
+    // TODO: Trigger chat truncation (creating memories)
 
-		err = CreateChatMessage(sessionId, &message)
-		util.RespondSingle(c, &message, err)
-	})
+    err = CreateChatMessage(sessionId, &message)
+    util.RespondSingle(c, &message, err)
+  })
 
-	sessionRouter.PUT("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
-		sessionId, err := util.GetIDParam(c, "sessionId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
-			return
-		}
+  sessionRouter.PUT("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
+    sessionId, err := util.GetIDParam(c, "sessionId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid session ID")
+      return
+    }
 
-		messageId, err := util.GetIDParam(c, "messageId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid chat message ID")
-			return
-		}
+    messageId, err := util.GetIDParam(c, "messageId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid chat message ID")
+      return
+    }
 
-		var message ChatMessage
-		if err := c.ShouldBindJSON(&message); err != nil {
-			util.RespondBadRequest(c, "Invalid chat message data")
-			return
-		}
+    var message ChatMessage
+    if err := c.ShouldBindJSON(&message); err != nil {
+      util.RespondBadRequest(c, "Invalid chat message data")
+      return
+    }
 
-		// TODO: Trigger updating of memories
+    // TODO: Trigger updating of memories
 
-		err = UpdateChatMessage(sessionId, messageId, &message)
-		util.RespondSingle(c, &message, err)
-	})
+    err = UpdateChatMessage(sessionId, messageId, &message)
+    util.RespondSingle(c, &message, err)
+  })
 
-	sessionRouter.DELETE("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
-		sessionId, err := util.GetIDParam(c, "sessionId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
-			return
-		}
-		messageId, err := util.GetIDParam(c, "messageId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid chat message ID")
-			return
-		}
+  sessionRouter.DELETE("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
+    sessionId, err := util.GetIDParam(c, "sessionId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid session ID")
+      return
+    }
+    messageId, err := util.GetIDParam(c, "messageId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid chat message ID")
+      return
+    }
 
-		err = DeleteChatMessagesFrom(sessionId, messageId)
-		util.RespondDeleted(c, err)
-	})
+    err = DeleteChatMessagesFrom(sessionId, messageId)
+    util.RespondDeleted(c, err)
+  })
 
-	sessionRouter.GET("/:sessionId/participants", func(c *gin.Context) {
-		sessionId, err := util.GetIDParam(c, "sessionId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
-			return
-		}
+  sessionRouter.GET("/:sessionId/participants", func(c *gin.Context) {
+    sessionId, err := util.GetIDParam(c, "sessionId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid session ID")
+      return
+    }
 
-		participants, err := GetChatSessionParticipants(sessionId)
-		util.RespondList(c, participants, err)
-	})
+    participants, err := GetParticipants(sessionId)
+    util.RespondList(c, participants, err)
+  })
 
-	sessionRouter.POST("/:sessionId/participants/:characterId", func(c *gin.Context) {
-		sessionId, err := util.GetIDParam(c, "sessionId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
-			return
-		}
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
-			return
-		}
+  sessionRouter.POST("/:sessionId/participants/:characterId", func(c *gin.Context) {
+    sessionId, err := util.GetIDParam(c, "sessionId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid session ID")
+      return
+    }
+    characterId, err := util.GetIDParam(c, "characterId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid character ID")
+      return
+    }
 
-		err = AddChatSessionParticipant(sessionId, characterId)
-		util.RespondEmpty(c, err)
-	})
+    err = AddParticipant(sessionId, characterId)
+    util.RespondEmpty(c, err)
+  })
 
-	sessionRouter.DELETE("/:sessionId/participants/:characterId", func(c *gin.Context) {
-		sessionId, err := util.GetIDParam(c, "sessionId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid session ID")
-			return
-		}
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
-			return
-		}
+  sessionRouter.DELETE("/:sessionId/participants/:characterId", func(c *gin.Context) {
+    sessionId, err := util.GetIDParam(c, "sessionId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid session ID")
+      return
+    }
+    characterId, err := util.GetIDParam(c, "characterId")
+    if err != nil {
+      util.RespondBadRequest(c, "Invalid character ID")
+      return
+    }
 
-		err = RemoveChatSessionParticipant(sessionId, characterId)
-		util.RespondEmpty(c, err)
-	})
+    err = RemoveParticipant(sessionId, characterId)
+    util.RespondEmpty(c, err)
+  })
 }
