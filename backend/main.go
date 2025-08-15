@@ -17,6 +17,7 @@ import (
 	"juraji.nl/chat-quest/model/memories"
 	"juraji.nl/chat-quest/model/scenarios"
 	"juraji.nl/chat-quest/model/worlds"
+	"juraji.nl/chat-quest/processing"
 )
 
 var (
@@ -61,6 +62,11 @@ func main() {
 
 		defer closeDB()
 		log.Get().Info("Database initialized successfully!")
+	}
+
+	{
+		log.Get().Info("Setting up asynchronous processing...")
+		processing.SetupProcessing()
 	}
 
 	router := gin.New()
