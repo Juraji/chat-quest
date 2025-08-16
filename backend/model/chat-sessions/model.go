@@ -263,11 +263,11 @@ func RandomParticipantId(sessionId int) (*int, error) {
 	query := `WITH ranked_characters AS (
               SELECT
                 cp.character_id,
-                cd.group_talkativeness,
-                SUM(cd.group_talkativeness) OVER (ORDER BY RANDOM()) as running_sum,
-                SUM(cd.group_talkativeness) OVER () as total_sum
+                c.group_talkativeness,
+                SUM(c.group_talkativeness) OVER (ORDER BY RANDOM()) as running_sum,
+                SUM(c.group_talkativeness) OVER () as total_sum
               FROM chat_participants cp
-              JOIN character_details cd ON cp.character_id = cd.character_id
+              JOIN characters c ON cp.character_id = c.id
               WHERE cp.chat_session_id = ?
             )
             SELECT character_id

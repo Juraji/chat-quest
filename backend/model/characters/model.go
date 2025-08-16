@@ -74,11 +74,6 @@ func tagScanner(scanner database.RowScanner, dest *Tag) error {
 	)
 }
 
-func AllCharacters() ([]Character, error) {
-	query := "SELECT * FROM characters"
-	return database.QueryForList(database.GetDB(), query, nil, CharacterScanner)
-}
-
 func AllCharacterListViews() ([]CharacterListView, error) {
 	query := `SELECT
                 c.id,
