@@ -10,24 +10,24 @@ import (
 )
 
 type Character struct {
+	ID                 int        `json:"id"`
+	CreatedAt          *time.Time `json:"createdAt"`
+	Name               string     `json:"name"`
+	Favorite           bool       `json:"favorite"`
+	AvatarUrl          *string    `json:"avatarUrl"`
+	Appearance         *string    `json:"appearance"`
+	Personality        *string    `json:"personality"`
+	History            *string    `json:"history"`
+	GroupTalkativeness float32    `json:"groupTalkativeness"`
+}
+
+type CharacterListView struct {
 	ID        int        `json:"id"`
 	CreatedAt *time.Time `json:"createdAt"`
 	Name      string     `json:"name"`
 	Favorite  bool       `json:"favorite"`
 	AvatarUrl *string    `json:"avatarUrl"`
-}
-
-type CharacterWithTags struct {
-	Character
-	Tags []Tag `json:"tags"`
-}
-
-type CharacterDetails struct {
-	CharacterId        int     `json:"characterId"`
-	Appearance         *string `json:"appearance"`
-	Personality        *string `json:"personality"`
-	History            *string `json:"history"`
-	GroupTalkativeness float32 `json:"groupTalkativeness"`
+	Tags      []Tag      `json:"tags"`
 }
 
 type CharacterTextBlock struct {
@@ -48,15 +48,21 @@ func CharacterScanner(scanner database.RowScanner, dest *Character) error {
 		&dest.Name,
 		&dest.Favorite,
 		&dest.AvatarUrl,
-	)
-}
-func characterDetailsScanner(scanner database.RowScanner, dest *CharacterDetails) error {
-	return scanner.Scan(
-		&dest.CharacterId,
 		&dest.Appearance,
 		&dest.Personality,
 		&dest.History,
 		&dest.GroupTalkativeness,
+	)
+}
+
+func characterListViewScanner(scanner database.RowScanner, dest *CharacterListView) error {
+	return scanner.Scan(
+		&dest.ID,
+		&dest.CreatedAt,
+		&dest.Name,
+		&dest.Favorite,
+		&dest.AvatarUrl,
+		&dest.Tags,
 	)
 }
 
@@ -73,23 +79,20 @@ func AllCharacters() ([]Character, error) {
 	return database.QueryForList(database.GetDB(), query, nil, CharacterScanner)
 }
 
-func AllCharactersWithTags() ([]*CharacterWithTags, error) {
-	query := "SELECT * FROM characters"
-	characters, err := database.QueryForList(database.GetDB(), query, nil, CharacterScanner)
-	if err != nil {
-		return nil, err
-	}
+func AllCharacterListViews() ([]CharacterListView, error) {
+	query := `SELECT
+                c.id,
+                c.created_at,
+                c.name,
+                c.favorite,
+                c.avatar_url,
+                GROUP_CONCAT(json_object('id', t.id, 'label', t.label)) as tags
+            FROM characters c
+            LEFT JOIN character_tags ct ON c.id = ct.character_id
+            LEFT JOIN tags t ON ct.tag_id = t.id
+            GROUP BY c.id;`
 
-	var charactersWithTags []*CharacterWithTags
-	for _, character := range characters {
-		tags, err := TagsByCharacterId(character.ID)
-		if err != nil {
-			return nil, err
-		}
-		charactersWithTags = append(charactersWithTags, &CharacterWithTags{character, tags})
-	}
-
-	return charactersWithTags, nil
+	return database.QueryForList(database.GetDB(), query, nil, characterListViewScanner)
 }
 
 func CharacterById(id int) (*Character, error) {
@@ -100,29 +103,24 @@ func CharacterById(id int) (*Character, error) {
 }
 
 func CreateCharacter(newCharacter *Character) error {
-	tx, err := database.GetDB().Begin()
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-	defer database.RollBackOnErr(tx, err)
-
 	util.EmptyStrPtrToNil(&newCharacter.AvatarUrl)
+	util.EmptyStrPtrToNil(&newCharacter.Appearance)
+	util.EmptyStrPtrToNil(&newCharacter.Personality)
+	util.EmptyStrPtrToNil(&newCharacter.History)
 
-	query := "INSERT INTO characters (name, favorite, avatar_url) VALUES (?, ?, ?) RETURNING id, created_at"
-	args := []any{newCharacter.Name, newCharacter.Favorite, newCharacter.AvatarUrl}
-
-	if err := database.InsertRecord(tx, query, args, &newCharacter.ID, &newCharacter.CreatedAt); err != nil {
-		return err
+	query := `INSERT INTO characters (name, favorite, avatar_url, appearance, personality, history, group_talkativeness)
+            VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at`
+	args := []any{
+		newCharacter.Name,
+		newCharacter.Favorite,
+		newCharacter.AvatarUrl,
+		newCharacter.Appearance,
+		newCharacter.Personality,
+		newCharacter.History,
+		newCharacter.GroupTalkativeness,
 	}
 
-	// Create empty character details (so it exists when fetched)
-	var newCharacterDetails CharacterDetails
-	if err = updateCharacterDetails(tx, newCharacter.ID, &newCharacterDetails); err != nil {
-		return err
-	}
-
-	err = tx.Commit()
-	if err != nil {
+	if err := database.InsertRecord(database.GetDB(), query, args, &newCharacter.ID, &newCharacter.CreatedAt); err != nil {
 		return err
 	}
 
@@ -132,9 +130,29 @@ func CreateCharacter(newCharacter *Character) error {
 
 func UpdateCharacter(id int, character *Character) error {
 	util.EmptyStrPtrToNil(&character.AvatarUrl)
+	util.EmptyStrPtrToNil(&character.Appearance)
+	util.EmptyStrPtrToNil(&character.Personality)
+	util.EmptyStrPtrToNil(&character.History)
 
-	query := "UPDATE characters SET name = ?, favorite = ?, avatar_url = ? WHERE id = ?"
-	args := []any{character.Name, character.Favorite, character.AvatarUrl, id}
+	query := `UPDATE characters
+            SET name = ?,
+                favorite = ?,
+                avatar_url = ?,
+                appearance = ?,
+                personality = ?,
+                history = ?,
+                group_talkativeness = ?
+            WHERE id = ?`
+	args := []any{
+		character.Name,
+		character.Favorite,
+		character.AvatarUrl,
+		character.Appearance,
+		character.Personality,
+		character.History,
+		character.GroupTalkativeness,
+		id,
+	}
 
 	err := database.UpdateRecord(database.GetDB(), query, args)
 	if err != nil {
@@ -156,39 +174,6 @@ func DeleteCharacterById(id int) error {
 
 	util.Emit(CharacterDeletedSignal, id)
 	return nil
-}
-
-func CharacterDetailsByCharacterId(characterId int) (*CharacterDetails, error) {
-	query := "SELECT * FROM character_details WHERE character_id = ?"
-	args := []any{characterId}
-
-	return database.QueryForRecord(database.GetDB(), query, args, characterDetailsScanner)
-}
-
-func UpdateCharacterDetails(characterId int, characterDetail *CharacterDetails) error {
-	return updateCharacterDetails(database.GetDB(), characterId, characterDetail)
-}
-
-func updateCharacterDetails(db database.QueryExecutor, characterId int, characterDetail *CharacterDetails) error {
-	util.EmptyStrPtrToNil(&characterDetail.Appearance)
-	util.EmptyStrPtrToNil(&characterDetail.Personality)
-	util.EmptyStrPtrToNil(&characterDetail.History)
-
-	//language=sqlite
-	query := `
-    INSERT OR REPLACE INTO character_details
-      (character_id, appearance, personality, history, group_talkativeness)
-    VALUES (?,?,?,?,?)
-  `
-	args := []any{
-		characterId,
-		characterDetail.Appearance,
-		characterDetail.Personality,
-		characterDetail.History,
-		characterDetail.GroupTalkativeness,
-	}
-
-	return database.UpdateRecord(db, query, args)
 }
 
 func TagsByCharacterId(characterId int) ([]Tag, error) {

@@ -29,7 +29,7 @@ export function routeDataSignal<T>(
   route: ActivatedRoute,
   key: string
 ): Signal<T>
-export function routeDataSignal<T, R>(
+export function routeDataSignal<T, R = T>(
   route: ActivatedRoute,
   key: string,
   transform: (value: T) => R

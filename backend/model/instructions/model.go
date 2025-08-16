@@ -5,13 +5,31 @@ import (
 	"juraji.nl/chat-quest/core/util"
 )
 
+type InstructionType string
+
+const (
+	ChatInstructionType     InstructionType = "CHAT"
+	MemoriesInstructionType InstructionType = "MEMORIES"
+)
+
+func (i InstructionType) IsValid() bool {
+	switch i {
+	case ChatInstructionType:
+		return true
+	case MemoriesInstructionType:
+		return true
+	default:
+		return false
+	}
+}
+
 type InstructionTemplate struct {
-	ID           int      `json:"id"`
-	Name         string   `json:"name"`
-	Type         string   `json:"type"`
-	Temperature  *float32 `json:"temperature"`
-	SystemPrompt string   `json:"systemPrompt"`
-	Instruction  string   `json:"instruction"`
+	ID           int             `json:"id"`
+	Name         string          `json:"name"`
+	Type         InstructionType `json:"type"`
+	Temperature  *float32        `json:"temperature"`
+	SystemPrompt string          `json:"systemPrompt"`
+	Instruction  string          `json:"instruction"`
 }
 
 func instructionPromptScanner(scanner database.RowScanner, dest *InstructionTemplate) error {
@@ -30,7 +48,7 @@ func AllInstructionPrompts() ([]InstructionTemplate, error) {
 	return database.QueryForList(database.GetDB(), query, nil, instructionPromptScanner)
 }
 
-func InstructionPromptById(id int) (*InstructionTemplate, error) {
+func InstructionById(id int) (*InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates WHERE id = ?"
 	args := []any{id}
 	return database.QueryForRecord(database.GetDB(), query, args, instructionPromptScanner)

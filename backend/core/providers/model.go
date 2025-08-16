@@ -173,6 +173,12 @@ func LlmModelsByConnectionProfileId(profileId int) ([]LlmModel, error) {
 	return database.QueryForList(database.GetDB(), query, args, llmModelScanner)
 }
 
+func LlmModelById(id int) (*LlmModel, error) {
+	query := "SELECT * FROM llm_models WHERE id = ?"
+	args := []any{id}
+	return database.QueryForRecord(database.GetDB(), query, args, llmModelScanner)
+}
+
 func CreateLlmModel(profileId int, llmModel *LlmModel) error {
 	err := createLlmModel(database.GetDB(), profileId, llmModel)
 	if err != nil {

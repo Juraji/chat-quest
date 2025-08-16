@@ -20,7 +20,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		prompts, err := InstructionPromptById(templateId)
+		prompts, err := InstructionById(templateId)
 		util.RespondSingle(c, prompts, err)
 	})
 
@@ -28,6 +28,11 @@ func Routes(router *gin.RouterGroup) {
 		var newPrompt InstructionTemplate
 		if err := c.ShouldBind(&newPrompt); err != nil {
 			util.RespondBadRequest(c, "Invalid prompt data")
+			return
+		}
+
+		if !newPrompt.Type.IsValid() {
+			util.RespondBadRequest(c, "Invalid template type")
 			return
 		}
 

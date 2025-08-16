@@ -6,7 +6,6 @@ import {WorldsOverviewPage} from './worlds/overview/worlds-overview-page';
 import {ScenariosOverview} from './scenarios/overview/scenarios-overview';
 import {EditScenarioPage} from './scenarios/edit/edit-scenario-page';
 import {
-  characterDetailsResolverFactory,
   characterDialogExamplesResolverFactory,
   characterGreetingsResolverFactory,
   characterGroupGreetingsResolverFactory,
@@ -75,7 +74,6 @@ const routes: Routes = [
         loadChildren: () => import("./characters/edit/character-edit.routes"),
         resolve: {
           character: characterResolverFactory('characterId'),
-          characterDetails: characterDetailsResolverFactory('characterId'),
           tags: characterTagsResolverFactory('characterId'),
           dialogueExamples: characterDialogExamplesResolverFactory('characterId'),
           greetings: characterGreetingsResolverFactory('characterId'),

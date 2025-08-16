@@ -1,6 +1,6 @@
 import {Component, computed, effect, inject, input, InputSignal, signal, Signal, WritableSignal} from '@angular/core';
 import {TagsControl} from '@components/tags-control';
-import {Character, Characters, CharacterWithTags} from '@api/characters';
+import {BaseCharacter, CharacterListView, Characters} from '@api/characters';
 import {Tag} from '@api/tags';
 
 @Component({
@@ -18,7 +18,7 @@ import {Tag} from '@api/tags';
 export class CharacterCard {
   readonly characters = inject(Characters)
 
-  readonly character: InputSignal<Character | CharacterWithTags> = input.required()
+  readonly character: InputSignal<BaseCharacter> = input.required()
   protected readonly id: Signal<number> = computed(() => this.character().id)
   protected readonly name: Signal<string> = computed(() => this.character().name)
   protected readonly favorite: Signal<boolean> = computed(() => this.character().favorite)
@@ -32,7 +32,7 @@ export class CharacterCard {
     effect(() => {
       const char = this.character()
       if ('tags' in char) {
-        this.tags.set(char.tags)
+        this.tags.set((char as CharacterListView).tags)
       } else {
         this.characters
           .getTags(char.id)

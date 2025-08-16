@@ -9,21 +9,15 @@ CREATE TABLE tags
 
 CREATE TABLE characters
 (
-  id         INTEGER PRIMARY KEY AUTOINCREMENT,
-  created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  name       VARCHAR(100) NOT NULL,
-  favorite   BIT(1)       NOT NULL DEFAULT 0,
-  avatar_url TEXT                  DEFAULT NULL
-);
-
-CREATE TABLE character_details
-(
-  character_id        INTEGER PRIMARY KEY NOT NULL REFERENCES characters (id) ON DELETE CASCADE,
-  appearance          TEXT                         DEFAULT NULL,
-  personality         TEXT                         DEFAULT NULL,
-  history             TEXT                         DEFAULT NULL,
-  group_talkativeness FLOAT               NOT NULL DEFAULT 0.5
-
+  id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+  created_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  name                VARCHAR(100) NOT NULL,
+  favorite            BIT(1)       NOT NULL DEFAULT 0,
+  avatar_url          TEXT                  DEFAULT NULL,
+  appearance          TEXT                  DEFAULT NULL,
+  personality         TEXT                  DEFAULT NULL,
+  history             TEXT                  DEFAULT NULL,
+  group_talkativeness FLOAT        NOT NULL DEFAULT 0.5
 );
 
 CREATE TABLE character_tags

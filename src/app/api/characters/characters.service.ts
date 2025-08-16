@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {Character, CharacterDetails, CharacterWithTags} from './characters.model';
+import {Character, CharacterListView} from './characters.model';
 import {isNew} from '@api/common';
 import {Tag} from '@api/tags';
 
@@ -11,12 +11,8 @@ import {Tag} from '@api/tags';
 export class Characters {
   private http: HttpClient = inject(HttpClient)
 
-  getAll(): Observable<Character[]> {
-    return this.http.get<Character[]>('/characters')
-  }
-
-  getAllWithTags(): Observable<CharacterWithTags[]> {
-    return this.http.get<CharacterWithTags[]>('/characters/with-tags')
+  getAll(): Observable<CharacterListView[]> {
+    return this.http.get<CharacterListView[]>('/characters')
   }
 
   get(characterId: number): Observable<Character> {
@@ -33,14 +29,6 @@ export class Characters {
 
   delete(characterId: number): Observable<void> {
     return this.http.delete<void>(`/characters/${characterId}`)
-  }
-
-  getDetails(characterId: number): Observable<CharacterDetails> {
-    return this.http.get<CharacterDetails>(`/characters/${characterId}/details`)
-  }
-
-  saveDetails(details: CharacterDetails): Observable<CharacterDetails> {
-    return this.http.put<CharacterDetails>(`/characters/${details.characterId}/details`, details)
   }
 
   getTags(characterId: number): Observable<Tag[]> {

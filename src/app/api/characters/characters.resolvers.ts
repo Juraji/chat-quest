@@ -1,14 +1,14 @@
 import {ResolveFn} from '@angular/router';
 import {inject} from '@angular/core';
-import {Character, CharacterDetails, CharacterWithTags} from './characters.model';
 import {Characters} from './characters.service';
 import {NEW_ID} from '@api/common';
 import {Tag} from '@api/tags';
 import {resolveNewOrExisting} from '@util/ng';
+import {Character, CharacterListView} from '@api/characters/characters.model';
 
-export const charactersResolver: ResolveFn<CharacterWithTags[]> = () => {
+export const charactersResolver: ResolveFn<CharacterListView[]> = () => {
   const service = inject(Characters)
-  return service.getAllWithTags();
+  return service.getAll();
 }
 
 export function characterResolverFactory(idParam: string): ResolveFn<Character> {
@@ -22,27 +22,13 @@ export function characterResolverFactory(idParam: string): ResolveFn<Character> 
         createdAt: null,
         name: '',
         favorite: false,
-        avatarUrl: null
-      }),
-      id => service.get(id)
-    );
-  }
-}
-
-export function characterDetailsResolverFactory(idParam: string): ResolveFn<CharacterDetails> {
-  return route => {
-    const service = inject(Characters)
-    return resolveNewOrExisting(
-      route,
-      idParam,
-      () => ({
-        characterId: NEW_ID,
+        avatarUrl: null,
         appearance: null,
         personality: null,
         history: null,
         groupTalkativeness: 0.5
       }),
-      id => service.getDetails(id)
+      id => service.get(id)
     );
   }
 }

@@ -14,12 +14,7 @@ func charactersRoutes(router *gin.RouterGroup) {
 	charactersRouter := router.Group("/characters")
 
 	charactersRouter.GET("", func(c *gin.Context) {
-		characters, err := AllCharacters()
-		util.RespondList(c, characters, err)
-	})
-
-	charactersRouter.GET("/with-tags", func(c *gin.Context) {
-		characters, err := AllCharactersWithTags()
+		characters, err := AllCharacterListViews()
 		util.RespondList(c, characters, err)
 	})
 
@@ -71,34 +66,6 @@ func charactersRoutes(router *gin.RouterGroup) {
 
 		err = DeleteCharacterById(characterId)
 		util.RespondDeleted(c, err)
-	})
-
-	charactersRouter.GET("/:characterId/details", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
-			return
-		}
-
-		details, err := CharacterDetailsByCharacterId(characterId)
-		util.RespondSingle(c, details, err)
-	})
-
-	charactersRouter.PUT("/:characterId/details", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
-			return
-		}
-
-		var details CharacterDetails
-		if err := c.ShouldBind(&details); err != nil {
-			util.RespondBadRequest(c, "Invalid character details data")
-			return
-		}
-
-		err = UpdateCharacterDetails(characterId, &details)
-		util.RespondSingle(c, &details, err)
 	})
 
 	charactersRouter.GET("/:characterId/tags", func(c *gin.Context) {

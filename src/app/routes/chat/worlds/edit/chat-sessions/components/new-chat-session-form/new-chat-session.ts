@@ -32,7 +32,7 @@ export class NewChatSession {
 
   readonly scenarios: Signal<Scenario[]> = routeDataSignal(this.activatedRoute, 'scenarios');
   readonly characters: Signal<Character[]> =
-    routeDataSignal(this.activatedRoute, 'characters', characterSortingTransformer);
+    routeDataSignal<Character[]>(this.activatedRoute, 'characters', characterSortingTransformer);
 
   readonly formGroup = formGroup<ChatSession>({
     id: readOnlyControl(),

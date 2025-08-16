@@ -18,7 +18,7 @@ import {TokenCount} from '@components/token-count';
 export class CharacterEditDescriptions {
   private readonly formService = inject(CharacterEditFormService)
 
-  readonly formGroup = this.formService.characterDetailsFG
+  readonly formGroup = this.formService.characterFG
   readonly onFormSubmit = this.formService.requestSubmitFn()
 
   readonly editAppearance: BooleanSignal = booleanSignal(false)

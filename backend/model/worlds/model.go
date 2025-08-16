@@ -1,6 +1,7 @@
 package worlds
 
 import (
+	"errors"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/util"
 )
@@ -15,6 +16,20 @@ type World struct {
 type ChatPreferences struct {
 	ChatModelID       *int `json:"chatModelId"`
 	ChatInstructionID *int `json:"chatInstructionId"`
+}
+
+func (p *ChatPreferences) Validate() error {
+	if p == nil {
+		return errors.New("chat preferences is nil")
+	}
+	if p.ChatModelID == nil {
+		return errors.New("ChatModelId is nil")
+	}
+	if p.ChatInstructionID == nil {
+		return errors.New("ChatInstructionId is nil")
+	}
+
+	return nil
 }
 
 func worldScanner(scanner database.RowScanner, dest *World) error {

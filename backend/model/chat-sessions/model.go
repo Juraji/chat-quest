@@ -76,9 +76,15 @@ func GetAllByWorldId(worldId int) ([]ChatSession, error) {
 	return database.QueryForList(database.GetDB(), query, args, chatSessionScanner)
 }
 
-func GetById(worldId int, id int) (*ChatSession, error) {
+func GetByWorldIdAndId(worldId int, id int) (*ChatSession, error) {
 	query := "SELECT * FROM chat_sessions WHERE world_id=? AND id=?"
 	args := []any{worldId, id}
+	return database.QueryForRecord(database.GetDB(), query, args, chatSessionScanner)
+}
+
+func GetById(id int) (*ChatSession, error) {
+	query := "SELECT * FROM chat_sessions WHERE id=?"
+	args := []any{id}
 	return database.QueryForRecord(database.GetDB(), query, args, chatSessionScanner)
 }
 

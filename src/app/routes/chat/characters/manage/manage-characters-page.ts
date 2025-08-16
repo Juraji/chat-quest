@@ -5,7 +5,7 @@ import {PageHeader} from '@components/page-header';
 import {CharacterCard} from '@components/cards/character-card';
 import {NewItemCard} from '@components/cards/new-item-card';
 import {Tag, Tags} from '@api/tags';
-import {CharacterWithTags} from '@api/characters';
+import {CharacterListView, characterSortingTransformer} from '@api/characters';
 import {World} from '@api/worlds';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
 import {Scalable} from '@components/scalable/scalable';
@@ -30,11 +30,12 @@ export class ManageCharactersPage {
   private readonly tags = inject(Tags)
 
   readonly allTags: Signal<Tag[]> = this.tags.cachedTags
-  readonly characters: Signal<CharacterWithTags[]> = routeDataSignal(this.activatedRoute, 'characters');
+  readonly characters: Signal<CharacterListView[]> =
+    routeDataSignal<CharacterListView[]>(this.activatedRoute, 'characters', characterSortingTransformer);
   readonly worlds: Signal<World[]> = routeDataSignal(this.activatedRoute, 'worlds');
 
   readonly selectedTag: WritableSignal<Tag | null> = signal(null)
-  readonly filteredCharacters: Signal<CharacterWithTags[]> = computed(() => {
+  readonly filteredCharacters: Signal<CharacterListView[]> = computed(() => {
     const selectedTag = this.selectedTag()
     const characters = this.characters()
 

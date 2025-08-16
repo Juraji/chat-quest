@@ -11,7 +11,7 @@ import {defer, forkJoin, mergeMap, tap} from 'rxjs';
 import {TagsControl} from '@components/tags-control/tags-control';
 import {CharacterEditFormService} from './character-edit-form.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {Character, CharacterDetails, Characters} from '@api/characters';
+import {Character, Characters} from '@api/characters';
 import {Tag} from '@api/tags';
 
 @Component({
@@ -39,14 +39,12 @@ export class EditCharacterPage {
   private readonly formService = inject(CharacterEditFormService)
 
   readonly character: Signal<Character> = routeDataSignal(this.activatedRoute, 'character')
-  readonly characterDetails: Signal<CharacterDetails> = routeDataSignal(this.activatedRoute, 'characterDetails')
   readonly tags: Signal<Tag[]> = routeDataSignal(this.activatedRoute, 'tags')
   readonly dialogueExamples: Signal<string[]> = routeDataSignal(this.activatedRoute, 'dialogueExamples')
   readonly greetings: Signal<string[]> = routeDataSignal(this.activatedRoute, 'greetings')
   readonly groupGreetings: Signal<string[]> = routeDataSignal(this.activatedRoute, 'groupGreetings')
   readonly characterFormData: Signal<CharacterFormData> = computed(() => ({
     character: this.character(),
-    characterDetails: this.characterDetails(),
     tags: this.tags(),
     dialogueExamples: this.dialogueExamples(),
     greetings: this.greetings(),
@@ -81,10 +79,8 @@ export class EditCharacterPage {
 
     const isNew = this.isNew()
     const character = this.character()
-    const characterDetails = this.characterDetails()
 
     const characterFG = this.formService.characterFG;
-    const characterDetailsFG = this.formService.characterDetailsFG;
     const tagsCtrl = this.formService.tagsCtrl;
     const dialogueExamplesFA = this.formService.dialogueExamplesFA;
     const greetingsFA = this.formService.greetingsFA;
@@ -96,12 +92,6 @@ export class EditCharacterPage {
         tap(res => characterFG.reset(res)),
         mergeMap(c => forkJoin({
           character: [c],
-          characterDetails: defer(() => !isNew && characterDetailsFG.dirty
-            ? this.characters
-              .saveDetails({...characterDetails, ...characterDetailsFG.value, characterId: c.id})
-              .pipe(tap(res => characterDetailsFG.reset(res)))
-            : [null]
-          ),
           tags: defer(() => !isNew && tagsCtrl.dirty
             ? this.characters
               .saveTags(c.id, tagsCtrl.value.map(t => t.id))
