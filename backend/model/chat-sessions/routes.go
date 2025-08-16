@@ -120,9 +120,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		// TODO: Trigger response (embedding, fetching memories, prompt building, chat completion)
-		//       go func...
-		// TODO: Trigger chat truncation (creating memories)
+		message.IsSystem = false
 
 		err = CreateChatMessage(sessionId, &message)
 		util.RespondSingle(c, &message, err)

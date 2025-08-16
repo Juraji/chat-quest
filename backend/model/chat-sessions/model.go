@@ -22,6 +22,7 @@ type ChatMessage struct {
 	ChatSessionID int        `json:"chatSessionId"`
 	CreatedAt     *time.Time `json:"createdAt"`
 	IsUser        bool       `json:"isUser"`
+	IsSystem      bool       `json:"isSystem"`
 	CharacterID   *int       `json:"characterId"`
 	Content       string     `json:"content"`
 
@@ -51,6 +52,7 @@ func chatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
 		&dest.ChatSessionID,
 		&dest.CreatedAt,
 		&dest.IsUser,
+		&dest.IsSystem,
 		&dest.CharacterID,
 		&dest.Content,
 		&dest.MemoryID,
@@ -180,11 +182,12 @@ func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 	chatMessage.ChatSessionID = sessionId
 	chatMessage.CreatedAt = nil
 
-	query := `INSERT INTO chat_messages (chat_session_id, is_user, character_id, content)
-            VALUES (?, ?, ?, ?) RETURNING id, created_at`
+	query := `INSERT INTO chat_messages (chat_session_id, is_user, is_system, character_id, content)
+            VALUES (?, ?, ?, ?, ?) RETURNING id, created_at`
 	args := []any{
 		chatMessage.ChatSessionID,
 		chatMessage.IsUser,
+		chatMessage.IsSystem,
 		chatMessage.CharacterID,
 		chatMessage.Content,
 	}

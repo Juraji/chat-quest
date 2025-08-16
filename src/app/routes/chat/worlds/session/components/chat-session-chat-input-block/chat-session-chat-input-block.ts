@@ -1,8 +1,5 @@
 import {Component, inject, input, InputSignal, Signal} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
 import {ChatMessage, ChatSessions} from '@api/chat-sessions';
-import {Notifications} from '@components/notifications';
-import {SSE} from '@api/sse';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {controlValueSignal, formControl, formGroup} from '@util/ng';
 import {TokenCount} from '@components/token-count';
@@ -21,10 +18,7 @@ interface ChatInputForm {
   templateUrl: './chat-session-chat-input-block.html',
 })
 export class ChatSessionChatInputBlock {
-  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly chatSessions = inject(ChatSessions);
-  private readonly notifications = inject(Notifications);
-  private readonly sse = inject(SSE)
 
   readonly worldId: InputSignal<number> = input.required()
   readonly chatSessionId: InputSignal<number> = input.required()
@@ -47,6 +41,7 @@ export class ChatSessionChatInputBlock {
       chatSessionId,
       createdAt: null,
       isUser: true,
+      isSystem: false,
       characterId: null,
       content,
       memoryId: null
