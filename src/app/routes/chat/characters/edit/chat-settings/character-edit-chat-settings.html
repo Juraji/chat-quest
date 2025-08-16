@@ -153,8 +153,8 @@
 
               @for (c of groupGreetingsFA.controls; track c) {
                 <div class="input-group mb-2">
-                        <textarea type="text" class="form-control form-control-sm" rows="3"
-                                  [formControlName]="$index"></textarea>
+                  <textarea type="text" class="form-control form-control-sm" rows="3"
+                            [formControlName]="$index"></textarea>
                   <button type="button" class="btn btn-outline-danger btn-sm"
                           (click)="onRemoveControl(groupGreetingsFA, $index)">
                     <span class="bi bi-trash"></span>

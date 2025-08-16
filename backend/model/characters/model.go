@@ -27,7 +27,7 @@ type CharacterListView struct {
 	Name      string     `json:"name"`
 	Favorite  bool       `json:"favorite"`
 	AvatarUrl *string    `json:"avatarUrl"`
-	Tags      []Tag      `json:"tags"`
+	Tags      []Tag      `json:"tags,omitempty"`
 }
 
 type CharacterTextBlock struct {
@@ -62,7 +62,6 @@ func characterListViewScanner(scanner database.RowScanner, dest *CharacterListVi
 		&dest.Name,
 		&dest.Favorite,
 		&dest.AvatarUrl,
-		&dest.Tags,
 	)
 }
 
@@ -75,19 +74,21 @@ func tagScanner(scanner database.RowScanner, dest *Tag) error {
 }
 
 func AllCharacterListViews() ([]CharacterListView, error) {
-	query := `SELECT
-                c.id,
-                c.created_at,
-                c.name,
-                c.favorite,
-                c.avatar_url,
-                GROUP_CONCAT(json_object('id', t.id, 'label', t.label)) as tags
-            FROM characters c
-            LEFT JOIN character_tags ct ON c.id = ct.character_id
-            LEFT JOIN tags t ON ct.tag_id = t.id
-            GROUP BY c.id;`
+	query := "SELECT id, created_at, name, favorite, avatar_url FROM characters"
 
-	return database.QueryForList(database.GetDB(), query, nil, characterListViewScanner)
+	characters, err := database.QueryForList(database.GetDB(), query, nil, characterListViewScanner)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, char := range characters {
+		tags, err := TagsByCharacterId(char.ID)
+		if err != nil {
+			return nil, err
+		}
+		char.Tags = tags
+	}
+	return characters, nil
 }
 
 func CharacterById(id int) (*Character, error) {
@@ -316,7 +317,7 @@ func SetGroupGreetingsByCharacterId(characterId int, greetings []string) error {
 		}
 	}(tx, err)
 
-	deleteQuery := "DELETE FROM character_greetings WHERE character_id = ?"
+	deleteQuery := "DELETE FROM character_group_greetings WHERE character_id = ?"
 	if err := database.DeleteRecord(tx, deleteQuery, []any{characterId}); err != nil {
 		return fmt.Errorf("failed to delete existing greetings: %w", err)
 	}
@@ -325,7 +326,7 @@ func SetGroupGreetingsByCharacterId(characterId int, greetings []string) error {
 		return tx.Commit()
 	}
 
-	insertQuery := "INSERT INTO character_greetings (character_id, text) VALUES (?, ?)"
+	insertQuery := "INSERT INTO character_group_greetings (character_id, text) VALUES (?, ?)"
 	for _, greeting := range greetings {
 		if err := database.InsertRecord(tx, insertQuery, []any{characterId, greeting}); err != nil {
 			return fmt.Errorf("failed to insert greeting: %w", err)
