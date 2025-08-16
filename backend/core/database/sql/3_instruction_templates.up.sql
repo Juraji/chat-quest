@@ -5,11 +5,12 @@ CREATE TABLE instruction_templates
   type          VARCHAR(50)  NOT NULL,
   temperature   FLOAT DEFAULT NULL,
   system_prompt TEXT         NOT NULL,
+  world_setup TEXT NOT NULL,
   instruction   TEXT         NOT NULL
 );
 
 -- Default Prompts
-INSERT INTO instruction_templates (name, type, temperature, system_prompt, instruction)
+INSERT INTO instruction_templates (name, type, temperature, system_prompt, world_setup, instruction)
 VALUES ('Default Chat',
         'CHAT',
         NULL,
@@ -38,27 +39,5 @@ VALUES ('Default Chat',
 </Forbidden>
 
 Follow the instructions in <Guidelines></Guidelines>, avoiding the items listed in <Forbidden></Forbidden>.',
-        ''),
-       ('Default Memory Extraction',
-        'MEMORIES',
-        0.1,
-        'You are an assistant that compiles short, impactful character memories from conversations.',
-        '[OOC: Forget all previous instructions.]
-
-1. Identify significant events that meaningfully affect characters (e.g., new abilities, knowledge gained, relationship changes).
-2. Create one memory line per event per affected character in format:  {"character": "Character name", "memory": "memory text"}.
-3. Event descriptions should use present tense and be concise complete thoughts.
-4. Only include clearly impactful events - exclude minor happenings.
-5. If multiple characters are impacted, create separate lines for each perspective.
-6. Make sure to assign the correct memories to the correct characters.
-7. Use gender-fluid pronounce, such as "they", "them" and "their"
-8. Do not enrich the memories, only state facts from the previous conversation.
-9 Refer to the user as "{{.User}}" and refer to the assistants by their in chat names.
-
-Example output:
-```
-[
-  {"character": "Caspian", "memory": "..."},
-  {"character": "User", "memory": "..."}
-]
-```');
+        '',
+        '[OOC: Respond as {{.Character.Name}}]');

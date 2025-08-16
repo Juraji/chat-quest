@@ -93,7 +93,7 @@ Higher numbers (> 1.0) will increase creativity but decrease accuracy.">
                           aria-describedby="systemPromptInputHelp"
                           formControlName="systemPrompt"></textarea>
                 <div id="systemPromptInputHelp" class="form-text">
-                  Optionally describe your character's appearance, like physical traits and clothing.
+                  The rules of the system. Describe how the LLM should generate responses.
                 </div>
               </div>
             } @else if (!!systemPromptValue()) {
@@ -103,6 +103,41 @@ Higher numbers (> 1.0) will increase creativity but decrease accuracy.">
             } @else {
               <p class="form-text mb-0">
                 No system prompt defined.
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="card-title mb-0">World Setup</h5>
+              <button type="button" class="btn btn-sm" (click)="editWorldSetup.toggle()">
+                @if (editWorldSetup()) {
+                  <span class="bi bi-x"></span>
+                } @else {
+                  <span class="bi bi-pencil"></span>
+                }
+              </button>
+            </div>
+
+            @if (editWorldSetup()) {
+              <div>
+                <textarea type="text" class="form-control" rows="15"
+                          id="worldSetupInput"
+                          aria-describedby="worldSetupInputHelp"
+                          formControlName="worldSetup"></textarea>
+                <div id="worldSetupInputHelp" class="form-text">
+                  Used when creating a new chat session. Set up the world, scenario etc.
+                </div>
+              </div>
+            } @else if (!!worldSetupValue()) {
+              @let worldSetup = worldSetupValue();
+              <app-rendered-message [message]="worldSetup" [renderOptions]="{enableMD: true}"></app-rendered-message>
+              <app-token-count class="mt-2 float-end" [text]="worldSetup"></app-token-count>
+            } @else {
+              <p class="form-text mb-0">
+                No world setup defined.
               </p>
             }
           </div>
@@ -128,7 +163,8 @@ Higher numbers (> 1.0) will increase creativity but decrease accuracy.">
                           aria-describedby="instructionInputHelp"
                           formControlName="instruction"></textarea>
                 <div id="instructionInputHelp" class="form-text">
-                  Optionally describe your character's appearance, like physical traits and clothing.
+                  The final instruction for the LLM, appended to the user message to instruct the LLM on what to do
+                  next.
                 </div>
               </div>
             } @else if (!!instructionValue()) {

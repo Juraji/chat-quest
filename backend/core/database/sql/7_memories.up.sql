@@ -25,6 +25,13 @@ CREATE TABLE memory_preferences
 );
 
 -- Insert default record
+INSERT INTO instruction_templates (name, type, system_prompt, world_setup, instruction)
+VALUES ('Default Memories',
+        'MEMORIES',
+        'TODO!',
+        'TODO!',
+        'TODO!');
+
 INSERT INTO memory_preferences (id, memories_model_id, memories_instruction_id, embedding_model_id, memory_min_p,
                                 memory_trigger_after, memory_window_size)
 VALUES (0,

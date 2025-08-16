@@ -22,6 +22,7 @@ export function instructionResolverFactory(idParam: string): ResolveFn<Instructi
         type: 'CHAT',
         temperature: null,
         systemPrompt: '',
+        worldSetup: '',
         instruction: ''
       }),
       id => service.get(id)

@@ -29,6 +29,7 @@ type InstructionTemplate struct {
 	Type         InstructionType `json:"type"`
 	Temperature  *float32        `json:"temperature"`
 	SystemPrompt string          `json:"systemPrompt"`
+	WorldSetup   string          `json:"worldSetup"`
 	Instruction  string          `json:"instruction"`
 }
 
@@ -39,6 +40,7 @@ func instructionPromptScanner(scanner database.RowScanner, dest *InstructionTemp
 		&dest.Type,
 		&dest.Temperature,
 		&dest.SystemPrompt,
+		&dest.WorldSetup,
 		&dest.Instruction,
 	)
 }
@@ -57,9 +59,9 @@ func InstructionById(id int) (*InstructionTemplate, error) {
 func CreateInstructionPrompt(prompt *InstructionTemplate) error {
 	util.NegFloat32PtrToNil(&prompt.Temperature)
 
-	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, instruction)
-            VALUES (?, ?, ?, ?, ?) RETURNING id`
-	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction}
+	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, world_setup, instruction)
+            VALUES (?, ?, ?, ?, ?, ?) RETURNING id`
+	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.WorldSetup, prompt.Instruction}
 
 	err := database.InsertRecord(database.GetDB(), query, args, &prompt.ID)
 	if err != nil {

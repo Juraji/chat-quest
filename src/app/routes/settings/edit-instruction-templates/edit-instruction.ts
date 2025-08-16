@@ -36,11 +36,15 @@ export class EditInstruction {
     type: formControl<InstructionType>('CHAT', [Validators.required]),
     temperature: formControl<Nullable<number>>(null, [Validators.min(0.01)]),
     systemPrompt: formControl('', [Validators.required]),
+    worldSetup: formControl('', [Validators.required]),
     instruction: formControl('', [Validators.required]),
   })
 
   readonly editSystemPrompt = booleanSignal(false)
   readonly systemPromptValue: Signal<string> = controlValueSignal(this.formGroup, 'systemPrompt')
+
+  readonly editWorldSetup = booleanSignal(false)
+  readonly worldSetupValue: Signal<string> = controlValueSignal(this.formGroup, 'worldSetup')
 
   readonly editInstruction = booleanSignal(false)
   readonly instructionValue: Signal<string> = controlValueSignal(this.formGroup, 'instruction')

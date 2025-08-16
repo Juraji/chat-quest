@@ -7,5 +7,6 @@ export interface Instruction extends ChatQuestModel {
   type: InstructionType,
   temperature: Nullable<number>
   systemPrompt: string
+  worldSetup: string
   instruction: string
 }
