@@ -12,10 +12,14 @@
       color: var(--bs-code-color) !important;
       font-family: var(--bs-font-monospace), monospace;
       font-style: normal;
-      font-size: 0.875em;
+      font-size: 0.875rem;
       background-color: var(--bs-secondary-bg);
       padding: 2px;
       border-radius: var(--bs-border-radius-sm);
+    }
+
+    .variable-block {
+      color: var(--bs-gray) !important;
     }
 
     .out-of-character {
