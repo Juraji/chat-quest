@@ -12,7 +12,7 @@ type Provider interface {
 }
 
 type ChatGenerateRequest struct {
-	Messages      []*ChatGenerateRequestMessage
+	Messages      []ChatRequestMessage
 	ModelId       string
 	MaxTokens     int
 	Temperature   float32
@@ -21,16 +21,16 @@ type ChatGenerateRequest struct {
 	StopSequences []string
 }
 
-type ChatRequestMessageRole string
+type ChatMessageRole string
 
 const (
-	RoleSystem    ChatRequestMessageRole = "SYSTEM"
-	RoleUser      ChatRequestMessageRole = "USER"
-	RoleAssistant ChatRequestMessageRole = "ASSISTANT"
+	RoleSystem    ChatMessageRole = "SYSTEM"
+	RoleUser      ChatMessageRole = "USER"
+	RoleAssistant ChatMessageRole = "ASSISTANT"
 )
 
-type ChatGenerateRequestMessage struct {
-	Role    ChatRequestMessageRole
+type ChatRequestMessage struct {
+	Role    ChatMessageRole
 	Content string
 }
 
@@ -74,7 +74,7 @@ func (p *ConnectionProfile) GenerateEmbeddings(input string, llmModel LlmModel) 
 }
 
 func (p *ConnectionProfile) GenerateChatResponse(
-	messages []*ChatGenerateRequestMessage,
+	messages []ChatRequestMessage,
 	llmModel LlmModel,
 	overrideTemperature *float32,
 ) <-chan ChatGenerateResponse {

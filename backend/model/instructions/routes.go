@@ -9,7 +9,7 @@ func Routes(router *gin.RouterGroup) {
 	instructionPromptsRouter := router.Group("/instruction-templates")
 
 	instructionPromptsRouter.GET("", func(c *gin.Context) {
-		prompts, err := AllInstructionPrompts()
+		prompts, err := AllInstructions()
 		util.RespondList(c, prompts, err)
 	})
 
@@ -36,7 +36,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		err := CreateInstructionPrompt(&newPrompt)
+		err := CreateInstruction(&newPrompt)
 		util.RespondSingle(c, &newPrompt, err)
 	})
 
@@ -52,7 +52,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		err = UpdateInstructionPrompt(templateId, &prompt)
+		err = UpdateInstruction(templateId, &prompt)
 		util.RespondSingle(c, &prompt, err)
 	})
 
@@ -63,7 +63,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		err = DeleteInstructionPrompt(templateId)
+		err = DeleteInstruction(templateId)
 		util.RespondDeleted(c, err)
 	})
 }

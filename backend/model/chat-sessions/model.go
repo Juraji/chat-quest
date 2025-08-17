@@ -59,12 +59,13 @@ func chatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
 	)
 }
 
-func NewChatMessage(sessionId int, isUser bool, characterId *int, content string) *ChatMessage {
+func NewChatMessage(isUser bool, isSystem bool, characterId *int, content string) *ChatMessage {
 	return &ChatMessage{
 		ID:            0,
-		ChatSessionID: sessionId,
+		ChatSessionID: 0,
 		CreatedAt:     nil,
 		IsUser:        isUser,
+		IsSystem:      isSystem,
 		CharacterID:   characterId,
 		Content:       content,
 		MemoryID:      nil,
@@ -175,6 +176,12 @@ func Delete(worldId int, id int) error {
 func GetChatMessages(sessionId int) ([]ChatMessage, error) {
 	query := "SELECT * FROM chat_messages WHERE chat_session_id=?"
 	args := []any{sessionId}
+	return database.QueryForList(database.GetDB(), query, args, chatMessageScanner)
+}
+
+func GetChatMessagesPreceding(sessionId int, messageId int) ([]ChatMessage, error) {
+	query := "SELECT * FROM chat_messages WHERE chat_session_id=? and id < ?"
+	args := []any{sessionId, messageId}
 	return database.QueryForList(database.GetDB(), query, args, chatMessageScanner)
 }
 

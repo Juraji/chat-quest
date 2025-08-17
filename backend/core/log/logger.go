@@ -17,7 +17,7 @@ func Get() *zap.Logger {
 	return loggerInstance
 }
 
-func InitLogger(enableFileLogging bool) error {
+func InitLogger(enableFileLogging bool) {
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "time",
 		LevelKey:       "level",
@@ -38,7 +38,7 @@ func InitLogger(enableFileLogging bool) error {
 	if enableFileLogging {
 		file, err := os.OpenFile("chat-quest.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			return fmt.Errorf("error opening log file: %w", err)
+			panic(fmt.Errorf("error opening log file: %w", err))
 		}
 
 		fileWriter := zapcore.AddSync(file)
@@ -57,12 +57,9 @@ func InitLogger(enableFileLogging bool) error {
 		)
 	}
 
-	logger := zap.New(
+	loggerInstance = zap.New(
 		core,
 		zap.AddCaller(),
 		zap.AddStacktrace(zap.ErrorLevel), // Add stack trace for error logs
 	)
-
-	loggerInstance = logger
-	return nil
 }

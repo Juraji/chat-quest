@@ -2,8 +2,9 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 	_ "github.com/mattn/go-sqlite3"
+	"go.uber.org/zap"
+	"juraji.nl/chat-quest/core/log"
 )
 
 var dbInstance *sql.DB
@@ -16,27 +17,31 @@ func GetDB() *sql.DB {
 	return dbInstance
 }
 
-func InitDB() (func(), error) {
+// InitDB sets up the database, populates dbInstance and runs any migrations.
+func InitDB() func() {
+	// DB Setup
+	dbLogger := log.Get()
 	db, err := sql.Open("sqlite3", "./chat-quest.db")
 	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
+		dbLogger.Fatal("Failed to connect to database", zap.Error(err))
 	}
-
-	_, err = db.Exec("PRAGMA foreign_keys = ON;")
-	if err != nil {
-		return nil, fmt.Errorf("failed to enable foreign keys: %w", err)
-	}
-
-	if err = runLatestMigrations(db); err != nil {
-		return nil, fmt.Errorf("failed to run migrations: %w", err)
-	}
-
 	dbInstance = db
 	closeDB := func() {
 		err := db.Close()
 		if err != nil {
-			panic(fmt.Errorf("failed to close database: %w", err))
+			dbLogger.Fatal("Failed to close database", zap.Error(err))
 		}
 	}
-	return closeDB, nil
+
+	// SQLite specific
+	_, err = db.Exec("PRAGMA foreign_keys = ON;")
+	if err != nil {
+		dbLogger.Fatal("Failed to set foreign keys pragma for SQLite", zap.Error(err))
+	}
+
+	// Run migrations (will panic if fails)
+	runLatestMigrations(db)
+
+	// Return the db closer
+	return closeDB
 }

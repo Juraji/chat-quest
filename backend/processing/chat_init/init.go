@@ -1,4 +1,4 @@
-package chat_greeting
+package chat_init
 
 import (
 	"context"
@@ -48,7 +48,7 @@ func CreateChatSessionGreetings(
 			continue
 		}
 
-		message := sessions.NewChatMessage(sessionID, false, &participant.ID, *greeting)
+		message := sessions.NewChatMessage(false, false, &participant.ID, *greeting)
 		err = sessions.CreateChatMessage(sessionID, message)
 		if err != nil {
 			sessionLog.Error("Error creating chat message", zap.Error(err))

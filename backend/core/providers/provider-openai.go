@@ -89,7 +89,7 @@ func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) <-ch
 	}
 }
 
-func (r ChatRequestMessageRole) asOpenAiRole() string {
+func (r ChatMessageRole) asOpenAiRole() string {
 	switch r {
 	case RoleSystem:
 		return openai.ChatMessageRoleSystem

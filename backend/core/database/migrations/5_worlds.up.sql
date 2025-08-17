@@ -13,8 +13,8 @@ CREATE TABLE chat_preferences
   chat_instruction_id INTEGER REFERENCES instruction_templates (id) ON DELETE SET NULL
 );
 
--- Just making sure our default record exists
+-- Insert default record
 INSERT INTO chat_preferences (id, chat_model_id, chat_instruction_id)
 VALUES (0,
         NULL,
-        1);
+        NULL);

@@ -43,70 +43,59 @@ func init() {
 }
 
 func main() {
-	{
-		// Setup logger
-		err := log.InitLogger(false)
-		if err != nil {
-			panic(fmt.Errorf("failed setting up logger: %w", err))
-		}
-	}
+	// Setup logger
+	log.InitLogger(false)
 
-	log.Get().Info("ChatQuest starting...")
-	{
-		// Setup DB
-		log.Get().Info("Connecting to database...")
-		closeDB, err := database.InitDB()
-		if err != nil {
-			log.Get().Fatal("Failed to initialize database:", zap.Error(err))
-		}
+	mainLogger := log.Get()
+	mainLogger.Info("ChatQuest starting...")
 
-		defer closeDB()
-		log.Get().Info("Database initialized successfully!")
-	}
+	// Setup DB
+	mainLogger.Info("Connecting to database...")
+	closeDB := database.InitDB()
 
-	{
-		log.Get().Info("Setting up asynchronous processing...")
-		processing.SetupProcessing()
-	}
+	defer closeDB()
+	mainLogger.Info("Database initialized successfully!")
 
+	// Asynchronous processes (needs to be here, or it won't be compiled!)
+	mainLogger.Info("Setting up asynchronous processing...")
+	processing.SetupProcessing()
+
+	// New Router!
 	router := gin.New()
 
-	{
-		// Configure router
-		log.Get().Info("Setting up CORS...", zap.Any("hosts", CorsAllowOrigins))
-		corsConfig := cors.DefaultConfig()
-		corsConfig.AllowOrigins = CorsAllowOrigins
-		router.Use(cors.New(corsConfig))
+	// Configure router
+	mainLogger.Info("Setting up CORS...", zap.Any("hosts", CorsAllowOrigins))
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = CorsAllowOrigins
+	router.Use(cors.New(corsConfig))
 
-		if err := router.SetTrustedProxies(GinTrustedProxies); err != nil {
-			log.Get().Fatal("Failed to set trusted proxies", zap.Error(err))
-		}
+	if err := router.SetTrustedProxies(GinTrustedProxies); err != nil {
+		mainLogger.Fatal("Failed to set trusted proxies", zap.Error(err))
 	}
 
-	{
-		// Register routes (/api)
-		apiRouter := router.Group(ApiBasePath)
-		log.Get().Info("Registering route handlers...")
-		system.Routes(apiRouter)
-		characters.Routes(apiRouter)
-		instructions.Routes(apiRouter)
-		providers.Routes(apiRouter)
-		scenarios.Routes(apiRouter)
-		worlds.Routes(apiRouter)
-		chat_sessions.Routes(apiRouter)
-		memories.Routes(apiRouter)
-		sse.Routes(apiRouter)
-	}
+	// Register routes (/api)
+	apiRouter := router.Group(ApiBasePath)
+	mainLogger.Info("Registering route handlers...")
+	system.Routes(apiRouter)
+	characters.Routes(apiRouter)
+	instructions.Routes(apiRouter)
+	providers.Routes(apiRouter)
+	scenarios.Routes(apiRouter)
+	worlds.Routes(apiRouter)
+	chat_sessions.Routes(apiRouter)
+	memories.Routes(apiRouter)
+	sse.Routes(apiRouter)
 
-	// If endpoint is not found, the request is probably a UI resource.
-	// Else we just fail ugly, gl hackers.
-	log.Get().Info("Serving Chat Quest UI", zap.String("root", ChatQuestUIRoot))
+	// Setup UI host (any non-api route)
+	// If endpoint is not found, the request is probably a UI resource, else we just fail ugly.
+	mainLogger.Info("Serving Chat Quest UI", zap.String("root", ChatQuestUIRoot))
 	router.NoRoute(system.ChatQuestUIHandler(ChatQuestUIRoot))
 
+	// Finally start server
 	serverAddr := fmt.Sprintf("%s:%s", ApplicationHost, ApplicationPort)
 	//goland:noinspection HttpUrlsUsage
-	log.Get().Info("ChatQuest is running", zap.String("addr", "http://"+serverAddr))
+	mainLogger.Info("ChatQuest is running", zap.String("addr", "http://"+serverAddr))
 	if err := router.Run(serverAddr); err != nil {
-		log.Get().Fatal("Failed to start Chat Quest UI", zap.Error(err))
+		mainLogger.Fatal("Failed to start Chat Quest UI", zap.Error(err))
 	}
 }

@@ -35,8 +35,14 @@ func Routes(router *gin.RouterGroup) {
 	systemRouter.POST("/migrations/goto/:version", func(c *gin.Context) {
 		version, _ := util.GetIDParam(c, "version")
 		log.Get().Info("Migrating to version", zap.Int("version", version))
-		err := database.GoToVersion(uint(version))
-		util.RespondEmpty(c, err)
+		defer func() {
+			if r := recover(); r != nil {
+				util.RespondEmpty(c, r.(error))
+			}
+		}()
+
+		database.GoToVersion(uint(version))
+		util.RespondEmpty(c, nil)
 	})
 
 	systemRouter.POST("/shutdown", func(c *gin.Context) {

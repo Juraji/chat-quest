@@ -1,49 +1,84 @@
 package database
 
 import (
+	"context"
 	"database/sql"
-	"embed"
 	"errors"
-	"fmt"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"go.uber.org/zap"
+	"juraji.nl/chat-quest/core/log"
+	"juraji.nl/chat-quest/core/util"
 )
 
-//go:embed sql/*.sql
+import "embed"
+
+//go:embed migrations/*.sql
 var migrationsFs embed.FS
 
-func runLatestMigrations(db *sql.DB) error {
-	return runUsingMigrations(db, func(m *migrate.Migrate) error {
+func init() {
+	MigrationsCompletedSignal.AddListener(func(ctx context.Context, event MigratedEvent) {
+		logger := log.Get()
+		switch {
+		case event.FromVersion < event.ToVersion:
+			logger.Sugar().Infof("Database migrated up from v%d to v%d",
+				event.FromVersion, event.ToVersion)
+		case event.ToVersion < event.FromVersion:
+			logger.Sugar().Infof("Database migrated down from v%d to v%d",
+				event.FromVersion, event.ToVersion)
+		default:
+			logger.Info("No database migrations necessary")
+		}
+	})
+}
+
+func runLatestMigrations(db *sql.DB) {
+	runUsingMigrations(db, func(m *migrate.Migrate) error {
 		return m.Up()
 	})
 }
 
-func GoToVersion(version uint) error {
-	return runUsingMigrations(GetDB(), func(m *migrate.Migrate) error {
+func GoToVersion(version uint) {
+	runUsingMigrations(GetDB(), func(m *migrate.Migrate) error {
 		return m.Migrate(version)
 	})
 }
 
-func runUsingMigrations(db *sql.DB, action func(m *migrate.Migrate) error) error {
+func runUsingMigrations(db *sql.DB, action func(m *migrate.Migrate) error) {
+	logger := log.Get()
+
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 	if err != nil {
-		return fmt.Errorf("failed to create database driver instance: %v", err)
+		logger.Fatal("Failed to open database for migrations", zap.Error(err))
 	}
 
-	migrationsFsDriver, err := iofs.New(migrationsFs, "sql")
+	fsDriver, err := iofs.New(migrationsFs, "migrations")
 	if err != nil {
-		return fmt.Errorf("failed to create migrations fs driver: %v", err)
+		logger.Fatal("Failed to create fs driver", zap.Error(err))
 	}
 
-	m, err := migrate.NewWithInstance("iofs", migrationsFsDriver, "main", driver)
+	m, err := migrate.NewWithInstance("iofs", fsDriver, "main", driver)
 	if err != nil {
-		return fmt.Errorf("failed to create migrations: %v", err)
+		logger.Fatal("Failed to create migrations object", zap.Error(err))
 	}
 
-	if err = action(m); err != nil && !errors.Is(err, migrate.ErrNoChange) {
-		return fmt.Errorf("failed to migrate database: %v", err)
+	m.PrefetchMigrations = 0
+
+	fromVersion, _, err := m.Version()
+	if err != nil {
+		logger.Fatal("Failed to get old version from migrations", zap.Error(err))
 	}
 
-	return nil
+	err = action(m)
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		logger.Fatal("Failed to apply migrations", zap.Error(err))
+	}
+
+	toVersion, _, err := m.Version()
+	if err != nil {
+		logger.Fatal("Failed to get new version from migrations", zap.Error(err))
+	}
+
+	util.Emit(MigrationsCompletedSignal, MigratedEvent{FromVersion: fromVersion, ToVersion: toVersion})
 }

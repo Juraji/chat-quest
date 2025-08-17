@@ -30,11 +30,6 @@ type CharacterListView struct {
 	Tags      []Tag      `json:"tags,omitempty"`
 }
 
-type CharacterTextBlock struct {
-	CharacterId int    `json:"characterId"`
-	Text        string `json:"text"`
-}
-
 type Tag struct {
 	ID        int    `json:"id"`
 	Label     string `json:"label"`

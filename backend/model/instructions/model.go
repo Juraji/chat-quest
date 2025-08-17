@@ -45,7 +45,7 @@ func instructionPromptScanner(scanner database.RowScanner, dest *InstructionTemp
 	)
 }
 
-func AllInstructionPrompts() ([]InstructionTemplate, error) {
+func AllInstructions() ([]InstructionTemplate, error) {
 	query := "SELECT * FROM instruction_templates"
 	return database.QueryForList(database.GetDB(), query, nil, instructionPromptScanner)
 }
@@ -56,44 +56,46 @@ func InstructionById(id int) (*InstructionTemplate, error) {
 	return database.QueryForRecord(database.GetDB(), query, args, instructionPromptScanner)
 }
 
-func CreateInstructionPrompt(prompt *InstructionTemplate) error {
-	util.NegFloat32PtrToNil(&prompt.Temperature)
+func CreateInstruction(it *InstructionTemplate) error {
+	util.NegFloat32PtrToNil(&it.Temperature)
 
 	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, world_setup, instruction)
             VALUES (?, ?, ?, ?, ?, ?) RETURNING id`
-	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.WorldSetup, prompt.Instruction}
+	args := []any{it.Name, it.Type, it.Temperature, it.SystemPrompt, it.WorldSetup, it.Instruction}
 
-	err := database.InsertRecord(database.GetDB(), query, args, &prompt.ID)
+	err := database.InsertRecord(database.GetDB(), query, args, &it.ID)
 	if err != nil {
 		return err
 	}
 
-	util.Emit(InstructionCreatedSignal, prompt)
+	util.Emit(InstructionCreatedSignal, it)
 	return nil
 }
 
-func UpdateInstructionPrompt(id int, prompt *InstructionTemplate) error {
-	util.NegFloat32PtrToNil(&prompt.Temperature)
+func UpdateInstruction(id int, it *InstructionTemplate) error {
+	util.NegFloat32PtrToNil(&it.Temperature)
 
 	query := `UPDATE instruction_templates
             SET name = ?,
                 type = ?,
                 temperature = ?,
                 system_prompt = ?,
+                world_setup = ?,
                 instruction = ?
             WHERE id = ?`
-	args := []any{prompt.Name, prompt.Type, prompt.Temperature, prompt.SystemPrompt, prompt.Instruction, id}
+	args := []any{it.Name, it.Type, it.Temperature,
+		it.SystemPrompt, it.WorldSetup, it.Instruction, id}
 
 	err := database.UpdateRecord(database.GetDB(), query, args)
 	if err != nil {
 		return err
 	}
 
-	util.Emit(InstructionUpdatedSignal, prompt)
+	util.Emit(InstructionUpdatedSignal, it)
 	return nil
 }
 
-func DeleteInstructionPrompt(id int) error {
+func DeleteInstruction(id int) error {
 	query := "DELETE FROM instruction_templates WHERE id = ?"
 	args := []any{id}
 
