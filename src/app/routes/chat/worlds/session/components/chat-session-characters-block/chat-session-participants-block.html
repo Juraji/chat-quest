@@ -4,15 +4,17 @@
 
     <div class="mb-4 grid gap-1">
       @for (char of participants(); track char.id) {
-        <div class="g-col-6 g-col-xl-4">
+        <div class="g-col-6">
           <scalable class="mx-auto">
-            <app-character-card
-              title="Click to remove!"
-              class="cursor-pointer"
-              (click)="onRemoveParticipant(char)"
-              [character]="char">
-              <button type="button" class="btn btn-sm">
+            <app-character-card [character]="char">
+              <button type="button" class="btn btn-danger"
+                      title="Click to remove!"
+                      (click)="onRemoveParticipant(char)">
                 <span class="bi bi-x"></span>
+              </button>
+              <button type="button" class="btn btn-outline-primary"
+                      [routerLink]="['/chat/characters', char.id]">
+                <span class="bi bi-pencil"></span>
               </button>
             </app-character-card>
           </scalable>
@@ -23,14 +25,12 @@
     <label>Add Participants</label>
     <div class="grid gap-1">
       @for (char of available(); track char.id) {
-        <div class="g-col-4 g-col-xl-2">
+        <div class="g-col-6">
           <scalable class="mx-auto">
-            <app-character-card
-              title="Click to add!"
-              class="cursor-pointer"
-              (click)="onAddParticipant(char)"
-              [character]="char">
-              <button type="button" class="btn btn-sm">
+            <app-character-card [character]="char">
+              <button type="button" class="btn btn-success"
+                      title="Click to add!"
+                      (click)="onAddParticipant(char)">
                 <span class="bi bi-plus-lg"></span>
               </button>
             </app-character-card>

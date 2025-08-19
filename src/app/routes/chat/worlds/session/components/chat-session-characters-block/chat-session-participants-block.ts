@@ -4,12 +4,14 @@ import {ChatSessions} from '@api/chat-sessions';
 import {CharacterCard} from '@components/cards/character-card';
 import {Notifications} from '@components/notifications';
 import {Scalable} from '@components/scalable/scalable';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'chat-session-participants-block',
   imports: [
     CharacterCard,
-    Scalable
+    Scalable,
+    RouterLink
   ],
   templateUrl: './chat-session-participants-block.html',
 })
