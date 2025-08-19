@@ -16,17 +16,20 @@
       </tr>
       </thead>
       <tbody>
-        @if (templates() | empty) {
+        @if (instructionList() | empty) {
           <tr>
             <td colspan="2">No instruction templates defined.</td>
           </tr>
         }
-        @for (profile of templates(); track profile.id) {
-          <tr class="cursor-pointer" [routerLink]="['/settings/instruction-templates', profile.id]">
-            <td><span class="bi bi-terminal"></span>&nbsp;{{ profile.name }}</td>
-            <td class="text-muted">{{ profile.type }}</td>
+        @for (instruction of instructionList(); track instruction.id) {
+          <tr class="cursor-pointer" [routerLink]="['/settings/instruction-templates', instruction.id]">
+            <td><span class="bi bi-terminal"></span>&nbsp;{{ instruction.name }}</td>
+            <td class="text-muted">{{ instruction.type }}</td>
             <td>
-              <div class="btn-toolbar justify-content-end">
+              <div class="btn-toolbar justify-content-end gap-1">
+                <button class="btn btn-sm btn-secondary" (click)="onDuplicateInstruction($event, instruction)">
+                  <span class="bi bi-copy"></span>
+                </button>
                 <button class="btn btn-sm btn-primary">
                   <span class="bi bi-pencil"></span>
                 </button>

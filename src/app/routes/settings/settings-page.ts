@@ -26,7 +26,7 @@ export class SettingsPage {
   private readonly activatedRoute = inject(ActivatedRoute);
 
   readonly profiles: Signal<ConnectionProfile[]> = routeDataSignal(this.activatedRoute, 'profiles')
-  readonly templates: Signal<Instruction[]> = routeDataSignal(this.activatedRoute, 'templates')
+  readonly instructions: Signal<Instruction[]> = routeDataSignal(this.activatedRoute, 'instructions')
   readonly chatPreferences: Signal<ChatPreferences> = routeDataSignal(this.activatedRoute, 'chatPreferences');
   readonly memoryPreferences: Signal<MemoryPreferences> = routeDataSignal(this.activatedRoute, 'memoryPreferences');
   readonly llmModelViews: Signal<LlmModelView[]> = routeDataSignal(this.activatedRoute, 'llmModelViews');

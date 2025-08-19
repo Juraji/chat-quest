@@ -17,9 +17,10 @@ const routes: Routes = [
   {
     path: '',
     component: SettingsPage,
+    runGuardsAndResolvers: "paramsOrQueryParamsChange",
     resolve: {
       profiles: connectionProfilesResolver,
-      templates: instructionsResolver,
+      instructions: instructionsResolver,
       chatPreferences: chatSettingsResolver,
       memoryPreferences: memoryPreferencesResolver,
       llmModelViews: llmModelViewsResolver

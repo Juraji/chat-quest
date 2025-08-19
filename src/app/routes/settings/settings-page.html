@@ -6,18 +6,18 @@
   <div class="grid">
     <div class="g-col-12 g-col-lg-8">
       <connection-profiles-overview [profiles]="profiles()" class="d-block mb-3"/>
-      <instruction-overview [templates]="templates()"/>
+      <instruction-overview [instructions]="instructions()"/>
     </div>
     <div class="g-col-12 g-col-lg-4">
       <chat-settings
         [preferences]="chatPreferences()"
-        [instructionTemplates]="templates()"
+        [instructionTemplates]="instructions()"
         [llmModelViews]="llmModelViews()"/>
     </div>
     <div class="g-col-12">
       <memory-settings
         [preferences]="memoryPreferences()"
-        [instructionTemplates]="templates()"
+        [instructionTemplates]="instructions()"
         [llmModelViews]="llmModelViews()"/>
     </div>
   </div>
