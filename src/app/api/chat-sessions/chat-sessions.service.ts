@@ -51,6 +51,10 @@ export class ChatSessions {
     return this.http.delete<void>(`/worlds/${worldId}/chat-sessions/${sessionId}/participants/${characterId}`);
   }
 
+  triggerParticipantResponse(worldId: number, sessionId: number, characterId: number): Observable<void> {
+    return this.http.post<void>(`/worlds/${worldId}/chat-sessions/${sessionId}/participants/${characterId}/trigger-response`, null);
+  }
+
   getMessages(worldId: number, sessionId: number): Observable<ChatMessage[]> {
     return this.http.get<ChatMessage[]>(`/worlds/${worldId}/chat-sessions/${sessionId}/chat-messages`)
   }

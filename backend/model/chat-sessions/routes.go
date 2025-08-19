@@ -145,8 +145,6 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		// TODO: Trigger updating of memories
-
 		err = UpdateChatMessage(sessionId, messageId, &message)
 		util.RespondSingle(c, &message, err)
 	})
@@ -208,5 +206,27 @@ func Routes(router *gin.RouterGroup) {
 
 		err = RemoveParticipant(sessionId, characterId)
 		util.RespondEmpty(c, err)
+	})
+
+	sessionRouter.POST("/:sessionId/participants/:characterId/trigger-response", func(c *gin.Context) {
+		sessionId, err := util.GetIDParam(c, "sessionId")
+		if err != nil {
+			util.RespondBadRequest(c, "Invalid session ID")
+			return
+		}
+		characterId, err := util.GetIDParam(c, "characterId")
+		if err != nil {
+			util.RespondBadRequest(c, "Invalid character ID")
+			return
+		}
+
+		participant, err := GetParticipant(sessionId, characterId)
+		if err != nil {
+			util.RespondBadRequest(c, "Character is not a participant")
+			return
+		}
+
+		ChatParticipantResponseRequestedSignal.EmitBG(participant)
+		util.RespondEmpty(c, nil)
 	})
 }

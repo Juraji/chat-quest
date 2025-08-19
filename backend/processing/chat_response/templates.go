@@ -10,8 +10,9 @@ import (
 )
 
 type instructionTemplateVars struct {
-	MessageIndex int
-	Message      string
+	MessageIndex         int
+	Message              string
+	IsTriggeredByMessage bool
 
 	// Responding character info
 	Character        *c.Character
@@ -31,8 +32,15 @@ func newInstructionTemplateVars(
 ) (*instructionTemplateVars, error) {
 	vars := instructionTemplateVars{
 		MessageIndex: len(chatHistory),
-		Message:      triggerMessage.Content,
 	}
+
+	if triggerMessage != nil {
+		vars.IsTriggeredByMessage = true
+		vars.Message = triggerMessage.Content
+	} else {
+		vars.IsTriggeredByMessage = false
+	}
+
 	errChan := make(chan error, 5)
 
 	// Fetch main character

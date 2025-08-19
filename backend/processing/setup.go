@@ -10,5 +10,7 @@ func SetupProcessing() {
 	chatsessions.ChatSessionCreatedSignal.AddListener(
 		"CreateChatSessionGreetings", chat_init.CreateChatSessionGreetings)
 	chatsessions.ChatMessageCreatedSignal.AddListener(
-		"GenerateChatSessionCharacterResponse", chat_response.GenerateChatSessionCharacterResponse)
+		"GenerateResponseForMessage", chat_response.GenerateResponseForMessage)
+	chatsessions.ChatParticipantResponseRequestedSignal.AddListener(
+		"GenerateResponseForParticipant", chat_response.GenerateResponseForParticipant)
 }

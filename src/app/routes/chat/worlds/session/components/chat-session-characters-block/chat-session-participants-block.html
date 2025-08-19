@@ -16,6 +16,11 @@
                       [routerLink]="['/chat/characters', char.id]">
                 <span class="bi bi-pencil"></span>
               </button>
+              <button type="button" class="btn btn-primary"
+                      title="Trigger response"
+                      (click)="onTriggerResponse(char)">
+                <span class="bi bi-chat"></span>
+              </button>
             </app-character-card>
           </scalable>
         </div>

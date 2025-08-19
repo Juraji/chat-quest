@@ -41,4 +41,10 @@ export class ChatSessionParticipantsBlock {
       .removeParticipant(this.worldId(), this.chatSessionId(), char.id)
       .subscribe(() => this.notifications.toast(`${char.name} has been removed from the session`))
   }
+
+  onTriggerResponse(char: Character) {
+    this.chatSessions
+      .triggerParticipantResponse(this.worldId(), this.chatSessionId(), char.id)
+      .subscribe()
+  }
 }

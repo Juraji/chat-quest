@@ -62,6 +62,13 @@ func chatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
 	)
 }
 
+func chatParticipantScanner(scanner database.RowScanner, dest *ChatParticipant) error {
+	return scanner.Scan(
+		&dest.ChatSessionID,
+		&dest.CharacterID,
+	)
+}
+
 func NewChatMessage(isUser bool, isSystem bool, isGenerating bool, characterId *int, content string) *ChatMessage {
 	return &ChatMessage{
 		ID:            0,
@@ -255,6 +262,12 @@ func GetParticipants(sessionId int) ([]characters.Character, error) {
             WHERE cp.chat_session_id = ?`
 	args := []any{sessionId}
 	return database.QueryForList(database.GetDB(), query, args, characters.CharacterScanner)
+}
+
+func GetParticipant(sessionId int, characterId int) (*ChatParticipant, error) {
+	query := `SELECT * FROM chat_participants WHERE chat_session_id = ? and character_id = ?`
+	args := []any{sessionId, characterId}
+	return database.QueryForRecord(database.GetDB(), query, args, chatParticipantScanner)
 }
 
 func IsGroupSession(sessionId int) (bool, error) {
