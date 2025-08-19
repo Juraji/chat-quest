@@ -7,6 +7,8 @@ import (
 )
 
 func SetupProcessing() {
-	chatsessions.ChatSessionCreatedSignal.AddListener(chat_init.CreateChatSessionGreetings)
-	chatsessions.ChatMessageCreatedSignal.AddListener(chat_response.GenerateChatSessionCharacterResponse)
+	chatsessions.ChatSessionCreatedSignal.AddListener(
+		"CreateChatSessionGreetings", chat_init.CreateChatSessionGreetings)
+	chatsessions.ChatMessageCreatedSignal.AddListener(
+		"GenerateChatSessionCharacterResponse", chat_response.GenerateChatSessionCharacterResponse)
 }

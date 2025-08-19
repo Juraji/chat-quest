@@ -68,7 +68,7 @@ func CreateInstruction(it *InstructionTemplate) error {
 		return err
 	}
 
-	util.Emit(InstructionCreatedSignal, it)
+	InstructionCreatedSignal.EmitBG(it)
 	return nil
 }
 
@@ -91,7 +91,7 @@ func UpdateInstruction(id int, it *InstructionTemplate) error {
 		return err
 	}
 
-	util.Emit(InstructionUpdatedSignal, it)
+	InstructionUpdatedSignal.EmitBG(it)
 	return nil
 }
 
@@ -104,6 +104,6 @@ func DeleteInstruction(id int) error {
 		return err
 	}
 
-	util.Emit(InstructionDeletedSignal, id)
+	InstructionDeletedSignal.EmitBG(id)
 	return nil
 }

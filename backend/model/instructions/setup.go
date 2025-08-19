@@ -16,7 +16,7 @@ func init() {
 	const migrationsListenerKey = "InstallDefaultInstructions"
 	const migrationsListenerExecAtVersion = 3
 
-	database.MigrationsCompletedSignal.AddListener(func(ctx context.Context, event database.MigratedEvent) {
+	database.MigrationsCompletedSignal.AddListener(migrationsListenerKey, func(ctx context.Context, event database.MigratedEvent) {
 		if event.IsUpIncludingVersion(migrationsListenerExecAtVersion) {
 			creators := map[string]func() (*InstructionTemplate, error){
 				"Default Chat Instructions":     newChatInstructionTemplateFromDefault,
@@ -36,7 +36,7 @@ func init() {
 				}
 			}
 		}
-	}, migrationsListenerKey)
+	})
 }
 
 func newChatInstructionTemplateFromDefault() (*InstructionTemplate, error) {

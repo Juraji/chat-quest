@@ -71,7 +71,7 @@ func CreateWorld(newWorld *World) error {
 		return err
 	}
 
-	util.Emit(WorldCreatedSignal, newWorld)
+	WorldCreatedSignal.EmitBG(newWorld)
 	return nil
 }
 
@@ -96,7 +96,7 @@ func UpdateWorld(id int, world *World) error {
 		return err
 	}
 
-	util.Emit(WorldUpdatedSignal, world)
+	WorldUpdatedSignal.EmitBG(world)
 	return nil
 }
 
@@ -109,7 +109,7 @@ func DeleteWorld(id int) error {
 		return err
 	}
 
-	util.Emit(WorldDeletedSignal, id)
+	WorldDeletedSignal.EmitBG(id)
 	return nil
 }
 
@@ -133,6 +133,6 @@ func UpdateChatPreferences(prefs *ChatPreferences) error {
 		return err
 	}
 
-	util.Emit(ChatPreferencesUpdatedSignal, prefs)
+	ChatPreferencesUpdatedSignal.EmitBG(prefs)
 	return nil
 }

@@ -1,8 +1,8 @@
 package providers
 
 import (
-	"github.com/maniartech/signals"
 	"juraji.nl/chat-quest/core/sse"
+	"juraji.nl/chat-quest/core/util/signals"
 )
 
 var ConnectionProfileCreatedSignal = signals.New[*ConnectionProfile]()

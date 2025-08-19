@@ -9,7 +9,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
-	"juraji.nl/chat-quest/core/util"
 )
 
 import "embed"
@@ -18,7 +17,7 @@ import "embed"
 var migrationsFs embed.FS
 
 func init() {
-	MigrationsCompletedSignal.AddListener(func(ctx context.Context, event MigratedEvent) {
+	MigrationsCompletedSignal.AddListener("MigrationInfoLogging", func(ctx context.Context, event MigratedEvent) {
 		logger := log.Get()
 		switch {
 		case event.FromVersion < event.ToVersion:
@@ -80,5 +79,5 @@ func runUsingMigrations(db *sql.DB, action func(m *migrate.Migrate) error) {
 		logger.Fatal("Failed to get new version from migrations", zap.Error(err))
 	}
 
-	util.Emit(MigrationsCompletedSignal, MigratedEvent{FromVersion: fromVersion, ToVersion: toVersion})
+	MigrationsCompletedSignal.EmitBG(MigratedEvent{FromVersion: fromVersion, ToVersion: toVersion})
 }

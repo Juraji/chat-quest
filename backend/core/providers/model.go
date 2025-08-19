@@ -131,8 +131,8 @@ func CreateConnectionProfile(profile *ConnectionProfile, llmModels []*LlmModel) 
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	util.Emit(ConnectionProfileCreatedSignal, profile)
-	util.EmitAll(LlmModelCreatedSignal, llmModels)
+	ConnectionProfileCreatedSignal.EmitBG(profile)
+	LlmModelCreatedSignal.EmitAllBG(llmModels)
 	return nil
 }
 
@@ -150,7 +150,7 @@ func UpdateConnectionProfile(id int, profile *ConnectionProfile) error {
 		return err
 	}
 
-	util.Emit(ConnectionProfileUpdatedSignal, profile)
+	ConnectionProfileUpdatedSignal.EmitBG(profile)
 	return nil
 }
 
@@ -163,7 +163,7 @@ func DeleteConnectionProfileById(id int) error {
 		return err
 	}
 
-	util.Emit(ConnectionProfileDeletedSignal, id)
+	ConnectionProfileDeletedSignal.EmitBG(id)
 	return nil
 }
 
@@ -185,7 +185,7 @@ func CreateLlmModel(profileId int, llmModel *LlmModel) error {
 		return err
 	}
 
-	util.Emit(LlmModelCreatedSignal, llmModel)
+	LlmModelCreatedSignal.EmitBG(llmModel)
 	return nil
 }
 
@@ -233,7 +233,7 @@ func UpdateLlmModel(id int, llmModel *LlmModel) error {
 		return err
 	}
 
-	util.Emit(LlmModelUpdatedSignal, llmModel)
+	LlmModelUpdatedSignal.EmitBG(llmModel)
 	return nil
 }
 
@@ -243,7 +243,7 @@ func DeleteLlmModelById(id int) error {
 		return err
 	}
 
-	util.Emit(LlmModelDeletedSignal, id)
+	LlmModelDeletedSignal.EmitBG(id)
 	return nil
 }
 
@@ -303,8 +303,8 @@ func MergeLlmModels(profileId int, newModels []*LlmModel) error {
 		return err
 	}
 
-	util.EmitAll(LlmModelCreatedSignal, createdModels)
-	util.EmitAll(LlmModelDeletedSignal, deletedModelIds)
+	LlmModelCreatedSignal.EmitAllBG(createdModels)
+	LlmModelDeletedSignal.EmitAllBG(deletedModelIds)
 	return nil
 }
 

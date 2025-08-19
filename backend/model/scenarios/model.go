@@ -46,7 +46,7 @@ func CreateScenario(scenario *Scenario) error {
 		return err
 	}
 
-	util.Emit(ScenarioCreatedSignal, scenario)
+	ScenarioCreatedSignal.EmitBG(scenario)
 	return nil
 }
 
@@ -66,7 +66,7 @@ func UpdateScenario(id int, scenario *Scenario) error {
 		return err
 	}
 
-	util.Emit(ScenarioUpdatedSignal, scenario)
+	ScenarioUpdatedSignal.EmitBG(scenario)
 	return nil
 }
 
@@ -79,6 +79,6 @@ func DeleteScenario(id int) error {
 		return err
 	}
 
-	util.Emit(ScenarioDeletedSignal, id)
+	ScenarioDeletedSignal.EmitBG(id)
 	return nil
 }

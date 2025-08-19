@@ -116,8 +116,10 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 		return fmt.Errorf("failed to insert chat session: %w", err)
 	}
 
+	var addedParticipants []*ChatParticipant
 	for _, characterId := range characterIds {
 		err = addParticipant(tx, session.ID, characterId)
+		addedParticipants = append(addedParticipants, &ChatParticipant{session.ID, characterId})
 		if err != nil {
 			return fmt.Errorf("failed to insert chat participant (%d -> %d):  %w", session.ID, characterId, err)
 		}
@@ -128,12 +130,8 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	util.Emit(ChatSessionCreatedSignal, session)
-	for _, characterId := range characterIds {
-		participant := ChatParticipant{session.ID, characterId}
-		util.Emit(ChatParticipantAddedSignal, &participant)
-	}
-
+	ChatSessionCreatedSignal.EmitBG(session)
+	ChatParticipantAddedSignal.EmitAllBG(addedParticipants)
 	return nil
 }
 
@@ -157,7 +155,7 @@ func Update(worldId int, id int, session *ChatSession) error {
 		return err
 	}
 
-	util.Emit(ChatSessionUpdatedSignal, session)
+	ChatSessionUpdatedSignal.EmitBG(session)
 	return nil
 }
 
@@ -170,7 +168,7 @@ func Delete(worldId int, id int) error {
 		return err
 	}
 
-	util.Emit(ChatSessionDeletedSignal, worldId)
+	ChatSessionDeletedSignal.EmitBG(worldId)
 	return nil
 }
 
@@ -205,7 +203,7 @@ func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 		return err
 	}
 
-	util.Emit(ChatMessageCreatedSignal, chatMessage)
+	ChatMessageCreatedSignal.EmitBG(chatMessage)
 
 	return nil
 }
@@ -222,7 +220,7 @@ func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
 		return err
 	}
 
-	util.Emit(ChatMessageUpdatedSignal, chatMessage)
+	ChatMessageUpdatedSignal.EmitBG(chatMessage)
 	return nil
 }
 
@@ -242,7 +240,7 @@ func DeleteChatMessagesFrom(sessionId int, id int) error {
 		return err
 	}
 
-	util.EmitAll(ChatMessageDeletedSignal, deletedIds)
+	ChatMessageDeletedSignal.EmitAllBG(deletedIds)
 	return nil
 }
 
@@ -344,7 +342,7 @@ func AddParticipant(sessionId int, characterId int) error {
 	}
 
 	participant := ChatParticipant{sessionId, characterId}
-	util.Emit(ChatParticipantAddedSignal, &participant)
+	ChatParticipantAddedSignal.EmitBG(&participant)
 	return nil
 }
 
@@ -364,6 +362,6 @@ func RemoveParticipant(sessionId int, characterId int) error {
 	}
 
 	participant := ChatParticipant{sessionId, characterId}
-	util.Emit(ChatParticipantRemovedSignal, &participant)
+	ChatParticipantRemovedSignal.EmitBG(&participant)
 	return nil
 }

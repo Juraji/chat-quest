@@ -115,7 +115,7 @@ func CreateCharacter(newCharacter *Character) error {
 		return err
 	}
 
-	util.Emit(CharacterCreatedSignal, newCharacter)
+	CharacterCreatedSignal.EmitBG(newCharacter)
 	return nil
 }
 
@@ -150,7 +150,7 @@ func UpdateCharacter(id int, character *Character) error {
 		return err
 	}
 
-	util.Emit(CharacterUpdatedSignal, character)
+	CharacterUpdatedSignal.EmitBG(character)
 	return nil
 }
 
@@ -163,7 +163,7 @@ func DeleteCharacterById(id int) error {
 		return err
 	}
 
-	util.Emit(CharacterDeletedSignal, id)
+	CharacterDeletedSignal.EmitBG(id)
 	return nil
 }
 

@@ -1,8 +1,6 @@
 package database
 
-import (
-	"github.com/maniartech/signals"
-)
+import "juraji.nl/chat-quest/core/util/signals"
 
 type MigratedEvent struct {
 	FromVersion uint
@@ -25,4 +23,4 @@ func (e *MigratedEvent) IsUpIncludingVersion(version uint) bool {
 	return e.IsUp() && version > e.FromVersion && version <= e.ToVersion
 }
 
-var MigrationsCompletedSignal = signals.NewSync[MigratedEvent]()
+var MigrationsCompletedSignal = signals.New[MigratedEvent]()

@@ -2,7 +2,7 @@ package sse
 
 import (
 	"context"
-	"github.com/maniartech/signals"
+	"juraji.nl/chat-quest/core/util/signals"
 )
 
 type message struct {
@@ -12,8 +12,8 @@ type message struct {
 
 var sseCombinedSignal = signals.New[message]()
 
-func RegisterOnSSE[T any](name string, s signals.Signal[T]) {
-	s.AddListener(func(ctx context.Context, t T) {
+func RegisterOnSSE[T any](name string, s *signals.Signal[T]) {
+	s.AddListener(name, func(ctx context.Context, t T) {
 		sseCombinedSignal.Emit(ctx, message{Source: name, Payload: t})
 	})
 }

@@ -113,7 +113,7 @@ func CreateMemory(memory *Memory) error {
 		return err
 	}
 
-	util.Emit(MemoryCreatedSignal, memory)
+	MemoryCreatedSignal.EmitBG(memory)
 	return nil
 }
 
@@ -126,7 +126,7 @@ func UpdateMemory(id int, memory *Memory) error {
 		return err
 	}
 
-	util.Emit(MemoryUpdatedSignal, memory)
+	MemoryUpdatedSignal.EmitBG(memory)
 	return nil
 }
 
@@ -139,7 +139,7 @@ func DeleteMemory(id int) error {
 		return err
 	}
 
-	util.Emit(MemoryDeletedSignal, id)
+	MemoryDeletedSignal.EmitBG(id)
 	return nil
 }
 
@@ -178,6 +178,6 @@ func UpdateMemoryPreferences(prefs *MemoryPreferences) error {
 		return err
 	}
 
-	util.Emit(MemoryPreferencesUpdatedSignal, prefs)
+	MemoryPreferencesUpdatedSignal.EmitBG(prefs)
 	return nil
 }
