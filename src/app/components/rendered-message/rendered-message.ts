@@ -54,6 +54,7 @@ export class RenderedMessage {
       result = this.wrap(result, 'variable-block', '{{r', '}}');
       result = this.wrap(result, 'variable-block', '{{i', '}}');
       result = this.wrap(result, 'variable-block', '{{e', '}}');
+      result = this.wrap(result, 'variable', '{{$', '}}');
       result = this.wrap(result, 'variable', '{{.', '}}');
     }
     if (opts.enableOOC) {

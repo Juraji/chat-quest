@@ -258,11 +258,8 @@ func SetDialogueExamplesByCharacterId(characterId int, examples []string) error 
 func CharacterGreetingsByCharacterId(characterId int) ([]string, error) {
 	query := "SELECT text FROM character_greetings WHERE character_id = ?"
 	args := []any{characterId}
-	scanFunc := func(rows database.RowScanner, dest *string) error {
-		return rows.Scan(dest)
-	}
 
-	return database.QueryForList(database.GetDB(), query, args, scanFunc)
+	return database.QueryForList(database.GetDB(), query, args, database.StringScanner)
 }
 
 func SetGreetingsByCharacterId(characterId int, greetings []string) error {
@@ -294,11 +291,8 @@ func SetGreetingsByCharacterId(characterId int, greetings []string) error {
 func CharacterGroupGreetingsByCharacterId(characterId int) ([]string, error) {
 	query := "SELECT text FROM character_group_greetings WHERE character_id = ?"
 	args := []any{characterId}
-	scanFunc := func(rows database.RowScanner, dest *string) error {
-		return rows.Scan(dest)
-	}
 
-	return database.QueryForList(database.GetDB(), query, args, scanFunc)
+	return database.QueryForList(database.GetDB(), query, args, database.StringScanner)
 }
 
 func SetGroupGreetingsByCharacterId(characterId int, greetings []string) error {

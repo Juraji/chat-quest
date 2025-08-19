@@ -1,4 +1,4 @@
-package template_utils
+package util
 
 import (
 	"bytes"
@@ -6,12 +6,8 @@ import (
 	gt "text/template"
 )
 
-func NewTemplate(name string, template string, funcMap gt.FuncMap) (*gt.Template, error) {
-	return gt.New(name).Funcs(funcMap).Parse(template)
-}
-
-func NewTemplateWithLazy(name string, template string) (*gt.Template, error) {
-	return NewTemplate(name, template, LazyTemplateFuncMap())
+func NewTextTemplate(name string, template string) (*gt.Template, error) {
+	return gt.New(name).Parse(template)
 }
 
 func WriteToString(template *gt.Template, data any) string {

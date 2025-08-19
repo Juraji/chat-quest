@@ -2,7 +2,7 @@ package chat_response
 
 import (
 	"fmt"
-	t "juraji.nl/chat-quest/core/util/template_utils"
+	"juraji.nl/chat-quest/core/util"
 	c "juraji.nl/chat-quest/model/characters"
 	s "juraji.nl/chat-quest/model/chat-sessions"
 	"juraji.nl/chat-quest/model/scenarios"
@@ -15,12 +15,12 @@ type instructionTemplateVars struct {
 
 	// Responding character info
 	Character        *c.Character
-	DialogueExamples *t.LazyTemplateSlice[string]
+	DialogueExamples []string
 
 	// Session details
-	OtherParticipants   *t.LazyTemplateSlice[c.Character]
-	WorldDescription    *t.LazyTemplateVar[string]
-	ScenarioDescription *t.LazyTemplateVar[string]
+	OtherParticipants   []c.Character
+	WorldDescription    string
+	ScenarioDescription string
 }
 
 func newInstructionTemplateVars(
@@ -29,74 +29,91 @@ func newInstructionTemplateVars(
 	chatHistory []s.ChatMessage,
 	characterId int,
 ) (*instructionTemplateVars, error) {
-	// We handle the main character first, as it is the only thing that can error "now".
-	var character *c.Character
-	{
+	vars := instructionTemplateVars{
+		MessageIndex: len(chatHistory),
+		Message:      triggerMessage.Content,
+	}
+	errChan := make(chan error, 5)
+
+	// Fetch main character
+	go func() {
 		char, err := c.CharacterById(characterId)
 		if err != nil {
-			return nil, err
+			errChan <- fmt.Errorf("error getting character by id: %v", err)
+			return
 		}
 		err = applyCharacterTemplates(char)
 		if err != nil {
-			return nil, err
+			errChan <- fmt.Errorf("error applying character templates: %v", err)
+			return
 		}
-		character = char
-	}
 
-	dialogueExamplesVar := t.NewLazyTemplateSlice(func() ([]string, error) {
-		return c.DialogueExamplesByCharacterId(characterId)
-	})
+		vars.Character = char
+		errChan <- nil
+	}()
 
-	otherParticipantsVar := t.NewLazyTemplateSlice(func() ([]c.Character, error) {
-		participants, err := s.GetParticipants(session.ID)
+	// Fetch dialogue examples
+	go func() {
+		de, err := c.DialogueExamplesByCharacterId(characterId)
 		if err != nil {
-			return nil, err
+			errChan <- fmt.Errorf("error getting dialogue examples by character: %v", err)
+			return
 		}
 
-		for _, participant := range participants {
-			err := applyCharacterTemplates(&participant)
-			if err != nil {
-				return nil, err
-			}
+		vars.DialogueExamples = de
+		errChan <- nil
+	}()
+
+	// Fetch other participants
+	go func() {
+		ops, err := s.GetParticipants(session.ID)
+		if err != nil {
+			errChan <- fmt.Errorf("error getting participants: %v", err)
+			return
 		}
 
-		return participants, nil
-	})
+		vars.OtherParticipants = ops
+		errChan <- nil
+	}()
 
-	worldDescriptionVar := t.NewLazyTemplateVar(func() (string, error) {
+	// Fetch world description
+	go func() {
 		w, err := worlds.WorldById(session.WorldID)
 		if err != nil {
-			return "", err
+			errChan <- fmt.Errorf("error getting world: %v", err)
+			return
 		}
 
-		if w.Description == nil {
-			return "", nil
-		} else {
-			return *w.Description, nil
+		if w.Description != nil {
+			vars.WorldDescription = *w.Description
 		}
-	})
+		errChan <- nil
+	}()
 
-	scenarioDescriptionVar := t.NewLazyTemplateVar(func() (string, error) {
+	// Fetch scenario description
+	go func() {
 		if session.ScenarioID == nil {
-			return "", nil
+			errChan <- nil
+			return
 		}
+
 		scenario, err := scenarios.ScenarioById(*session.ScenarioID)
 		if err != nil {
-			return "", err
+			errChan <- fmt.Errorf("error getting scenario: %v", err)
+			return
 		}
 
-		return scenario.Description, nil
-	})
+		vars.ScenarioDescription = scenario.Description
+		errChan <- nil
+	}()
 
-	return &instructionTemplateVars{
-		MessageIndex:        len(chatHistory),
-		Message:             triggerMessage.Content,
-		Character:           character,
-		DialogueExamples:    dialogueExamplesVar,
-		OtherParticipants:   otherParticipantsVar,
-		WorldDescription:    worldDescriptionVar,
-		ScenarioDescription: scenarioDescriptionVar,
-	}, nil
+	for i := 0; i < 5; i++ {
+		if err := <-errChan; err != nil {
+			return nil, err
+		}
+	}
+
+	return &vars, nil
 }
 
 func applyCharacterTemplates(char *c.Character) error {
@@ -109,16 +126,16 @@ func applyCharacterTemplates(char *c.Character) error {
 	}
 
 	for _, fieldPtr := range fieldsToProcess {
-		if fieldPtr == nil || !t.HasTemplateVars(*fieldPtr) {
+		if fieldPtr == nil || !util.HasTemplateVars(*fieldPtr) {
 			continue
 		}
 
-		tpl, err := t.NewTemplate("", *fieldPtr, nil)
+		tpl, err := util.NewTextTemplate(char.Name, *fieldPtr)
 		if err != nil {
 			return fmt.Errorf("failed to create template for character field: %w", err)
 		}
 
-		*fieldPtr = t.WriteToString(tpl, characterVars)
+		*fieldPtr = util.WriteToString(tpl, characterVars)
 	}
 
 	return nil

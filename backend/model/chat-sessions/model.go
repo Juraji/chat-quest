@@ -5,6 +5,7 @@ import (
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/util"
 	"juraji.nl/chat-quest/model/characters"
+	"math/rand"
 	"time"
 )
 
@@ -263,30 +264,77 @@ func IsGroupSession(sessionId int) (bool, error) {
 	return *isGroupChat, nil
 }
 
-// RandomParticipantId selects a random character ID from a chat session,
-// biased by each character's group_talkativeness value. The query creates a weighted
-// probability distribution and uses it to select a participant with higher talkativeness
-// characters being more likely to be chosen.
-// Note that a character is always chosen, if there are any. Even if all are really not talkative.
+// RandomParticipantId selects a participant from a chat session with weighted randomness based on talkativeness.
+// The function returns a pointer to the selected participant's ID or nil if no selection could be made.
 func RandomParticipantId(sessionId int) (*int, error) {
-	// language=sqlite
-	query := `WITH ranked_characters AS (
-              SELECT
-                cp.character_id,
-                c.group_talkativeness,
-                SUM(c.group_talkativeness) OVER (ORDER BY RANDOM()) as running_sum,
-                SUM(c.group_talkativeness) OVER () as total_sum
-              FROM chat_participants cp
-              JOIN characters c ON cp.character_id = c.id
-              WHERE cp.chat_session_id = ?
-            )
-            SELECT character_id
-            FROM ranked_characters
-            WHERE RANDOM() * total_sum <= running_sum
-            LIMIT 1;`
-	args := []any{sessionId}
+	const scale float32 = 20
+	const minT float32 = 0.05
+	type choice struct {
+		cId           int
+		talkativeness float32
+	}
 
-	return database.QueryForRecord(database.GetDB(), query, args, database.IntScanner)
+	query := `SELECT
+                c.id AS participant_id,
+                c.group_talkativeness AS group_talkativeness
+            FROM chat_participants p
+                JOIN characters c ON p.character_id = c.id
+            WHERE chat_session_id = ?;`
+
+	args := []any{sessionId}
+	scanFunc := func(scanner database.RowScanner, dest *choice) error {
+		var t float32
+
+		err := scanner.Scan(
+			&dest.cId,
+			&t)
+		if err != nil {
+			return err
+		}
+
+		dest.talkativeness = util.MaxFloat32(t, minT)
+		return nil
+	}
+
+	choices, err := database.QueryForList(database.GetDB(), query, args, scanFunc)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(choices) == 0 {
+		// No participants
+		return nil, nil
+	}
+	if len(choices) == 1 {
+		// Single participant
+		return &choices[0].cId, nil
+	}
+
+	// Calculate total weight (scaled by scale)
+	totalWeight := 0
+	for _, p := range choices {
+		totalWeight += int(p.talkativeness * scale)
+	}
+
+	if totalWeight == 0 {
+		return nil, nil
+	}
+
+	// Generate random number between 0 and totalWeight-1
+	randomValue := rand.Intn(totalWeight)
+
+	// Find the participant that contains our random value
+	accumulatedWeight := 0
+	for _, p := range choices {
+		weight := int(p.talkativeness * scale)
+		accumulatedWeight += weight
+		if randomValue < accumulatedWeight {
+			return &p.cId, nil
+		}
+	}
+
+	// This line should theoretically never be reached if weights are correct
+	return nil, nil
 }
 
 func AddParticipant(sessionId int, characterId int) error {

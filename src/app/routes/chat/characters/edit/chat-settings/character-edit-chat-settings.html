@@ -16,7 +16,7 @@
 
           <p class="form-text">
             Greetings are messages your character (randomly) posts when starting a new chat.
-            It is recommended to have at least one greeting, else ChatQuest will come up with something.
+            It is recommended to have at least one greeting, else the character won't greet the user.
           </p>
 
           @if (editGreetings()) {
@@ -139,9 +139,24 @@
 
           <p class="form-text">
             Group greetings are used (randomly) instead of greetings, when the chat is started with multiple characters.
-            If no group greetings are defined, the normal greetings are used, else ChatQuest will come up with
-            something.
+            If no group greetings are defined, the normal greetings are used, else the character won't greet the user.
           </p>
+
+          <div class="mb-3" formGroupName="character">
+            <label for="characterTalkativenessInput" class="form-label">Talkativeness</label>
+            <div class="d-flex justify-content-between small text-muted">
+              <div>Fairly silent</div>
+              <div>Normal</div>
+              <div>Very Noisy</div>
+            </div>
+            <input type="range" class="form-range px-4"
+                   formControlName="groupTalkativeness"
+                   id="characterTalkativenessInput"
+                   aria-describedby="characterTalkativenessInputHelp" min="0" max="1" step="0.1">
+            <div class="form-text" id="characterTalkativenessInputHelp">
+              Talkativeness in group chats.
+            </div>
+          </div>
 
           @if (editGroupGreetings()) {
             <div class="mb-3" formArrayName="groupGreetings">

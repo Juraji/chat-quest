@@ -5,7 +5,7 @@ import (
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	p "juraji.nl/chat-quest/core/providers"
-	t "juraji.nl/chat-quest/core/util/template_utils"
+	"juraji.nl/chat-quest/core/util"
 	chatsessions "juraji.nl/chat-quest/model/chat-sessions"
 	"juraji.nl/chat-quest/model/instructions"
 	"juraji.nl/chat-quest/model/worlds"
@@ -45,14 +45,13 @@ func GenerateChatSessionCharacterResponse(
 	logger = logger.With(zap.Int("selectedCharacterId", characterId))
 
 	// Process instruction templates
-	systemInstruction, worldSetupInstruction, userInstruction, ok := processInstructionTemplates(
-		logger, *instruction, session, message, chatHistory, characterId)
+	ok = processInstructionTemplates(logger, instruction, session, message, chatHistory, characterId)
 	if !ok {
 		return
 	}
 
 	// Build messages to send to LLM
-	messages := createChatRequestMessages(systemInstruction, worldSetupInstruction, userInstruction, chatHistory)
+	messages := createChatRequestMessages(instruction, chatHistory)
 
 	// Do LLM and handle output
 	chatResponseChan := connectionProfile.GenerateChatResponse(messages, *llmModel, instruction.Temperature)
@@ -117,9 +116,7 @@ func fetchSessionDetails(logger *zap.Logger, sessionId int, message *chatsession
 }
 
 func createChatRequestMessages(
-	systemInstruction string,
-	worldSetupInstruction string,
-	userInstruction string,
+	instruction *instructions.InstructionTemplate,
 	chatHistory []chatsessions.ChatMessage,
 ) []p.ChatRequestMessage {
 	// Pre-allocate messages with history len + max number of messages added here
@@ -127,8 +124,8 @@ func createChatRequestMessages(
 
 	// Add system and world setup messages
 	messages = append(messages,
-		p.ChatRequestMessage{Role: p.RoleSystem, Content: systemInstruction},
-		p.ChatRequestMessage{Role: p.RoleUser, Content: worldSetupInstruction},
+		p.ChatRequestMessage{Role: p.RoleSystem, Content: instruction.SystemPrompt},
+		p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.WorldSetup},
 	)
 
 	// Add initial assistant message if needed, to maintain role order
@@ -149,61 +146,58 @@ func createChatRequestMessages(
 	}
 
 	// Add user instruction message
-	messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: userInstruction})
+	messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.Instruction})
 
 	return messages
 }
 
 func processInstructionTemplates(
 	logger *zap.Logger,
-	instruction instructions.InstructionTemplate,
+	instruction *instructions.InstructionTemplate,
 	session *chatsessions.ChatSession,
 	triggerMessage *chatsessions.ChatMessage,
 	chatHistory []chatsessions.ChatMessage,
 	characterId int,
-) (string, string, string, bool) {
+) bool {
+	logger = logger.With(zap.Int("instructionId", instruction.ID))
+
 	templateVars, err := newInstructionTemplateVars(session, triggerMessage, chatHistory, characterId)
 	if err != nil {
 		logger.Error("Error generating template variables", zap.Error(err))
-		return "", "", "", false
+		return false
 	}
 
-	systemInstruction := instruction.SystemPrompt
-	if t.HasTemplateVars(instruction.SystemPrompt) {
-		tpl, err := t.NewTemplateWithLazy("System Prompt", instruction.SystemPrompt)
-		if err != nil {
-			logger.Error("Failed parsing system instruction template",
-				zap.Int("instructionId", instruction.ID), zap.Error(err))
-			return "", "", "", false
+	fields := []*string{
+		&instruction.SystemPrompt,
+		&instruction.WorldSetup,
+		&instruction.Instruction,
+	}
+
+	okChan := make(chan bool, len(fields))
+
+	for _, fieldPtr := range fields {
+		go func() {
+			if util.HasTemplateVars(*fieldPtr) {
+				tpl, err := util.NewTextTemplate("Template", *fieldPtr)
+				if err != nil {
+					logger.Error("Failed parsing system instruction template", zap.Error(err))
+					okChan <- false
+					return
+				}
+
+				*fieldPtr = util.WriteToString(tpl, templateVars)
+			}
+			okChan <- true
+		}()
+	}
+
+	for i := 0; i < len(fields); i++ {
+		res := <-okChan
+		if !res {
+			return false
 		}
-
-		systemInstruction = t.WriteToString(tpl, templateVars)
 	}
-
-	worldSetup := instruction.WorldSetup
-	if t.HasTemplateVars(instruction.WorldSetup) {
-		tpl, err := t.NewTemplateWithLazy("WorldSetup", instruction.WorldSetup)
-		if err != nil {
-			logger.Info("Failed parsing world setup instruction template",
-				zap.Int("instructionId", instruction.ID), zap.Error(err))
-		}
-
-		worldSetup = t.WriteToString(tpl, templateVars)
-	}
-
-	userInstruction := instruction.Instruction
-	if t.HasTemplateVars(instruction.Instruction) {
-		tpl, err := t.NewTemplateWithLazy("Instruction", instruction.Instruction)
-		if err != nil {
-			logger.Error("Failed parsing user instruction template",
-				zap.Int("instructionId", instruction.ID), zap.Error(err))
-			return "", "", "", false
-		}
-
-		userInstruction = t.WriteToString(tpl, templateVars)
-	}
-
-	return systemInstruction, worldSetup, userInstruction, true
+	return true
 }
 
 func fetchChatResponsePreferences(

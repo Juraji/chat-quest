@@ -26,7 +26,7 @@
       color: var(--bs-secondary-color) !important;
       font-family: var(--bs-font-monospace), monospace;
       font-style: italic;
-      font-size: 0.875em;
+      font-size: 0.875rem;
     }
 
     .md-block {
@@ -34,8 +34,8 @@
       color: unset;
       font-family: var(--bs-font-monospace), monospace;
       font-style: normal;
-      font-size: 0.875em;
-      background-color: var(--bs-secondary-bg);
+      font-size: 0.875rem;
+      background-color: rgba(0, 0, 0, 0.1);
       padding: 0.5rem;
       border-radius: var(--bs-border-radius-sm);
     }
