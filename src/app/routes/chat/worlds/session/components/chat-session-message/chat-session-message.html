@@ -5,7 +5,14 @@
     @if (characterAvatar(); as url) {
       <img class="character-avatar" [src]="url" alt="Character avatar"/>
     }
-    <h6 class="mb-0 flex-grow-1">{{ characterName() }}</h6>
+    <h6 class="mb-0" [class.flex-grow-1]="!isGenerating()">{{ characterName() }}</h6>
+    @if (isGenerating()) {
+      <div class="dots-of-generation ms-2 flex-grow-1">
+        <div class="dot dot-1"></div>
+        <div class="dot dot-2"></div>
+        <div class="dot dot-3"></div>
+      </div>
+    }
     <div class="btn-toolbar gap-1 message-actions">
       <button type="button" class="btn btn-sm btn-secondary"
               (click)="manageMemoryRequest.emit()">

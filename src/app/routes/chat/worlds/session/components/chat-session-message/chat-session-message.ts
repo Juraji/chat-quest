@@ -20,6 +20,7 @@ export class ChatSessionMessage {
 
   readonly content: Signal<string> = computed(() => this.message().content)
   readonly isUser: Signal<boolean> = computed(() => this.message().isUser)
+  readonly isGenerating: Signal<boolean> = computed(() => this.message().isGenerating)
   readonly createdAt: Signal<string> = computed(() => this.message().createdAt!)
   readonly memoryId: Signal<Nullable<number>> = computed(() => this.message().memoryId)
 

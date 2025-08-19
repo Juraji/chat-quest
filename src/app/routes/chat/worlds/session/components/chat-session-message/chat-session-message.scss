@@ -14,4 +14,80 @@
       opacity: 1;
     }
   }
+
+  .dots-of-generation {
+    display: flex;
+    gap: 0.2rem;
+
+    .dot {
+      width: 0.75rem;
+      height: 0.75rem;
+      background-color: rgba(255, 255, 255, 0.35);
+      border-radius: 50%;
+      opacity: 0;
+    }
+
+    .dot-1 {
+      animation: dot-1-animation 2s ease-in-out infinite;
+    }
+
+    .dot-2 {
+      animation: dot-2-animation 2s ease-in-out infinite;
+    }
+
+    .dot-3 {
+      animation: dot-3-animation 2s ease-in-out infinite;
+    }
+
+    @keyframes dot-1-animation {
+      10% {
+        opacity: 0;
+      }
+      30% {
+        opacity: 1;
+      }
+      70% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes dot-2-animation {
+      0% {
+        opacity: 0;
+      }
+      25% {
+        opacity: 0;
+      }
+      45% {
+        opacity: 1;
+      }
+      70% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes dot-3-animation {
+      0% {
+        opacity: 0;
+      }
+      40% {
+        opacity: 0;
+      }
+      55% {
+        opacity: 1;
+      }
+      70% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+  }
 }

@@ -16,6 +16,7 @@ export interface ChatMessage extends ChatQuestModel {
   createdAt: Nullable<string>
   isUser: boolean
   isSystem: boolean
+  isGenerating: boolean
   characterId: Nullable<number>
   content: string
   readonly memoryId: Nullable<number>

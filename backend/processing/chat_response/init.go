@@ -57,9 +57,8 @@ func GenerateChatSessionCharacterResponse(
 	chatResponseChan := connectionProfile.GenerateChatResponse(messages, *llmModel, instruction.Temperature)
 
 	// Create response message in history
-	responseMessage := chatsessions.NewChatMessage(false, false, &characterId, "")
-	err := chatsessions.CreateChatMessage(sessionId, responseMessage)
-	if err != nil {
+	responseMessage := chatsessions.NewChatMessage(false, false, true, &characterId, "")
+	if err := chatsessions.CreateChatMessage(sessionId, responseMessage); err != nil {
 		logger.Warn("Failed to create response chat message", zap.Error(err))
 		return
 	}
@@ -68,7 +67,10 @@ func GenerateChatSessionCharacterResponse(
 		select {
 		case response, ok := <-chatResponseChan:
 			if !ok {
-				logger.Debug("Chat response channel closed")
+				responseMessage.IsGenerating = false
+				if err := chatsessions.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); err != nil {
+					logger.Error("Failed to update response chat message upon finalization", zap.Error(err))
+				}
 				return
 			}
 			if response.Error != nil {
@@ -77,9 +79,8 @@ func GenerateChatSessionCharacterResponse(
 			}
 
 			responseMessage.Content = responseMessage.Content + response.Content
-			err := chatsessions.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage)
-			if err != nil {
-				logger.Warn("Failed to update response chat message", zap.Error(err))
+			if err := chatsessions.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); err != nil {
+				logger.Error("Failed to update response chat message", zap.Error(err))
 				return
 			}
 		case <-ctx.Done():
