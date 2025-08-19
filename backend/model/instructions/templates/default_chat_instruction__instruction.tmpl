@@ -1,4 +1,8 @@
 {{- /*gotype: juraji.nl/chat-quest/processing/chat_response.instructionTemplateVars */ -}}
+{{if .IsTriggeredByMessage}}
 {{.Message}}
 
 [OOC: Respond as {{.Character.Name}}]
+{{else}}
+[OOC: Respond as {{.Character.Name}} to the previous message]
+{{end}}
