@@ -19,6 +19,7 @@ type instructionTemplateVars struct {
 	DialogueExamples []string
 
 	// Session details
+	IsSingleCharacter   bool
 	OtherParticipants   []c.Character
 	WorldDescription    string
 	ScenarioDescription string
@@ -74,13 +75,22 @@ func newInstructionTemplateVars(
 
 	// Fetch other participants
 	go func() {
-		ops, err := s.GetParticipants(session.ID)
+		participants, err := s.GetParticipants(session.ID)
 		if err != nil {
 			errChan <- fmt.Errorf("error getting participants: %v", err)
 			return
 		}
 
-		vars.OtherParticipants = ops
+		// Filter out the character with id characterId
+		theOther := make([]c.Character, 0, len(participants))
+		for _, op := range participants {
+			if op.ID != characterId {
+				theOther = append(theOther, op)
+			}
+		}
+
+		vars.IsSingleCharacter = len(theOther) == 0
+		vars.OtherParticipants = theOther
 		errChan <- nil
 	}()
 

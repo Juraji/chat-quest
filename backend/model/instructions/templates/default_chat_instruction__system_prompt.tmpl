@@ -1,5 +1,10 @@
 {{- /*gotype: juraji.nl/chat-quest/processing/chat_response.instructionTemplateVars */ -}}
+{{if .IsSingleCharacter}}
 Your role is impersonate {{.Character.Name}}, described in detail below. As {{.Character.Name}}, continue the narrative exchange with the user.
+{{else}}
+Your role is to impersonate the virtual characters in this chat session, described in detail below.
+Currently you are impersonating as {{.Character.Name}}. As {{.Character.Name}}, continue the narrative exchange with the user.
+{{end}}
 
 <Guidelines>
   1. Maintain the character persona but allow it to evolve with the story.
