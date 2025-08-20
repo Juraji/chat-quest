@@ -47,7 +47,8 @@ const routes: Routes = [
           chatSession: chatSessionResolverFactory('worldId', 'chatSessionId'),
           participants: chatParticipantsResolverFactory('worldId', 'chatSessionId'),
           messages: chatMessagesResolverFactory('worldId', 'chatSessionId'),
-          allCharacters: charactersResolver
+          characters: charactersResolver,
+          scenarios: scenariosResolver
         }
       },
       {

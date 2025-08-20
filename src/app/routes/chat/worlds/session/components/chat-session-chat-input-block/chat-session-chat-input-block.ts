@@ -1,9 +1,10 @@
-import {Component, inject, input, InputSignal, Signal} from '@angular/core';
+import {Component, inject, Signal} from '@angular/core';
 import {ChatMessage, ChatSessions} from '@api/chat-sessions';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {controlValueSignal, formControl, formGroup} from '@util/ng';
 import {TokenCount} from '@components/token-count';
 import {NEW_ID} from '@api/common';
+import {ChatSessionData} from '../../chat-session-data';
 
 interface ChatInputForm {
   message: string;
@@ -18,10 +19,11 @@ interface ChatInputForm {
   templateUrl: './chat-session-chat-input-block.html',
 })
 export class ChatSessionChatInputBlock {
+  private readonly sessionData = inject(ChatSessionData)
   private readonly chatSessions = inject(ChatSessions);
 
-  readonly worldId: InputSignal<number> = input.required()
-  readonly chatSessionId: InputSignal<number> = input.required()
+  readonly worldId: Signal<number> = this.sessionData.worldId
+  readonly chatSessionId: Signal<number> = this.sessionData.chatSessionId
 
   readonly formGroup = formGroup<ChatInputForm>({
     message: formControl('', [Validators.required])

@@ -1,10 +1,11 @@
-import {Component, effect, inject, input, InputSignal} from '@angular/core';
+import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {ChatSession, ChatSessions} from '@api/chat-sessions';
-import {World} from '@api/worlds';
 import {DatePipe} from '@angular/common';
 import {formControl, formGroup, readOnlyControl} from '@util/ng';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Notifications} from '@components/notifications';
+import {ChatSessionData} from '../../chat-session-data';
+import {Scenario} from '@api/scenarios';
 
 @Component({
   selector: 'chat-session-edit-base-session-block',
@@ -15,24 +16,26 @@ import {Notifications} from '@components/notifications';
   templateUrl: './chat-session-edit-base-session-block.html',
 })
 export class ChatSessionEditBaseSessionBlock {
+  private readonly sessionData = inject(ChatSessionData)
   private readonly chatSessions = inject(ChatSessions)
   private readonly notifications = inject(Notifications)
 
-  readonly world: InputSignal<World> = input.required()
-  readonly chatSession: InputSignal<ChatSession> = input.required()
+  readonly worldName: Signal<string> = computed(() => this.sessionData.chatSession().name)
+  readonly createdAt: Signal<Nullable<string>> = computed(() => this.sessionData.chatSession().createdAt)
+  readonly scenarios: Signal<Scenario[]> = this.sessionData.scenarios
 
   readonly formGroup = formGroup<ChatSession>({
     id: readOnlyControl(),
     worldId: readOnlyControl(),
     createdAt: readOnlyControl(),
     name: formControl('', [Validators.required]),
-    scenarioId: readOnlyControl(),
+    scenarioId: formControl(0),
     enableMemories: formControl(true),
   })
 
   constructor() {
     effect(() => {
-      const session = this.chatSession();
+      const session = this.sessionData.chatSession();
       this.formGroup.reset(session)
     });
   }
@@ -41,12 +44,12 @@ export class ChatSessionEditBaseSessionBlock {
     if (this.formGroup.invalid) return
 
     const update: ChatSession = {
-      ...this.chatSession(),
+      ...this.sessionData.chatSession(),
       ...this.formGroup.value
     }
 
     this.chatSessions
-      .save(this.world().id, update)
+      .save(this.sessionData.worldId(), update)
       .subscribe(() => this.notifications.toast("Session details updated!"))
   }
 }
