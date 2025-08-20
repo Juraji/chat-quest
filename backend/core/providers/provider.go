@@ -3,6 +3,7 @@ package providers
 import (
 	"fmt"
 	"juraji.nl/chat-quest/core/util"
+	"strings"
 )
 
 type Provider interface {
@@ -71,6 +72,18 @@ func (p *ConnectionProfile) GenerateEmbeddings(input string, llmModel LlmModel) 
 	}
 
 	return embedding, nil
+}
+
+func (lm *LlmModel) GetStopSequences() []string {
+	if lm.StopSequences == nil || *lm.StopSequences == "" {
+		return nil
+	}
+
+	sequences := strings.Split(*lm.StopSequences, ",")
+	for i := range sequences {
+		sequences[i] = strings.TrimSpace(sequences[i])
+	}
+	return sequences
 }
 
 func (p *ConnectionProfile) GenerateChatResponse(

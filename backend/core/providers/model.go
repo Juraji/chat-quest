@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/util"
-	"strings"
 )
 
 type ProviderType string
@@ -47,18 +46,6 @@ type LlmModelView struct {
 	ModelId               string `json:"modelId"`
 	ConnectionProfileId   int    `json:"profileId"`
 	ConnectionProfileName string `json:"profileName"`
-}
-
-func (lm *LlmModel) GetStopSequences() []string {
-	if lm.StopSequences == nil || *lm.StopSequences == "" {
-		return nil
-	}
-
-	sequences := strings.Split(*lm.StopSequences, ",")
-	for i := range sequences {
-		sequences[i] = strings.TrimSpace(sequences[i])
-	}
-	return sequences
 }
 
 func connectionProfileScanner(scanner database.RowScanner, dest *ConnectionProfile) error {
