@@ -8,7 +8,7 @@
           <scalable class="mx-auto">
             <app-character-card [character]="char">
               <button type="button" class="btn btn-danger"
-                      title="Click to remove!"
+                      title="Remove from chat session"
                       (click)="onRemoveParticipant(char)">
                 <span class="bi bi-x"></span>
               </button>
@@ -34,7 +34,7 @@
           <scalable class="mx-auto">
             <app-character-card [character]="char">
               <button type="button" class="btn btn-success"
-                      title="Click to add!"
+                      title="Add to chat session"
                       (click)="onAddParticipant(char)">
                 <span class="bi bi-plus-lg"></span>
               </button>
