@@ -79,5 +79,8 @@ func runUsingMigrations(db *sql.DB, action func(m *migrate.Migrate) error) {
 		logger.Fatal("Failed to get new version from migrations", zap.Error(err))
 	}
 
-	MigrationsCompletedSignal.EmitBG(MigratedEvent{FromVersion: fromVersion, ToVersion: toVersion})
+	// Emit migration event and wait for all listeners to complete
+	MigrationsCompletedSignal.
+		EmitBG(MigratedEvent{FromVersion: fromVersion, ToVersion: toVersion}).
+		Wait()
 }
