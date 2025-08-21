@@ -84,16 +84,12 @@ func RandomParticipantId(sessionId int) (*int, bool) {
 
 	args := []any{sessionId}
 	scanFunc := func(scanner database.RowScanner, dest *choice) error {
-		var t float32
-
-		err := scanner.Scan(
-			&dest.cId,
-			&t)
+		err := scanner.Scan(&dest.cId, &dest.talkativeness)
 		if err != nil {
 			return err
 		}
 
-		dest.talkativeness = util.MaxFloat32(t, minT)
+		dest.talkativeness = util.MaxFloat32(dest.talkativeness, minT)
 		return nil
 	}
 

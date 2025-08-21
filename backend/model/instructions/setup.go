@@ -3,8 +3,7 @@ package instructions
 import (
 	"context"
 	"embed"
-	"errors"
-	"fmt"
+	"github.com/pkg/errors"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/util"
 	"strings"
@@ -74,15 +73,15 @@ func newInstructionTemplateFromDefault(
 ) (*InstructionTemplate, error) {
 	systemPromptTpl, err := util.ReadFileAsString(templatesFs, systemPromptTplPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load template from '%s': %w", systemPromptTplPath, err)
+		return nil, errors.Wrapf(err, "failed to load template from '%s'", systemPromptTplPath)
 	}
 	worldSetupTpl, err := util.ReadFileAsString(templatesFs, worldSetupTplPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load template from '%s': %w", worldSetupTplPath, err)
+		return nil, errors.Wrapf(err, "failed to load template from '%s'", worldSetupTplPath)
 	}
 	instructionTpl, err := util.ReadFileAsString(templatesFs, userInstructionTplPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load template from '%s': %w", userInstructionTplPath, err)
+		return nil, errors.Wrapf(err, "failed to load template from '%s'", userInstructionTplPath)
 	}
 
 	systemPromptTpl = strings.SplitN(systemPromptTpl, "\n", 2)[1]
