@@ -8,6 +8,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-sqlite3 v1.14.29
+	github.com/pkg/errors v0.9.1
 	github.com/sashabaranov/go-openai v1.41.1
 	github.com/tiktoken-go/tokenizer v0.6.2
 	go.uber.org/zap v1.27.0

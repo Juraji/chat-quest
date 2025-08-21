@@ -2,6 +2,7 @@ package chat_response
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	p "juraji.nl/chat-quest/core/providers"
@@ -39,19 +40,22 @@ func GenerateResponseForParticipant(ctx context.Context, payload *chatsessions.C
 
 	instruction, err := instructions.InstructionById(*prefs.ChatInstructionID)
 	if err != nil {
-		logger.Error("Error fetching chat instruction", zap.Error(err))
+		logger.Error("Error fetching chat instruction",
+			zap.Intp("instructionId", prefs.ChatInstructionID), zap.Error(err))
 		return
 	}
 
 	llmModel, err := p.LlmModelById(*prefs.ChatModelID)
 	if err != nil {
-		logger.Error("Error fetching preferred chat model", zap.Error(err))
+		logger.Error("Error fetching preferred chat model",
+			zap.Intp("modelId", prefs.ChatModelID), zap.Error(err))
 		return
 	}
 
 	connectionProfile, err := p.ConnectionProfileById(llmModel.ConnectionProfileId)
 	if err != nil {
-		logger.Error("Error fetching preferred connection profile", zap.Error(err))
+		logger.Error("Error fetching preferred connection profile",
+			zap.Int("connectionProfileId", llmModel.ConnectionProfileId), zap.Error(err))
 		return
 	}
 
@@ -70,8 +74,9 @@ func GenerateResponseForParticipant(ctx context.Context, payload *chatsessions.C
 	}
 
 	// Process instruction templates
-	ok := processInstructionTemplates(logger, instruction, session, chatHistory, characterId, nil)
-	if !ok {
+	err = processInstructionTemplates(instruction, session, chatHistory, characterId, nil)
+	if err != nil {
+		logger.Error("Error processing instruction templates", zap.Error(err))
 		return
 	}
 
@@ -111,19 +116,22 @@ func GenerateResponseForMessage(
 
 	instruction, err := instructions.InstructionById(*prefs.ChatInstructionID)
 	if err != nil {
-		logger.Error("Error fetching chat instruction", zap.Error(err))
+		logger.Error("Error fetching chat instruction",
+			zap.Intp("instructionId", prefs.ChatInstructionID), zap.Error(err))
 		return
 	}
 
 	llmModel, err := p.LlmModelById(*prefs.ChatModelID)
 	if err != nil {
-		logger.Error("Error fetching preferred chat model", zap.Error(err))
+		logger.Error("Error fetching preferred chat model",
+			zap.Intp("modelId", prefs.ChatModelID), zap.Error(err))
 		return
 	}
 
 	connectionProfile, err := p.ConnectionProfileById(llmModel.ConnectionProfileId)
 	if err != nil {
-		logger.Error("Error fetching preferred connection profile", zap.Error(err))
+		logger.Error("Error fetching preferred connection profile",
+			zap.Int("connectionProfileId", llmModel.ConnectionProfileId), zap.Error(err))
 		return
 	}
 
@@ -154,8 +162,9 @@ func GenerateResponseForMessage(
 	logger = logger.With(zap.Int("selectedCharacterId", *characterId))
 
 	// Process instruction templates
-	ok := processInstructionTemplates(logger, instruction, session, chatHistory, *characterId, message)
-	if !ok {
+	err = processInstructionTemplates(instruction, session, chatHistory, *characterId, message)
+	if err != nil {
+		logger.Error("Error processing instruction templates", zap.Error(err))
 		return
 	}
 
@@ -255,19 +264,15 @@ func createChatRequestMessages(
 }
 
 func processInstructionTemplates(
-	logger *zap.Logger,
 	instruction *instructions.InstructionTemplate,
 	session *chatsessions.ChatSession,
 	chatHistory []chatsessions.ChatMessage,
 	characterId int,
 	triggerMessage *chatsessions.ChatMessage,
-) bool {
-	logger = logger.With(zap.Int("instructionId", instruction.ID))
-
+) error {
 	templateVars, err := newInstructionTemplateVars(session, triggerMessage, chatHistory, characterId)
 	if err != nil {
-		logger.Error("Error generating template variables", zap.Error(err))
-		return false
+		return err
 	}
 
 	fields := []*string{
@@ -276,29 +281,28 @@ func processInstructionTemplates(
 		&instruction.Instruction,
 	}
 
-	okChan := make(chan bool, len(fields))
+	errChan := make(chan error, len(fields))
 
 	for _, fieldPtr := range fields {
 		go func() {
 			if util.HasTemplateVars(*fieldPtr) {
 				tpl, err := util.NewTextTemplate("Template", *fieldPtr)
 				if err != nil {
-					logger.Error("Failed parsing system instruction template", zap.Error(err))
-					okChan <- false
+					errChan <- errors.Wrap(err, "Error creating template for instruction template")
 					return
 				}
 
 				*fieldPtr = strings.TrimSpace(util.WriteToString(tpl, templateVars))
 			}
-			okChan <- true
+			errChan <- nil
 		}()
 	}
 
 	for i := 0; i < len(fields); i++ {
-		res := <-okChan
-		if !res {
-			return false
+		err = <-errChan
+		if err != nil {
+			return errors.Wrap(err, "Error processing instruction template")
 		}
 	}
-	return true
+	return nil
 }
