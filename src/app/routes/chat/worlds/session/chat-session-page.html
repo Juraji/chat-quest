@@ -6,7 +6,6 @@
   <div class="grid gap-3 flex-grow-1 overflow-y-hidden chat-grid">
     <div class="g-col-3 h-100 pb-4 overflow-y-auto chat-grid-column">
       <chat-session-edit-base-session-block class="d-block mb-3"/>
-      <chat-session-participants-block/>
     </div>
     <div class="g-col-6 h-100 overflow-y-hidden d-flex flex-column gap-2 chat-grid-column">
       <div #chatMessagesContainer
@@ -18,6 +17,7 @@
       <chat-session-chat-input-block class="d-block mb-2"/>
     </div>
     <div class="g-col-3 h-100 pb-4 overflow-y-auto chat-grid-column">
+      <chat-session-participants-block/>
     </div>
   </div>
 </div>

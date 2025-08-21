@@ -30,10 +30,10 @@
     <label>Add Participants</label>
     <div class="grid gap-1">
       @for (char of available(); track char.id) {
-        <div class="g-col-6">
+        <div class="g-col-6 g-col-lg-4">
           <scalable class="mx-auto">
             <app-character-card [character]="char">
-              <button type="button" class="btn btn-success"
+              <button type="button" class="btn btn-success w-100"
                       title="Add to chat session"
                       (click)="onAddParticipant(char)">
                 <span class="bi bi-plus-lg"></span>
