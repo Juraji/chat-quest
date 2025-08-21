@@ -1,7 +1,7 @@
 import {Component, computed, effect, ElementRef, inject, Signal, viewChild} from '@angular/core';
 import {PageHeader} from '@components/page-header';
 import {ChatMessage} from '@api/chat-sessions';
-import {ChatSessionChatInputBlock, ChatSessionEditBaseSessionBlock, ChatSessionParticipantsBlock} from './components';
+import {ChatSessionChatInputBlock, ChatSessionDetailsBlock, ChatSessionParticipantsBlock} from './components';
 import {ChatSessionMessage} from './components/chat-session-message/chat-session-message';
 import {ChatSessionData} from './chat-session-data';
 
@@ -9,7 +9,7 @@ import {ChatSessionData} from './chat-session-data';
   selector: 'chat-with-page',
   imports: [
     PageHeader,
-    ChatSessionEditBaseSessionBlock,
+    ChatSessionDetailsBlock,
     ChatSessionParticipantsBlock,
     ChatSessionChatInputBlock,
     ChatSessionMessage,

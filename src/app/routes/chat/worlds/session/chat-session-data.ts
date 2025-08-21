@@ -2,7 +2,7 @@ import {computed, inject, Injectable, linkedSignal, Signal, WritableSignal} from
 import {ActivatedRoute, Router} from '@angular/router';
 import {SSE} from '@api/sse';
 import {routeDataSignal} from '@util/ng';
-import {World} from '@api/worlds';
+import {ChatPreferences, ChatPreferencesUpdated, World} from '@api/worlds';
 import {
   ChatMessage,
   ChatMessageCreated,
@@ -19,7 +19,8 @@ import {Character, CharacterCreated, CharacterDeleted, CharacterUpdated} from '@
 import {Scenario, ScenarioCreated, ScenarioDeleted, ScenarioUpdated} from '@api/scenarios';
 import {entityIdFilter} from '@api/common';
 import {arrayAddItem, arrayRemoveItem, arrayUpsertItem} from '@util/array';
-import {map} from 'rxjs';
+import {map, tap} from 'rxjs';
+import {LlmModelView} from '@api/providers';
 
 @Injectable()
 export class ChatSessionData {
@@ -46,6 +47,11 @@ export class ChatSessionData {
 
   private readonly _scenarios: Signal<Scenario[]> = routeDataSignal(this.activatedRoute, 'scenarios')
   readonly scenarios: WritableSignal<Scenario[]> = linkedSignal(() => this._scenarios())
+
+  private readonly _chatPreferences: Signal<ChatPreferences> = routeDataSignal(this.activatedRoute, 'chatPreferences')
+  readonly chatPreferences: WritableSignal<ChatPreferences> = linkedSignal(() => this._chatPreferences())
+
+  readonly llmModels: Signal<LlmModelView[]> = routeDataSignal(this.activatedRoute, 'llmModels')
 
   constructor() {
     this.sse
@@ -104,5 +110,10 @@ export class ChatSessionData {
       .on(ChatMessageDeleted)
       .subscribe(messageId => this.messages
         .update(prev => arrayRemoveItem(prev, ({id}) => id === messageId)))
+
+    this.sse
+      .on(ChatPreferencesUpdated)
+      .pipe(tap(x => console.log(x)))
+      .subscribe(prefs => this.chatPreferences.set(prefs))
   }
 }

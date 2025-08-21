@@ -15,4 +15,5 @@ func init() {
 	sse.RegisterOnSSE("WorldCreated", WorldCreatedSignal)
 	sse.RegisterOnSSE("WorldUpdated", WorldUpdatedSignal)
 	sse.RegisterOnSSE("WorldDeleted", WorldDeletedSignal)
+	sse.RegisterOnSSE("ChatPreferencesUpdated", ChatPreferencesUpdatedSignal)
 }

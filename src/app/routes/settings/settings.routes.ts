@@ -10,7 +10,7 @@ import {
 import {EditConnectionProfile,} from "./connection-profiles"
 import {instructionResolverFactory, instructionsResolver} from '@api/instructions/instructions.resolvers';
 import {EditInstruction} from './edit-instruction-templates';
-import {chatSettingsResolver} from '@api/worlds/worlds.resolvers';
+import {chatPreferencesResolver} from '@api/worlds/worlds.resolvers';
 import {memoryPreferencesResolver} from '@api/memories/memories.resolvers';
 
 const routes: Routes = [
@@ -21,7 +21,7 @@ const routes: Routes = [
     resolve: {
       profiles: connectionProfilesResolver,
       instructions: instructionsResolver,
-      chatPreferences: chatSettingsResolver,
+      chatPreferences: chatPreferencesResolver,
       memoryPreferences: memoryPreferencesResolver,
       llmModelViews: llmModelViewsResolver
     }

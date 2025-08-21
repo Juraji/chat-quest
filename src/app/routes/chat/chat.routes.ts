@@ -14,7 +14,7 @@ import {
   characterTagsResolverFactory
 } from '@api/characters/characters.resolvers';
 import {scenarioResolverFactory, scenariosResolver} from '@api/scenarios/scenarios.resolvers';
-import {worldResolverFactory, worldsResolver} from '@api/worlds';
+import {chatPreferencesResolver, worldResolverFactory, worldsResolver} from '@api/worlds';
 import {EditWorldPage} from './worlds/edit/edit-world-page';
 import {ChatSessionPage, newChatSessionGuard, validatePreferencesGuard} from './worlds/session';
 import {
@@ -22,6 +22,7 @@ import {
   chatParticipantsResolverFactory,
   chatSessionResolverFactory
 } from '@api/chat-sessions';
+import {llmModelViewsResolver} from '@api/providers';
 
 const routes: Routes = [
   {
@@ -48,7 +49,9 @@ const routes: Routes = [
           participants: chatParticipantsResolverFactory('worldId', 'chatSessionId'),
           messages: chatMessagesResolverFactory('worldId', 'chatSessionId'),
           characters: charactersResolver,
-          scenarios: scenariosResolver
+          scenarios: scenariosResolver,
+          llmModels: llmModelViewsResolver,
+          chatPreferences: chatPreferencesResolver,
         }
       },
       {
