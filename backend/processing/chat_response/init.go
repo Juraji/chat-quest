@@ -45,17 +45,10 @@ func GenerateResponseForParticipant(ctx context.Context, payload *chatsessions.C
 		return
 	}
 
-	llmModel, err := p.LlmModelById(*prefs.ChatModelID)
+	modelInstance, err := p.GetLlmModelInstanceById(*prefs.ChatModelID)
 	if err != nil {
-		logger.Error("Error fetching preferred chat model",
+		logger.Error("Error fetching preferred chat model instance",
 			zap.Intp("modelId", prefs.ChatModelID), zap.Error(err))
-		return
-	}
-
-	connectionProfile, err := p.ConnectionProfileById(llmModel.ConnectionProfileId)
-	if err != nil {
-		logger.Error("Error fetching preferred connection profile",
-			zap.Int("connectionProfileId", llmModel.ConnectionProfileId), zap.Error(err))
 		return
 	}
 
@@ -80,7 +73,7 @@ func GenerateResponseForParticipant(ctx context.Context, payload *chatsessions.C
 		return
 	}
 
-	generateResponse(ctx, logger, sessionId, &characterId, instruction, llmModel, connectionProfile, chatHistory)
+	generateResponse(ctx, logger, sessionId, &characterId, instruction, modelInstance, chatHistory)
 }
 
 func GenerateResponseForMessage(
@@ -121,17 +114,10 @@ func GenerateResponseForMessage(
 		return
 	}
 
-	llmModel, err := p.LlmModelById(*prefs.ChatModelID)
+	modelInstance, err := p.GetLlmModelInstanceById(*prefs.ChatModelID)
 	if err != nil {
-		logger.Error("Error fetching preferred chat model",
+		logger.Error("Error fetching preferred chat model instance",
 			zap.Intp("modelId", prefs.ChatModelID), zap.Error(err))
-		return
-	}
-
-	connectionProfile, err := p.ConnectionProfileById(llmModel.ConnectionProfileId)
-	if err != nil {
-		logger.Error("Error fetching preferred connection profile",
-			zap.Int("connectionProfileId", llmModel.ConnectionProfileId), zap.Error(err))
 		return
 	}
 
@@ -168,7 +154,7 @@ func GenerateResponseForMessage(
 		return
 	}
 
-	generateResponse(ctx, logger, sessionId, characterId, instruction, llmModel, connectionProfile, chatHistory)
+	generateResponse(ctx, logger, sessionId, characterId, instruction, modelInstance, chatHistory)
 }
 
 func generateResponse(
@@ -177,8 +163,7 @@ func generateResponse(
 	sessionId int,
 	characterId *int,
 	instruction *instructions.InstructionTemplate,
-	llmModel *p.LlmModel,
-	connectionProfile *p.ConnectionProfile,
+	modelInstance *p.LlmModelInstance,
 	chatHistory []chatsessions.ChatMessage,
 ) {
 	// Check for cancellation
@@ -191,7 +176,7 @@ func generateResponse(
 	messages := createChatRequestMessages(instruction, chatHistory)
 
 	// Do LLM and handle output
-	chatResponseChan := connectionProfile.GenerateChatResponse(messages, *llmModel, instruction.Temperature)
+	chatResponseChan := modelInstance.GenerateChatResponse(messages, instruction.Temperature)
 
 	// Create response message
 	responseMessage := chatsessions.NewChatMessage(false, false, true, characterId, "")

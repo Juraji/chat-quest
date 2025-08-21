@@ -64,9 +64,6 @@ func QueryForRecord[T any](
 	row := q.QueryRow(query, args...)
 	err := scanFunc(row, &dest)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
-		}
 		return nil, err
 	}
 
@@ -144,10 +141,6 @@ func RollBackOnErr(tx *sql.Tx, err error) {
 			log.Get().Error("Rollback failed", zap.Error(rbErr))
 		}
 	}
-}
-
-func IntScanner(scanner RowScanner, dest *int) error {
-	return scanner.Scan(dest)
 }
 
 func StringScanner(scanner RowScanner, dest *string) error {

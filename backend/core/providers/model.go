@@ -48,6 +48,18 @@ type LlmModelView struct {
 	ConnectionProfileName string `json:"profileName"`
 }
 
+type LlmModelInstance struct {
+	ProviderType  ProviderType `json:"providerType"`
+	BaseUrl       string       `json:"baseUrl"`
+	ApiKey        string       `json:"apiKey"`
+	ModelId       string       `json:"modelId"`
+	Temperature   float32      `json:"temperature"`
+	MaxTokens     int          `json:"maxTokens"`
+	TopP          float32      `json:"topP"`
+	Stream        bool         `json:"stream"`
+	StopSequences *string      `json:"stopSequences"`
+}
+
 func connectionProfileScanner(scanner database.RowScanner, dest *ConnectionProfile) error {
 	return scanner.Scan(
 		&dest.ID,
@@ -78,6 +90,20 @@ func llModelViewScanner(scanner database.RowScanner, dest *LlmModelView) error {
 		&dest.ModelId,
 		&dest.ConnectionProfileId,
 		&dest.ConnectionProfileName,
+	)
+}
+
+func llmModelInstanceScanner(scanner database.RowScanner, dest *LlmModelInstance) error {
+	return scanner.Scan(
+		&dest.ProviderType,
+		&dest.BaseUrl,
+		&dest.ApiKey,
+		&dest.ModelId,
+		&dest.Temperature,
+		&dest.MaxTokens,
+		&dest.TopP,
+		&dest.Stream,
+		&dest.StopSequences,
 	)
 }
 
@@ -158,12 +184,6 @@ func LlmModelsByConnectionProfileId(profileId int) ([]LlmModel, error) {
 	query := "SELECT * FROM llm_models WHERE connection_profile_id = ?"
 	args := []any{profileId}
 	return database.QueryForList(database.GetDB(), query, args, llmModelScanner)
-}
-
-func LlmModelById(id int) (*LlmModel, error) {
-	query := "SELECT * FROM llm_models WHERE id = ?"
-	args := []any{id}
-	return database.QueryForRecord(database.GetDB(), query, args, llmModelScanner)
 }
 
 func CreateLlmModel(profileId int, llmModel *LlmModel) error {
@@ -304,4 +324,23 @@ func GetAllLlmModelViews() ([]LlmModelView, error) {
                      JOIN connection_profiles p on p.id = lm.connection_profile_id
                      WHERE lm.disabled = ?`
 	return database.QueryForList(database.GetDB(), query, []any{false}, llModelViewScanner)
+}
+
+func GetLlmModelInstanceById(llmModelId int) (*LlmModelInstance, error) {
+	query := `SELECT
+                cp.provider_type AS provider_type,
+                cp.base_url AS base_url,
+                cp.api_key AS api_key,
+                lm.model_id AS model_id,
+                lm.temperature AS temperature,
+                lm.max_tokens AS max_tokens,
+                lm.top_p AS top_p,
+                lm.stream AS stream,
+                lm.stop_sequences AS stop_sequences
+            FROM llm_models lm
+                JOIN connection_profiles cp on cp.id = lm.connection_profile_id
+                WHERE lm.id = ?`
+	args := []any{llmModelId}
+
+	return database.QueryForRecord(database.GetDB(), query, args, llmModelInstanceScanner)
 }
