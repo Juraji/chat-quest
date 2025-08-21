@@ -1,7 +1,7 @@
 package chat_response
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 	"juraji.nl/chat-quest/core/util"
 	c "juraji.nl/chat-quest/model/characters"
 	s "juraji.nl/chat-quest/model/chat-sessions"
@@ -46,14 +46,14 @@ func newInstructionTemplateVars(
 
 	// Fetch main character
 	go func() {
-		char, err := c.CharacterById(characterId)
-		if err != nil {
-			errChan <- fmt.Errorf("error getting character by id: %v", err)
+		char, ok := c.CharacterById(characterId)
+		if !ok {
+			errChan <- errors.New("error getting character by id")
 			return
 		}
-		err = applyCharacterTemplates(char)
+		err := applyCharacterTemplates(char)
 		if err != nil {
-			errChan <- fmt.Errorf("error applying character templates: %v", err)
+			errChan <- errors.Wrap(err, "error applying character templates")
 			return
 		}
 
@@ -63,9 +63,9 @@ func newInstructionTemplateVars(
 
 	// Fetch dialogue examples
 	go func() {
-		de, err := c.DialogueExamplesByCharacterId(characterId)
-		if err != nil {
-			errChan <- fmt.Errorf("error getting dialogue examples by character: %v", err)
+		de, ok := c.DialogueExamplesByCharacterId(characterId)
+		if !ok {
+			errChan <- errors.New("error getting dialogue examples by character")
 			return
 		}
 
@@ -75,9 +75,9 @@ func newInstructionTemplateVars(
 
 	// Fetch other participants
 	go func() {
-		participants, err := s.GetParticipants(session.ID)
-		if err != nil {
-			errChan <- fmt.Errorf("error getting participants: %v", err)
+		participants, ok := s.GetParticipants(session.ID)
+		if !ok {
+			errChan <- errors.New("error getting participants")
 			return
 		}
 
@@ -96,9 +96,9 @@ func newInstructionTemplateVars(
 
 	// Fetch world description
 	go func() {
-		w, err := worlds.WorldById(session.WorldID)
-		if err != nil {
-			errChan <- fmt.Errorf("error getting world: %v", err)
+		w, ok := worlds.WorldById(session.WorldID)
+		if !ok {
+			errChan <- errors.New("error getting world")
 			return
 		}
 
@@ -115,9 +115,9 @@ func newInstructionTemplateVars(
 			return
 		}
 
-		scenario, err := scenarios.ScenarioById(*session.ScenarioID)
-		if err != nil {
-			errChan <- fmt.Errorf("error getting scenario: %v", err)
+		scenario, ok := scenarios.ScenarioById(*session.ScenarioID)
+		if !ok {
+			errChan <- errors.New("error getting scenario")
 			return
 		}
 
@@ -150,7 +150,7 @@ func applyCharacterTemplates(char *c.Character) error {
 
 		tpl, err := util.NewTextTemplate(char.Name, *fieldPtr)
 		if err != nil {
-			return fmt.Errorf("failed to create template for character field: %w", err)
+			return errors.Wrap(err, "failed to create template for character field")
 		}
 
 		*fieldPtr = util.WriteToString(tpl, characterVars)

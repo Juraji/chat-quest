@@ -1,8 +1,9 @@
 package chat_sessions
 
 import (
-	"fmt"
+	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
+	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/util"
 	"juraji.nl/chat-quest/model/characters"
 	"math/rand"
@@ -83,69 +84,103 @@ func NewChatMessage(isUser bool, isSystem bool, isGenerating bool, characterId *
 	}
 }
 
-func GetAllByWorldId(worldId int) ([]ChatSession, error) {
+func GetAllByWorldId(worldId int) ([]ChatSession, bool) {
 	query := "SELECT * FROM chat_sessions WHERE world_id=?"
 	args := []any{worldId}
 
-	return database.QueryForList(database.GetDB(), query, args, chatSessionScanner)
+	list, err := database.QueryForList(query, args, chatSessionScanner)
+	if err != nil {
+		log.Get().Error("Error fetching chat sessions",
+			zap.Int("worldId", worldId), zap.Error(err))
+		return nil, false
+	}
+
+	return list, true
 }
 
-func GetByWorldIdAndId(worldId int, id int) (*ChatSession, error) {
+func GetByWorldIdAndId(worldId int, id int) (*ChatSession, bool) {
 	query := "SELECT * FROM chat_sessions WHERE world_id=? AND id=?"
 	args := []any{worldId, id}
-	return database.QueryForRecord(database.GetDB(), query, args, chatSessionScanner)
+	session, err := database.QueryForRecord(query, args, chatSessionScanner)
+	if err != nil {
+		log.Get().Error("Error fetching chat session",
+			zap.Int("worldId", worldId),
+			zap.Int("id", id),
+			zap.Error(err),
+		)
+		return nil, false
+	}
+
+	return session, true
 }
 
-func GetById(id int) (*ChatSession, error) {
+func GetById(id int) (*ChatSession, bool) {
 	query := "SELECT * FROM chat_sessions WHERE id=?"
 	args := []any{id}
-	return database.QueryForRecord(database.GetDB(), query, args, chatSessionScanner)
+	session, err := database.QueryForRecord(query, args, chatSessionScanner)
+	if err != nil {
+		log.Get().Error("Error fetching chat session",
+			zap.Int("id", id),
+			zap.Error(err),
+		)
+		return nil, false
+	}
+
+	return session, true
 }
 
-func Create(worldId int, session *ChatSession, characterIds []int) error {
+func Create(worldId int, session *ChatSession, characterIds []int) bool {
 	session.WorldID = worldId
 	session.CreatedAt = nil
 
-	tx, err := database.GetDB().Begin()
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-	defer database.RollBackOnErr(tx, err)
-
-	query := `INSERT INTO chat_sessions (world_id, name, scenario_id, enable_memories)
-            VALUES (?, ?, ?, ?) RETURNING id, created_at`
-	args := []any{
-		session.WorldID,
-		session.Name,
-		session.ScenarioID,
-		session.EnableMemories,
-	}
-
-	err = database.InsertRecord(tx, query, args, &session.ID, &session.CreatedAt)
-	if err != nil {
-		return fmt.Errorf("failed to insert chat session: %w", err)
-	}
-
 	var addedParticipants []*ChatParticipant
-	for _, characterId := range characterIds {
-		err = addParticipant(tx, session.ID, characterId)
-		addedParticipants = append(addedParticipants, &ChatParticipant{session.ID, characterId})
-		if err != nil {
-			return fmt.Errorf("failed to insert chat participant (%d -> %d):  %w", session.ID, characterId, err)
+	err := database.Transactional(func(ctx *database.TxContext) error {
+		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, enable_memories)
+            VALUES (?, ?, ?, ?) RETURNING id, created_at`
+		args := []any{
+			session.WorldID,
+			session.Name,
+			session.ScenarioID,
+			session.EnableMemories,
 		}
-	}
 
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
-	}
+		err := ctx.InsertRecord(query, args, &session.ID, &session.CreatedAt)
+		if err != nil {
+			log.Get().Error("Error creating chat session",
+				zap.Int("worldId", worldId),
+				zap.Error(err),
+			)
+			return err
+		}
+
+		if len(characterIds) == 0 {
+			return nil
+		}
+
+		sessionId := session.ID
+		for _, characterId := range characterIds {
+			query = `INSERT INTO chat_participants (chat_session_id, character_id) VALUES (?, ?)`
+			args = []any{sessionId, characterId}
+			err := ctx.InsertRecord(query, args)
+			if err != nil {
+				log.Get().Error("Error adding chat participant",
+					zap.Int("sessionId", sessionId),
+					zap.Int("characterId", characterId),
+					zap.Error(err))
+				return err
+			}
+			addedParticipants = append(addedParticipants, &ChatParticipant{session.ID, characterId})
+		}
+
+		return nil
+	})
 
 	ChatSessionCreatedSignal.EmitBG(session)
 	ChatParticipantAddedSignal.EmitAllBG(addedParticipants)
-	return nil
+	return err == nil
 }
 
-func Update(worldId int, id int, session *ChatSession) error {
+func Update(worldId int, id int, session *ChatSession) bool {
 	query := `UPDATE chat_sessions
             SET name = ?,
                 scenario_id = ?,
@@ -160,41 +195,66 @@ func Update(worldId int, id int, session *ChatSession) error {
 		id,
 	}
 
-	err := database.UpdateRecord(database.GetDB(), query, args)
+	err := database.UpdateRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error updating chat session",
+			zap.Int("worldId", worldId),
+			zap.Int("id", id),
+			zap.Error(err))
+		return false
 	}
 
 	ChatSessionUpdatedSignal.EmitBG(session)
-	return nil
+	return true
 }
 
-func Delete(worldId int, id int) error {
+func Delete(worldId int, id int) bool {
 	query := "DELETE FROM chat_sessions WHERE world_id=? AND id=?"
 	args := []any{worldId, id}
 
-	err := database.DeleteRecord(database.GetDB(), query, args)
+	err := database.DeleteRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error deleting chat session",
+			zap.Int("worldId", worldId),
+			zap.Int("id", id),
+			zap.Error(err))
+		return false
 	}
 
 	ChatSessionDeletedSignal.EmitBG(worldId)
-	return nil
+	return true
 }
 
-func GetChatMessages(sessionId int) ([]ChatMessage, error) {
+func GetChatMessages(sessionId int) ([]ChatMessage, bool) {
 	query := "SELECT * FROM chat_messages WHERE chat_session_id=?"
 	args := []any{sessionId}
-	return database.QueryForList(database.GetDB(), query, args, chatMessageScanner)
+	list, err := database.QueryForList(query, args, chatMessageScanner)
+	if err != nil {
+		log.Get().Error("Error fetching chat session messages",
+			zap.Int("sessionId", sessionId),
+			zap.Error(err))
+		return nil, false
+	}
+
+	return list, true
 }
 
-func GetChatMessagesPreceding(sessionId int, messageId int) ([]ChatMessage, error) {
+func GetChatMessagesPreceding(sessionId int, messageId int) ([]ChatMessage, bool) {
 	query := "SELECT * FROM chat_messages WHERE chat_session_id=? and id < ?"
 	args := []any{sessionId, messageId}
-	return database.QueryForList(database.GetDB(), query, args, chatMessageScanner)
+	list, err := database.QueryForList(query, args, chatMessageScanner)
+	if err != nil {
+		log.Get().Error("Error fetching preceding chat session messages",
+			zap.Int("sessionId", sessionId),
+			zap.Int("precedingId", messageId),
+			zap.Error(err))
+		return nil, false
+	}
+
+	return list, true
 }
 
-func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
+func CreateChatMessage(sessionId int, chatMessage *ChatMessage) bool {
 	chatMessage.ChatSessionID = sessionId
 	chatMessage.CreatedAt = nil
 
@@ -209,17 +269,19 @@ func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 		chatMessage.Content,
 	}
 
-	err := database.InsertRecord(database.GetDB(), query, args, &chatMessage.ID, &chatMessage.CreatedAt)
+	err := database.InsertRecord(query, args, &chatMessage.ID, &chatMessage.CreatedAt)
 	if err != nil {
-		return err
+		log.Get().Error("Error creating chat session message",
+			zap.Int("sessionId", sessionId),
+			zap.Error(err))
+		return false
 	}
 
 	ChatMessageCreatedSignal.EmitBG(chatMessage)
-
-	return nil
+	return true
 }
 
-func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
+func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) bool {
 	query := `UPDATE chat_messages
             SET content = ?,
                 is_generating = ?
@@ -227,16 +289,20 @@ func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
               AND id = ?`
 	args := []any{chatMessage.Content, chatMessage.IsGenerating, sessionId, id}
 
-	err := database.UpdateRecord(database.GetDB(), query, args)
+	err := database.UpdateRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error updating chat session message",
+			zap.Int("sessionId", sessionId),
+			zap.Int("id", id),
+			zap.Error(err))
+		return false
 	}
 
 	ChatMessageUpdatedSignal.EmitBG(chatMessage)
-	return nil
+	return true
 }
 
-func DeleteChatMessagesFrom(sessionId int, id int) error {
+func DeleteChatMessagesFrom(sessionId int, id int) bool {
 	//language=SQL
 	query := `DELETE
             FROM chat_messages
@@ -245,44 +311,68 @@ func DeleteChatMessagesFrom(sessionId int, id int) error {
             RETURNING id`
 	args := []any{sessionId, id}
 
-	deletedIds, err := database.QueryForList(database.GetDB(), query, args, func(scanner database.RowScanner, dest *int) error {
+	deletedIds, err := database.QueryForList(query, args, func(scanner database.RowScanner, dest *int) error {
 		return scanner.Scan(dest)
 	})
 	if err != nil {
-		return err
+		log.Get().Error("Error deleting chat session message",
+			zap.Int("sessionId", sessionId),
+			zap.Int("startingAtId", id),
+			zap.Error(err))
+		return false
 	}
 
 	ChatMessageDeletedSignal.EmitAllBG(deletedIds)
-	return nil
+	return true
 }
 
-func GetParticipants(sessionId int) ([]characters.Character, error) {
+func GetParticipants(sessionId int) ([]characters.Character, bool) {
 	query := `SELECT c.* FROM chat_participants cp
                 JOIN characters c ON cp.character_id = c.id
             WHERE cp.chat_session_id = ?`
 	args := []any{sessionId}
-	return database.QueryForList(database.GetDB(), query, args, characters.CharacterScanner)
+	list, err := database.QueryForList(query, args, characters.CharacterScanner)
+	if err != nil {
+		log.Get().Error("Error fetching chat participants",
+			zap.Int("sessionId", sessionId),
+			zap.Error(err))
+		return nil, false
+	}
+
+	return list, true
 }
 
-func GetParticipant(sessionId int, characterId int) (*ChatParticipant, error) {
+func GetParticipant(sessionId int, characterId int) (*ChatParticipant, bool) {
 	query := `SELECT * FROM chat_participants WHERE chat_session_id = ? and character_id = ?`
 	args := []any{sessionId, characterId}
-	return database.QueryForRecord(database.GetDB(), query, args, chatParticipantScanner)
+	participant, err := database.QueryForRecord(query, args, chatParticipantScanner)
+	if err != nil {
+		log.Get().Error("Error fetching chat participant",
+			zap.Int("sessionId", sessionId),
+			zap.Int("characterId", characterId),
+			zap.Error(err))
+		return nil, false
+	}
+
+	return participant, true
 }
 
-func IsGroupSession(sessionId int) (bool, error) {
+func IsGroupSession(sessionId int) (bool, bool) {
 	query := `SELECT COUNT(*) > 1 FROM chat_participants WHERE chat_session_id = ?`
 	args := []any{sessionId}
-	isGroupChat, err := database.QueryForRecord(database.GetDB(), query, args, database.BoolScanner)
+	isGroupChat, err := database.QueryForRecord(query, args, database.BoolScanner)
 	if err != nil || isGroupChat == nil {
-		return false, err
+		log.Get().Error("Error fetching session group status",
+			zap.Int("sessionId", sessionId),
+			zap.Error(err))
+		return false, false
 	}
-	return *isGroupChat, nil
+	return *isGroupChat, true
 }
 
 // RandomParticipantId selects a participant from a chat session with weighted randomness based on talkativeness.
 // The function returns a pointer to the selected participant's ID or nil if no selection could be made.
-func RandomParticipantId(sessionId int) (*int, error) {
+func RandomParticipantId(sessionId int) (*int, bool) {
 	const scale float32 = 20
 	const minT float32 = 0.05
 	type choice struct {
@@ -312,18 +402,21 @@ func RandomParticipantId(sessionId int) (*int, error) {
 		return nil
 	}
 
-	choices, err := database.QueryForList(database.GetDB(), query, args, scanFunc)
+	choices, err := database.QueryForList(query, args, scanFunc)
 	if err != nil {
-		return nil, err
+		log.Get().Error("Error fetching chat participants",
+			zap.Int("sessionId", sessionId),
+			zap.Error(err))
+		return nil, false
 	}
 
 	if len(choices) == 0 {
 		// No participants
-		return nil, nil
+		return nil, true
 	}
 	if len(choices) == 1 {
 		// Single participant
-		return &choices[0].cId, nil
+		return &choices[0].cId, true
 	}
 
 	// Calculate total weight (scaled by scale)
@@ -333,7 +426,7 @@ func RandomParticipantId(sessionId int) (*int, error) {
 	}
 
 	if totalWeight == 0 {
-		return nil, nil
+		return nil, true
 	}
 
 	// Generate random number between 0 and totalWeight-1
@@ -345,41 +438,45 @@ func RandomParticipantId(sessionId int) (*int, error) {
 		weight := int(p.talkativeness * scale)
 		accumulatedWeight += weight
 		if randomValue < accumulatedWeight {
-			return &p.cId, nil
+			return &p.cId, true
 		}
 	}
 
 	// This line should theoretically never be reached if weights are correct
-	return nil, nil
+	return nil, false
 }
 
-func AddParticipant(sessionId int, characterId int) error {
-	err := addParticipant(database.GetDB(), sessionId, characterId)
+func AddParticipant(sessionId int, characterId int) bool {
+	query := `INSERT INTO chat_participants (chat_session_id, character_id) VALUES (?, ?)`
+	args := []any{sessionId, characterId}
+	err := database.InsertRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error adding chat participant",
+			zap.Int("sessionId", sessionId),
+			zap.Int("characterId", characterId),
+			zap.Error(err))
+		return false
 	}
 
 	participant := ChatParticipant{sessionId, characterId}
 	ChatParticipantAddedSignal.EmitBG(&participant)
-	return nil
+	return true
 }
 
-func addParticipant(db database.QueryExecutor, sessionId int, characterId int) error {
-	query := `INSERT INTO chat_participants (chat_session_id, character_id) VALUES (?, ?)`
-	args := []any{sessionId, characterId}
-	return database.InsertRecord(db, query, args)
-}
-
-func RemoveParticipant(sessionId int, characterId int) error {
+func RemoveParticipant(sessionId int, characterId int) bool {
 	query := `DELETE FROM chat_participants WHERE chat_session_id = ? AND character_id = ?`
 	args := []any{sessionId, characterId}
 
-	err := database.DeleteRecord(database.GetDB(), query, args)
+	err := database.DeleteRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error removing chat participant",
+			zap.Int("sessionId", sessionId),
+			zap.Int("characterId", characterId),
+			zap.Error(err))
+		return false
 	}
 
 	participant := ChatParticipant{sessionId, characterId}
 	ChatParticipantRemovedSignal.EmitBG(&participant)
-	return nil
+	return true
 }

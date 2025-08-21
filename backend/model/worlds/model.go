@@ -2,7 +2,9 @@ package worlds
 
 import (
 	"errors"
+	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
+	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/util"
 )
 
@@ -47,35 +49,50 @@ func chatPreferencesScanner(scanner database.RowScanner, dest *ChatPreferences) 
 	)
 }
 
-func GetAllWorlds() ([]World, error) {
+func GetAllWorlds() ([]World, bool) {
 	query := "SELECT * FROM worlds"
-	return database.QueryForList(database.GetDB(), query, nil, worldScanner)
+	list, err := database.QueryForList(query, nil, worldScanner)
+	if err != nil {
+		log.Get().Error("Error fetching worlds", zap.Error(err))
+		return nil, false
+	}
+
+	return list, true
 }
 
-func WorldById(id int) (*World, error) {
+func WorldById(id int) (*World, bool) {
 	query := "SELECT * FROM worlds WHERE id=?"
 	args := []any{id}
 
-	return database.QueryForRecord(database.GetDB(), query, args, worldScanner)
+	world, err := database.QueryForRecord(query, args, worldScanner)
+	if err != nil {
+		log.Get().Error("Error fetching world",
+			zap.Int("id", id), zap.Error(err))
+		return nil, false
+	}
+
+	return world, true
 }
 
-func CreateWorld(newWorld *World) error {
+func CreateWorld(newWorld *World) bool {
 	util.EmptyStrPtrToNil(&newWorld.Description)
 	util.EmptyStrPtrToNil(&newWorld.AvatarUrl)
 
 	query := "INSERT INTO worlds (name, description, avatar_url) VALUES (?, ?, ?) RETURNING id"
 	args := []any{newWorld.Name, newWorld.Description, newWorld.AvatarUrl}
 
-	err := database.InsertRecord(database.GetDB(), query, args, &newWorld.ID)
+	err := database.InsertRecord(query, args, &newWorld.ID)
 	if err != nil {
-		return err
+		log.Get().Error("Error inserting world",
+			zap.Int("id", newWorld.ID), zap.Error(err))
+		return false
 	}
 
 	WorldCreatedSignal.EmitBG(newWorld)
-	return nil
+	return true
 }
 
-func UpdateWorld(id int, world *World) error {
+func UpdateWorld(id int, world *World) bool {
 	util.EmptyStrPtrToNil(&world.Description)
 	util.EmptyStrPtrToNil(&world.AvatarUrl)
 
@@ -91,34 +108,44 @@ func UpdateWorld(id int, world *World) error {
 		id,
 	}
 
-	err := database.UpdateRecord(database.GetDB(), query, args)
+	err := database.UpdateRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error updating world",
+			zap.Int("id", id), zap.Error(err))
+		return false
 	}
 
 	WorldUpdatedSignal.EmitBG(world)
-	return nil
+	return true
 }
 
-func DeleteWorld(id int) error {
+func DeleteWorld(id int) bool {
 	query := "DELETE FROM worlds WHERE id=?"
 	args := []any{id}
 
-	err := database.DeleteRecord(database.GetDB(), query, args)
+	err := database.DeleteRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error deleting world",
+			zap.Int("id", id), zap.Error(err))
+		return false
 	}
 
 	WorldDeletedSignal.EmitBG(id)
-	return nil
+	return true
 }
 
-func GetChatPreferences() (*ChatPreferences, error) {
+func GetChatPreferences() (*ChatPreferences, bool) {
 	query := "SELECT chat_model_id, chat_instruction_id FROM chat_preferences WHERE id = 0"
-	return database.QueryForRecord(database.GetDB(), query, nil, chatPreferencesScanner)
+	prefs, err := database.QueryForRecord(query, nil, chatPreferencesScanner)
+	if err != nil {
+		log.Get().Error("Error fetching chat_preferences", zap.Error(err))
+		return nil, false
+	}
+
+	return prefs, true
 }
 
-func UpdateChatPreferences(prefs *ChatPreferences) error {
+func UpdateChatPreferences(prefs *ChatPreferences) bool {
 	query := `UPDATE chat_preferences
             SET chat_model_id = ?,
                 chat_instruction_id = ?
@@ -128,11 +155,12 @@ func UpdateChatPreferences(prefs *ChatPreferences) error {
 		prefs.ChatInstructionID,
 	}
 
-	err := database.UpdateRecord(database.GetDB(), query, args)
+	err := database.UpdateRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error updating chat_preferences", zap.Error(err))
+		return false
 	}
 
 	ChatPreferencesUpdatedSignal.EmitBG(prefs)
-	return nil
+	return true
 }

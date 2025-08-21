@@ -2,7 +2,7 @@ package characters
 
 import (
 	"github.com/gin-gonic/gin"
-	"juraji.nl/chat-quest/core/util"
+	"juraji.nl/chat-quest/core/util/controllers"
 )
 
 func Routes(router *gin.RouterGroup) {
@@ -14,202 +14,202 @@ func charactersRoutes(router *gin.RouterGroup) {
 	charactersRouter := router.Group("/characters")
 
 	charactersRouter.GET("", func(c *gin.Context) {
-		characters, err := AllCharacterListViews()
-		util.RespondList(c, characters, err)
+		characters, ok := AllCharacterListViews()
+		controllers.RespondList(c, ok, characters)
 	})
 
 	charactersRouter.GET("/:characterId", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		character, err := CharacterById(characterId)
-		util.RespondSingle(c, character, err)
+		character, ok := CharacterById(characterId)
+		controllers.RespondSingle(c, ok, character)
 	})
 
 	charactersRouter.POST("", func(c *gin.Context) {
 		var newCharacter Character
 		if err := c.ShouldBind(&newCharacter); err != nil {
-			util.RespondBadRequest(c, "Invalid character data")
+			controllers.RespondBadRequest(c, "Invalid character data")
 			return
 		}
 
-		err := CreateCharacter(&newCharacter)
-		util.RespondSingle(c, &newCharacter, err)
+		ok := CreateCharacter(&newCharacter)
+		controllers.RespondSingle(c, ok, &newCharacter)
 	})
 
 	charactersRouter.PUT("/:characterId", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
 		var character Character
 		if err := c.ShouldBind(&character); err != nil {
-			util.RespondBadRequest(c, "Invalid character data")
+			controllers.RespondBadRequest(c, "Invalid character data")
 			return
 		}
 
-		err = UpdateCharacter(characterId, &character)
-		util.RespondSingle(c, &character, err)
+		ok = UpdateCharacter(characterId, &character)
+		controllers.RespondSingle(c, ok, &character)
 	})
 
 	charactersRouter.DELETE("/:characterId", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		err = DeleteCharacterById(characterId)
-		util.RespondDeleted(c, err)
+		ok = DeleteCharacterById(characterId)
+		controllers.RespondEmpty(c, ok)
 	})
 
 	charactersRouter.GET("/:characterId/tags", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		tags, err := TagsByCharacterId(characterId)
-		util.RespondList(c, tags, err)
+		tags, ok := TagsByCharacterId(characterId)
+		controllers.RespondList(c, ok, tags)
 	})
 
 	charactersRouter.POST("/:characterId/tags", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
 		var tagIds []int
 		if err := c.ShouldBind(&tagIds); err != nil {
-			util.RespondBadRequest(c, "Invalid dialogue examples data")
+			controllers.RespondBadRequest(c, "Invalid dialogue examples data")
 			return
 		}
 
-		err = SetCharacterTags(characterId, tagIds)
-		util.RespondEmpty(c, err)
+		ok = SetCharacterTags(characterId, tagIds)
+		controllers.RespondEmpty(c, ok)
 	})
 
 	charactersRouter.POST("/:characterId/tags/:tagId", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
-		tagId, err := util.GetIDParam(c, "tagId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid tag ID")
+		tagId, ok := controllers.GetParamAsID(c, "tagId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid tag ID")
 			return
 		}
 
-		err = AddCharacterTag(characterId, tagId)
-		util.RespondEmpty(c, err)
+		ok = AddCharacterTag(characterId, tagId)
+		controllers.RespondEmpty(c, ok)
 	})
 
 	charactersRouter.DELETE("/:characterId/tags/:tagId", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
-		tagId, err := util.GetIDParam(c, "tagId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid tag ID")
+		tagId, ok := controllers.GetParamAsID(c, "tagId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid tag ID")
 			return
 		}
 
-		err = RemoveCharacterTag(characterId, tagId)
-		util.RespondDeleted(c, err)
+		ok = RemoveCharacterTag(characterId, tagId)
+		controllers.RespondEmpty(c, ok)
 	})
 
 	charactersRouter.GET("/:characterId/dialogue-examples", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		examples, err := DialogueExamplesByCharacterId(characterId)
-		util.RespondList(c, examples, err)
+		examples, ok := DialogueExamplesByCharacterId(characterId)
+		controllers.RespondList(c, ok, examples)
 	})
 
 	charactersRouter.POST("/:characterId/dialogue-examples", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
 		var examples []string
 		if err := c.ShouldBind(&examples); err != nil {
-			util.RespondBadRequest(c, "Invalid dialogue examples data")
+			controllers.RespondBadRequest(c, "Invalid dialogue examples data")
 			return
 		}
 
-		err = SetDialogueExamplesByCharacterId(characterId, examples)
-		util.RespondEmpty(c, err)
+		ok = SetDialogueExamplesByCharacterId(characterId, examples)
+		controllers.RespondEmpty(c, ok)
 	})
 
 	charactersRouter.GET("/:characterId/greetings", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		greetings, err := CharacterGreetingsByCharacterId(characterId)
-		util.RespondList(c, greetings, err)
+		greetings, ok := CharacterGreetingsByCharacterId(characterId)
+		controllers.RespondList(c, ok, greetings)
 	})
 
 	charactersRouter.POST("/:characterId/greetings", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
 		var greetings []string
 		if err := c.ShouldBind(&greetings); err != nil {
-			util.RespondBadRequest(c, "Invalid greetings data")
+			controllers.RespondBadRequest(c, "Invalid greetings data")
 			return
 		}
 
-		err = SetGreetingsByCharacterId(characterId, greetings)
-		util.RespondEmpty(c, err)
+		ok = SetGreetingsByCharacterId(characterId, greetings)
+		controllers.RespondEmpty(c, ok)
 	})
 
 	charactersRouter.GET("/:characterId/group-greetings", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
-		greetings, err := CharacterGroupGreetingsByCharacterId(characterId)
-		util.RespondList(c, greetings, err)
+		greetings, ok := CharacterGroupGreetingsByCharacterId(characterId)
+		controllers.RespondList(c, ok, greetings)
 	})
 
 	charactersRouter.POST("/:characterId/group-greetings", func(c *gin.Context) {
-		characterId, err := util.GetIDParam(c, "characterId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid character ID")
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID")
 			return
 		}
 
 		var greetings []string
 		if err := c.ShouldBind(&greetings); err != nil {
-			util.RespondBadRequest(c, "Invalid greetings data")
+			controllers.RespondBadRequest(c, "Invalid greetings data")
 			return
 		}
 
-		err = SetGroupGreetingsByCharacterId(characterId, greetings)
-		util.RespondEmpty(c, err)
+		ok = SetGroupGreetingsByCharacterId(characterId, greetings)
+		controllers.RespondEmpty(c, ok)
 	})
 }
 
@@ -217,57 +217,57 @@ func tagsRoutes(router *gin.RouterGroup) {
 	tagsRouter := router.Group("/tags")
 
 	tagsRouter.GET("", func(c *gin.Context) {
-		tags, err := AllTags()
-		util.RespondList(c, tags, err)
+		tags, ok := AllTags()
+		controllers.RespondList(c, ok, tags)
 	})
 
 	tagsRouter.GET("/:id", func(c *gin.Context) {
-		id, err := util.GetIDParam(c, "id")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid tag ID")
+		id, ok := controllers.GetParamAsID(c, "id")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid tag ID")
 			return
 		}
 
-		tag, err := TagById(id)
-		util.RespondSingle(c, tag, err)
+		tag, ok := TagById(id)
+		controllers.RespondSingle(c, ok, &tag)
 	})
 
 	tagsRouter.POST("", func(c *gin.Context) {
 		var newTag Tag
 		if err := c.ShouldBind(&newTag); err != nil {
-			util.RespondBadRequest(c, "Invalid tag data")
+			controllers.RespondBadRequest(c, "Invalid tag data")
 			return
 		}
 
-		err := CreateTag(&newTag)
-		util.RespondSingle(c, &newTag, err)
+		ok := CreateTag(&newTag)
+		controllers.RespondSingle(c, ok, &newTag)
 	})
 
 	tagsRouter.PUT("/:id", func(c *gin.Context) {
-		id, err := util.GetIDParam(c, "id")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid tag ID")
+		id, ok := controllers.GetParamAsID(c, "id")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid tag ID")
 			return
 		}
 
 		var tag Tag
 		if err := c.ShouldBind(&tag); err != nil {
-			util.RespondBadRequest(c, "Invalid tag data")
+			controllers.RespondBadRequest(c, "Invalid tag data")
 			return
 		}
 
-		err = UpdateTag(id, &tag)
-		util.RespondSingle(c, &tag, err)
+		ok = UpdateTag(id, &tag)
+		controllers.RespondSingle(c, ok, &tag)
 	})
 
 	tagsRouter.DELETE("/:id", func(c *gin.Context) {
-		id, err := util.GetIDParam(c, "id")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid tag ID")
+		id, ok := controllers.GetParamAsID(c, "id")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid tag ID")
 			return
 		}
 
-		err = DeleteTagById(id)
-		util.RespondDeleted(c, err)
+		ok = DeleteTagById(id)
+		controllers.RespondEmpty(c, ok)
 	})
 }

@@ -2,7 +2,7 @@ package worlds
 
 import (
 	"github.com/gin-gonic/gin"
-	"juraji.nl/chat-quest/core/util"
+	"juraji.nl/chat-quest/core/util/controllers"
 )
 
 func Routes(router *gin.RouterGroup) {
@@ -14,27 +14,27 @@ func preferencesRoutes(router *gin.RouterGroup) {
 	prefsRouter := router.Group("/worlds/preferences")
 
 	prefsRouter.GET("", func(c *gin.Context) {
-		prefs, err := GetChatPreferences()
-		util.RespondSingle(c, prefs, err)
+		prefs, ok := GetChatPreferences()
+		controllers.RespondSingle(c, ok, prefs)
 	})
 
 	prefsRouter.PUT("", func(c *gin.Context) {
 		var update ChatPreferences
 		if err := c.ShouldBind(&update); err != nil {
-			util.RespondBadRequest(c, "Invalid preference data")
+			controllers.RespondBadRequest(c, "Invalid preference data")
 			return
 		}
 
-		err := UpdateChatPreferences(&update)
-		util.RespondSingle(c, &update, err)
+		ok := UpdateChatPreferences(&update)
+		controllers.RespondSingle(c, ok, &update)
 	})
 
 	prefsRouter.GET("/is-valid", func(c *gin.Context) {
 		var messages []string
 
-		prefs, err := GetChatPreferences()
-		if err != nil {
-			util.RespondInternalError(c, err)
+		prefs, ok := GetChatPreferences()
+		if !ok {
+			controllers.RespondInternalError(c, nil)
 			return
 		}
 
@@ -45,7 +45,7 @@ func preferencesRoutes(router *gin.RouterGroup) {
 			messages = append(messages, "No chat instruction set")
 		}
 
-		util.RespondSingle(c, &messages, nil)
+		controllers.RespondSingle(c, true, &messages)
 	})
 }
 
@@ -53,57 +53,57 @@ func worldsRoutes(router *gin.RouterGroup) {
 	worldsRouter := router.Group("/worlds")
 
 	worldsRouter.GET("", func(c *gin.Context) {
-		worlds, err := GetAllWorlds()
-		util.RespondList(c, worlds, err)
+		worlds, ok := GetAllWorlds()
+		controllers.RespondList(c, ok, worlds)
 	})
 
 	worldsRouter.GET("/:worldId", func(c *gin.Context) {
-		worldId, err := util.GetIDParam(c, "worldId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+		worldId, ok := controllers.GetParamAsID(c, "worldId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid world ID")
 			return
 		}
 
-		world, err := WorldById(worldId)
-		util.RespondSingle(c, world, err)
+		world, ok := WorldById(worldId)
+		controllers.RespondSingle(c, ok, world)
 	})
 
 	worldsRouter.POST("", func(c *gin.Context) {
 		var newWorld World
 		if err := c.ShouldBind(&newWorld); err != nil {
-			util.RespondBadRequest(c, "Invalid world data")
+			controllers.RespondBadRequest(c, "Invalid world data")
 			return
 		}
 
-		err := CreateWorld(&newWorld)
-		util.RespondSingle(c, &newWorld, err)
+		ok := CreateWorld(&newWorld)
+		controllers.RespondSingle(c, ok, &newWorld)
 	})
 
 	worldsRouter.PUT("/:worldId", func(c *gin.Context) {
-		worldId, err := util.GetIDParam(c, "worldId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+		worldId, ok := controllers.GetParamAsID(c, "worldId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid world ID")
 			return
 		}
 
 		var world World
 		if err := c.ShouldBind(&world); err != nil {
-			util.RespondBadRequest(c, "Invalid world data")
+			controllers.RespondBadRequest(c, "Invalid world data")
 			return
 		}
 
-		err = UpdateWorld(worldId, &world)
-		util.RespondSingle(c, &world, err)
+		ok = UpdateWorld(worldId, &world)
+		controllers.RespondSingle(c, ok, &world)
 	})
 
 	worldsRouter.DELETE("/:worldId", func(c *gin.Context) {
-		worldId, err := util.GetIDParam(c, "worldId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid world ID")
+		worldId, ok := controllers.GetParamAsID(c, "worldId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid world ID")
 			return
 		}
 
-		err = DeleteWorld(worldId)
-		util.RespondDeleted(c, err)
+		ok = DeleteWorld(worldId)
+		controllers.RespondEmpty(c, ok)
 	})
 }

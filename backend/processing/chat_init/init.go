@@ -25,22 +25,19 @@ func CreateChatSessionGreetings(
 	sessionID := session.ID
 	sessionLog := log.Get().With(zap.Int("chatSessionId", sessionID))
 
-	isGroupChat, err := sessions.IsGroupSession(sessionID)
-	if err != nil {
-		sessionLog.Error("Error checking if group chat session is a group chat", zap.Error(err))
+	isGroupChat, ok := sessions.IsGroupSession(sessionID)
+	if !ok {
 		return
 	}
 
-	participants, err := sessions.GetParticipants(sessionID)
-	if err != nil {
-		sessionLog.Error("Error getting participants", zap.Error(err))
+	participants, ok := sessions.GetParticipants(sessionID)
+	if !ok {
 		return
 	}
 
 	for _, participant := range participants {
-		greeting, err := characters.RandomGreetingByCharacterId(participant.ID, isGroupChat)
-		if err != nil {
-			sessionLog.Error("Error getting greeting", zap.Int("participantId", participant.ID), zap.Error(err))
+		greeting, ok := characters.RandomGreetingByCharacterId(participant.ID, isGroupChat)
+		if !ok {
 			continue
 		}
 		if greeting == nil {
@@ -49,10 +46,6 @@ func CreateChatSessionGreetings(
 		}
 
 		message := sessions.NewChatMessage(false, false, false, &participant.ID, *greeting)
-		err = sessions.CreateChatMessage(sessionID, message)
-		if err != nil {
-			sessionLog.Error("Error creating chat message", zap.Error(err))
-			return
-		}
+		sessions.CreateChatMessage(sessionID, message)
 	}
 }

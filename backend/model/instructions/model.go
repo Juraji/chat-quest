@@ -1,7 +1,9 @@
 package instructions
 
 import (
+	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
+	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/util"
 )
 
@@ -45,34 +47,48 @@ func instructionPromptScanner(scanner database.RowScanner, dest *InstructionTemp
 	)
 }
 
-func AllInstructions() ([]InstructionTemplate, error) {
+func AllInstructions() ([]InstructionTemplate, bool) {
 	query := "SELECT * FROM instruction_templates"
-	return database.QueryForList(database.GetDB(), query, nil, instructionPromptScanner)
+	list, err := database.QueryForList(query, nil, instructionPromptScanner)
+	if err != nil {
+		log.Get().Error("Error fetching instructions", zap.Error(err))
+		return nil, false
+	}
+
+	return list, true
 }
 
-func InstructionById(id int) (*InstructionTemplate, error) {
+func InstructionById(id int) (*InstructionTemplate, bool) {
 	query := "SELECT * FROM instruction_templates WHERE id = ?"
 	args := []any{id}
-	return database.QueryForRecord(database.GetDB(), query, args, instructionPromptScanner)
+	instruction, err := database.QueryForRecord(query, args, instructionPromptScanner)
+	if err != nil {
+		log.Get().Error("Error fetching instruction",
+			zap.Int("id", id), zap.Error(err))
+		return nil, false
+	}
+
+	return instruction, true
 }
 
-func CreateInstruction(it *InstructionTemplate) error {
+func CreateInstruction(it *InstructionTemplate) bool {
 	util.NegFloat32PtrToNil(&it.Temperature)
 
 	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, world_setup, instruction)
             VALUES (?, ?, ?, ?, ?, ?) RETURNING id`
 	args := []any{it.Name, it.Type, it.Temperature, it.SystemPrompt, it.WorldSetup, it.Instruction}
 
-	err := database.InsertRecord(database.GetDB(), query, args, &it.ID)
+	err := database.InsertRecord(query, args, &it.ID)
 	if err != nil {
-		return err
+		log.Get().Error("Error inserting instruction", zap.Error(err))
+		return false
 	}
 
 	InstructionCreatedSignal.EmitBG(it)
-	return nil
+	return true
 }
 
-func UpdateInstruction(id int, it *InstructionTemplate) error {
+func UpdateInstruction(id int, it *InstructionTemplate) bool {
 	util.NegFloat32PtrToNil(&it.Temperature)
 
 	query := `UPDATE instruction_templates
@@ -86,24 +102,28 @@ func UpdateInstruction(id int, it *InstructionTemplate) error {
 	args := []any{it.Name, it.Type, it.Temperature,
 		it.SystemPrompt, it.WorldSetup, it.Instruction, id}
 
-	err := database.UpdateRecord(database.GetDB(), query, args)
+	err := database.UpdateRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error updating instruction",
+			zap.Int("id", id), zap.Error(err))
+		return false
 	}
 
 	InstructionUpdatedSignal.EmitBG(it)
-	return nil
+	return true
 }
 
-func DeleteInstruction(id int) error {
+func DeleteInstruction(id int) bool {
 	query := "DELETE FROM instruction_templates WHERE id = ?"
 	args := []any{id}
 
-	err := database.DeleteRecord(database.GetDB(), query, args)
+	err := database.DeleteRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error deleting instruction",
+			zap.Int("id", id), zap.Error(err))
+		return false
 	}
 
 	InstructionDeletedSignal.EmitBG(id)
-	return nil
+	return true
 }

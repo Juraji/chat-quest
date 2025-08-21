@@ -2,64 +2,64 @@ package scenarios
 
 import (
 	"github.com/gin-gonic/gin"
-	"juraji.nl/chat-quest/core/util"
+	"juraji.nl/chat-quest/core/util/controllers"
 )
 
 func Routes(router *gin.RouterGroup) {
 	scenariosRouter := router.Group("/scenarios")
 
 	scenariosRouter.GET("", func(c *gin.Context) {
-		scenarios, err := AllScenarios()
-		util.RespondList(c, scenarios, err)
+		scenarios, ok := AllScenarios()
+		controllers.RespondList(c, ok, scenarios)
 	})
 
 	scenariosRouter.GET("/:scenarioId", func(c *gin.Context) {
-		scenarioId, err := util.GetIDParam(c, "scenarioId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid scenario ID")
+		scenarioId, ok := controllers.GetParamAsID(c, "scenarioId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid scenario ID")
 			return
 		}
 
-		scenarios, err := ScenarioById(scenarioId)
-		util.RespondSingle(c, scenarios, err)
+		scenario, ok := ScenarioById(scenarioId)
+		controllers.RespondSingle(c, ok, &scenario)
 	})
 
 	scenariosRouter.POST("", func(c *gin.Context) {
 		var newScenario Scenario
 		if err := c.ShouldBind(&newScenario); err != nil {
-			util.RespondBadRequest(c, "Invalid scenario data")
+			controllers.RespondBadRequest(c, "Invalid scenario data")
 			return
 		}
 
-		err := CreateScenario(&newScenario)
-		util.RespondSingle(c, &newScenario, err)
+		ok := CreateScenario(&newScenario)
+		controllers.RespondSingle(c, ok, &newScenario)
 	})
 
 	scenariosRouter.PUT("/:scenarioId", func(c *gin.Context) {
-		scenarioId, err := util.GetIDParam(c, "scenarioId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid scenario ID")
+		scenarioId, ok := controllers.GetParamAsID(c, "scenarioId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid scenario ID")
 			return
 		}
 
 		var scenario Scenario
-		if err = c.ShouldBind(&scenario); err != nil {
-			util.RespondBadRequest(c, "Invalid scenario data")
+		if err := c.ShouldBind(&scenario); err != nil {
+			controllers.RespondBadRequest(c, "Invalid scenario data")
 			return
 		}
 
-		err = UpdateScenario(scenarioId, &scenario)
-		util.RespondSingle(c, &scenario, err)
+		ok = UpdateScenario(scenarioId, &scenario)
+		controllers.RespondSingle(c, ok, &scenario)
 	})
 
 	scenariosRouter.DELETE("/:scenarioId", func(c *gin.Context) {
-		scenarioId, err := util.GetIDParam(c, "scenarioId")
-		if err != nil {
-			util.RespondBadRequest(c, "Invalid scenario ID")
+		scenarioId, ok := controllers.GetParamAsID(c, "scenarioId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid scenario ID")
 			return
 		}
 
-		err = DeleteScenario(scenarioId)
-		util.RespondDeleted(c, err)
+		ok = DeleteScenario(scenarioId)
+		controllers.RespondEmpty(c, ok)
 	})
 }

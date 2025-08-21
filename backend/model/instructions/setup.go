@@ -3,6 +3,7 @@ package instructions
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/util"
@@ -30,9 +31,9 @@ func init() {
 				}
 
 				template.Name = name
-				err = CreateInstruction(template)
-				if err != nil {
-					panic(fmt.Errorf("failed to save instruction template '%s': %w", name, err))
+				ok := CreateInstruction(template)
+				if !ok {
+					panic(errors.New("failed to save instruction template " + name))
 				}
 			}
 		}

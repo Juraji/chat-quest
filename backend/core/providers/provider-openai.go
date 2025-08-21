@@ -39,7 +39,7 @@ func (o *openAIProvider) getAvailableModelIds() ([]string, error) {
 	return modelIds, nil
 }
 
-func (o *openAIProvider) generateEmbeddings(input, modelID string) (util.Embeddings, error) {
+func (o *openAIProvider) generateEmbeddings(input, modelID string) (Embeddings, error) {
 	request := openai.EmbeddingRequest{
 		Input: input,
 		Model: openai.EmbeddingModel(modelID),
@@ -59,8 +59,22 @@ func (o *openAIProvider) generateEmbeddings(input, modelID string) (util.Embeddi
 func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) <-chan ChatGenerateResponse {
 	messages := make([]openai.ChatCompletionMessage, len(request.Messages))
 	for i, msg := range request.Messages {
+		var openAiRole string
+
+		switch msg.Role {
+		case RoleSystem:
+			openAiRole = openai.ChatMessageRoleSystem
+		case RoleUser:
+			openAiRole = openai.ChatMessageRoleUser
+		case RoleAssistant:
+			openAiRole = openai.ChatMessageRoleAssistant
+		default:
+			// Dev error, missing branch?
+			panic(errors.New(string("Developer error, invalid role " + msg.Role)))
+		}
+
 		messages[i] = openai.ChatCompletionMessage{
-			Role:    msg.Role.asOpenAiRole(),
+			Role:    openAiRole,
 			Content: msg.Content,
 		}
 	}
@@ -86,20 +100,6 @@ func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) <-ch
 		return generateChatResponseStream(o.ctx, o.client, completionRequest)
 	} else {
 		return generateChatResponseSingle(o.ctx, o.client, completionRequest)
-	}
-}
-
-func (r ChatMessageRole) asOpenAiRole() string {
-	switch r {
-	case RoleSystem:
-		return openai.ChatMessageRoleSystem
-	case RoleUser:
-		return openai.ChatMessageRoleUser
-	case RoleAssistant:
-		return openai.ChatMessageRoleAssistant
-	default:
-		// Dev error, missing branch?
-		panic(fmt.Sprintf("invalid role %v", r))
 	}
 }
 

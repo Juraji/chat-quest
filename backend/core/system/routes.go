@@ -6,7 +6,7 @@ import (
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/providers"
-	"juraji.nl/chat-quest/core/util"
+	"juraji.nl/chat-quest/core/util/controllers"
 	"net/http"
 	"os"
 	"time"
@@ -18,7 +18,7 @@ func Routes(router *gin.RouterGroup) {
 	systemRouter.POST("/tokenizer/count", func(c *gin.Context) {
 		body, err := c.GetRawData()
 		if err != nil {
-			util.RespondBadRequest(c, "Failed to read request body")
+			controllers.RespondBadRequest(c, "Failed to read request body")
 			return
 		}
 
@@ -33,16 +33,16 @@ func Routes(router *gin.RouterGroup) {
 	})
 
 	systemRouter.POST("/migrations/goto/:version", func(c *gin.Context) {
-		version, _ := util.GetIDParam(c, "version")
+		version, _ := controllers.GetParamAsID(c, "version")
 		log.Get().Info("Migrating to version", zap.Int("version", version))
 		defer func() {
 			if r := recover(); r != nil {
-				util.RespondEmpty(c, r.(error))
+				controllers.RespondEmpty(c, false)
 			}
 		}()
 
 		database.GoToVersion(uint(version))
-		util.RespondEmpty(c, nil)
+		controllers.RespondEmpty(c, true)
 	})
 
 	systemRouter.POST("/shutdown", func(c *gin.Context) {

@@ -1,8 +1,10 @@
 package memories
 
 import (
+	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
-	"juraji.nl/chat-quest/core/util"
+	"juraji.nl/chat-quest/core/log"
+	"juraji.nl/chat-quest/core/providers"
 	"time"
 )
 
@@ -13,11 +15,11 @@ type Memory struct {
 	CharacterId      int        `json:"characterId"`
 	CreatedAt        *time.Time `json:"createdAt"`
 	Content          string     `json:"content"`
-	Embedding        util.Embeddings
+	Embedding        providers.Embeddings
 	EmbeddingModelId *int
 }
 
-func (m *Memory) CosineSimilarity(other util.Embeddings) (float32, error) {
+func (m *Memory) CosineSimilarity(other providers.Embeddings) (float32, error) {
 	return m.Embedding.CosineSimilarity(other)
 }
 
@@ -54,7 +56,7 @@ func memoryPreferencesScanner(scanner database.RowScanner, dest *MemoryPreferenc
 	)
 }
 
-func GetMemoriesByWorldId(worldId int) ([]Memory, error) {
+func GetMemoriesByWorldId(worldId int) ([]Memory, bool) {
 	query := `SELECT id,
                    world_id,
                    chat_session_id,
@@ -64,14 +66,19 @@ func GetMemoriesByWorldId(worldId int) ([]Memory, error) {
             FROM memories
             WHERE world_id = ?`
 	args := []interface{}{worldId}
+	list, err := database.QueryForList(query, args, memoryScanner)
+	if err != nil {
+		log.Get().Error("Error fetching memories", zap.Error(err))
+		return nil, false
+	}
 
-	return database.QueryForList(database.GetDB(), query, args, memoryScanner)
+	return list, true
 }
 
 func GetMemoriesByWorldAndCharacterId(
 	worldId int,
 	characterId int,
-) ([]Memory, error) {
+) ([]Memory, bool) {
 	query := `SELECT id,
                    world_id,
                    chat_session_id,
@@ -82,20 +89,34 @@ func GetMemoriesByWorldAndCharacterId(
             WHERE world_id = ? AND character_id = ?`
 	args := []interface{}{worldId, characterId}
 
-	return database.QueryForList(database.GetDB(), query, args, memoryScanner)
+	list, err := database.QueryForList(query, args, memoryScanner)
+	if err != nil {
+		log.Get().Error("Error fetching memories for character",
+			zap.Int("characterId", characterId), zap.Error(err))
+		return nil, false
+	}
+
+	return list, true
 }
 
 func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 	worldId int,
 	characterId int,
-) ([]Memory, error) {
-	query := `SELECT * FROM memories m WHERE world_id = ? AND character_id = ?`
+) ([]Memory, bool) {
+	query := `SELECT * FROM memories m WHERE world_id = ? AND (character_id IS NULL OR character_id = ?)`
 	args := []interface{}{worldId, characterId}
 
-	return database.QueryForList(database.GetDB(), query, args, memoryScanner)
+	list, err := database.QueryForList(query, args, memoryScanner)
+	if err != nil {
+		log.Get().Error("Error fetching memories (with embeddings) for character",
+			zap.Int("characterId", characterId), zap.Error(err))
+		return nil, false
+	}
+
+	return list, true
 }
 
-func CreateMemory(memory *Memory) error {
+func CreateMemory(memory *Memory) bool {
 	query := `INSERT INTO memories (world_id, chat_session_id, character_id, created_at, content, embedding, embedding_model_id)
             VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`
 	args := []any{
@@ -108,42 +129,47 @@ func CreateMemory(memory *Memory) error {
 		memory.EmbeddingModelId,
 	}
 
-	err := database.InsertRecord(database.GetDB(), query, args, &memory.ID)
+	err := database.InsertRecord(query, args, &memory.ID)
 	if err != nil {
-		return err
+		log.Get().Error("Error creating memory", zap.Error(err))
+		return false
 	}
 
 	MemoryCreatedSignal.EmitBG(memory)
-	return nil
+	return true
 }
 
-func UpdateMemory(id int, memory *Memory) error {
+func UpdateMemory(id int, memory *Memory) bool {
 	query := `UPDATE memories SET content = ?, embedding = ?, embedding_model_id = ? WHERE id = ?`
 	args := []any{memory.Content, memory.Embedding, memory.EmbeddingModelId, id}
 
-	err := database.UpdateRecord(database.GetDB(), query, args)
+	err := database.UpdateRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error updating memory",
+			zap.Int("id", id), zap.Error(err))
+		return false
 	}
 
 	MemoryUpdatedSignal.EmitBG(memory)
-	return nil
+	return true
 }
 
-func DeleteMemory(id int) error {
+func DeleteMemory(id int) bool {
 	query := `DELETE FROM memories WHERE id = ?`
 	args := []any{id}
 
-	err := database.DeleteRecord(database.GetDB(), query, args)
+	err := database.DeleteRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error deleting memory",
+			zap.Int("id", id), zap.Error(err))
+		return false
 	}
 
 	MemoryDeletedSignal.EmitBG(id)
-	return nil
+	return true
 }
 
-func GetMemoryPreferences() (*MemoryPreferences, error) {
+func GetMemoryPreferences() (*MemoryPreferences, bool) {
 	query := `SELECT memories_model_id,
                    memories_instruction_id,
                    embedding_model_id,
@@ -152,10 +178,16 @@ func GetMemoryPreferences() (*MemoryPreferences, error) {
                    memory_window_size
             FROM memory_preferences
             WHERE id = 0`
-	return database.QueryForRecord(database.GetDB(), query, nil, memoryPreferencesScanner)
+	prefs, err := database.QueryForRecord(query, nil, memoryPreferencesScanner)
+	if err != nil {
+		log.Get().Error("Error fetching preferences", zap.Error(err))
+		return nil, false
+	}
+
+	return prefs, true
 }
 
-func UpdateMemoryPreferences(prefs *MemoryPreferences) error {
+func UpdateMemoryPreferences(prefs *MemoryPreferences) bool {
 	query := `UPDATE memory_preferences
             SET memories_model_id = ?,
                 memories_instruction_id = ?,
@@ -173,11 +205,12 @@ func UpdateMemoryPreferences(prefs *MemoryPreferences) error {
 		prefs.MemoryWindowSize,
 	}
 
-	err := database.UpdateRecord(database.GetDB(), query, args)
+	err := database.UpdateRecord(query, args)
 	if err != nil {
-		return err
+		log.Get().Error("Error updating preferences", zap.Error(err))
+		return false
 	}
 
 	MemoryPreferencesUpdatedSignal.EmitBG(prefs)
-	return nil
+	return true
 }

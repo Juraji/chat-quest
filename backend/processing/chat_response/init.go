@@ -28,46 +28,39 @@ func GenerateResponseForParticipant(ctx context.Context, payload *chatsessions.C
 	}
 
 	// Fetch instruction and connection preferences
-	prefs, err := worlds.GetChatPreferences()
-	if err != nil {
-		logger.Error("Error fetching chat preferences", zap.Error(err))
+	prefs, ok := worlds.GetChatPreferences()
+	if !ok {
 		return
 	}
-	if err = prefs.Validate(); err != nil {
+	if err := prefs.Validate(); err != nil {
 		logger.Error("Error validating chat preferences", zap.Error(err))
 		return
 	}
 
-	instruction, err := instructions.InstructionById(*prefs.ChatInstructionID)
-	if err != nil {
-		logger.Error("Error fetching chat instruction",
-			zap.Intp("instructionId", prefs.ChatInstructionID), zap.Error(err))
+	instruction, ok := instructions.InstructionById(*prefs.ChatInstructionID)
+	if !ok {
 		return
 	}
 
-	modelInstance, err := p.GetLlmModelInstanceById(*prefs.ChatModelID)
-	if err != nil {
-		logger.Error("Error fetching preferred chat model instance",
-			zap.Intp("modelId", prefs.ChatModelID), zap.Error(err))
+	modelInstance, ok := p.GetLlmModelInstanceById(*prefs.ChatModelID)
+	if !ok {
 		return
 	}
 
 	// Fetch session details
-	session, err := chatsessions.GetById(sessionId)
-	if err != nil {
-		logger.Error("Failed to get session", zap.Error(err))
+	session, ok := chatsessions.GetById(sessionId)
+	if !ok {
 		return
 	}
 
 	// Fetch current chat history
-	chatHistory, err := chatsessions.GetChatMessages(sessionId)
-	if err != nil {
-		logger.Error("Error fetching chat history", zap.Error(err))
+	chatHistory, ok := chatsessions.GetChatMessages(sessionId)
+	if !ok {
 		return
 	}
 
 	// Process instruction templates
-	err = processInstructionTemplates(instruction, session, chatHistory, characterId, nil)
+	err := processInstructionTemplates(instruction, session, chatHistory, characterId, nil)
 	if err != nil {
 		logger.Error("Error processing instruction templates", zap.Error(err))
 		return
@@ -97,58 +90,50 @@ func GenerateResponseForMessage(
 	}
 
 	// Fetch instruction and connection preferences
-	prefs, err := worlds.GetChatPreferences()
-	if err != nil {
-		logger.Error("Error fetching chat preferences", zap.Error(err))
+	prefs, ok := worlds.GetChatPreferences()
+	if !ok {
 		return
 	}
-	if err = prefs.Validate(); err != nil {
-		logger.Error("Error validating chat preferences", zap.Error(err))
-		return
-	}
-
-	instruction, err := instructions.InstructionById(*prefs.ChatInstructionID)
-	if err != nil {
-		logger.Error("Error fetching chat instruction",
-			zap.Intp("instructionId", prefs.ChatInstructionID), zap.Error(err))
+	if err := prefs.Validate(); err != nil {
 		return
 	}
 
-	modelInstance, err := p.GetLlmModelInstanceById(*prefs.ChatModelID)
-	if err != nil {
-		logger.Error("Error fetching preferred chat model instance",
-			zap.Intp("modelId", prefs.ChatModelID), zap.Error(err))
+	instruction, ok := instructions.InstructionById(*prefs.ChatInstructionID)
+	if !ok {
+		return
+	}
+
+	modelInstance, ok := p.GetLlmModelInstanceById(*prefs.ChatModelID)
+	if !ok {
 		return
 	}
 
 	// Fetch session details
-	session, err := chatsessions.GetById(sessionId)
-	if err != nil {
-		logger.Error("Failed to get session", zap.Error(err))
+	session, ok := chatsessions.GetById(sessionId)
+	if !ok {
 		return
 	}
 
 	// Select participant to respond with
-	characterId, err := chatsessions.RandomParticipantId(sessionId)
-	if err != nil {
-		logger.Error("Error selecting character to respond with", zap.Error(err))
+	characterId, ok := chatsessions.RandomParticipantId(sessionId)
+	if !ok {
 		return
-	} else if characterId == nil {
+	}
+	if characterId == nil {
 		logger.Warn("error selecting character to respond with: no participants found")
 		return
 	}
 
 	// Fetch current chat history
-	chatHistory, err := chatsessions.GetChatMessagesPreceding(sessionId, message.ID)
-	if err != nil {
-		logger.Error("Error fetching chat history", zap.Error(err))
+	chatHistory, ok := chatsessions.GetChatMessagesPreceding(sessionId, message.ID)
+	if !ok {
 		return
 	}
 
 	logger = logger.With(zap.Int("selectedCharacterId", *characterId))
 
 	// Process instruction templates
-	err = processInstructionTemplates(instruction, session, chatHistory, *characterId, message)
+	err := processInstructionTemplates(instruction, session, chatHistory, *characterId, message)
 	if err != nil {
 		logger.Error("Error processing instruction templates", zap.Error(err))
 		return
@@ -180,18 +165,18 @@ func generateResponse(
 
 	// Create response message
 	responseMessage := chatsessions.NewChatMessage(false, false, true, characterId, "")
-	if err := chatsessions.CreateChatMessage(sessionId, responseMessage); err != nil {
-		logger.Warn("Failed to create response chat message", zap.Error(err))
+	if ok := chatsessions.CreateChatMessage(sessionId, responseMessage); !ok {
+		logger.Warn("Failed to create response chat message")
 		return
 	}
 
 	for {
 		select {
-		case response, ok := <-chatResponseChan:
-			if !ok {
+		case response, hasNext := <-chatResponseChan:
+			if !hasNext {
 				responseMessage.IsGenerating = false
-				if err := chatsessions.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); err != nil {
-					logger.Error("Failed to update response chat message upon finalization", zap.Error(err))
+				if ok := chatsessions.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); !ok {
+					logger.Error("Failed to update response chat message upon finalization")
 				}
 				return
 			}
@@ -201,8 +186,8 @@ func generateResponse(
 			}
 
 			responseMessage.Content = responseMessage.Content + response.Content
-			if err := chatsessions.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); err != nil {
-				logger.Error("Failed to update response chat message", zap.Error(err))
+			if ok := chatsessions.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); !ok {
+				logger.Error("Failed to update response chat message")
 				return
 			}
 		case <-ctx.Done():

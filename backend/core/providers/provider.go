@@ -2,13 +2,12 @@ package providers
 
 import (
 	"fmt"
-	"juraji.nl/chat-quest/core/util"
 	"strings"
 )
 
 type Provider interface {
 	getAvailableModelIds() ([]string, error)
-	generateEmbeddings(input string, modelId string) (util.Embeddings, error)
+	generateEmbeddings(input string, modelId string) (Embeddings, error)
 	generateChatResponse(request *ChatGenerateRequest) <-chan ChatGenerateResponse
 }
 
@@ -64,7 +63,7 @@ func (p *ConnectionProfile) GetAvailableModels() ([]*LlmModel, error) {
 	return llmModels, nil
 }
 
-func (lm *LlmModelInstance) GenerateEmbeddings(input string) (util.Embeddings, error) {
+func (lm *LlmModelInstance) GenerateEmbeddings(input string) (Embeddings, error) {
 	provider := newProvider(lm.ProviderType, lm.BaseUrl, lm.ApiKey)
 	embedding, err := provider.generateEmbeddings(input, lm.ModelId)
 	if err != nil {
