@@ -7,19 +7,21 @@ import (
 )
 
 type LlmModelInstance struct {
-	ProviderType  ProviderType `json:"providerType"`
-	BaseUrl       string       `json:"baseUrl"`
-	ApiKey        string       `json:"apiKey"`
-	ModelId       string       `json:"modelId"`
-	Temperature   float32      `json:"temperature"`
-	MaxTokens     int          `json:"maxTokens"`
-	TopP          float32      `json:"topP"`
-	Stream        bool         `json:"stream"`
-	StopSequences *string      `json:"stopSequences"`
+	ProviderId    int
+	ProviderType  ProviderType
+	BaseUrl       string
+	ApiKey        string
+	ModelId       string
+	Temperature   float32
+	MaxTokens     int
+	TopP          float32
+	Stream        bool
+	StopSequences *string
 }
 
 func llmModelInstanceScanner(scanner database.RowScanner, dest *LlmModelInstance) error {
 	return scanner.Scan(
+		&dest.ProviderId,
 		&dest.ProviderType,
 		&dest.BaseUrl,
 		&dest.ApiKey,
@@ -34,6 +36,7 @@ func llmModelInstanceScanner(scanner database.RowScanner, dest *LlmModelInstance
 
 func GetLlmModelInstanceById(llmModelId int) (*LlmModelInstance, bool) {
 	query := `SELECT
+                cp.id as provider_id,
                 cp.provider_type AS provider_type,
                 cp.base_url AS base_url,
                 cp.api_key AS api_key,

@@ -3,42 +3,38 @@ package providers
 import (
 	"fmt"
 	"strings"
+	"sync"
 )
 
+var (
+	providerExecutionLocksLock sync.Mutex
+	// providerExecutionLocks is a map that stores mutex locks for each provider instance to prevent concurrent execution.
+	// The key is the provider ID and the value is a pointer to a sync.Mutex.
+	providerExecutionLocks = make(map[int]*sync.Mutex)
+)
+
+// Provider defines an interface for interacting with different AI model providers.
+// Implementations should handle their own specific API calls while maintaining
+// consistent behavior in terms of locking, error handling, and response formats.
 type Provider interface {
+	// getAvailableModelIds returns a list of available model IDs that can be used with this provider.
+	// The returned models are provider-specific identifiers for different AI models.
+	// Returns an empty slice if no models are available or an error occurred.
 	getAvailableModelIds() ([]string, error)
+
+	// generateEmbeddings creates vector embeddings from the given input text using the specified model.
+	// The function should be thread-safe and handle its own locking internally if needed.
+	// Returns the generated embeddings as a slice of floats or an error if generation failed.
 	generateEmbeddings(input string, modelId string) (Embeddings, error)
+
+	// generateChatResponse creates a channel that will stream chat responses based on the provided request.
+	// The function should be thread-safe and handle its own locking internally if needed.
+	// Returns a receive-only channel (<-chan) that will yield ChatGenerateResponse objects as they become available.
 	generateChatResponse(request *ChatGenerateRequest) <-chan ChatGenerateResponse
 }
 
-type ChatGenerateRequest struct {
-	Messages      []ChatRequestMessage
-	ModelId       string
-	MaxTokens     int
-	Temperature   float32
-	TopP          float32
-	Stream        bool
-	StopSequences []string
-}
-
-type ChatMessageRole string
-
-const (
-	RoleSystem    ChatMessageRole = "SYSTEM"
-	RoleUser      ChatMessageRole = "USER"
-	RoleAssistant ChatMessageRole = "ASSISTANT"
-)
-
-type ChatRequestMessage struct {
-	Role    ChatMessageRole
-	Content string
-}
-
-type ChatGenerateResponse struct {
-	Content string
-	Error   error
-}
-
+// newProvider creates a new instance of the specified provider type.
+// The function panics if an unknown provider type is requested.
 func newProvider(providerType ProviderType, baseUrl string, apiKey string) Provider {
 	switch providerType {
 	case ProviderOpenAi:
@@ -48,49 +44,77 @@ func newProvider(providerType ProviderType, baseUrl string, apiKey string) Provi
 	}
 }
 
-func (p *ConnectionProfile) GetAvailableModels() ([]*LlmModel, error) {
-	provider := newProvider(p.ProviderType, p.BaseUrl, p.ApiKey)
+// getProviderLock retrieves or creates a mutex lock for the specified provider ID.
+// This ensures thread-safe access to provider instances by preventing concurrent execution.
+func getProviderLock(providerId int) *sync.Mutex {
+	providerExecutionLocksLock.Lock()
+	defer providerExecutionLocksLock.Unlock()
+
+	mutex, exists := providerExecutionLocks[providerId]
+	if !exists {
+		mutex = &sync.Mutex{}
+		providerExecutionLocks[providerId] = mutex
+	}
+	return mutex
+}
+
+// GetAvailableModels retrieves the list of available models for a given connection profile.
+func GetAvailableModels(profile *ConnectionProfile) ([]*LlmModel, error) {
+	provider := newProvider(profile.ProviderType, profile.BaseUrl, profile.ApiKey)
 	models, err := provider.getAvailableModelIds()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get models for profile %s (id %d): %w", p.Name, p.ID, err)
+		return nil, fmt.Errorf("failed to get models for profile %s (id %d): %w", profile.Name, profile.ID, err)
 	}
 
 	llmModels := make([]*LlmModel, len(models))
 	for i, model := range models {
-		llmModels[i] = DefaultLlmModel(p.ID, model)
+		llmModels[i] = DefaultLlmModel(profile.ID, model)
 	}
 
 	return llmModels, nil
 }
 
-func (lm *LlmModelInstance) GenerateEmbeddings(input string) (Embeddings, error) {
-	provider := newProvider(lm.ProviderType, lm.BaseUrl, lm.ApiKey)
-	embedding, err := provider.generateEmbeddings(input, lm.ModelId)
+// GenerateEmbeddings creates vector embeddings from the given input text using a specified LLM model.
+// This function uses a provider-specific lock to ensure thread-safe access during embedding generation.
+func GenerateEmbeddings(llm *LlmModelInstance, input string) (Embeddings, error) {
+	providerLock := getProviderLock(llm.ProviderId)
+	providerLock.Lock()
+	defer providerLock.Unlock()
+
+	provider := newProvider(llm.ProviderType, llm.BaseUrl, llm.ApiKey)
+	embedding, err := provider.generateEmbeddings(input, llm.ModelId)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate embeddings for %s (%s): %w", lm.ModelId, lm.ProviderType, err)
+		return nil, fmt.Errorf("failed to generate embeddings for %s (%s): %w", llm.ModelId, llm.ProviderType, err)
 	}
 
 	return embedding, nil
 }
 
-func (lm *LlmModelInstance) GenerateChatResponse(
+// GenerateChatResponse creates a channel that will stream chat responses based on the provided messages and model configuration.
+// This function uses a provider-specific lock to ensure thread-safe access during response generation.
+func GenerateChatResponse(
+	llm *LlmModelInstance,
 	messages []ChatRequestMessage,
 	overrideTemperature *float32,
 ) <-chan ChatGenerateResponse {
-	provider := newProvider(lm.ProviderType, lm.BaseUrl, lm.ApiKey)
+	providerLock := getProviderLock(llm.ProviderId)
+	providerLock.Lock()
+	defer providerLock.Unlock()
+
+	provider := newProvider(llm.ProviderType, llm.BaseUrl, llm.ApiKey)
 
 	var temperature float32
 	if overrideTemperature != nil {
 		temperature = *overrideTemperature
 	} else {
-		temperature = lm.Temperature
+		temperature = llm.Temperature
 	}
 
 	var stopSequences []string
-	if lm.StopSequences == nil || *lm.StopSequences == "" {
+	if llm.StopSequences == nil || *llm.StopSequences == "" {
 		stopSequences = nil
 	} else {
-		stopSequences = strings.Split(*lm.StopSequences, ",")
+		stopSequences = strings.Split(*llm.StopSequences, ",")
 		for i := range stopSequences {
 			stopSequences[i] = strings.TrimSpace(stopSequences[i])
 		}
@@ -98,11 +122,11 @@ func (lm *LlmModelInstance) GenerateChatResponse(
 
 	request := &ChatGenerateRequest{
 		Messages:      messages,
-		ModelId:       lm.ModelId,
-		MaxTokens:     lm.MaxTokens,
+		ModelId:       llm.ModelId,
+		MaxTokens:     llm.MaxTokens,
 		Temperature:   temperature,
-		TopP:          lm.TopP,
-		Stream:        lm.Stream,
+		TopP:          llm.TopP,
+		Stream:        llm.Stream,
 		StopSequences: stopSequences,
 	}
 

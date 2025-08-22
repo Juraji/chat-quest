@@ -161,7 +161,7 @@ func generateResponse(
 	messages := createChatRequestMessages(instruction, chatHistory)
 
 	// Do LLM and handle output
-	chatResponseChan := modelInstance.GenerateChatResponse(messages, instruction.Temperature)
+	chatResponseChan := p.GenerateChatResponse(modelInstance, messages, instruction.Temperature)
 
 	// Create response message
 	responseMessage := chatsessions.NewChatMessage(false, false, true, characterId, "")
@@ -252,6 +252,7 @@ func processInstructionTemplates(
 	}
 
 	errChan := make(chan error, len(fields))
+	defer close(errChan)
 
 	for _, fieldPtr := range fields {
 		go func() {
