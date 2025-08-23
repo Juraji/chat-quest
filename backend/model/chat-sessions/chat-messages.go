@@ -18,7 +18,7 @@ type ChatMessage struct {
 	Content       string     `json:"content"`
 
 	// Managed by memories
-	MemoryID *int `json:"memoryId"`
+	ProcessedByMemories bool `json:"processedByMemories"`
 }
 
 func chatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
@@ -31,7 +31,7 @@ func chatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
 		&dest.IsGenerating,
 		&dest.CharacterID,
 		&dest.Content,
-		&dest.MemoryID,
+		&dest.ProcessedByMemories,
 	)
 }
 
@@ -45,7 +45,6 @@ func NewChatMessage(isUser bool, isSystem bool, isGenerating bool, characterId *
 		IsGenerating:  isGenerating,
 		CharacterID:   characterId,
 		Content:       content,
-		MemoryID:      nil,
 	}
 }
 

@@ -17,10 +17,10 @@ func (p *ChatPreferences) Validate() error {
 		return errors.New("chat preferences is nil")
 	}
 	if p.ChatModelID == nil {
-		return errors.New("ChatModelId is nil")
+		return errors.New("chat model not set")
 	}
 	if p.ChatInstructionID == nil {
-		return errors.New("ChatInstructionId is nil")
+		return errors.New("chat instruction not set")
 	}
 
 	return nil

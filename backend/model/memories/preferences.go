@@ -1,6 +1,7 @@
 package memories
 
 import (
+	"errors"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
@@ -13,6 +14,23 @@ type MemoryPreferences struct {
 	MemoryMinP            float32 `json:"memoryMinP"`
 	MemoryTriggerAfter    int     `json:"memoryTriggerAfter"`
 	MemoryWindowSize      int     `json:"memoryWindowSize"`
+}
+
+func (p *MemoryPreferences) Validate() error {
+	if p == nil {
+		return errors.New("memory preferences is nil")
+	}
+	if p.MemoriesModelID == nil {
+		return errors.New("memories model not set")
+	}
+	if p.MemoriesInstructionID == nil {
+		return errors.New("memories instruction not set")
+	}
+	if p.EmbeddingModelID == nil {
+		return errors.New("embedding model not set")
+	}
+
+	return nil
 }
 
 func memoryPreferencesScanner(scanner database.RowScanner, dest *MemoryPreferences) error {

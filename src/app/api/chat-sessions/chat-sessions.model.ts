@@ -19,7 +19,6 @@ export interface ChatMessage extends ChatQuestModel {
   isGenerating: boolean
   characterId: Nullable<number>
   content: string
-  readonly memoryId: Nullable<number>
 }
 
 export interface ChatParticipant {

@@ -11,7 +11,7 @@ CREATE TABLE memories
 );
 
 ALTER TABLE chat_messages
-  ADD COLUMN memory_id INTEGER REFERENCES memories (id) ON DELETE SET NULL;
+  ADD COLUMN processed_by_memories BIT(1) NOT NULL DEFAULT FALSE;
 
 CREATE TABLE memory_preferences
 (
