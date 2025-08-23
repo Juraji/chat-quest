@@ -1,14 +1,19 @@
-import {Component, computed, inject, input, InputSignal, Signal} from '@angular/core';
+import {Component, computed, effect, inject, input, InputSignal, Signal} from '@angular/core';
 import {ChatMessage, ChatSessions} from '@api/chat-sessions';
 import {RenderedMessage} from '@components/rendered-message';
 import {Character} from '@api/characters';
 import {Notifications} from '@components/notifications';
 import {ChatSessionData} from '../../chat-session-data';
+import {booleanSignal, BooleanSignal, formControl, formGroup} from '@util/ng';
+import {ReactiveFormsModule, Validators} from '@angular/forms';
+
+type MessageFormGroup = Pick<ChatMessage, 'content'>
 
 @Component({
   selector: 'chat-session-message',
   imports: [
-    RenderedMessage
+    RenderedMessage,
+    ReactiveFormsModule
   ],
   templateUrl: './chat-session-message.html',
   styleUrl: './chat-session-message.scss'
@@ -36,6 +41,18 @@ export class ChatSessionMessage {
   readonly characterName = computed(() => this.character()?.name || 'You')
   readonly characterAvatar = computed(() => this.character()?.avatarUrl)
 
+  readonly editMessage: BooleanSignal = booleanSignal(false)
+  readonly editMessageFormGroup = formGroup<MessageFormGroup>({
+    content: formControl('', [Validators.required]),
+  })
+
+  constructor() {
+    effect(() => {
+      const content = this.message().content
+      this.editMessageFormGroup.reset({content})
+    });
+  }
+
   onDeleteMessage() {
     const doDelete = confirm(`Are you sure you want to delete the message?
 Note that this and all subsequent messages will be deleted and this action can not be undone.`);
@@ -47,5 +64,26 @@ Note that this and all subsequent messages will be deleted and this action can n
         .deleteMessage(this.worldId(), message.chatSessionId, message.id)
         .subscribe(() => this.notifications.toast('Message deleted!'))
     }
+  }
+
+  onEditMessageSubmit() {
+    if (this.editMessageFormGroup.invalid) return
+
+    const worldId = this.worldId();
+    const sessionId = this.sessionData.chatSessionId()
+    const msg = this.message()
+    const value: MessageFormGroup = this.editMessageFormGroup.value
+
+    const update: ChatMessage = {
+      ...msg,
+      ...value
+    }
+
+    this.chatSessions
+      .saveMessage(worldId, sessionId, update)
+      .subscribe(() => {
+        this.editMessage.set(false)
+        this.notifications.toast('Message updated!');
+      })
   }
 }
