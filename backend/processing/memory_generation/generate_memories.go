@@ -26,7 +26,7 @@ func GenerateMemories(
 	message *cs.ChatMessage,
 ) {
 	if message.IsGenerating {
-		// Skip messages that are still being generated or already processed (self invoke)
+		// Skip messages that are still being generated
 		return
 	}
 
@@ -240,8 +240,9 @@ func getMemorizableMessages(
 	if windowSize < requiredWindowSize {
 		logger.Debug("Not enough messages to memorize",
 			zap.Int("triggerAfter", triggerAfter),
+			zap.Int("totalUnprocessedMessages", len(messages)),
 			zap.Int("requiredWindowSize", requiredWindowSize),
-			zap.Int("availableMessages", len(messages)))
+			zap.Int("windowSize", windowSize))
 		return nil, false
 	}
 

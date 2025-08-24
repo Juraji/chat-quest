@@ -2,6 +2,7 @@ package processing
 
 import (
 	chatsessions "juraji.nl/chat-quest/model/chat-sessions"
+	"juraji.nl/chat-quest/model/memories"
 	"juraji.nl/chat-quest/processing/chat_init"
 	"juraji.nl/chat-quest/processing/chat_response"
 	"juraji.nl/chat-quest/processing/memory_generation"
@@ -23,4 +24,8 @@ func SetupProcessing() {
 		"GenerateMemoriesOnNewMessage", memory_generation.GenerateMemories)
 	chatsessions.ChatMessageUpdatedSignal.AddListener(
 		"GenerateMemoriesOnUpdatedMessage", memory_generation.GenerateMemories)
+	memories.MemoryCreatedSignal.AddListener(
+		"EmbeddingsForNewMemory", memory_generation.GenerateEmbeddings)
+	memories.MemoryUpdatedSignal.AddListener(
+		"EmbeddingsForExistingMemory", memory_generation.GenerateEmbeddings)
 }
