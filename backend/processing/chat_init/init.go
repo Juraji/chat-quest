@@ -45,7 +45,7 @@ func CreateChatSessionGreetings(
 			continue
 		}
 
-		message := sessions.NewChatMessage(false, false, false, &participant.ID, *greeting)
+		message := sessions.NewChatMessage(false, false, &participant.ID, *greeting)
 		sessions.CreateChatMessage(sessionID, message)
 	}
 }

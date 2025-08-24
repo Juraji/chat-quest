@@ -70,7 +70,7 @@ func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) <-ch
 			openAiRole = openai.ChatMessageRoleAssistant
 		default:
 			// Dev error, missing branch?
-			panic(errors.New(string("Developer error, invalid role " + msg.Role)))
+			panic(fmt.Errorf("developer error, invalid role '%s'", msg.Role))
 		}
 
 		messages[i] = openai.ChatCompletionMessage{

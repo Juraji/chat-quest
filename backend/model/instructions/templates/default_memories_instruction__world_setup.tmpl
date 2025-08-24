@@ -1,2 +1,15 @@
-{{- /*gotype: juraji.nl/chat-quest/processing/chat_response.instructionTemplateVars */ -}}
-TODO
+{{- /*gotype: juraji.nl/chat-quest/processing/memory_generation.instructionTemplateVars*/ -}}
+```rag.xml
+<Characters>
+  {{if .Participants}}
+    {{range $c := .Participants}}
+      <Character>
+        <Id>{{$c.ID}}</Id>
+        <Name>{{$c.Name}}</Name>
+      </Character>
+    {{end}}
+  {{end}}
+</Characters>
+```
+
+[OOC: Do not recite the information in the rag.xml block, use it identify individual character(s)]

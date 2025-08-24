@@ -2,15 +2,12 @@ package chat_response
 
 import (
 	"context"
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	p "juraji.nl/chat-quest/core/providers"
-	"juraji.nl/chat-quest/core/util"
 	chatsessions "juraji.nl/chat-quest/model/chat-sessions"
 	"juraji.nl/chat-quest/model/instructions"
 	"juraji.nl/chat-quest/model/worlds"
-	"strings"
 )
 
 func GenerateResponseForParticipant(ctx context.Context, payload *chatsessions.ChatParticipant) {
@@ -60,7 +57,13 @@ func GenerateResponseForParticipant(ctx context.Context, payload *chatsessions.C
 	}
 
 	// Process instruction templates
-	err := processInstructionTemplates(instruction, session, chatHistory, characterId, nil)
+	templateVars, err := newInstructionTemplateVars(session, nil, chatHistory, characterId)
+	if err != nil {
+		logger.Error("Error collecting instruction template variables", zap.Error(err))
+		return
+	}
+
+	instruction, err = instructions.ApplyInstructionTemplates(*instruction, templateVars)
 	if err != nil {
 		logger.Error("Error processing instruction templates", zap.Error(err))
 		return
@@ -133,7 +136,13 @@ func GenerateResponseForMessage(
 	logger = logger.With(zap.Int("selectedCharacterId", *characterId))
 
 	// Process instruction templates
-	err := processInstructionTemplates(instruction, session, chatHistory, *characterId, message)
+	templateVars, err := newInstructionTemplateVars(session, message, chatHistory, *characterId)
+	if err != nil {
+		logger.Error("Error collecting instruction template variables", zap.Error(err))
+		return
+	}
+
+	instruction, err = instructions.ApplyInstructionTemplates(*instruction, templateVars)
 	if err != nil {
 		logger.Error("Error processing instruction templates", zap.Error(err))
 		return
@@ -164,20 +173,22 @@ func generateResponse(
 	chatResponseChan := p.GenerateChatResponse(modelInstance, messages, instruction.Temperature)
 
 	// Create response message
-	responseMessage := chatsessions.NewChatMessage(false, false, true, characterId, "")
+	responseMessage := chatsessions.NewChatMessage(false, true, characterId, "")
 	if ok := chatsessions.CreateChatMessage(sessionId, responseMessage); !ok {
 		logger.Warn("Failed to create response chat message")
 		return
 	}
+	defer func() {
+		responseMessage.IsGenerating = false
+		if ok := chatsessions.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); !ok {
+			logger.Error("Failed to update response chat message upon finalization")
+		}
+	}()
 
 	for {
 		select {
 		case response, hasNext := <-chatResponseChan:
 			if !hasNext {
-				responseMessage.IsGenerating = false
-				if ok := chatsessions.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); !ok {
-					logger.Error("Failed to update response chat message upon finalization")
-				}
 				return
 			}
 			if response.Error != nil {
@@ -231,49 +242,4 @@ func createChatRequestMessages(
 	messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.Instruction})
 
 	return messages
-}
-
-func processInstructionTemplates(
-	instruction *instructions.InstructionTemplate,
-	session *chatsessions.ChatSession,
-	chatHistory []chatsessions.ChatMessage,
-	characterId int,
-	triggerMessage *chatsessions.ChatMessage,
-) error {
-	templateVars, err := newInstructionTemplateVars(session, triggerMessage, chatHistory, characterId)
-	if err != nil {
-		return err
-	}
-
-	fields := []*string{
-		&instruction.SystemPrompt,
-		&instruction.WorldSetup,
-		&instruction.Instruction,
-	}
-
-	errChan := make(chan error, len(fields))
-	defer close(errChan)
-
-	for _, fieldPtr := range fields {
-		go func() {
-			if util.HasTemplateVars(*fieldPtr) {
-				tpl, err := util.NewTextTemplate("Template", *fieldPtr)
-				if err != nil {
-					errChan <- errors.Wrap(err, "Error creating template for instruction template")
-					return
-				}
-
-				*fieldPtr = strings.TrimSpace(util.WriteToString(tpl, templateVars))
-			}
-			errChan <- nil
-		}()
-	}
-
-	for i := 0; i < len(fields); i++ {
-		err = <-errChan
-		if err != nil {
-			return errors.Wrap(err, "Error processing instruction template")
-		}
-	}
-	return nil
 }

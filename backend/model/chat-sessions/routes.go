@@ -120,8 +120,6 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		message.IsSystem = false
-
 		ok = CreateChatMessage(sessionId, &message)
 		controllers.RespondSingle(c, ok, &message)
 	})

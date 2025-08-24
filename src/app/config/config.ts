@@ -12,8 +12,8 @@ export interface ChatQuestConfig {
 const DEFAULT_CONFIG: ChatQuestConfig = {
   apiBaseUrl: 'http://localhost:8080/api',
   sse: {
-    maxReconnectAttempts: 5,
-    reconnectionDelay: 500,
+    maxReconnectAttempts: 15,
+    reconnectionDelay: 100,
   }
 }
 

@@ -20,7 +20,6 @@ CREATE TABLE chat_messages
   chat_session_id INTEGER   NOT NULL REFERENCES chat_sessions (id) ON DELETE CASCADE,
   created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   is_user         BIT(1)    NOT NULL,
-  is_system     BIT(1) NOT NULL,
   is_generating BIT(1) NOT NULL,
   character_id    INTEGER   REFERENCES characters (id) ON DELETE SET NULL,
   content         TEXT      NOT NULL
