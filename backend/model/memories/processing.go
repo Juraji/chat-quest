@@ -24,3 +24,25 @@ func GetUnprocessedMessagesForSession(sessionID int) ([]chatsessions.ChatMessage
 
 	return list, true
 }
+
+func SetProcessedStateForMessages(messages []chatsessions.ChatMessage) bool {
+	query := `UPDATE chat_messages SET processed_by_memories = TRUE WHERE id = ?;`
+	err := database.Transactional(func(ctx *database.TxContext) error {
+		for _, message := range messages {
+			args := []any{message.ID}
+			err := ctx.UpdateRecord(query, args)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		log.Get().Error("Error updating processed state for memorized messages", zap.Error(err))
+		return false
+	}
+
+	return true
+}

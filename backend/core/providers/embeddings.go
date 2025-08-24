@@ -10,6 +10,7 @@ import (
 
 type Embeddings []float32
 
+//goland:noinspection GoMixedReceiverTypes as needed by the sql.Scanner interface.
 func (e *Embeddings) Scan(value any) error {
 	if value == nil {
 		*e = nil
@@ -35,13 +36,14 @@ func (e *Embeddings) Scan(value any) error {
 	return nil
 }
 
-func (e *Embeddings) Value() (driver.Value, error) {
-	if e == nil || len(*e) == 0 {
+//goland:noinspection GoMixedReceiverTypes as needed by the driver.Valuer interface.
+func (e Embeddings) Value() (driver.Value, error) {
+	if len(e) == 0 {
 		return nil, nil
 	}
 
-	b := make([]byte, len(*e)*4)
-	for i, v := range *e {
+	b := make([]byte, len(e)*4)
+	for i, v := range e {
 		bits := math.Float32bits(v)
 		binary.LittleEndian.PutUint32(b[i*4:], bits)
 	}
@@ -49,6 +51,7 @@ func (e *Embeddings) Value() (driver.Value, error) {
 	return b, nil
 }
 
+//goland:noinspection GoMixedReceiverTypes See Scan and Value methods
 func (e *Embeddings) CosineSimilarity(other Embeddings) (float32, error) {
 	if e == nil || len(*e) != len(other) {
 		return 0.0, errors.New("embedding dimensions must match")

@@ -7,34 +7,33 @@ import (
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	p "juraji.nl/chat-quest/core/providers"
-	"juraji.nl/chat-quest/core/util/signals"
-	"juraji.nl/chat-quest/model/characters"
+	c "juraji.nl/chat-quest/model/characters"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
-	"juraji.nl/chat-quest/model/instructions"
+	i "juraji.nl/chat-quest/model/instructions"
 	m "juraji.nl/chat-quest/model/memories"
 	"strings"
 	"sync"
-	"time"
 )
 
 type instructionTemplateVars struct {
-	Participants []characters.Character
+	Participants []c.Character
 }
 
 var generationMutex sync.Mutex
-var GenerateMemories = signals.DebounceListener(2*time.Second, generateMemoriesImpl)
 
-func generateMemoriesImpl(
+func GenerateMemories(
 	ctx context.Context,
 	message *cs.ChatMessage,
 ) {
-	generationMutex.Lock()
-	defer generationMutex.Unlock()
-
 	if message.IsGenerating {
-		// Skip messages that are still being generated
+		// Skip messages that are still being generated or already processed (self invoke)
 		return
 	}
+
+	// Lock while processing to avoid multiple messages invoking simultaneous generation
+	// for the same message window.
+	generationMutex.Lock()
+	defer generationMutex.Unlock()
 
 	sessionID := message.ChatSessionID
 	logger := log.Get().With(zap.Int("chatSessionId", sessionID))
@@ -47,7 +46,10 @@ func generateMemoriesImpl(
 	if !ok {
 		return
 	}
-	worldId := session.WorldID
+	if !session.EnableMemories {
+		// Memories are disabled for this session
+		return
+	}
 
 	preferences, ok := m.GetMemoryPreferences()
 	if !ok {
@@ -72,60 +74,21 @@ func generateMemoriesImpl(
 		return
 	}
 
-	ok = generateMemoryEmbeddings(logger, preferences, memories)
-	if !ok {
-		return
-	}
-	if ctx.Err() != nil {
-		logger.Debug("Cancelled by context")
-		return
-	}
-
 	// We're done, save memories
 	for _, memory := range memories {
-		ok = m.CreateMemory(worldId, memory)
+		ok = m.CreateMemory(session.WorldID, memory)
 		if !ok {
-			logger.Error("Error saving memory to db")
 			return
 		}
 	}
 
 	// Update message processed states
-	for _, msg := range memorizableMessages {
-		msg.ProcessedByMemories = true
-		ok = cs.UpdateChatMessage(sessionID, msg.ID, &msg)
-		if !ok {
-			logger.Error("Error updating message")
-			return
-		}
+	ok = m.SetProcessedStateForMessages(memorizableMessages)
+	if !ok {
+		return
 	}
 
 	logger.Debug("Memory generation completed")
-}
-
-func generateMemoryEmbeddings(
-	logger *zap.Logger,
-	preferences *m.MemoryPreferences,
-	memories []*m.Memory,
-) bool {
-	embeddingModel, ok := p.GetLlmModelInstanceById(*preferences.EmbeddingModelID)
-	if !ok {
-		logger.Warn("Could not fetch embedding model", zap.Intp("modelId", preferences.EmbeddingModelID))
-		return false
-	}
-
-	for _, memory := range memories {
-		embeddings, err := p.GenerateEmbeddings(embeddingModel, memory.Content)
-		if err != nil {
-			logger.Error("Error generating embeddings",
-				zap.String("memoryContent", memory.Content), zap.Error(err))
-			return false
-		}
-		memory.Embedding = embeddings
-	}
-
-	logger.Debug("Successfully generated embeddings for memories")
-	return true
 }
 
 func generateAndExtractMemories(
@@ -135,7 +98,7 @@ func generateAndExtractMemories(
 	preferences *m.MemoryPreferences,
 	messages []cs.ChatMessage,
 ) ([]*m.Memory, bool) {
-	instruction, ok := instructions.InstructionById(*preferences.MemoriesInstructionID)
+	instruction, ok := i.InstructionById(*preferences.MemoriesInstructionID)
 	if !ok || instruction == nil {
 		logger.Debug("Could not fetch memory instruction")
 		return nil, false
@@ -157,7 +120,7 @@ func generateAndExtractMemories(
 	}
 
 	// Apply instruction template vars and generate memories
-	instruction, err := instructions.ApplyInstructionTemplates(*instruction, templateVars)
+	instruction, err := i.ApplyInstructionTemplates(*instruction, templateVars)
 	if err != nil {
 		logger.Error("Error applying instruction templates", zap.Error(err))
 		return nil, false
@@ -199,7 +162,7 @@ func generateAndExtractMemories(
 
 func createChatRequestMessages(
 	chatMessages []cs.ChatMessage,
-	instruction *instructions.InstructionTemplate,
+	instruction *i.InstructionTemplate,
 ) []p.ChatRequestMessage {
 	// Pre-allocate messages with history len + max number of messages added here
 	messages := make([]p.ChatRequestMessage, 0, len(chatMessages)+3)

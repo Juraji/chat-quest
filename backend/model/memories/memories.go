@@ -11,7 +11,6 @@ import (
 type Memory struct {
 	ID               int        `json:"id"`
 	WorldId          int        `json:"worldId"`
-	ChatSessionId    int        `json:"chatSessionId"`
 	CharacterId      int        `json:"characterId"`
 	CreatedAt        *time.Time `json:"createdAt"`
 	Content          string     `json:"content"`
@@ -27,7 +26,6 @@ func memoryScanner(scanner database.RowScanner, dest *Memory) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.WorldId,
-		&dest.ChatSessionId,
 		&dest.CharacterId,
 		&dest.CreatedAt,
 		&dest.Content,
@@ -39,13 +37,12 @@ func memoryScanner(scanner database.RowScanner, dest *Memory) error {
 func GetMemoriesByWorldId(worldId int) ([]Memory, bool) {
 	query := `SELECT id,
                    world_id,
-                   chat_session_id,
                    character_id,
                    created_at,
                    content
             FROM memories
             WHERE world_id = ?`
-	args := []interface{}{worldId}
+	args := []any{worldId}
 	list, err := database.QueryForList(query, args, memoryScanner)
 	if err != nil {
 		log.Get().Error("Error fetching memories", zap.Error(err))
@@ -61,13 +58,12 @@ func GetMemoriesByWorldAndCharacterId(
 ) ([]Memory, bool) {
 	query := `SELECT id,
                    world_id,
-                   chat_session_id,
                    character_id,
                    created_at,
                    content
             FROM memories
             WHERE world_id = ? AND character_id = ?`
-	args := []interface{}{worldId, characterId}
+	args := []any{worldId, characterId}
 
 	list, err := database.QueryForList(query, args, memoryScanner)
 	if err != nil {
@@ -83,8 +79,13 @@ func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 	worldId int,
 	characterId int,
 ) ([]Memory, bool) {
-	query := `SELECT * FROM memories m WHERE world_id = ? AND (character_id IS NULL OR character_id = ?)`
-	args := []interface{}{worldId, characterId}
+	query := `SELECT *
+              FROM memories m
+              WHERE world_id = ?
+                AND embedding IS NOT NULL
+                And embedding IS NOT NULL
+                AND (character_id IS NULL OR character_id = ?)`
+	args := []any{worldId, characterId}
 
 	list, err := database.QueryForList(query, args, memoryScanner)
 	if err != nil {
@@ -99,16 +100,12 @@ func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 func CreateMemory(worldId int, memory *Memory) bool {
 	memory.WorldId = worldId
 
-	query := `INSERT INTO memories (world_id, chat_session_id, character_id, created_at, content, embedding, embedding_model_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`
+	query := `INSERT INTO memories (world_id, character_id, content)
+            VALUES (?, ?, ?) RETURNING id`
 	args := []any{
 		memory.WorldId,
-		memory.ChatSessionId,
 		memory.CharacterId,
-		memory.CreatedAt,
 		memory.Content,
-		memory.Embedding,
-		memory.EmbeddingModelId,
 	}
 
 	err := database.InsertRecord(query, args, &memory.ID)
@@ -122,8 +119,8 @@ func CreateMemory(worldId int, memory *Memory) bool {
 }
 
 func UpdateMemory(id int, memory *Memory) bool {
-	query := `UPDATE memories SET content = ?, embedding = ?, embedding_model_id = ? WHERE id = ?`
-	args := []any{memory.Content, memory.Embedding, memory.EmbeddingModelId, id}
+	query := `UPDATE memories SET content = ? WHERE id = ?`
+	args := []any{memory.Content, id}
 
 	err := database.UpdateRecord(query, args)
 	if err != nil {
@@ -133,6 +130,19 @@ func UpdateMemory(id int, memory *Memory) bool {
 	}
 
 	MemoryUpdatedSignal.EmitBG(memory)
+	return true
+}
+
+func SetMemoryEmbedding(id int, embeddings providers.Embeddings, embeddingModelId int) bool {
+	query := `UPDATE memories SET embedding = ?, embedding_model_id = ? WHERE id = ?`
+	args := []any{embeddings, embeddingModelId, id}
+	err := database.UpdateRecord(query, args)
+	if err != nil {
+		log.Get().Error("Error updating memory",
+			zap.Int("id", id), zap.Error(err))
+		return false
+	}
+
 	return true
 }
 
