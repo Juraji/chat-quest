@@ -1,12 +1,10 @@
 package processing
 
 import (
-	"juraji.nl/chat-quest/core/util/signals"
 	chatsessions "juraji.nl/chat-quest/model/chat-sessions"
 	"juraji.nl/chat-quest/processing/chat_init"
 	"juraji.nl/chat-quest/processing/chat_response"
 	"juraji.nl/chat-quest/processing/memory_generation"
-	"time"
 )
 
 func SetupProcessing() {
@@ -22,9 +20,7 @@ func SetupProcessing() {
 
 	// Memory generation
 	chatsessions.ChatMessageCreatedSignal.AddListener(
-		"GenerateMemoriesOnNewMessage",
-		signals.DebounceListener(1*time.Second, memory_generation.GenerateMemories))
+		"GenerateMemoriesOnNewMessage", memory_generation.GenerateMemories)
 	chatsessions.ChatMessageUpdatedSignal.AddListener(
-		"GenerateMemoriesOnUpdatedMessage",
-		signals.DebounceListener(2*time.Second, memory_generation.GenerateMemories))
+		"GenerateMemoriesOnUpdatedMessage", memory_generation.GenerateMemories)
 }

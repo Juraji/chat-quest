@@ -2,26 +2,37 @@ package memory_generation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	p "juraji.nl/chat-quest/core/providers"
+	"juraji.nl/chat-quest/core/util/signals"
 	"juraji.nl/chat-quest/model/characters"
-	chatsessions "juraji.nl/chat-quest/model/chat-sessions"
+	cs "juraji.nl/chat-quest/model/chat-sessions"
 	"juraji.nl/chat-quest/model/instructions"
-	"juraji.nl/chat-quest/model/memories"
+	m "juraji.nl/chat-quest/model/memories"
+	"strings"
+	"sync"
+	"time"
 )
 
 type instructionTemplateVars struct {
 	Participants []characters.Character
 }
 
-func GenerateMemories(
+var generationMutex sync.Mutex
+var GenerateMemories = signals.DebounceListener(2*time.Second, generateMemoriesImpl)
+
+func generateMemoriesImpl(
 	ctx context.Context,
-	message *chatsessions.ChatMessage,
+	message *cs.ChatMessage,
 ) {
-	if message.IsUser || message.IsGenerating {
-		// Skip messages by the user or messages that are still being generated
+	generationMutex.Lock()
+	defer generationMutex.Unlock()
+
+	if message.IsGenerating {
+		// Skip messages that are still being generated
 		return
 	}
 
@@ -32,7 +43,13 @@ func GenerateMemories(
 		return
 	}
 
-	preferences, ok := memories.GetMemoryPreferences()
+	session, ok := cs.GetById(sessionID)
+	if !ok {
+		return
+	}
+	worldId := session.WorldID
+
+	preferences, ok := m.GetMemoryPreferences()
 	if !ok {
 		return
 	}
@@ -46,24 +63,78 @@ func GenerateMemories(
 		return
 	}
 
-	_, ok = generateRawMemoriesResponse(logger, ctx, sessionID, preferences, memorizableMessages)
+	memories, ok := generateAndExtractMemories(logger, ctx, sessionID, preferences, memorizableMessages)
 	if !ok {
 		return
 	}
+	if ctx.Err() != nil {
+		logger.Debug("Cancelled by context")
+		return
+	}
 
-	//embeddingModel, ok := p.GetLlmModelInstanceById(*preferences.EmbeddingModelID)
-	//if !ok {
-	//	return
-	//}
+	ok = generateMemoryEmbeddings(logger, preferences, memories)
+	if !ok {
+		return
+	}
+	if ctx.Err() != nil {
+		logger.Debug("Cancelled by context")
+		return
+	}
+
+	// We're done, save memories
+	for _, memory := range memories {
+		ok = m.CreateMemory(worldId, memory)
+		if !ok {
+			logger.Error("Error saving memory to db")
+			return
+		}
+	}
+
+	// Update message processed states
+	for _, msg := range memorizableMessages {
+		msg.ProcessedByMemories = true
+		ok = cs.UpdateChatMessage(sessionID, msg.ID, &msg)
+		if !ok {
+			logger.Error("Error updating message")
+			return
+		}
+	}
+
+	logger.Debug("Memory generation completed")
 }
 
-func generateRawMemoriesResponse(
+func generateMemoryEmbeddings(
+	logger *zap.Logger,
+	preferences *m.MemoryPreferences,
+	memories []*m.Memory,
+) bool {
+	embeddingModel, ok := p.GetLlmModelInstanceById(*preferences.EmbeddingModelID)
+	if !ok {
+		logger.Warn("Could not fetch embedding model", zap.Intp("modelId", preferences.EmbeddingModelID))
+		return false
+	}
+
+	for _, memory := range memories {
+		embeddings, err := p.GenerateEmbeddings(embeddingModel, memory.Content)
+		if err != nil {
+			logger.Error("Error generating embeddings",
+				zap.String("memoryContent", memory.Content), zap.Error(err))
+			return false
+		}
+		memory.Embedding = embeddings
+	}
+
+	logger.Debug("Successfully generated embeddings for memories")
+	return true
+}
+
+func generateAndExtractMemories(
 	logger *zap.Logger,
 	ctx context.Context,
 	sessionID int,
-	preferences *memories.MemoryPreferences,
-	messages []chatsessions.ChatMessage,
-) ([]memories.Memory, bool) {
+	preferences *m.MemoryPreferences,
+	messages []cs.ChatMessage,
+) ([]*m.Memory, bool) {
 	instruction, ok := instructions.InstructionById(*preferences.MemoriesInstructionID)
 	if !ok || instruction == nil {
 		logger.Debug("Could not fetch memory instruction")
@@ -75,7 +146,7 @@ func generateRawMemoriesResponse(
 		return nil, false
 	}
 
-	participants, ok := chatsessions.GetParticipants(sessionID)
+	participants, ok := cs.GetParticipants(sessionID)
 	if !ok {
 		logger.Debug("Could not fetch participants")
 		return nil, false
@@ -85,6 +156,7 @@ func generateRawMemoriesResponse(
 		Participants: participants,
 	}
 
+	// Apply instruction template vars and generate memories
 	instruction, err := instructions.ApplyInstructionTemplates(*instruction, templateVars)
 	if err != nil {
 		logger.Error("Error applying instruction templates", zap.Error(err))
@@ -92,13 +164,65 @@ func generateRawMemoriesResponse(
 	}
 
 	requestMessages := createChatRequestMessages(messages, instruction)
+	memoryGenResponse, ok := callLlm(logger, ctx, modelInstance, requestMessages, instruction.Temperature)
+	if !ok {
+		return nil, false
+	}
 
-	// Do LLM
-	llmResponse, ok := callLlm(logger, ctx, modelInstance, requestMessages, instruction.Temperature)
+	// We expect a JSON markdown block, extract it
+	markDownStartSeq := "```json"
+	markDownEndSeq := "```"
+	markdownStart := strings.Index(memoryGenResponse, markDownStartSeq)
+	if markdownStart == -1 {
+		logger.Error("Could not find markdown start in response")
+		return nil, false
+	}
+	memoryGenResponse = memoryGenResponse[markdownStart+len(markDownStartSeq):]
+	markdownEnd := strings.Index(memoryGenResponse, markDownEndSeq)
+	if markdownEnd == -1 {
+		logger.Error("Could not find markdown end in response")
+		return nil, false
+	}
+	memoryGenResponse = memoryGenResponse[:markdownEnd]
 
-	logger.Sugar().Debugf("LLM Response: %v", llmResponse)
-	// TODO: Parse memories output
-	return nil, false
+	// Unmarshal memories
+	var memories []*m.Memory
+	err = json.Unmarshal([]byte(memoryGenResponse), &memories)
+	if err != nil {
+		logger.Error("Could not unmarshal memory response", zap.Error(err))
+		return nil, false
+	}
+
+	logger.Debug("Memories generated successfully", zap.Int("memoryCount", len(memories)))
+	return memories, true
+}
+
+func createChatRequestMessages(
+	chatMessages []cs.ChatMessage,
+	instruction *instructions.InstructionTemplate,
+) []p.ChatRequestMessage {
+	// Pre-allocate messages with history len + max number of messages added here
+	messages := make([]p.ChatRequestMessage, 0, len(chatMessages)+3)
+
+	// Add system and world setup messages
+	messages = append(messages,
+		p.ChatRequestMessage{Role: p.RoleSystem, Content: instruction.SystemPrompt},
+		p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.WorldSetup},
+	)
+
+	// Add chat history
+	for _, msg := range chatMessages {
+		if msg.IsUser {
+			messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: msg.Content})
+		} else {
+			content := fmt.Sprintf("<ByCharacterId>%v</ByCharacterId>\n\n%s", *msg.CharacterID, msg.Content)
+			messages = append(messages, p.ChatRequestMessage{Role: p.RoleAssistant, Content: content})
+		}
+	}
+
+	// Add user instruction message
+	messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.Instruction})
+	return messages
 }
 
 func callLlm(
@@ -132,67 +256,39 @@ func callLlm(
 	}
 }
 
-func createChatRequestMessages(
-	chatMessages []chatsessions.ChatMessage,
-	instruction *instructions.InstructionTemplate,
-) []p.ChatRequestMessage {
-	// Pre-allocate messages with history len + max number of messages added here
-	messages := make([]p.ChatRequestMessage, 0, len(chatMessages)+3)
-
-	// Add system and world setup messages
-	messages = append(messages,
-		p.ChatRequestMessage{Role: p.RoleSystem, Content: instruction.SystemPrompt},
-		p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.WorldSetup},
-	)
-
-	// Add chat history
-	for _, m := range chatMessages {
-		if m.IsUser {
-			messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: m.Content})
-		} else {
-			content := fmt.Sprintf("<ByCharacterId>%v</ByCharacterId>\n\n%s", *m.CharacterID, m.Content)
-			messages = append(messages, p.ChatRequestMessage{Role: p.RoleAssistant, Content: content})
-		}
-	}
-
-	// Add user instruction message
-	messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.Instruction})
-	return messages
-}
-
 func getMemorizableMessages(
 	logger *zap.Logger,
-	preferences *memories.MemoryPreferences,
+	preferences *m.MemoryPreferences,
 	sessionID int,
-) ([]chatsessions.ChatMessage, bool) {
-	unprocessed, ok := memories.GetUnprocessedMessagesForSession(sessionID)
+) ([]cs.ChatMessage, bool) {
+	messages, ok := m.GetUnprocessedMessagesForSession(sessionID)
 	if !ok {
-		logger.Warn("Failed to get unprocessed messages")
+		logger.Warn("Failed to get unprocessed messages for session",
+			zap.Int("sessionId", sessionID))
 		return nil, false
 	}
 
 	triggerAfter := preferences.MemoryTriggerAfter
 	requiredWindowSize := preferences.MemoryWindowSize
-	unprocessedMessagesLen := len(unprocessed)
-	truncateBy := unprocessedMessagesLen - triggerAfter
 
-	var window []chatsessions.ChatMessage
-	if truncateBy > 0 {
-		window = unprocessed[:truncateBy]
-	}
-	windowSize := len(window)
+	windowSize := len(messages) - triggerAfter
 
-	logger = logger.With(
-		zap.Int("triggerAfter", triggerAfter),
-		zap.Int("requiredWindowSize", requiredWindowSize),
-		zap.Int("totalUnprocessedMessages", unprocessedMessagesLen),
-		zap.Int("windowSize", windowSize))
-
-	if windowSize >= requiredWindowSize {
-		logger.Debug("Found messages to memorize")
-		return window, true
-	} else {
-		logger.Debug("Not enough messages to memorize")
+	// Only proceed if we have enough messages to create a valid window
+	if windowSize < requiredWindowSize {
+		logger.Debug("Not enough messages to memorize",
+			zap.Int("triggerAfter", triggerAfter),
+			zap.Int("requiredWindowSize", requiredWindowSize),
+			zap.Int("availableMessages", len(messages)))
 		return nil, false
 	}
+
+	messageWindow := messages[:windowSize]
+
+	logger.Debug("Found messages to memorize",
+		zap.Int("triggerAfter", triggerAfter),
+		zap.Int("requiredWindowSize", requiredWindowSize),
+		zap.Int("totalUnprocessedMessages", len(messages)),
+		zap.Int("windowSize", windowSize))
+
+	return messageWindow, true
 }

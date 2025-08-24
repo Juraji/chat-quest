@@ -34,7 +34,9 @@ func (p *MemoryPreferences) Validate() error {
 }
 
 func memoryPreferencesScanner(scanner database.RowScanner, dest *MemoryPreferences) error {
+	var idSink int
 	return scanner.Scan(
+		&idSink,
 		&dest.MemoriesModelID,
 		&dest.MemoriesInstructionID,
 		&dest.EmbeddingModelID,
@@ -45,14 +47,7 @@ func memoryPreferencesScanner(scanner database.RowScanner, dest *MemoryPreferenc
 }
 
 func GetMemoryPreferences() (*MemoryPreferences, bool) {
-	query := `SELECT memories_model_id,
-                     memories_instruction_id,
-                     embedding_model_id,
-                     memory_min_p,
-                     memory_trigger_after,
-                     memory_window_size
-              FROM memory_preferences
-              WHERE id = 0`
+	query := "SELECT * FROM memory_preferences WHERE id = 0"
 	prefs, err := database.QueryForRecord(query, nil, memoryPreferencesScanner)
 	if err != nil {
 		log.Get().Error("Error fetching preferences", zap.Error(err))

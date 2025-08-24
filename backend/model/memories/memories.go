@@ -96,7 +96,9 @@ func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 	return list, true
 }
 
-func CreateMemory(memory *Memory) bool {
+func CreateMemory(worldId int, memory *Memory) bool {
+	memory.WorldId = worldId
+
 	query := `INSERT INTO memories (world_id, chat_session_id, character_id, created_at, content, embedding, embedding_model_id)
             VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id`
 	args := []any{

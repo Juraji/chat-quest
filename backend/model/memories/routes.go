@@ -54,10 +54,7 @@ func memoriesRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		newMemory.WorldId = worldId
-
-		// TODO: Generate embeddings!
-		ok = CreateMemory(&newMemory)
+		ok = CreateMemory(worldId, &newMemory)
 		controllers.RespondSingle(c, ok, &newMemory)
 	})
 
