@@ -64,7 +64,7 @@ func AllCharacterListViews() ([]CharacterListView, bool) {
 	}
 
 	for i := range characters {
-		char := &characters[i]
+		char := characters[i]
 		tags, _ := TagsByCharacterId(char.ID)
 		char.Tags = tags
 	}

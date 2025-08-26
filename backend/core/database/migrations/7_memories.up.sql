@@ -28,8 +28,8 @@ INSERT INTO memory_preferences (id, memories_model_id, memories_instruction_id, 
                                 memory_trigger_after, memory_window_size)
 VALUES (0,
         NULL,
-        NULL,
+        (SELECT id FROM instruction_templates WHERE type = 'MEMORIES' LIMIT 1),
         NULL,
         0.95,
         15,
-        3);
+        10);

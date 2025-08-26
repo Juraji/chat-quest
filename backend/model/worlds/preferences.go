@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
+	"strings"
 )
 
 type ChatPreferences struct {
@@ -16,11 +17,17 @@ func (p *ChatPreferences) Validate() error {
 	if p == nil {
 		return errors.New("chat preferences is nil")
 	}
+
+	var errs []string
 	if p.ChatModelID == nil {
-		return errors.New("chat model not set")
+		errs = append(errs, "chat model not set")
 	}
 	if p.ChatInstructionID == nil {
-		return errors.New("chat instruction not set")
+		errs = append(errs, "chat instruction not set")
+	}
+
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "; "))
 	}
 
 	return nil
@@ -37,7 +44,7 @@ func GetChatPreferences() (*ChatPreferences, bool) {
 	query := "SELECT chat_model_id, chat_instruction_id FROM chat_preferences WHERE id = 0"
 	prefs, err := database.QueryForRecord(query, nil, chatPreferencesScanner)
 	if err != nil {
-		log.Get().Error("Error fetching chat_preferences", zap.Error(err))
+		log.Get().Error("Error fetching chat preferences", zap.Error(err))
 		return nil, false
 	}
 

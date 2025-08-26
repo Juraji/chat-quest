@@ -12,6 +12,7 @@
 {{end}}
 <Characters>
   <Character>
+    <Id>{{.Character.ID}}</Id>
     <Name>{{.Character.Name}}</Name>
     {{if .Character.Appearance}}
     <Appearance>
@@ -39,6 +40,7 @@
   {{if .OtherParticipants}}
     {{range $c := .OtherParticipants}}
       <Character>
+        <Id>{{$c.ID}}</Id>
         <Name>{{$c.Name}}</Name>
         {{if $c.Appearance}}
         <Appearance>

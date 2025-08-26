@@ -56,7 +56,7 @@ func LlmModelsByConnectionProfileId(profileId int) ([]LlmModel, bool) {
 	list, err := database.QueryForList(query, args, llmModelScanner)
 	if err != nil {
 		log.Get().Error("Error querying for llm models", zap.Error(err))
-		return []LlmModel{}, false
+		return list, false
 	}
 
 	return list, true

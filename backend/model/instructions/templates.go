@@ -3,7 +3,6 @@ package instructions
 import (
 	"github.com/pkg/errors"
 	"juraji.nl/chat-quest/core/util"
-	"strings"
 )
 
 func ApplyInstructionTemplates(instruction InstructionTemplate, variables any) (*InstructionTemplate, error) {
@@ -18,15 +17,13 @@ func ApplyInstructionTemplates(instruction InstructionTemplate, variables any) (
 
 	for _, fieldPtr := range fields {
 		go func() {
-			if util.HasTemplateVars(*fieldPtr) {
-				tpl, err := util.NewTextTemplate("Template", *fieldPtr)
-				if err != nil {
-					errChan <- errors.Wrap(err, "Error creating template for instruction template")
-					return
-				}
-
-				*fieldPtr = strings.TrimSpace(util.WriteToString(tpl, variables))
+			result, err := util.ParseAndApplyTextTemplate(*fieldPtr, variables)
+			if err != nil {
+				errChan <- errors.Wrap(err, "Error creating template for instruction template")
+				return
 			}
+
+			*fieldPtr = result
 			errChan <- nil
 		}()
 	}

@@ -1,31 +1,32 @@
 package processing
 
 import (
-	chatsessions "juraji.nl/chat-quest/model/chat-sessions"
-	"juraji.nl/chat-quest/model/memories"
+	cs "juraji.nl/chat-quest/model/chat-sessions"
+	m "juraji.nl/chat-quest/model/memories"
 	"juraji.nl/chat-quest/processing/chat_init"
-	"juraji.nl/chat-quest/processing/chat_response"
+	"juraji.nl/chat-quest/processing/chat_responses"
 	"juraji.nl/chat-quest/processing/memory_generation"
 )
 
 func SetupProcessing() {
 	// Chat init
-	chatsessions.ChatSessionCreatedSignal.AddListener(
-		"CreateChatSessionGreetings", chat_init.CreateChatSessionGreetings)
+	// TODO: Run greeting when character is being added, instead of at session creation
+	cs.ChatSessionCreatedSignal.AddListener(
+		"ProcessingGreetings", chat_init.CreateChatSessionGreetings)
 
 	// Chat response
-	chatsessions.ChatMessageCreatedSignal.AddListener(
-		"GenerateResponseForMessage", chat_response.GenerateResponseForMessage)
-	chatsessions.ChatParticipantResponseRequestedSignal.AddListener(
-		"GenerateResponseForParticipant", chat_response.GenerateResponseForParticipant)
+	cs.ChatMessageCreatedSignal.AddListener(
+		"GenerateResponse", chat_responses.GenerateResponseByMessageCreated)
+	cs.ChatParticipantResponseRequestedSignal.AddListener(
+		"GenerateResponse", chat_responses.GenerateResponseByParticipantTrigger)
 
 	// Memory generation
-	chatsessions.ChatMessageCreatedSignal.AddListener(
-		"GenerateMemoriesOnNewMessage", memory_generation.GenerateMemories)
-	chatsessions.ChatMessageUpdatedSignal.AddListener(
-		"GenerateMemoriesOnUpdatedMessage", memory_generation.GenerateMemories)
-	memories.MemoryCreatedSignal.AddListener(
-		"EmbeddingsForNewMemory", memory_generation.GenerateEmbeddings)
-	memories.MemoryUpdatedSignal.AddListener(
-		"EmbeddingsForExistingMemory", memory_generation.GenerateEmbeddings)
+	cs.ChatMessageCreatedSignal.AddListener(
+		"GenerateMemories", memory_generation.GenerateMemories)
+	cs.ChatMessageUpdatedSignal.AddListener(
+		"GenerateMemories", memory_generation.GenerateMemories)
+	m.MemoryCreatedSignal.AddListener(
+		"GenerateEmbeddings", memory_generation.GenerateEmbeddings)
+	m.MemoryUpdatedSignal.AddListener(
+		"GenerateEmbeddings", memory_generation.GenerateEmbeddings)
 }
