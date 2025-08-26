@@ -18,6 +18,12 @@ import (
 	"strings"
 )
 
+const (
+	CharIdPrefix     = "<ByCharacterId>"
+	CharIdPrefixInit = "<"
+	CharIdSuffix     = "</ByCharacterId>\n\n"
+)
+
 type characterTemplateVars struct {
 	Character *c.Character
 }
@@ -175,6 +181,7 @@ func callLlmAndProcessResponse(ctx context.Context, logger *zap.Logger, sessionI
 
 	var currentState = Idle
 	var prefixBuffer strings.Builder
+	var contentBuffer strings.Builder
 
 	chatResponseChan := p.GenerateChatResponse(chatModelInst, requestMessages, instruction.Temperature)
 
@@ -193,17 +200,12 @@ func callLlmAndProcessResponse(ctx context.Context, logger *zap.Logger, sessionI
 				switch currentState {
 				case Idle:
 					// Check if this token starts a new prefix
-					if token == "<" {
+					if token == CharIdPrefixInit {
 						currentState = InPrefix
-						prefixBuffer.Reset()
 						prefixBuffer.WriteString(token)
 					} else {
 						// Output the token directly as it's not part of a prefix
-						responseMessage.Content += token
-						if ok := cs.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); !ok {
-							logger.Error("Failed to update response chat message")
-							return
-						}
+						contentBuffer.WriteString(token)
 					}
 
 				case InPrefix:
@@ -211,19 +213,25 @@ func callLlmAndProcessResponse(ctx context.Context, logger *zap.Logger, sessionI
 					prefixBuffer.WriteString(token)
 
 					// Check if this completes a character ID prefix
-					if strings.HasSuffix(prefixBuffer.String(), "</ByCharacterId>\n\n") {
+					if strings.HasSuffix(prefixBuffer.String(), CharIdSuffix) {
 						currentState = InContent
 						prefixBuffer.Reset()
 					}
 
 				case InContent:
 					// Output all tokens as they're part of the actual content
-					responseMessage.Content += token
-					if ok := cs.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); !ok {
-						logger.Error("Failed to update response chat message")
-						return
-					}
+					contentBuffer.WriteString(token)
 				}
+			}
+
+			if contentBuffer.Len() > 0 {
+				responseMessage.Content += contentBuffer.String()
+				if ok := cs.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); !ok {
+					logger.Error("Failed to update response chat message")
+					return
+				}
+
+				contentBuffer.Reset()
 			}
 
 		case <-ctx.Done():
@@ -251,7 +259,7 @@ func createChatRequestMessages(
 		if msg.IsUser {
 			messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: msg.Content})
 		} else {
-			content := fmt.Sprintf("<ByCharacterId>%v</ByCharacterId>\n\n%s", *msg.CharacterID, msg.Content)
+			content := fmt.Sprintf("%s%v%s%s", CharIdPrefix, *msg.CharacterID, CharIdSuffix, msg.Content)
 			messages = append(messages, p.ChatRequestMessage{Role: p.RoleAssistant, Content: content})
 		}
 	}
