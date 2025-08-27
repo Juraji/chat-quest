@@ -6,7 +6,7 @@ import {ActivatedRoute} from '@angular/router';
 import {CQPreferences, Preferences, PreferencesUpdated} from '@api/preferences';
 import {Notifications} from '@components/notifications';
 import {SSE} from '@api/sse';
-import {formControl, formGroup, routeDataSignal} from '@util/ng';
+import {formControl, formGroup, routeDataSignal, routeQueryParamSignal} from '@util/ng';
 import {LlmModelView} from '@api/providers';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Instruction} from '@api/instructions';
@@ -33,6 +33,8 @@ export class SettingsPage {
   private readonly _prefs: Signal<CQPreferences> = routeDataSignal(this.activatedRoute, 'preferences');
   readonly prefs: WritableSignal<CQPreferences> = linkedSignal(() => this._prefs());
 
+  private readonly validate: Signal<boolean> = routeQueryParamSignal(this.activatedRoute, 'validate', v => !!v);
+
   readonly chatInstructionTemplates: Signal<Instruction[]> =
     computed(() => this.instructions().filter(i => i.type === 'CHAT'));
   readonly memoryInstructionTemplates: Signal<Instruction[]> =
@@ -51,6 +53,12 @@ export class SettingsPage {
 
   constructor() {
     effect(() => this.onRevertChanges());
+    effect(() => {
+      if (this.validate()) {
+        this.formGroup.markAsDirty()
+        this.notifications.toast("There is an issue with your settings. Please check.", "WARNING")
+      }
+    });
 
     this.sse
       .on(PreferencesUpdated)

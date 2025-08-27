@@ -9,7 +9,7 @@ func Routes(router *gin.RouterGroup) {
 	preferencesRouter := router.Group("/preferences")
 
 	preferencesRouter.GET("", func(c *gin.Context) {
-		preferences, err := GetPreferences()
+		preferences, err := GetPreferences(false)
 		controllers.RespondSingleE(c, preferences, err)
 	})
 
@@ -22,5 +22,16 @@ func Routes(router *gin.RouterGroup) {
 
 		err := UpdatePreferences(update)
 		controllers.RespondSingleE(c, update, err)
+	})
+
+	preferencesRouter.GET("/validate", func(c *gin.Context) {
+		prefs, err := GetPreferences(false)
+		if err != nil {
+			controllers.RespondInternalError(c, err)
+			return
+		}
+
+		errs := prefs.Validate()
+		controllers.RespondListE(c, errs, nil)
 	})
 }

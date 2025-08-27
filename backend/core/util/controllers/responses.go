@@ -36,7 +36,15 @@ func RespondList[T any](c *gin.Context, ok bool, list []T) {
 	if !ok {
 		RespondInternalError(c, nil)
 	} else {
-		c.JSON(200, list)
+		c.JSON(http.StatusOK, list)
+	}
+}
+
+func RespondListE[T any](c *gin.Context, list []T, err error) {
+	if err != nil {
+		RespondInternalError(c, err)
+	} else {
+		c.JSON(http.StatusOK, list)
 	}
 }
 

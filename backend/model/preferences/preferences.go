@@ -1,9 +1,8 @@
 package preferences
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 	"juraji.nl/chat-quest/core/database"
-	"strings"
 )
 
 type Preferences struct {
@@ -20,9 +19,9 @@ type Preferences struct {
 	MemoryWindowSize      int     `json:"memoryWindowSize"`
 }
 
-func (p *Preferences) Validate() error {
+func (p *Preferences) Validate() []string {
 	if p == nil {
-		return errors.New("preferences is nil")
+		return []string{"preferences is nil"}
 	}
 
 	var errs []string
@@ -44,11 +43,7 @@ func (p *Preferences) Validate() error {
 		errs = append(errs, "memories instruction not set")
 	}
 
-	if len(errs) > 0 {
-		return errors.New(strings.Join(errs, "\n"))
-	}
-
-	return nil
+	return errs
 }
 
 func preferencesScanner(scanner database.RowScanner, dest *Preferences) error {
@@ -66,9 +61,20 @@ func preferencesScanner(scanner database.RowScanner, dest *Preferences) error {
 	)
 }
 
-func GetPreferences() (*Preferences, error) {
+func GetPreferences(validate bool) (*Preferences, error) {
 	query := "SELECT * FROM preferences WHERE id = 0"
-	return database.QueryForRecord(query, nil, preferencesScanner)
+	prefs, err := database.QueryForRecord(query, nil, preferencesScanner)
+
+	if err != nil {
+		return nil, err
+	}
+	if validate {
+		if errs := prefs.Validate(); len(errs) > 0 {
+			return nil, errors.Errorf("preferences invalid: %v", errs)
+		}
+	}
+
+	return prefs, nil
 }
 
 func UpdatePreferences(prefs *Preferences) error {
@@ -96,7 +102,6 @@ func UpdatePreferences(prefs *Preferences) error {
 	if err := database.UpdateRecord(query, args); err != nil {
 		return err
 	}
-
 	PreferencesUpdatedSignal.EmitBG(prefs)
 	return nil
 }

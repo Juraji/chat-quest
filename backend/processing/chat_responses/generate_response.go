@@ -123,13 +123,9 @@ func generateResponse(
 	}
 
 	// Fetch preferences
-	prefs, err := preferences.GetPreferences()
+	prefs, err := preferences.GetPreferences(true)
 	if err != nil {
-		logger.Error("Failed to get preferences", zap.Error(err))
-		return
-	}
-	if err = prefs.Validate(); err != nil {
-		logger.Error("Error validating preferences", zap.Error(err))
+		logger.Error("Error getting preferences", zap.Error(err))
 		return
 	}
 

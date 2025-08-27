@@ -14,4 +14,8 @@ export class Preferences {
   save(prefs: CQPreferences): Observable<CQPreferences> {
     return this.http.put<CQPreferences>(`/preferences`, prefs)
   }
+
+  validate(): Observable<string[] | null> {
+    return this.http.get<string[] | null>(`/preferences/validate`)
+  }
 }
