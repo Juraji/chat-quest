@@ -75,8 +75,9 @@ func GenerateMemories(
 
 	// We're done, save memories
 	for _, memory := range memories {
-		ok = m.CreateMemory(session.WorldID, memory)
-		if !ok {
+		err = m.CreateMemory(session.WorldID, memory)
+		if err != nil {
+			logger.Error("Error creating memory", zap.Error(err))
 			return
 		}
 	}

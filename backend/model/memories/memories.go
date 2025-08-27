@@ -1,9 +1,7 @@
 package memories
 
 import (
-	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
-	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/providers"
 	"time"
 )
@@ -34,7 +32,7 @@ func memoryScanner(scanner database.RowScanner, dest *Memory) error {
 	)
 }
 
-func GetMemoriesByWorldId(worldId int) ([]Memory, bool) {
+func GetMemoriesByWorldId(worldId int) ([]Memory, error) {
 	query := `SELECT id,
                    world_id,
                    character_id,
@@ -43,19 +41,13 @@ func GetMemoriesByWorldId(worldId int) ([]Memory, bool) {
             FROM memories
             WHERE world_id = ?`
 	args := []any{worldId}
-	list, err := database.QueryForList(query, args, memoryScanner)
-	if err != nil {
-		log.Get().Error("Error fetching memories", zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForList(query, args, memoryScanner)
 }
 
 func GetMemoriesByWorldAndCharacterId(
 	worldId int,
 	characterId int,
-) ([]Memory, bool) {
+) ([]Memory, error) {
 	query := `SELECT id,
                    world_id,
                    character_id,
@@ -65,20 +57,13 @@ func GetMemoriesByWorldAndCharacterId(
             WHERE world_id = ? AND character_id = ?`
 	args := []any{worldId, characterId}
 
-	list, err := database.QueryForList(query, args, memoryScanner)
-	if err != nil {
-		log.Get().Error("Error fetching memories for character",
-			zap.Int("characterId", characterId), zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForList(query, args, memoryScanner)
 }
 
 func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 	worldId int,
 	characterId int,
-) ([]Memory, bool) {
+) ([]Memory, error) {
 	query := `SELECT *
               FROM memories m
               WHERE world_id = ?
@@ -87,17 +72,10 @@ func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
                 AND (character_id IS NULL OR character_id = ?)`
 	args := []any{worldId, characterId}
 
-	list, err := database.QueryForList(query, args, memoryScanner)
-	if err != nil {
-		log.Get().Error("Error fetching memories (with embeddings) for character",
-			zap.Int("characterId", characterId), zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForList(query, args, memoryScanner)
 }
 
-func CreateMemory(worldId int, memory *Memory) bool {
+func CreateMemory(worldId int, memory *Memory) error {
 	memory.WorldId = worldId
 
 	query := `INSERT INTO memories (world_id, character_id, content)
@@ -109,54 +87,42 @@ func CreateMemory(worldId int, memory *Memory) bool {
 	}
 
 	err := database.InsertRecord(query, args, &memory.ID)
-	if err != nil {
-		log.Get().Error("Error creating memory", zap.Error(err))
-		return false
+
+	if err == nil {
+		MemoryCreatedSignal.EmitBG(memory)
 	}
 
-	MemoryCreatedSignal.EmitBG(memory)
-	return true
+	return err
 }
 
-func UpdateMemory(id int, memory *Memory) bool {
+func UpdateMemory(id int, memory *Memory) error {
 	query := `UPDATE memories SET content = ? WHERE id = ?`
 	args := []any{memory.Content, id}
 
 	err := database.UpdateRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error updating memory",
-			zap.Int("id", id), zap.Error(err))
-		return false
+
+	if err == nil {
+		MemoryUpdatedSignal.EmitBG(memory)
 	}
 
-	MemoryUpdatedSignal.EmitBG(memory)
-	return true
+	return err
 }
 
-func SetMemoryEmbedding(id int, embeddings providers.Embeddings, embeddingModelId int) bool {
+func SetMemoryEmbedding(id int, embeddings providers.Embeddings, embeddingModelId int) error {
 	query := `UPDATE memories SET embedding = ?, embedding_model_id = ? WHERE id = ?`
 	args := []any{embeddings, embeddingModelId, id}
-	err := database.UpdateRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error updating memory",
-			zap.Int("id", id), zap.Error(err))
-		return false
-	}
-
-	return true
+	return database.UpdateRecord(query, args)
 }
 
-func DeleteMemory(id int) bool {
+func DeleteMemory(id int) error {
 	query := `DELETE FROM memories WHERE id = ?`
 	args := []any{id}
 
 	err := database.DeleteRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error deleting memory",
-			zap.Int("id", id), zap.Error(err))
-		return false
+
+	if err == nil {
+		MemoryDeletedSignal.EmitBG(id)
 	}
 
-	MemoryDeletedSignal.EmitBG(id)
-	return true
+	return err
 }

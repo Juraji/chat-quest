@@ -15,8 +15,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		memories, ok := GetMemoriesByWorldId(worldId)
-		controllers.RespondList(c, ok, memories)
+		memories, err := GetMemoriesByWorldId(worldId)
+		controllers.RespondListE(c, memories, err)
 	})
 
 	memoriesRouter.GET("/by-character/:characterId", func(c *gin.Context) {
@@ -32,8 +32,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		memories, ok := GetMemoriesByWorldAndCharacterId(worldId, characterId)
-		controllers.RespondList(c, ok, memories)
+		memories, err := GetMemoriesByWorldAndCharacterId(worldId, characterId)
+		controllers.RespondListE(c, memories, err)
 	})
 
 	memoriesRouter.POST("", func(c *gin.Context) {
@@ -49,8 +49,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = CreateMemory(worldId, &newMemory)
-		controllers.RespondSingle(c, ok, &newMemory)
+		err := CreateMemory(worldId, &newMemory)
+		controllers.RespondSingleE(c, &newMemory, err)
 	})
 
 	memoriesRouter.PUT("/:memoryId", func(c *gin.Context) {
@@ -73,9 +73,8 @@ func Routes(router *gin.RouterGroup) {
 
 		memory.WorldId = worldId
 
-		// TODO: Generate embeddings!
-		ok = UpdateMemory(memoryId, &memory)
-		controllers.RespondSingle(c, ok, &memory)
+		err := UpdateMemory(memoryId, &memory)
+		controllers.RespondSingleE(c, &memory, err)
 	})
 
 	memoriesRouter.DELETE("/:memoryId", func(c *gin.Context) {
@@ -85,7 +84,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = DeleteMemory(memoryId)
-		controllers.RespondEmpty(c, ok)
+		err := DeleteMemory(memoryId)
+		controllers.RespondEmptyE(c, err)
 	})
 }

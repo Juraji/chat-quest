@@ -45,9 +45,9 @@ func GenerateEmbeddings(ctx context.Context, memory *m.Memory) {
 		return
 	}
 
-	ok := m.SetMemoryEmbedding(memoryId, embeddings, modelId)
-	if !ok {
-		logger.Warn("Error setting memory embeddings")
+	err = m.SetMemoryEmbedding(memoryId, embeddings, modelId)
+	if err != nil {
+		logger.Error("Error setting memory embeddings", zap.Error(err))
 		return
 	}
 
