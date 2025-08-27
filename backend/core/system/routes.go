@@ -18,7 +18,7 @@ func Routes(router *gin.RouterGroup) {
 	systemRouter.POST("/tokenizer/count", func(c *gin.Context) {
 		body, err := c.GetRawData()
 		if err != nil {
-			controllers.RespondBadRequest(c, "Failed to read request body")
+			controllers.RespondBadRequest(c, "Failed to read request body", nil)
 			return
 		}
 

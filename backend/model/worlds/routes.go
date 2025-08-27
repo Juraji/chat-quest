@@ -16,7 +16,7 @@ func Routes(router *gin.RouterGroup) {
 	worldsRouter.GET("/:worldId", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 
@@ -27,7 +27,7 @@ func Routes(router *gin.RouterGroup) {
 	worldsRouter.POST("", func(c *gin.Context) {
 		var newWorld World
 		if err := c.ShouldBind(&newWorld); err != nil {
-			controllers.RespondBadRequest(c, "Invalid world data")
+			controllers.RespondBadRequest(c, "Invalid world data", nil)
 			return
 		}
 
@@ -38,13 +38,13 @@ func Routes(router *gin.RouterGroup) {
 	worldsRouter.PUT("/:worldId", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 
 		var world World
 		if err := c.ShouldBind(&world); err != nil {
-			controllers.RespondBadRequest(c, "Invalid world data")
+			controllers.RespondBadRequest(c, "Invalid world data", nil)
 			return
 		}
 
@@ -55,7 +55,7 @@ func Routes(router *gin.RouterGroup) {
 	worldsRouter.DELETE("/:worldId", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 

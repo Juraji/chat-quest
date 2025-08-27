@@ -84,8 +84,9 @@ func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.Ch
 	}
 
 	// Select participant to respond with
-	responderId, ok := cs.RandomParticipantId(sessionId)
-	if !ok {
+	responderId, err := cs.RandomParticipantId(sessionId)
+	if err != nil {
+		logger.Error("Error getting random responder", zap.Error(err))
 		return
 	}
 	if responderId == nil {
@@ -107,9 +108,10 @@ func generateResponse(
 	triggerMessage *cs.ChatMessage,
 ) {
 	// Fetch Session
-	session, ok := cs.GetById(sessionId)
-	if !ok {
-		logger.Error("Error fetching session")
+	session, err := cs.GetById(sessionId)
+	if err != nil {
+		logger.Error("Error fetching session", zap.Error(err))
+		return
 	}
 
 	// Fetch chat history
@@ -156,14 +158,14 @@ func generateResponse(
 
 	// Create target message
 	responseMessage := cs.NewChatMessage(false, true, &responderId, "")
-	if ok := cs.CreateChatMessage(sessionId, responseMessage); !ok {
-		logger.Warn("Failed to create response chat message")
+	if err := cs.CreateChatMessage(sessionId, responseMessage); err != nil {
+		logger.Error("Failed to create response chat message", zap.Error(err))
 		return
 	}
 	defer func() {
 		responseMessage.IsGenerating = false
-		if ok := cs.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); !ok {
-			logger.Error("Failed to update response chat message upon finalization")
+		if err := cs.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); err != nil {
+			logger.Error("Failed to update response chat message upon finalization", zap.Error(err))
 		}
 	}()
 
@@ -225,8 +227,8 @@ func callLlmAndProcessResponse(ctx context.Context, logger *zap.Logger, sessionI
 
 			if contentBuffer.Len() > 0 {
 				responseMessage.Content += contentBuffer.String()
-				if ok := cs.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); !ok {
-					logger.Error("Failed to update response chat message")
+				if err := cs.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); err != nil {
+					logger.Error("Failed to update response chat message", zap.Error(err))
 					return
 				}
 
@@ -458,9 +460,8 @@ func getTemplatedParticipants(session *cs.ChatSession, responderId int) chan *ch
 
 	go func(sessionId int) {
 		defer close(resultChan)
-		allParticipants, ok := cs.GetParticipants(sessionId)
-		if !ok {
-			err := errors.New("Could not fetch participants")
+		allParticipants, err := cs.GetParticipants(sessionId)
+		if err != nil {
 			resultChan <- channels.NewErrPairResult[*c.Character, []c.Character](err)
 			return
 		}

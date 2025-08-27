@@ -16,7 +16,7 @@ func Routes(router *gin.RouterGroup) {
 	scenariosRouter.GET("/:scenarioId", func(c *gin.Context) {
 		scenarioId, ok := controllers.GetParamAsID(c, "scenarioId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid scenario ID")
+			controllers.RespondBadRequest(c, "Invalid scenario ID", nil)
 			return
 		}
 
@@ -27,7 +27,7 @@ func Routes(router *gin.RouterGroup) {
 	scenariosRouter.POST("", func(c *gin.Context) {
 		var newScenario Scenario
 		if err := c.ShouldBind(&newScenario); err != nil {
-			controllers.RespondBadRequest(c, "Invalid scenario data")
+			controllers.RespondBadRequest(c, "Invalid scenario data", nil)
 			return
 		}
 
@@ -38,13 +38,13 @@ func Routes(router *gin.RouterGroup) {
 	scenariosRouter.PUT("/:scenarioId", func(c *gin.Context) {
 		scenarioId, ok := controllers.GetParamAsID(c, "scenarioId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid scenario ID")
+			controllers.RespondBadRequest(c, "Invalid scenario ID", nil)
 			return
 		}
 
 		var scenario Scenario
 		if err := c.ShouldBind(&scenario); err != nil {
-			controllers.RespondBadRequest(c, "Invalid scenario data")
+			controllers.RespondBadRequest(c, "Invalid scenario data", nil)
 			return
 		}
 
@@ -55,7 +55,7 @@ func Routes(router *gin.RouterGroup) {
 	scenariosRouter.DELETE("/:scenarioId", func(c *gin.Context) {
 		scenarioId, ok := controllers.GetParamAsID(c, "scenarioId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid scenario ID")
+			controllers.RespondBadRequest(c, "Invalid scenario ID", nil)
 			return
 		}
 

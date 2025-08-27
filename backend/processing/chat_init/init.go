@@ -23,32 +23,37 @@ func CreateChatSessionGreetings(
 	}
 
 	sessionID := session.ID
-	sessionLog := log.Get().With(zap.Int("chatSessionId", sessionID))
+	logger := log.Get().With(zap.Int("chatSessionId", sessionID))
 
-	isGroupChat, ok := sessions.IsGroupSession(sessionID)
-	if !ok {
+	isGroupChat, err := sessions.IsGroupSession(sessionID)
+	if err != nil {
+		logger.Error("Error checking group chat status", zap.Error(err))
 		return
 	}
 
-	participants, ok := sessions.GetParticipants(sessionID)
-	if !ok {
+	participants, err := sessions.GetParticipants(sessionID)
+	if err != nil {
+		logger.Error("Error getting participants", zap.Error(err))
 		return
 	}
 
 	for _, participant := range participants {
-		greeting, err := characters.RandomGreetingByCharacterId(participant.ID, isGroupChat)
+		greeting, err := characters.RandomGreetingByCharacterId(participant.ID, *isGroupChat)
 		if err != nil {
-			sessionLog.Warn("Failed to fetch greeting",
+			logger.Warn("Failed to fetch greeting",
 				zap.Int("participantId", participant.ID), zap.Error(err))
 			continue
 		}
 		if greeting == nil {
-			sessionLog.Debug("Skipping empty greeting",
+			logger.Debug("Skipping empty greeting",
 				zap.Int("participantId", participant.ID))
 			continue
 		}
 
 		message := sessions.NewChatMessage(false, false, &participant.ID, *greeting)
-		sessions.CreateChatMessage(sessionID, message)
+		err = sessions.CreateChatMessage(sessionID, message)
+		if err != nil {
+			logger.Error("Error creating chat message", zap.Error(err))
+		}
 	}
 }

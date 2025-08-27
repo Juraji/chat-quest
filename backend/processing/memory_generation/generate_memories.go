@@ -43,8 +43,9 @@ func GenerateMemories(
 		return
 	}
 
-	session, ok := cs.GetById(sessionID)
-	if !ok {
+	session, err := cs.GetById(sessionID)
+	if err != nil {
+		logger.Error("Error getting session", zap.Error(err))
 		return
 	}
 	if !session.EnableMemories {
@@ -82,7 +83,10 @@ func GenerateMemories(
 
 	// Update message processed states
 	for _, chatMessage := range memorizableMessages {
-		cs.SetMessageArchived(sessionID, chatMessage.ID)
+		err = cs.SetMessageArchived(sessionID, chatMessage.ID)
+		if err != nil {
+			logger.Error("Error setting message archived bit", zap.Error(err))
+		}
 	}
 
 	logger.Debug("Memory generation completed")
@@ -106,9 +110,9 @@ func generateAndExtractMemories(
 		return nil, false
 	}
 
-	participants, ok := cs.GetParticipants(sessionID)
-	if !ok {
-		logger.Debug("Could not fetch participants")
+	participants, err := cs.GetParticipants(sessionID)
+	if err != nil {
+		logger.Error("Error fetching participants", zap.Error(err))
 		return nil, false
 	}
 

@@ -11,216 +11,216 @@ func Routes(router *gin.RouterGroup) {
 	sessionRouter.GET("", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 
-		sessions, ok := GetAllByWorldId(worldId)
-		controllers.RespondList(c, ok, sessions)
+		sessions, err := GetAllByWorldId(worldId)
+		controllers.RespondListE(c, sessions, err)
 	})
 
 	sessionRouter.GET("/:sessionId", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid session ID")
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
 			return
 		}
 
-		session, ok := GetByWorldIdAndId(worldId, sessionId)
-		controllers.RespondSingle(c, ok, session)
+		session, err := GetByWorldIdAndId(worldId, sessionId)
+		controllers.RespondSingleE(c, session, err)
 	})
 
 	sessionRouter.POST("", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 
 		characterIds, ok := controllers.GetQueryParamsAsIDs(c, "characterId")
 		if !ok {
-			controllers.RespondBadRequest(c, "invalid characterId in query")
+			controllers.RespondBadRequest(c, "invalid characterId in query", nil)
 			return
 		}
 
 		var session ChatSession
 		if err := c.ShouldBindJSON(&session); err != nil {
-			controllers.RespondBadRequest(c, "Invalid session data")
+			controllers.RespondBadRequest(c, "Invalid session data", nil)
 			return
 		}
 
-		ok = Create(worldId, &session, characterIds)
-		controllers.RespondSingle(c, ok, &session)
+		err := Create(worldId, &session, characterIds)
+		controllers.RespondSingleE(c, &session, err)
 	})
 
 	sessionRouter.PUT("/:sessionId", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid session ID")
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
 			return
 		}
 
 		var session ChatSession
 		if err := c.ShouldBindJSON(&session); err != nil {
-			controllers.RespondBadRequest(c, "Invalid session data")
+			controllers.RespondBadRequest(c, "Invalid session data", nil)
 			return
 		}
 
-		ok = Update(worldId, sessionId, &session)
-		controllers.RespondSingle(c, ok, &session)
+		err := Update(worldId, sessionId, &session)
+		controllers.RespondSingleE(c, &session, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid session ID")
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
 			return
 		}
 
-		ok = Delete(worldId, sessionId)
-		controllers.RespondEmpty(c, ok)
+		err := Delete(worldId, sessionId)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	sessionRouter.GET("/:sessionId/chat-messages", func(c *gin.Context) {
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid session ID")
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
 			return
 		}
 
-		messages, ok := GetAllChatMessages(sessionId)
-		controllers.RespondList(c, ok, messages)
+		messages, err := GetAllChatMessages(sessionId)
+		controllers.RespondListE(c, messages, err)
 	})
 
 	sessionRouter.POST("/:sessionId/chat-messages", func(c *gin.Context) {
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid session ID")
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
 			return
 		}
 
 		var message ChatMessage
 		if err := c.ShouldBindJSON(&message); err != nil {
-			controllers.RespondBadRequest(c, "Invalid chat message data")
+			controllers.RespondBadRequest(c, "Invalid chat message data", nil)
 			return
 		}
 
-		ok = CreateChatMessage(sessionId, &message)
-		controllers.RespondSingle(c, ok, &message)
+		err := CreateChatMessage(sessionId, &message)
+		controllers.RespondSingleE(c, &message, err)
 	})
 
 	sessionRouter.PUT("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid session ID")
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
 			return
 		}
 
 		messageId, ok := controllers.GetParamAsID(c, "messageId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid chat message ID")
+			controllers.RespondBadRequest(c, "Invalid chat message ID", nil)
 			return
 		}
 
 		var message ChatMessage
 		if err := c.ShouldBindJSON(&message); err != nil {
-			controllers.RespondBadRequest(c, "Invalid chat message data")
+			controllers.RespondBadRequest(c, "Invalid chat message data", nil)
 			return
 		}
 
-		ok = UpdateChatMessage(sessionId, messageId, &message)
-		controllers.RespondSingle(c, ok, &message)
+		err := UpdateChatMessage(sessionId, messageId, &message)
+		controllers.RespondSingleE(c, &message, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid session ID")
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
 			return
 		}
 		messageId, ok := controllers.GetParamAsID(c, "messageId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid chat message ID")
+			controllers.RespondBadRequest(c, "Invalid chat message ID", nil)
 			return
 		}
 
-		ok = DeleteChatMessagesFrom(sessionId, messageId)
-		controllers.RespondEmpty(c, ok)
+		err := DeleteChatMessagesFrom(sessionId, messageId)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	sessionRouter.GET("/:sessionId/participants", func(c *gin.Context) {
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid session ID")
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
 			return
 		}
 
-		participants, ok := GetParticipants(sessionId)
-		controllers.RespondList(c, ok, participants)
+		participants, err := GetParticipants(sessionId)
+		controllers.RespondListE(c, participants, err)
 	})
 
 	sessionRouter.POST("/:sessionId/participants/:characterId", func(c *gin.Context) {
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid session ID")
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
 			return
 		}
 		characterId, ok := controllers.GetParamAsID(c, "characterId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid character ID")
+			controllers.RespondBadRequest(c, "Invalid character ID", nil)
 			return
 		}
 
-		ok = AddParticipant(sessionId, characterId)
-		controllers.RespondEmpty(c, ok)
+		err := AddParticipant(sessionId, characterId)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId/participants/:characterId", func(c *gin.Context) {
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid session ID")
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
 			return
 		}
 		characterId, ok := controllers.GetParamAsID(c, "characterId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid character ID")
+			controllers.RespondBadRequest(c, "Invalid character ID", nil)
 			return
 		}
 
-		ok = RemoveParticipant(sessionId, characterId)
-		controllers.RespondEmpty(c, ok)
+		err := RemoveParticipant(sessionId, characterId)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	sessionRouter.POST("/:sessionId/participants/:characterId/trigger-response", func(c *gin.Context) {
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid session ID")
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
 			return
 		}
 		characterId, ok := controllers.GetParamAsID(c, "characterId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid character ID")
+			controllers.RespondBadRequest(c, "Invalid character ID", nil)
 			return
 		}
 
-		participant, ok := GetParticipant(sessionId, characterId)
-		if !ok {
-			controllers.RespondBadRequest(c, "Character is not a participant")
+		participant, err := GetParticipant(sessionId, characterId)
+		if err != nil {
+			controllers.RespondBadRequest(c, "Character is not a participant", err)
 			return
 		}
 

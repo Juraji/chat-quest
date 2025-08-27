@@ -12,6 +12,7 @@ var ChatSessionDeletedSignal = signals.New[int]()
 var ChatMessageCreatedSignal = signals.New[*ChatMessage]()
 var ChatMessageUpdatedSignal = signals.New[*ChatMessage]()
 var ChatMessageDeletedSignal = signals.New[int]()
+var ChatMessageArchivedSignal = signals.New[int]()
 
 var ChatParticipantAddedSignal = signals.New[*ChatParticipant]()
 var ChatParticipantRemovedSignal = signals.New[*ChatParticipant]()

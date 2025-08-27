@@ -16,7 +16,7 @@ func Routes(router *gin.RouterGroup) {
 	connectionProfilesRouter.GET("/:profileId", func(c *gin.Context) {
 		profileId, ok := controllers.GetParamAsID(c, "profileId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid connection profile ID")
+			controllers.RespondBadRequest(c, "Invalid connection profile ID", nil)
 			return
 		}
 
@@ -27,7 +27,7 @@ func Routes(router *gin.RouterGroup) {
 	connectionProfilesRouter.POST("", func(c *gin.Context) {
 		var newProfile ConnectionProfile
 		if err := c.ShouldBindJSON(&newProfile); err != nil {
-			controllers.RespondBadRequest(c, "Invalid connection profile data")
+			controllers.RespondBadRequest(c, "Invalid connection profile data", nil)
 			return
 		}
 
@@ -44,16 +44,16 @@ func Routes(router *gin.RouterGroup) {
 	connectionProfilesRouter.PUT("/:profileId", func(c *gin.Context) {
 		profileId, ok := controllers.GetParamAsID(c, "profileId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid connection profile ID")
+			controllers.RespondBadRequest(c, "Invalid connection profile ID", nil)
 			return
 		}
 		var profile ConnectionProfile
 		if err := c.ShouldBindJSON(&profile); err != nil {
-			controllers.RespondBadRequest(c, "Invalid connection profile data")
+			controllers.RespondBadRequest(c, "Invalid connection profile data", nil)
 			return
 		}
 		if !profile.ProviderType.IsValid() {
-			controllers.RespondBadRequest(c, "Invalid connection profile type")
+			controllers.RespondBadRequest(c, "Invalid connection profile type", nil)
 			return
 		}
 
@@ -64,7 +64,7 @@ func Routes(router *gin.RouterGroup) {
 	connectionProfilesRouter.DELETE("/:profileId", func(c *gin.Context) {
 		profileId, ok := controllers.GetParamAsID(c, "profileId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid connection profile ID")
+			controllers.RespondBadRequest(c, "Invalid connection profile ID", nil)
 			return
 		}
 
@@ -75,7 +75,7 @@ func Routes(router *gin.RouterGroup) {
 	connectionProfilesRouter.GET("/:profileId/models", func(c *gin.Context) {
 		profileId, ok := controllers.GetParamAsID(c, "profileId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid connection profile ID")
+			controllers.RespondBadRequest(c, "Invalid connection profile ID", nil)
 			return
 		}
 
@@ -86,7 +86,7 @@ func Routes(router *gin.RouterGroup) {
 	connectionProfilesRouter.POST("/:profileId/models/refresh", func(c *gin.Context) {
 		profileId, ok := controllers.GetParamAsID(c, "profileId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid connection profile ID")
+			controllers.RespondBadRequest(c, "Invalid connection profile ID", nil)
 			return
 		}
 
@@ -109,13 +109,13 @@ func Routes(router *gin.RouterGroup) {
 	connectionProfilesRouter.PUT("/:profileId/models/:modelId", func(c *gin.Context) {
 		modelId, ok := controllers.GetParamAsID(c, "modelId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid model ID")
+			controllers.RespondBadRequest(c, "Invalid model ID", nil)
 			return
 		}
 
 		var llmModel LlmModel
 		if err := c.ShouldBindJSON(&llmModel); err != nil {
-			controllers.RespondBadRequest(c, "Invalid model data")
+			controllers.RespondBadRequest(c, "Invalid model data", nil)
 			return
 		}
 
@@ -126,7 +126,7 @@ func Routes(router *gin.RouterGroup) {
 	connectionProfilesRouter.DELETE("/:profileId/models/:modelId", func(c *gin.Context) {
 		modelId, ok := controllers.GetParamAsID(c, "modelId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid model ID")
+			controllers.RespondBadRequest(c, "Invalid model ID", nil)
 			return
 		}
 

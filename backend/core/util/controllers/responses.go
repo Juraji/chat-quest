@@ -93,14 +93,12 @@ func RespondInternalError(c *gin.Context, err error) {
 	}
 }
 
-func RespondBadRequest(c *gin.Context, message string) {
+func RespondBadRequest(c *gin.Context, message string, err error) {
 	c.JSON(http.StatusBadRequest, gin.H{"error": message})
-	log.Get().Warn("Bad API Request", zap.String("uri", c.Request.RequestURI), zap.String("message", message))
-}
-
-func RespondBadRequestE(c *gin.Context, err error) {
-	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
-	log.Get().Warn("Bad API Request", zap.String("uri", c.Request.RequestURI), zap.Error(err))
+	log.Get().Warn("Bad API Request",
+		zap.String("uri", c.Request.RequestURI),
+		zap.String("message", message),
+		zap.Error(err))
 }
 
 func RespondNotAcceptable(c *gin.Context, message string, err error) {

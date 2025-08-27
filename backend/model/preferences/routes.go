@@ -16,7 +16,7 @@ func Routes(router *gin.RouterGroup) {
 	preferencesRouter.PUT("", func(c *gin.Context) {
 		var update *Preferences
 		if err := c.ShouldBindJSON(&update); err != nil {
-			controllers.RespondBadRequestE(c, err)
+			controllers.RespondBadRequest(c, "Invalid preferences", err)
 			return
 		}
 

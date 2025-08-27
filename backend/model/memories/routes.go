@@ -11,7 +11,7 @@ func Routes(router *gin.RouterGroup) {
 	memoriesRouter.GET("", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 
@@ -22,13 +22,13 @@ func Routes(router *gin.RouterGroup) {
 	memoriesRouter.GET("/by-character/:characterId", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 
 		characterId, ok := controllers.GetParamAsID(c, "characterId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid character ID")
+			controllers.RespondBadRequest(c, "Invalid character ID", nil)
 			return
 		}
 
@@ -39,13 +39,13 @@ func Routes(router *gin.RouterGroup) {
 	memoriesRouter.POST("", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 
 		var newMemory Memory
 		if err := c.Bind(&newMemory); err != nil {
-			controllers.RespondBadRequest(c, "Invalid memory data")
+			controllers.RespondBadRequest(c, "Invalid memory data", nil)
 			return
 		}
 
@@ -56,18 +56,18 @@ func Routes(router *gin.RouterGroup) {
 	memoriesRouter.PUT("/:memoryId", func(c *gin.Context) {
 		worldId, ok := controllers.GetParamAsID(c, "worldId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid world ID")
+			controllers.RespondBadRequest(c, "Invalid world ID", nil)
 			return
 		}
 		memoryId, ok := controllers.GetParamAsID(c, "memoryId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid memory ID")
+			controllers.RespondBadRequest(c, "Invalid memory ID", nil)
 			return
 		}
 
 		var memory Memory
 		if err := c.Bind(&memory); err != nil {
-			controllers.RespondBadRequest(c, "Invalid memory data")
+			controllers.RespondBadRequest(c, "Invalid memory data", nil)
 			return
 		}
 
@@ -81,7 +81,7 @@ func Routes(router *gin.RouterGroup) {
 	memoriesRouter.DELETE("/:memoryId", func(c *gin.Context) {
 		memoryId, ok := controllers.GetParamAsID(c, "memoryId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid memory ID")
+			controllers.RespondBadRequest(c, "Invalid memory ID", nil)
 			return
 		}
 

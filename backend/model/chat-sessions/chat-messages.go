@@ -1,9 +1,7 @@
 package chat_sessions
 
 import (
-	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
-	"juraji.nl/chat-quest/core/log"
 	"time"
 )
 
@@ -44,18 +42,10 @@ func NewChatMessage(isUser bool, isGenerating bool, characterId *int, content st
 	}
 }
 
-func GetAllChatMessages(sessionId int) ([]ChatMessage, bool) {
+func GetAllChatMessages(sessionId int) ([]ChatMessage, error) {
 	query := "SELECT * FROM chat_messages WHERE chat_session_id=?"
 	args := []any{sessionId}
-	list, err := database.QueryForList(query, args, ChatMessageScanner)
-	if err != nil {
-		log.Get().Error("Error fetching chat session messages",
-			zap.Int("sessionId", sessionId),
-			zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForList(query, args, ChatMessageScanner)
 }
 
 func GetUnarchivedChatMessages(sessionId int) ([]ChatMessage, error) {
@@ -64,7 +54,7 @@ func GetUnarchivedChatMessages(sessionId int) ([]ChatMessage, error) {
 	return database.QueryForList(query, args, ChatMessageScanner)
 }
 
-func CreateChatMessage(sessionId int, chatMessage *ChatMessage) bool {
+func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 	chatMessage.ChatSessionID = sessionId
 	chatMessage.CreatedAt = nil
 
@@ -79,18 +69,15 @@ func CreateChatMessage(sessionId int, chatMessage *ChatMessage) bool {
 	}
 
 	err := database.InsertRecord(query, args, &chatMessage.ID, &chatMessage.CreatedAt)
-	if err != nil {
-		log.Get().Error("Error creating chat session message",
-			zap.Int("sessionId", sessionId),
-			zap.Error(err))
-		return false
+
+	if err == nil {
+		ChatMessageCreatedSignal.EmitBG(chatMessage)
 	}
 
-	ChatMessageCreatedSignal.EmitBG(chatMessage)
-	return true
+	return err
 }
 
-func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) bool {
+func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
 	query := `UPDATE chat_messages
             SET content = ?,
                 is_generating = ?
@@ -99,28 +86,27 @@ func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) bool {
 	args := []any{chatMessage.Content, chatMessage.IsGenerating, sessionId, id}
 
 	err := database.UpdateRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error updating chat session message",
-			zap.Int("sessionId", sessionId),
-			zap.Int("id", id),
-			zap.Error(err))
-		return false
+
+	if err == nil {
+		ChatMessageUpdatedSignal.EmitBG(chatMessage)
 	}
 
-	ChatMessageUpdatedSignal.EmitBG(chatMessage)
-	return true
+	return err
 }
 
-func SetMessageArchived(sessionId int, id int) {
+func SetMessageArchived(sessionId int, id int) error {
 	query := `UPDATE chat_messages SET is_archived = TRUE WHERE chat_session_id = ? AND id = ?`
 	args := []any{sessionId, id}
 	err := database.UpdateRecord(query, args)
-	if err != nil {
-		log.Get().Fatal("Error archiving chat session message")
+
+	if err == nil {
+		ChatMessageArchivedSignal.EmitBG(id)
 	}
+
+	return err
 }
 
-func DeleteChatMessagesFrom(sessionId int, id int) bool {
+func DeleteChatMessagesFrom(sessionId int, id int) error {
 	//language=SQL
 	query := `DELETE
             FROM chat_messages
@@ -132,14 +118,10 @@ func DeleteChatMessagesFrom(sessionId int, id int) bool {
 	deletedIds, err := database.QueryForList(query, args, func(scanner database.RowScanner, dest *int) error {
 		return scanner.Scan(dest)
 	})
-	if err != nil {
-		log.Get().Error("Error deleting chat session message",
-			zap.Int("sessionId", sessionId),
-			zap.Int("startingAtId", id),
-			zap.Error(err))
-		return false
+
+	if err == nil {
+		ChatMessageDeletedSignal.EmitAllBG(deletedIds)
 	}
 
-	ChatMessageDeletedSignal.EmitAllBG(deletedIds)
-	return true
+	return err
 }

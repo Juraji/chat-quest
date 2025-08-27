@@ -16,7 +16,7 @@ func Routes(router *gin.RouterGroup) {
 	instructionPromptsRouter.GET("/:templateId", func(c *gin.Context) {
 		templateId, ok := controllers.GetParamAsID(c, "templateId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid prompt ID")
+			controllers.RespondBadRequest(c, "Invalid prompt ID", nil)
 			return
 		}
 
@@ -27,12 +27,12 @@ func Routes(router *gin.RouterGroup) {
 	instructionPromptsRouter.POST("", func(c *gin.Context) {
 		var newPrompt InstructionTemplate
 		if err := c.ShouldBind(&newPrompt); err != nil {
-			controllers.RespondBadRequest(c, "Invalid prompt data")
+			controllers.RespondBadRequest(c, "Invalid prompt data", nil)
 			return
 		}
 
 		if !newPrompt.Type.IsValid() {
-			controllers.RespondBadRequest(c, "Invalid template type")
+			controllers.RespondBadRequest(c, "Invalid template type", nil)
 			return
 		}
 
@@ -43,12 +43,12 @@ func Routes(router *gin.RouterGroup) {
 	instructionPromptsRouter.PUT("/:templateId", func(c *gin.Context) {
 		templateId, ok := controllers.GetParamAsID(c, "templateId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid prompt ID")
+			controllers.RespondBadRequest(c, "Invalid prompt ID", nil)
 			return
 		}
 		var prompt InstructionTemplate
 		if err := c.ShouldBind(&prompt); err != nil {
-			controllers.RespondBadRequest(c, "Invalid prompt data")
+			controllers.RespondBadRequest(c, "Invalid prompt data", nil)
 			return
 		}
 
@@ -59,7 +59,7 @@ func Routes(router *gin.RouterGroup) {
 	instructionPromptsRouter.DELETE("/:templateId", func(c *gin.Context) {
 		templateId, ok := controllers.GetParamAsID(c, "templateId")
 		if !ok {
-			controllers.RespondBadRequest(c, "Invalid prompt ID")
+			controllers.RespondBadRequest(c, "Invalid prompt ID", nil)
 			return
 		}
 

@@ -1,9 +1,8 @@
 package chat_sessions
 
 import (
-	"go.uber.org/zap"
+	"errors"
 	"juraji.nl/chat-quest/core/database"
-	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/util"
 	"juraji.nl/chat-quest/model/characters"
 	"math/rand"
@@ -21,53 +20,29 @@ func chatParticipantScanner(scanner database.RowScanner, dest *ChatParticipant) 
 	)
 }
 
-func GetParticipants(sessionId int) ([]characters.Character, bool) {
+func GetParticipants(sessionId int) ([]characters.Character, error) {
 	query := `SELECT c.* FROM chat_participants cp
                 JOIN characters c ON cp.character_id = c.id
             WHERE cp.chat_session_id = ?`
 	args := []any{sessionId}
-	list, err := database.QueryForList(query, args, characters.CharacterScanner)
-	if err != nil {
-		log.Get().Error("Error fetching chat participants",
-			zap.Int("sessionId", sessionId),
-			zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForList(query, args, characters.CharacterScanner)
 }
 
-func GetParticipant(sessionId int, characterId int) (*ChatParticipant, bool) {
+func GetParticipant(sessionId int, characterId int) (*ChatParticipant, error) {
 	query := `SELECT * FROM chat_participants WHERE chat_session_id = ? and character_id = ?`
 	args := []any{sessionId, characterId}
-	participant, err := database.QueryForRecord(query, args, chatParticipantScanner)
-	if err != nil {
-		log.Get().Error("Error fetching chat participant",
-			zap.Int("sessionId", sessionId),
-			zap.Int("characterId", characterId),
-			zap.Error(err))
-		return nil, false
-	}
-
-	return participant, true
+	return database.QueryForRecord(query, args, chatParticipantScanner)
 }
 
-func IsGroupSession(sessionId int) (bool, bool) {
+func IsGroupSession(sessionId int) (*bool, error) {
 	query := `SELECT COUNT(*) > 1 FROM chat_participants WHERE chat_session_id = ?`
 	args := []any{sessionId}
-	isGroupChat, err := database.QueryForRecord(query, args, database.BoolScanner)
-	if err != nil || isGroupChat == nil {
-		log.Get().Error("Error fetching session group status",
-			zap.Int("sessionId", sessionId),
-			zap.Error(err))
-		return false, false
-	}
-	return *isGroupChat, true
+	return database.QueryForRecord(query, args, database.BoolScanner)
 }
 
 // RandomParticipantId selects a participant from a chat session with weighted randomness based on talkativeness.
 // The function returns a pointer to the selected participant's ID or nil if no selection could be made.
-func RandomParticipantId(sessionId int) (*int, bool) {
+func RandomParticipantId(sessionId int) (*int, error) {
 	const scale float32 = 20
 	const minT float32 = 0.05
 	type choice struct {
@@ -95,19 +70,16 @@ func RandomParticipantId(sessionId int) (*int, bool) {
 
 	choices, err := database.QueryForList(query, args, scanFunc)
 	if err != nil {
-		log.Get().Error("Error fetching chat participants",
-			zap.Int("sessionId", sessionId),
-			zap.Error(err))
-		return nil, false
+		return nil, err
 	}
 
 	if len(choices) == 0 {
 		// No participants
-		return nil, true
+		return nil, nil
 	}
 	if len(choices) == 1 {
 		// Single participant
-		return &choices[0].cId, true
+		return &choices[0].cId, nil
 	}
 
 	// Calculate total weight (scaled by scale)
@@ -117,7 +89,7 @@ func RandomParticipantId(sessionId int) (*int, bool) {
 	}
 
 	if totalWeight == 0 {
-		return nil, true
+		return nil, nil
 	}
 
 	// Generate random number between 0 and totalWeight-1
@@ -129,45 +101,38 @@ func RandomParticipantId(sessionId int) (*int, bool) {
 		weight := int(p.talkativeness * scale)
 		accumulatedWeight += weight
 		if randomValue < accumulatedWeight {
-			return &p.cId, true
+			return &p.cId, nil
 		}
 	}
 
 	// This line should theoretically never be reached if weights are correct
-	return nil, false
+	return nil, errors.New("incorrect weights")
 }
 
-func AddParticipant(sessionId int, characterId int) bool {
+func AddParticipant(sessionId int, characterId int) error {
 	query := `INSERT INTO chat_participants (chat_session_id, character_id) VALUES (?, ?)`
 	args := []any{sessionId, characterId}
+
 	err := database.InsertRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error adding chat participant",
-			zap.Int("sessionId", sessionId),
-			zap.Int("characterId", characterId),
-			zap.Error(err))
-		return false
+
+	if err == nil {
+		participant := ChatParticipant{sessionId, characterId}
+		ChatParticipantAddedSignal.EmitBG(&participant)
 	}
 
-	participant := ChatParticipant{sessionId, characterId}
-	ChatParticipantAddedSignal.EmitBG(&participant)
-	return true
+	return err
 }
 
-func RemoveParticipant(sessionId int, characterId int) bool {
+func RemoveParticipant(sessionId int, characterId int) error {
 	query := `DELETE FROM chat_participants WHERE chat_session_id = ? AND character_id = ?`
 	args := []any{sessionId, characterId}
 
 	err := database.DeleteRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error removing chat participant",
-			zap.Int("sessionId", sessionId),
-			zap.Int("characterId", characterId),
-			zap.Error(err))
-		return false
+
+	if err == nil {
+		participant := ChatParticipant{sessionId, characterId}
+		ChatParticipantRemovedSignal.EmitBG(&participant)
 	}
 
-	participant := ChatParticipant{sessionId, characterId}
-	ChatParticipantRemovedSignal.EmitBG(&participant)
-	return true
+	return err
 }
