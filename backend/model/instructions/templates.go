@@ -34,5 +34,6 @@ func ApplyInstructionTemplates(instruction InstructionTemplate, variables any) (
 			return nil, errors.Wrap(err, "Error processing instruction template")
 		}
 	}
+
 	return &instruction, nil
 }

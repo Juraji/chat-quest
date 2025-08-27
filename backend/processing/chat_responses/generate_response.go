@@ -278,9 +278,9 @@ func createChatInstruction(
 	history []cs.ChatMessage,
 	triggerMessage *cs.ChatMessage,
 ) (*inst.InstructionTemplate, bool) {
-	instruction, ok := inst.InstructionById(*prefs.ChatInstructionId)
-	if !ok {
-		logger.Error("Error fetching chat instruction")
+	instruction, err := inst.InstructionById(*prefs.ChatInstructionId)
+	if err != nil {
+		logger.Error("Error fetching chat instruction", zap.Error(err))
 		return nil, false
 	}
 

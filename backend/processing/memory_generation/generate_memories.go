@@ -99,9 +99,9 @@ func generateAndExtractMemories(
 	prefs *preferences.Preferences,
 	messages []cs.ChatMessage,
 ) ([]*m.Memory, bool) {
-	instruction, ok := i.InstructionById(*prefs.MemoriesInstructionId)
-	if !ok || instruction == nil {
-		logger.Debug("Could not fetch memory instruction")
+	instruction, err := i.InstructionById(*prefs.MemoriesInstructionId)
+	if err != nil {
+		logger.Error("Could not fetch memory instruction", zap.Error(err))
 		return nil, false
 	}
 	modelInstance, err := p.GetLlmModelInstanceById(*prefs.MemoriesModelId)

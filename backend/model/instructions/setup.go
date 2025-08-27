@@ -30,9 +30,9 @@ func init() {
 				}
 
 				template.Name = name
-				ok := CreateInstruction(template)
-				if !ok {
-					panic(errors.New("failed to save instruction template " + name))
+				err = CreateInstruction(template)
+				if err != nil {
+					panic(errors.Wrap(err, "failed to save instruction template "+name))
 				}
 			}
 		}
