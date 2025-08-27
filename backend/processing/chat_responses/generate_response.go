@@ -432,9 +432,9 @@ func getScenarioDescription(session *cs.ChatSession) chan *channels.Result[strin
 			return
 		}
 
-		scenario, ok := sc.ScenarioById(*scenarioId)
-		if !ok {
-			resultChan <- channels.NewResult("", errors.New("Could not fetch scenario description"))
+		scenario, err := sc.ScenarioById(*scenarioId)
+		if err != nil {
+			resultChan <- channels.NewResult("", err)
 		} else {
 			resultChan <- channels.NewResult(scenario.Description, nil)
 		}

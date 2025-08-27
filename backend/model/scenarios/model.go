@@ -1,9 +1,7 @@
 package scenarios
 
 import (
-	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
-	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/util"
 )
 
@@ -25,31 +23,18 @@ func scenarioScanner(scanner database.RowScanner, dest *Scenario) error {
 	)
 }
 
-func AllScenarios() ([]Scenario, bool) {
+func AllScenarios() ([]Scenario, error) {
 	query := "SELECT * FROM scenarios"
-	list, err := database.QueryForList(query, nil, scenarioScanner)
-	if err != nil {
-		log.Get().Error("Error fetching scenarios", zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForList(query, nil, scenarioScanner)
 }
 
-func ScenarioById(id int) (*Scenario, bool) {
+func ScenarioById(id int) (*Scenario, error) {
 	query := "SELECT * FROM scenarios WHERE id=?"
 	args := []any{id}
-	scene, err := database.QueryForRecord(query, args, scenarioScanner)
-	if err != nil {
-		log.Get().Error("Error fetching scenario",
-			zap.Int("id", id), zap.Error(err))
-		return nil, false
-	}
-
-	return scene, true
+	return database.QueryForRecord(query, args, scenarioScanner)
 }
 
-func CreateScenario(scenario *Scenario) bool {
+func CreateScenario(scenario *Scenario) error {
 	util.EmptyStrPtrToNil(&scenario.AvatarUrl)
 
 	query := `INSERT INTO scenarios (name, description, avatar_url, linked_character_id)
@@ -57,16 +42,14 @@ func CreateScenario(scenario *Scenario) bool {
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId}
 
 	err := database.InsertRecord(query, args, &scenario.ID)
-	if err != nil {
-		log.Get().Error("Error inserting scenario", zap.Error(err))
-		return false
-	}
 
-	ScenarioCreatedSignal.EmitBG(scenario)
-	return true
+	if err == nil {
+		ScenarioCreatedSignal.EmitBG(scenario)
+	}
+	return err
 }
 
-func UpdateScenario(id int, scenario *Scenario) bool {
+func UpdateScenario(id int, scenario *Scenario) error {
 	util.EmptyStrPtrToNil(&scenario.AvatarUrl)
 
 	query := `UPDATE scenarios
@@ -78,27 +61,23 @@ func UpdateScenario(id int, scenario *Scenario) bool {
 	args := []interface{}{scenario.Name, scenario.Description, scenario.AvatarUrl, scenario.LinkedCharacterId, id}
 
 	err := database.UpdateRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error updating scenario",
-			zap.Int("id", id), zap.Error(err))
-		return false
+
+	if err == nil {
+		ScenarioUpdatedSignal.EmitBG(scenario)
 	}
 
-	ScenarioUpdatedSignal.EmitBG(scenario)
-	return true
+	return err
 }
 
-func DeleteScenario(id int) bool {
+func DeleteScenario(id int) error {
 	query := "DELETE FROM scenarios WHERE id=?"
 	args := []interface{}{id}
 
 	err := database.DeleteRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error deleting scenario",
-			zap.Int("id", id), zap.Error(err))
-		return false
+
+	if err == nil {
+		ScenarioDeletedSignal.EmitBG(id)
 	}
 
-	ScenarioDeletedSignal.EmitBG(id)
-	return true
+	return err
 }
