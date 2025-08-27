@@ -18,5 +18,5 @@ trim_trailing_whitespace = false
 
 [*.go]
 # Disable settings for Go files
-indent_style =
-indent_size =
+indent_style = tab
+indent_size = 4
