@@ -359,9 +359,9 @@ func getDialogueExamples(characterId int) chan *channels.Result[[]string] {
 
 	go func() {
 		defer close(resultChan)
-		examples, ok := c.DialogueExamplesByCharacterId(characterId)
-		if !ok {
-			resultChan <- channels.NewErrResult[[]string](errors.New("error fetching dialog examples"))
+		examples, err := c.DialogueExamplesByCharacterId(characterId)
+		if err != nil {
+			resultChan <- channels.NewErrResult[[]string](err)
 			return
 		}
 
@@ -371,9 +371,9 @@ func getDialogueExamples(characterId int) chan *channels.Result[[]string] {
 			return
 		}
 
-		char, ok := c.CharacterById(characterId)
-		if !ok {
-			resultChan <- channels.NewErrResult[[]string](errors.New("error fetching character"))
+		char, err := c.CharacterById(characterId)
+		if err != nil {
+			resultChan <- channels.NewErrResult[[]string](err)
 			return
 		}
 

@@ -36,12 +36,15 @@ func CreateChatSessionGreetings(
 	}
 
 	for _, participant := range participants {
-		greeting, ok := characters.RandomGreetingByCharacterId(participant.ID, isGroupChat)
-		if !ok {
+		greeting, err := characters.RandomGreetingByCharacterId(participant.ID, isGroupChat)
+		if err != nil {
+			sessionLog.Warn("Failed to fetch greeting",
+				zap.Int("participantId", participant.ID), zap.Error(err))
 			continue
 		}
 		if greeting == nil {
-			sessionLog.Debug("Skipping empty greeting", zap.Int("participantId", participant.ID))
+			sessionLog.Debug("Skipping empty greeting",
+				zap.Int("participantId", participant.ID))
 			continue
 		}
 

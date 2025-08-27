@@ -20,7 +20,7 @@ func tagScanner(scanner database.RowScanner, dest *Tag) error {
 	)
 }
 
-func TagsByCharacterId(characterId int) ([]Tag, bool) {
+func TagsByCharacterId(characterId int) ([]Tag, error) {
 	query := `
     SELECT t.*
     FROM character_tags ct
@@ -29,50 +29,25 @@ func TagsByCharacterId(characterId int) ([]Tag, bool) {
   `
 	args := []any{characterId}
 
-	list, err := database.QueryForList(query, args, tagScanner)
-	if err != nil {
-		log.Get().Error("Error fetching character tags",
-			zap.Int("characterId", characterId), zap.Error(err))
-		return list, false
-	}
-
-	return list, true
+	return database.QueryForList(query, args, tagScanner)
 }
 
-func AddCharacterTag(characterId int, tagId int) bool {
+func AddCharacterTag(characterId int, tagId int) error {
 	query := "INSERT INTO character_tags (character_id, tag_id) VALUES (?, ?)"
 	args := []any{characterId, tagId}
 
-	err := database.UpdateRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error adding tag",
-			zap.Int("characterId", characterId),
-			zap.Int("tagId", tagId),
-			zap.Error(err))
-		return false
-	}
-
-	return true
+	return database.UpdateRecord(query, args)
 }
 
-func RemoveCharacterTag(characterId int, tagId int) bool {
+func RemoveCharacterTag(characterId int, tagId int) error {
 	query := "DELETE FROM character_tags WHERE character_id = ? AND tag_id = ?"
 	args := []any{characterId, tagId}
 
-	err := database.DeleteRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error removing tag",
-			zap.Int("characterId", characterId),
-			zap.Int("tagId", tagId),
-			zap.Error(err))
-		return false
-	}
-
-	return true
+	return database.DeleteRecord(query, args)
 }
 
-func SetCharacterTags(characterId int, tagIds []int) bool {
-	err := database.Transactional(func(ctx *database.TxContext) error {
+func SetCharacterTags(characterId int, tagIds []int) error {
+	return database.Transactional(func(ctx *database.TxContext) error {
 		deleteQuery := "DELETE FROM character_tags WHERE character_id = ?"
 		if err := ctx.DeleteRecord(deleteQuery, []any{characterId}); err != nil {
 			log.Get().Error("Error removing tags", zap.Int("characterId", characterId), zap.Error(err))
@@ -97,6 +72,4 @@ func SetCharacterTags(characterId int, tagIds []int) bool {
 
 		return nil
 	})
-
-	return err == nil
 }

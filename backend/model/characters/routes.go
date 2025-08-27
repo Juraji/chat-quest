@@ -14,8 +14,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 	charactersRouter := router.Group("/characters")
 
 	charactersRouter.GET("", func(c *gin.Context) {
-		characters, ok := AllCharacterListViews()
-		controllers.RespondList(c, ok, characters)
+		characters, err := AllCharacterListViews()
+		controllers.RespondListE(c, characters, err)
 	})
 
 	charactersRouter.GET("/:characterId", func(c *gin.Context) {
@@ -25,8 +25,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		character, ok := CharacterById(characterId)
-		controllers.RespondSingle(c, ok, character)
+		character, err := CharacterById(characterId)
+		controllers.RespondSingleE(c, character, err)
 	})
 
 	charactersRouter.POST("", func(c *gin.Context) {
@@ -36,8 +36,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok := CreateCharacter(&newCharacter)
-		controllers.RespondSingle(c, ok, &newCharacter)
+		err := CreateCharacter(&newCharacter)
+		controllers.RespondSingleE(c, &newCharacter, err)
 	})
 
 	charactersRouter.PUT("/:characterId", func(c *gin.Context) {
@@ -53,8 +53,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = UpdateCharacter(characterId, &character)
-		controllers.RespondSingle(c, ok, &character)
+		err := UpdateCharacter(characterId, &character)
+		controllers.RespondSingleE(c, &character, err)
 	})
 
 	charactersRouter.DELETE("/:characterId", func(c *gin.Context) {
@@ -64,8 +64,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = DeleteCharacterById(characterId)
-		controllers.RespondEmpty(c, ok)
+		err := DeleteCharacterById(characterId)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	charactersRouter.GET("/:characterId/tags", func(c *gin.Context) {
@@ -75,8 +75,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		tags, ok := TagsByCharacterId(characterId)
-		controllers.RespondList(c, ok, tags)
+		tags, err := TagsByCharacterId(characterId)
+		controllers.RespondListE(c, tags, err)
 	})
 
 	charactersRouter.POST("/:characterId/tags", func(c *gin.Context) {
@@ -92,8 +92,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = SetCharacterTags(characterId, tagIds)
-		controllers.RespondEmpty(c, ok)
+		err := SetCharacterTags(characterId, tagIds)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	charactersRouter.POST("/:characterId/tags/:tagId", func(c *gin.Context) {
@@ -108,8 +108,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = AddCharacterTag(characterId, tagId)
-		controllers.RespondEmpty(c, ok)
+		err := AddCharacterTag(characterId, tagId)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	charactersRouter.DELETE("/:characterId/tags/:tagId", func(c *gin.Context) {
@@ -124,8 +124,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = RemoveCharacterTag(characterId, tagId)
-		controllers.RespondEmpty(c, ok)
+		err := RemoveCharacterTag(characterId, tagId)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	charactersRouter.GET("/:characterId/dialogue-examples", func(c *gin.Context) {
@@ -135,8 +135,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		examples, ok := DialogueExamplesByCharacterId(characterId)
-		controllers.RespondList(c, ok, examples)
+		examples, err := DialogueExamplesByCharacterId(characterId)
+		controllers.RespondListE(c, examples, err)
 	})
 
 	charactersRouter.POST("/:characterId/dialogue-examples", func(c *gin.Context) {
@@ -152,8 +152,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = SetDialogueExamplesByCharacterId(characterId, examples)
-		controllers.RespondEmpty(c, ok)
+		err := SetDialogueExamplesByCharacterId(characterId, examples)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	charactersRouter.GET("/:characterId/greetings", func(c *gin.Context) {
@@ -163,8 +163,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		greetings, ok := CharacterGreetingsByCharacterId(characterId)
-		controllers.RespondList(c, ok, greetings)
+		greetings, err := CharacterGreetingsByCharacterId(characterId)
+		controllers.RespondListE(c, greetings, err)
 	})
 
 	charactersRouter.POST("/:characterId/greetings", func(c *gin.Context) {
@@ -180,8 +180,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = SetGreetingsByCharacterId(characterId, greetings)
-		controllers.RespondEmpty(c, ok)
+		err := SetGreetingsByCharacterId(characterId, greetings)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	charactersRouter.GET("/:characterId/group-greetings", func(c *gin.Context) {
@@ -191,8 +191,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		greetings, ok := CharacterGroupGreetingsByCharacterId(characterId)
-		controllers.RespondList(c, ok, greetings)
+		greetings, err := CharacterGroupGreetingsByCharacterId(characterId)
+		controllers.RespondListE(c, greetings, err)
 	})
 
 	charactersRouter.POST("/:characterId/group-greetings", func(c *gin.Context) {
@@ -208,8 +208,8 @@ func charactersRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = SetGroupGreetingsByCharacterId(characterId, greetings)
-		controllers.RespondEmpty(c, ok)
+		err := SetGroupGreetingsByCharacterId(characterId, greetings)
+		controllers.RespondEmptyE(c, err)
 	})
 }
 
@@ -217,8 +217,8 @@ func tagsRoutes(router *gin.RouterGroup) {
 	tagsRouter := router.Group("/tags")
 
 	tagsRouter.GET("", func(c *gin.Context) {
-		tags, ok := AllTags()
-		controllers.RespondList(c, ok, tags)
+		tags, err := AllTags()
+		controllers.RespondListE(c, tags, err)
 	})
 
 	tagsRouter.GET("/:id", func(c *gin.Context) {
@@ -228,8 +228,8 @@ func tagsRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		tag, ok := TagById(id)
-		controllers.RespondSingle(c, ok, &tag)
+		tag, err := TagById(id)
+		controllers.RespondSingleE(c, &tag, err)
 	})
 
 	tagsRouter.POST("", func(c *gin.Context) {
@@ -239,8 +239,8 @@ func tagsRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok := CreateTag(&newTag)
-		controllers.RespondSingle(c, ok, &newTag)
+		err := CreateTag(&newTag)
+		controllers.RespondSingleE(c, &newTag, err)
 	})
 
 	tagsRouter.PUT("/:id", func(c *gin.Context) {
@@ -256,8 +256,8 @@ func tagsRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = UpdateTag(id, &tag)
-		controllers.RespondSingle(c, ok, &tag)
+		err := UpdateTag(id, &tag)
+		controllers.RespondSingleE(c, &tag, err)
 	})
 
 	tagsRouter.DELETE("/:id", func(c *gin.Context) {
@@ -267,7 +267,7 @@ func tagsRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = DeleteTagById(id)
-		controllers.RespondEmpty(c, ok)
+		err := DeleteTagById(id)
+		controllers.RespondEmptyE(c, err)
 	})
 }

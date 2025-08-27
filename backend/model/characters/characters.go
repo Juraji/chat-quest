@@ -54,39 +54,31 @@ func characterListViewScanner(scanner database.RowScanner, dest *CharacterListVi
 	)
 }
 
-func AllCharacterListViews() ([]CharacterListView, bool) {
+func AllCharacterListViews() ([]CharacterListView, error) {
 	query := "SELECT id, created_at, name, favorite, avatar_url FROM characters"
 
 	characters, err := database.QueryForList(query, nil, characterListViewScanner)
 	if err != nil {
-		log.Get().Error("Error fetching character list views", zap.Error(err))
-		return characters, false
+		return nil, err
 	}
 
 	for i := range characters {
-		char := characters[i]
+		char := &characters[i]
 		tags, _ := TagsByCharacterId(char.ID)
 		char.Tags = tags
 	}
 
-	return characters, true
+	return characters, nil
 }
 
-func CharacterById(id int) (*Character, bool) {
+func CharacterById(id int) (*Character, error) {
 	query := "SELECT * FROM characters WHERE id = ?"
 	args := []any{id}
 
-	list, err := database.QueryForRecord(query, args, CharacterScanner)
-	if err != nil {
-		log.Get().Error("Error fetching character",
-			zap.Int("id", id), zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForRecord(query, args, CharacterScanner)
 }
 
-func CreateCharacter(newCharacter *Character) bool {
+func CreateCharacter(newCharacter *Character) error {
 	util.EmptyStrPtrToNil(&newCharacter.AvatarUrl)
 	util.EmptyStrPtrToNil(&newCharacter.Appearance)
 	util.EmptyStrPtrToNil(&newCharacter.Personality)
@@ -104,16 +96,16 @@ func CreateCharacter(newCharacter *Character) bool {
 		newCharacter.GroupTalkativeness,
 	}
 
-	if err := database.InsertRecord(query, args, &newCharacter.ID, &newCharacter.CreatedAt); err != nil {
-		log.Get().Error("Error creating character", zap.Error(err))
-		return false
+	err := database.InsertRecord(query, args, &newCharacter.ID, &newCharacter.CreatedAt)
+
+	if err == nil {
+		CharacterCreatedSignal.EmitBG(newCharacter)
 	}
 
-	CharacterCreatedSignal.EmitBG(newCharacter)
-	return true
+	return err
 }
 
-func UpdateCharacter(id int, character *Character) bool {
+func UpdateCharacter(id int, character *Character) error {
 	util.EmptyStrPtrToNil(&character.AvatarUrl)
 	util.EmptyStrPtrToNil(&character.Appearance)
 	util.EmptyStrPtrToNil(&character.Personality)
@@ -140,48 +132,39 @@ func UpdateCharacter(id int, character *Character) bool {
 	}
 
 	err := database.UpdateRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error updating character", zap.Int("id", id), zap.Error(err))
-		return false
+
+	if err == nil {
+		CharacterUpdatedSignal.EmitBG(character)
 	}
 
-	CharacterUpdatedSignal.EmitBG(character)
-	return true
+	return err
 }
 
-func DeleteCharacterById(id int) bool {
+func DeleteCharacterById(id int) error {
 	query := "DELETE FROM characters WHERE id = ?"
 	args := []any{id}
 
 	err := database.DeleteRecord(query, args)
+
 	if err != nil {
-		log.Get().Error("Error deleting character", zap.Int("id", id), zap.Error(err))
-		return false
+		CharacterDeletedSignal.EmitBG(id)
 	}
 
-	CharacterDeletedSignal.EmitBG(id)
-	return true
+	return err
 }
 
-func DialogueExamplesByCharacterId(characterId int) ([]string, bool) {
+func DialogueExamplesByCharacterId(characterId int) ([]string, error) {
 	query := "SELECT text FROM character_dialogue_examples WHERE character_id = ?"
 	args := []any{characterId}
 	scanFunc := func(rows database.RowScanner, dest *string) error {
 		return rows.Scan(dest)
 	}
 
-	list, err := database.QueryForList(query, args, scanFunc)
-	if err != nil {
-		log.Get().Error("Error fetching dialogue examples",
-			zap.Int("characterId", characterId), zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForList(query, args, scanFunc)
 }
 
-func SetDialogueExamplesByCharacterId(characterId int, examples []string) bool {
-	err := database.Transactional(func(ctx *database.TxContext) error {
+func SetDialogueExamplesByCharacterId(characterId int, examples []string) error {
+	return database.Transactional(func(ctx *database.TxContext) error {
 		deleteQuery := "DELETE FROM character_dialogue_examples WHERE character_id = ?"
 		if err := ctx.DeleteRecord(deleteQuery, []any{characterId}); err != nil {
 			log.Get().Error("Error removing dialogue examples",
@@ -204,26 +187,17 @@ func SetDialogueExamplesByCharacterId(characterId int, examples []string) bool {
 
 		return nil
 	})
-
-	return err == nil
 }
 
-func CharacterGreetingsByCharacterId(characterId int) ([]string, bool) {
+func CharacterGreetingsByCharacterId(characterId int) ([]string, error) {
 	query := "SELECT text FROM character_greetings WHERE character_id = ?"
 	args := []any{characterId}
 
-	list, err := database.QueryForList(query, args, database.StringScanner)
-	if err != nil {
-		log.Get().Error("Error fetching character greetings",
-			zap.Int("characterId", characterId), zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForList(query, args, database.StringScanner)
 }
 
-func SetGreetingsByCharacterId(characterId int, greetings []string) bool {
-	err := database.Transactional(func(ctx *database.TxContext) error {
+func SetGreetingsByCharacterId(characterId int, greetings []string) error {
+	return database.Transactional(func(ctx *database.TxContext) error {
 		deleteQuery := "DELETE FROM character_greetings WHERE character_id = ?"
 		if err := ctx.DeleteRecord(deleteQuery, []any{characterId}); err != nil {
 			log.Get().Error("Error removing greetings",
@@ -246,26 +220,17 @@ func SetGreetingsByCharacterId(characterId int, greetings []string) bool {
 
 		return nil
 	})
-
-	return err == nil
 }
 
-func CharacterGroupGreetingsByCharacterId(characterId int) ([]string, bool) {
+func CharacterGroupGreetingsByCharacterId(characterId int) ([]string, error) {
 	query := "SELECT text FROM character_group_greetings WHERE character_id = ?"
 	args := []any{characterId}
 
-	list, err := database.QueryForList(query, args, database.StringScanner)
-	if err != nil {
-		log.Get().Error("Error fetching character group greetings",
-			zap.Int("characterId", characterId), zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForList(query, args, database.StringScanner)
 }
 
-func SetGroupGreetingsByCharacterId(characterId int, greetings []string) bool {
-	err := database.Transactional(func(ctx *database.TxContext) error {
+func SetGroupGreetingsByCharacterId(characterId int, greetings []string) error {
+	return database.Transactional(func(ctx *database.TxContext) error {
 		deleteQuery := "DELETE FROM character_group_greetings WHERE character_id = ?"
 		if err := ctx.DeleteRecord(deleteQuery, []any{characterId}); err != nil {
 			log.Get().Error("Error removing group greetings",
@@ -288,92 +253,50 @@ func SetGroupGreetingsByCharacterId(characterId int, greetings []string) bool {
 
 		return nil
 	})
-
-	return err == nil
 }
 
-func RandomGreetingByCharacterId(characterId int, useGroupGreetings bool) (*string, bool) {
+func RandomGreetingByCharacterId(characterId int, useGroupGreetings bool) (*string, error) {
 	query := `SELECT text FROM character_greetings WHERE character_id = ? ORDER BY RANDOM() LIMIT 1;`
 	if useGroupGreetings {
 		query = `SELECT text FROM character_group_greetings WHERE character_id = ? ORDER BY RANDOM() LIMIT 1;`
 	}
 	args := []any{characterId, useGroupGreetings}
 
-	greeting, err := database.QueryForRecord(query, args, database.StringScanner)
-	if err != nil {
-		log.Get().Error("Error fetching random greeting",
-			zap.Int("characterId", characterId), zap.Error(err))
-		return nil, false
-	}
-
-	return greeting, true
+	return database.QueryForRecord(query, args, database.StringScanner)
 }
 
-func AllTags() ([]Tag, bool) {
+func AllTags() ([]Tag, error) {
 	query := "SELECT * FROM tags"
-	list, err := database.QueryForList(query, nil, tagScanner)
-	if err != nil {
-		log.Get().Error("Error fetching tags", zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForList(query, nil, tagScanner)
 }
 
-func TagById(id int) (*Tag, bool) {
+func TagById(id int) (*Tag, error) {
 	query := "SELECT * FROM tags WHERE id = ?"
 	args := []any{id}
-	tag, err := database.QueryForRecord(query, args, tagScanner)
-	if err != nil {
-		log.Get().Error("Error fetching tag",
-			zap.Int("id", id), zap.Error(err))
-		return nil, false
-	}
-
-	return tag, true
+	return database.QueryForRecord(query, args, tagScanner)
 }
 
-func CreateTag(newTag *Tag) bool {
+func CreateTag(newTag *Tag) error {
 	newTag.Lowercase = strings.ToLower(newTag.Label)
 
 	query := "INSERT INTO tags(label, lowercase) VALUES (?, ?) RETURNING id"
 	args := []any{newTag.Label, newTag.Lowercase}
 
-	err := database.InsertRecord(query, args, &newTag.ID)
-	if err != nil {
-		log.Get().Error("Error inserting tag", zap.Error(err))
-		return false
-	}
-
-	return true
+	return database.InsertRecord(query, args, &newTag.ID)
 }
 
-func UpdateTag(id int, tag *Tag) bool {
+func UpdateTag(id int, tag *Tag) error {
 	tag.Lowercase = strings.ToLower(tag.Label)
 
 	query := "UPDATE tags SET label = ?, lowercase = ? WHERE id = ?"
 	args := []any{id, tag.Label, tag.Lowercase}
 
-	err := database.UpdateRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error updating tag",
-			zap.Int("id", id), zap.Error(err))
-		return false
-	}
-
-	return true
+	return database.UpdateRecord(query, args)
 }
 
-func DeleteTagById(id int) bool {
+func DeleteTagById(id int) error {
 	query := "DELETE FROM tags WHERE id = ?"
 	args := []any{id}
 
-	err := database.DeleteRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error deleting tag",
-			zap.Int("id", id), zap.Error(err))
-		return false
-	}
-
-	return true
+	return database.DeleteRecord(query, args)
 }
