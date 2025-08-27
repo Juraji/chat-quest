@@ -1,9 +1,7 @@
 package worlds
 
 import (
-	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
-	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/util"
 )
 
@@ -23,32 +21,18 @@ func worldScanner(scanner database.RowScanner, dest *World) error {
 	)
 }
 
-func GetAllWorlds() ([]World, bool) {
+func GetAllWorlds() ([]World, error) {
 	query := "SELECT * FROM worlds"
-	list, err := database.QueryForList(query, nil, worldScanner)
-	if err != nil {
-		log.Get().Error("Error fetching worlds", zap.Error(err))
-		return nil, false
-	}
-
-	return list, true
+	return database.QueryForList(query, nil, worldScanner)
 }
 
-func WorldById(id int) (*World, bool) {
+func WorldById(id int) (*World, error) {
 	query := "SELECT * FROM worlds WHERE id=?"
 	args := []any{id}
-
-	world, err := database.QueryForRecord(query, args, worldScanner)
-	if err != nil {
-		log.Get().Error("Error fetching world",
-			zap.Int("id", id), zap.Error(err))
-		return nil, false
-	}
-
-	return world, true
+	return database.QueryForRecord(query, args, worldScanner)
 }
 
-func CreateWorld(newWorld *World) bool {
+func CreateWorld(newWorld *World) error {
 	util.EmptyStrPtrToNil(&newWorld.Description)
 	util.EmptyStrPtrToNil(&newWorld.AvatarUrl)
 
@@ -56,17 +40,15 @@ func CreateWorld(newWorld *World) bool {
 	args := []any{newWorld.Name, newWorld.Description, newWorld.AvatarUrl}
 
 	err := database.InsertRecord(query, args, &newWorld.ID)
-	if err != nil {
-		log.Get().Error("Error inserting world",
-			zap.Int("id", newWorld.ID), zap.Error(err))
-		return false
+
+	if err == nil {
+		WorldCreatedSignal.EmitBG(newWorld)
 	}
 
-	WorldCreatedSignal.EmitBG(newWorld)
-	return true
+	return err
 }
 
-func UpdateWorld(id int, world *World) bool {
+func UpdateWorld(id int, world *World) error {
 	util.EmptyStrPtrToNil(&world.Description)
 	util.EmptyStrPtrToNil(&world.AvatarUrl)
 
@@ -83,27 +65,23 @@ func UpdateWorld(id int, world *World) bool {
 	}
 
 	err := database.UpdateRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error updating world",
-			zap.Int("id", id), zap.Error(err))
-		return false
+
+	if err == nil {
+		WorldUpdatedSignal.EmitBG(world)
 	}
 
-	WorldUpdatedSignal.EmitBG(world)
-	return true
+	return err
 }
 
-func DeleteWorld(id int) bool {
+func DeleteWorld(id int) error {
 	query := "DELETE FROM worlds WHERE id=?"
 	args := []any{id}
 
 	err := database.DeleteRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error deleting world",
-			zap.Int("id", id), zap.Error(err))
-		return false
+
+	if err == nil {
+		WorldDeletedSignal.EmitBG(id)
 	}
 
-	WorldDeletedSignal.EmitBG(id)
-	return true
+	return err
 }

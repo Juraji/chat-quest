@@ -10,7 +10,7 @@ func Routes(router *gin.RouterGroup) {
 
 	scenariosRouter.GET("", func(c *gin.Context) {
 		scenarios, err := AllScenarios()
-		controllers.RespondListE(c, scenarios, err)
+		controllers.RespondList(c, scenarios, err)
 	})
 
 	scenariosRouter.GET("/:scenarioId", func(c *gin.Context) {
@@ -21,7 +21,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		scenario, err := ScenarioById(scenarioId)
-		controllers.RespondSingleE(c, &scenario, err)
+		controllers.RespondSingle(c, &scenario, err)
 	})
 
 	scenariosRouter.POST("", func(c *gin.Context) {
@@ -32,7 +32,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := CreateScenario(&newScenario)
-		controllers.RespondSingleE(c, &newScenario, err)
+		controllers.RespondSingle(c, &newScenario, err)
 	})
 
 	scenariosRouter.PUT("/:scenarioId", func(c *gin.Context) {
@@ -49,7 +49,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := UpdateScenario(scenarioId, &scenario)
-		controllers.RespondSingleE(c, &scenario, err)
+		controllers.RespondSingle(c, &scenario, err)
 	})
 
 	scenariosRouter.DELETE("/:scenarioId", func(c *gin.Context) {
@@ -60,6 +60,6 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := DeleteScenario(scenarioId)
-		controllers.RespondEmptyE(c, err)
+		controllers.RespondEmpty(c, err)
 	})
 }

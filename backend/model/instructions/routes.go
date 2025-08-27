@@ -10,7 +10,7 @@ func Routes(router *gin.RouterGroup) {
 
 	instructionPromptsRouter.GET("", func(c *gin.Context) {
 		prompts, err := AllInstructions()
-		controllers.RespondListE(c, prompts, err)
+		controllers.RespondList(c, prompts, err)
 	})
 
 	instructionPromptsRouter.GET("/:templateId", func(c *gin.Context) {
@@ -21,7 +21,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		prompts, err := InstructionById(templateId)
-		controllers.RespondSingleE(c, prompts, err)
+		controllers.RespondSingle(c, prompts, err)
 	})
 
 	instructionPromptsRouter.POST("", func(c *gin.Context) {
@@ -37,7 +37,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := CreateInstruction(&newPrompt)
-		controllers.RespondSingleE(c, &newPrompt, err)
+		controllers.RespondSingle(c, &newPrompt, err)
 	})
 
 	instructionPromptsRouter.PUT("/:templateId", func(c *gin.Context) {
@@ -53,7 +53,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := UpdateInstruction(templateId, &prompt)
-		controllers.RespondSingleE(c, &prompt, err)
+		controllers.RespondSingle(c, &prompt, err)
 	})
 
 	instructionPromptsRouter.DELETE("/:templateId", func(c *gin.Context) {
@@ -64,6 +64,6 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := DeleteInstruction(templateId)
-		controllers.RespondEmptyE(c, err)
+		controllers.RespondEmpty(c, err)
 	})
 }

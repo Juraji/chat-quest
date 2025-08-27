@@ -10,7 +10,7 @@ func Routes(router *gin.RouterGroup) {
 
 	preferencesRouter.GET("", func(c *gin.Context) {
 		preferences, err := GetPreferences(false)
-		controllers.RespondSingleE(c, preferences, err)
+		controllers.RespondSingle(c, preferences, err)
 	})
 
 	preferencesRouter.PUT("", func(c *gin.Context) {
@@ -21,7 +21,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := UpdatePreferences(update)
-		controllers.RespondSingleE(c, update, err)
+		controllers.RespondSingle(c, update, err)
 	})
 
 	preferencesRouter.GET("/validate", func(c *gin.Context) {
@@ -32,6 +32,6 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		errs := prefs.Validate()
-		controllers.RespondListE(c, errs, nil)
+		controllers.RespondList(c, errs, nil)
 	})
 }

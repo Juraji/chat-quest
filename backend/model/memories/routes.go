@@ -16,7 +16,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		memories, err := GetMemoriesByWorldId(worldId)
-		controllers.RespondListE(c, memories, err)
+		controllers.RespondList(c, memories, err)
 	})
 
 	memoriesRouter.GET("/by-character/:characterId", func(c *gin.Context) {
@@ -33,7 +33,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		memories, err := GetMemoriesByWorldAndCharacterId(worldId, characterId)
-		controllers.RespondListE(c, memories, err)
+		controllers.RespondList(c, memories, err)
 	})
 
 	memoriesRouter.POST("", func(c *gin.Context) {
@@ -50,7 +50,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := CreateMemory(worldId, &newMemory)
-		controllers.RespondSingleE(c, &newMemory, err)
+		controllers.RespondSingle(c, &newMemory, err)
 	})
 
 	memoriesRouter.PUT("/:memoryId", func(c *gin.Context) {
@@ -74,7 +74,7 @@ func Routes(router *gin.RouterGroup) {
 		memory.WorldId = worldId
 
 		err := UpdateMemory(memoryId, &memory)
-		controllers.RespondSingleE(c, &memory, err)
+		controllers.RespondSingle(c, &memory, err)
 	})
 
 	memoriesRouter.DELETE("/:memoryId", func(c *gin.Context) {
@@ -85,6 +85,6 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := DeleteMemory(memoryId)
-		controllers.RespondEmptyE(c, err)
+		controllers.RespondEmpty(c, err)
 	})
 }

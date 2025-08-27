@@ -16,7 +16,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		sessions, err := GetAllByWorldId(worldId)
-		controllers.RespondListE(c, sessions, err)
+		controllers.RespondList(c, sessions, err)
 	})
 
 	sessionRouter.GET("/:sessionId", func(c *gin.Context) {
@@ -32,7 +32,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		session, err := GetByWorldIdAndId(worldId, sessionId)
-		controllers.RespondSingleE(c, session, err)
+		controllers.RespondSingle(c, session, err)
 	})
 
 	sessionRouter.POST("", func(c *gin.Context) {
@@ -55,7 +55,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := Create(worldId, &session, characterIds)
-		controllers.RespondSingleE(c, &session, err)
+		controllers.RespondSingle(c, &session, err)
 	})
 
 	sessionRouter.PUT("/:sessionId", func(c *gin.Context) {
@@ -77,7 +77,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := Update(worldId, sessionId, &session)
-		controllers.RespondSingleE(c, &session, err)
+		controllers.RespondSingle(c, &session, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId", func(c *gin.Context) {
@@ -93,7 +93,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := Delete(worldId, sessionId)
-		controllers.RespondEmptyE(c, err)
+		controllers.RespondEmpty(c, err)
 	})
 
 	sessionRouter.GET("/:sessionId/chat-messages", func(c *gin.Context) {
@@ -104,7 +104,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		messages, err := GetAllChatMessages(sessionId)
-		controllers.RespondListE(c, messages, err)
+		controllers.RespondList(c, messages, err)
 	})
 
 	sessionRouter.POST("/:sessionId/chat-messages", func(c *gin.Context) {
@@ -121,7 +121,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := CreateChatMessage(sessionId, &message)
-		controllers.RespondSingleE(c, &message, err)
+		controllers.RespondSingle(c, &message, err)
 	})
 
 	sessionRouter.PUT("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
@@ -144,7 +144,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := UpdateChatMessage(sessionId, messageId, &message)
-		controllers.RespondSingleE(c, &message, err)
+		controllers.RespondSingle(c, &message, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId/chat-messages/:messageId", func(c *gin.Context) {
@@ -160,7 +160,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := DeleteChatMessagesFrom(sessionId, messageId)
-		controllers.RespondEmptyE(c, err)
+		controllers.RespondEmpty(c, err)
 	})
 
 	sessionRouter.GET("/:sessionId/participants", func(c *gin.Context) {
@@ -171,7 +171,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		participants, err := GetParticipants(sessionId)
-		controllers.RespondListE(c, participants, err)
+		controllers.RespondList(c, participants, err)
 	})
 
 	sessionRouter.POST("/:sessionId/participants/:characterId", func(c *gin.Context) {
@@ -187,7 +187,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := AddParticipant(sessionId, characterId)
-		controllers.RespondEmptyE(c, err)
+		controllers.RespondEmpty(c, err)
 	})
 
 	sessionRouter.DELETE("/:sessionId/participants/:characterId", func(c *gin.Context) {
@@ -203,7 +203,7 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		err := RemoveParticipant(sessionId, characterId)
-		controllers.RespondEmptyE(c, err)
+		controllers.RespondEmpty(c, err)
 	})
 
 	sessionRouter.POST("/:sessionId/participants/:characterId/trigger-response", func(c *gin.Context) {
@@ -225,6 +225,6 @@ func Routes(router *gin.RouterGroup) {
 		}
 
 		ChatParticipantResponseRequestedSignal.EmitBG(participant)
-		controllers.RespondEmpty(c, true)
+		controllers.RespondEmpty(c, nil)
 	})
 }

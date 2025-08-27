@@ -9,8 +9,8 @@ func Routes(router *gin.RouterGroup) {
 	worldsRouter := router.Group("/worlds")
 
 	worldsRouter.GET("", func(c *gin.Context) {
-		worlds, ok := GetAllWorlds()
-		controllers.RespondList(c, ok, worlds)
+		worlds, err := GetAllWorlds()
+		controllers.RespondList(c, worlds, err)
 	})
 
 	worldsRouter.GET("/:worldId", func(c *gin.Context) {
@@ -20,8 +20,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		world, ok := WorldById(worldId)
-		controllers.RespondSingle(c, ok, world)
+		world, err := WorldById(worldId)
+		controllers.RespondSingle(c, world, err)
 	})
 
 	worldsRouter.POST("", func(c *gin.Context) {
@@ -31,8 +31,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok := CreateWorld(&newWorld)
-		controllers.RespondSingle(c, ok, &newWorld)
+		err := CreateWorld(&newWorld)
+		controllers.RespondSingle(c, &newWorld, err)
 	})
 
 	worldsRouter.PUT("/:worldId", func(c *gin.Context) {
@@ -48,8 +48,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = UpdateWorld(worldId, &world)
-		controllers.RespondSingle(c, ok, &world)
+		err := UpdateWorld(worldId, &world)
+		controllers.RespondSingle(c, &world, err)
 	})
 
 	worldsRouter.DELETE("/:worldId", func(c *gin.Context) {
@@ -59,7 +59,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = DeleteWorld(worldId)
-		controllers.RespondEmpty(c, ok)
+		err := DeleteWorld(worldId)
+		controllers.RespondEmpty(c, err)
 	})
 }

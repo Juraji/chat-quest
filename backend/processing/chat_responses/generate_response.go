@@ -405,9 +405,8 @@ func getWorldDescription(session *cs.ChatSession) chan *channels.Result[string] 
 
 	go func(worldId int) {
 		defer close(resultChan)
-		world, ok := w.WorldById(worldId)
-		if !ok {
-			err := errors.New("Could not fetch world")
+		world, err := w.WorldById(worldId)
+		if err != nil {
 			resultChan <- channels.NewResult[string]("", err)
 			return
 		}

@@ -32,15 +32,7 @@ func GetQueryParamsAsIDs(c *gin.Context, key string) ([]int, bool) {
 	return ids, true
 }
 
-func RespondList[T any](c *gin.Context, ok bool, list []T) {
-	if !ok {
-		RespondInternalError(c, nil)
-	} else {
-		c.JSON(http.StatusOK, list)
-	}
-}
-
-func RespondListE[T any](c *gin.Context, list []T, err error) {
+func RespondList[T any](c *gin.Context, list []T, err error) {
 	if err != nil {
 		RespondInternalError(c, err)
 	} else {
@@ -48,17 +40,7 @@ func RespondListE[T any](c *gin.Context, list []T, err error) {
 	}
 }
 
-func RespondSingle[T any](c *gin.Context, ok bool, entity *T) {
-	if !ok {
-		RespondInternalError(c, nil)
-	} else if entity == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Entity not found"})
-	} else {
-		c.JSON(http.StatusOK, entity)
-	}
-}
-
-func RespondSingleE[T any](c *gin.Context, entity *T, err error) {
+func RespondSingle[T any](c *gin.Context, entity *T, err error) {
 	if err != nil {
 		RespondInternalError(c, err)
 	} else if entity == nil {
@@ -68,15 +50,7 @@ func RespondSingleE[T any](c *gin.Context, entity *T, err error) {
 	}
 }
 
-func RespondEmpty(c *gin.Context, ok bool) {
-	if !ok {
-		RespondInternalError(c, nil)
-	} else {
-		c.Status(http.StatusNoContent)
-	}
-}
-
-func RespondEmptyE(c *gin.Context, err error) {
+func RespondEmpty(c *gin.Context, err error) {
 	if err != nil {
 		RespondInternalError(c, err)
 	} else {
