@@ -9,7 +9,7 @@ import {Scenario} from '@api/scenarios';
 import {LlmModelView} from '@api/providers';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {debounceTime} from 'rxjs';
-import {ChatPreferences, Worlds} from '@api/worlds';
+import {CQPreferences, Preferences} from '@api/preferences';
 
 @Component({
   selector: 'chat-session-details-block',
@@ -22,7 +22,7 @@ import {ChatPreferences, Worlds} from '@api/worlds';
 export class ChatSessionDetailsBlock {
   private readonly sessionData = inject(ChatSessionData)
   private readonly chatSessions = inject(ChatSessions)
-  private readonly worlds = inject(Worlds)
+  private readonly preferences = inject(Preferences)
   private readonly notifications = inject(Notifications)
 
   readonly worldName: Signal<string> = computed(() => this.sessionData.world().name)
@@ -43,7 +43,7 @@ export class ChatSessionDetailsBlock {
       this.scenarioControl.reset(session.scenarioId, {emitEvent: false})
     });
     effect(() => {
-      const {chatModelId} = this.sessionData.chatPreferences()
+      const {chatModelId} = this.sessionData.preferences()
       this.chatModelControl.reset(chatModelId, {emitEvent: false})
     });
 
@@ -74,16 +74,16 @@ export class ChatSessionDetailsBlock {
       .subscribe(() => this.notifications.toast("Session details updated!"))
   }
 
-  private updateChatPrefs(p: Partial<ChatPreferences>) {
-    const prefs = this.sessionData.chatPreferences()
+  private updateChatPrefs(p: Partial<CQPreferences>) {
+    const prefs = this.sessionData.preferences()
 
-    const update: ChatPreferences = {
+    const update: CQPreferences = {
       ...prefs,
       ...p
     }
 
-    this.worlds
-      .savePreferences(update)
-      .subscribe(() => this.notifications.toast("Chat preferences updated!"))
+    this.preferences
+      .save(update)
+      .subscribe(() => this.notifications.toast("Preferences updated!"))
   }
 }

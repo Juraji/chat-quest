@@ -13,6 +13,7 @@ import (
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	inst "juraji.nl/chat-quest/model/instructions"
 	m "juraji.nl/chat-quest/model/memories"
+	"juraji.nl/chat-quest/model/preferences"
 	sc "juraji.nl/chat-quest/model/scenarios"
 	w "juraji.nl/chat-quest/model/worlds"
 	"strings"
@@ -112,21 +113,23 @@ func generateResponse(
 	}
 
 	// Fetch chat history
-	var chatHistory []cs.ChatMessage
-	if triggerMessage == nil {
-		chatHistory, ok = cs.GetChatMessages(session.ID)
-	} else {
-		chatHistory, ok = cs.GetChatMessagesPreceding(session.ID, triggerMessage.ID)
-	}
-	if !ok {
-		logger.Error("Error fetching chat history")
+	chatHistory, err := cs.GetUnarchivedChatMessages(sessionId)
+	if err != nil {
+		logger.Error("Error fetching chat history", zap.Error(err))
 		return
 	}
+	if triggerMessage != nil && len(chatHistory) > 0 {
+		chatHistory = chatHistory[:len(chatHistory)-1]
+	}
 
-	// Fetch chat preferences
-	chatPrefs, _ := w.GetChatPreferences()
-	if err := chatPrefs.Validate(); err != nil {
-		logger.Error("Error validating chat preferences", zap.Error(err))
+	// Fetch preferences
+	prefs, err := preferences.GetPreferences()
+	if err != nil {
+		logger.Error("Failed to get preferences", zap.Error(err))
+		return
+	}
+	if err = prefs.Validate(); err != nil {
+		logger.Error("Error validating preferences", zap.Error(err))
 		return
 	}
 
@@ -135,7 +138,7 @@ func generateResponse(
 	}
 
 	// Build chat instructions
-	instruction, ok := createChatInstruction(logger, session, responderId, chatPrefs, chatHistory, triggerMessage)
+	instruction, ok := createChatInstruction(logger, session, responderId, prefs, chatHistory, triggerMessage)
 	if !ok {
 		logger.Error("Error creating chat instruction")
 		return
@@ -149,7 +152,7 @@ func generateResponse(
 	}
 
 	// Get chat model instance
-	chatModelInst, ok := p.GetLlmModelInstanceById(*chatPrefs.ChatModelID)
+	chatModelInst, ok := p.GetLlmModelInstanceById(*prefs.ChatModelId)
 	if !ok {
 		logger.Error("Error fetching chat model instance")
 		return
@@ -273,11 +276,11 @@ func createChatInstruction(
 	logger *zap.Logger,
 	session *cs.ChatSession,
 	responderId int,
-	prefs *w.ChatPreferences,
+	prefs *preferences.Preferences,
 	history []cs.ChatMessage,
 	triggerMessage *cs.ChatMessage,
 ) (*inst.InstructionTemplate, bool) {
-	instruction, ok := inst.InstructionById(*prefs.ChatInstructionID)
+	instruction, ok := inst.InstructionById(*prefs.ChatInstructionId)
 	if !ok {
 		logger.Error("Error fetching chat instruction")
 		return nil, false

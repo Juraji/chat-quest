@@ -11,6 +11,7 @@ import (
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	i "juraji.nl/chat-quest/model/instructions"
 	m "juraji.nl/chat-quest/model/memories"
+	"juraji.nl/chat-quest/model/preferences"
 	"strings"
 	"sync"
 )
@@ -51,21 +52,22 @@ func GenerateMemories(
 		return
 	}
 
-	preferences, ok := m.GetMemoryPreferences()
-	if !ok {
+	prefs, err := preferences.GetPreferences()
+	if err != nil {
+		logger.Error("Failed to get preferences", zap.Error(err))
 		return
 	}
-	if err := preferences.Validate(); err != nil {
+	if err = prefs.Validate(); err != nil {
 		logger.Error("Error validating memory preferences", zap.Error(err))
 		return
 	}
 
-	memorizableMessages, ok := getMemorizableMessages(logger, preferences, sessionID)
+	memorizableMessages, ok := getMemorizableMessages(logger, prefs, sessionID)
 	if !ok {
 		return
 	}
 
-	memories, ok := generateAndExtractMemories(logger, ctx, sessionID, preferences, memorizableMessages)
+	memories, ok := generateAndExtractMemories(logger, ctx, sessionID, prefs, memorizableMessages)
 	if !ok {
 		return
 	}
@@ -83,9 +85,8 @@ func GenerateMemories(
 	}
 
 	// Update message processed states
-	ok = m.SetProcessedStateForMessages(memorizableMessages)
-	if !ok {
-		return
+	for _, chatMessage := range memorizableMessages {
+		cs.SetMessageArchived(sessionID, chatMessage.ID)
 	}
 
 	logger.Debug("Memory generation completed")
@@ -95,15 +96,15 @@ func generateAndExtractMemories(
 	logger *zap.Logger,
 	ctx context.Context,
 	sessionID int,
-	preferences *m.MemoryPreferences,
+	prefs *preferences.Preferences,
 	messages []cs.ChatMessage,
 ) ([]*m.Memory, bool) {
-	instruction, ok := i.InstructionById(*preferences.MemoriesInstructionID)
+	instruction, ok := i.InstructionById(*prefs.MemoriesInstructionId)
 	if !ok || instruction == nil {
 		logger.Debug("Could not fetch memory instruction")
 		return nil, false
 	}
-	modelInstance, ok := p.GetLlmModelInstanceById(*preferences.MemoriesModelID)
+	modelInstance, ok := p.GetLlmModelInstanceById(*prefs.MemoriesModelId)
 	if !ok || modelInstance == nil {
 		logger.Debug("Could not fetch memory model")
 		return nil, false
@@ -221,18 +222,18 @@ func callLlm(
 
 func getMemorizableMessages(
 	logger *zap.Logger,
-	preferences *m.MemoryPreferences,
+	prefs *preferences.Preferences,
 	sessionID int,
 ) ([]cs.ChatMessage, bool) {
-	messages, ok := m.GetUnprocessedMessagesForSession(sessionID)
-	if !ok {
-		logger.Warn("Failed to get unprocessed messages for session",
-			zap.Int("sessionId", sessionID))
+	messages, err := cs.GetUnarchivedChatMessages(sessionID)
+	if err != nil {
+		logger.Error("Failed to get messages for session",
+			zap.Int("sessionId", sessionID), zap.Error(err))
 		return nil, false
 	}
 
-	triggerAfter := preferences.MemoryTriggerAfter
-	requiredWindowSize := preferences.MemoryWindowSize
+	triggerAfter := prefs.MemoryTriggerAfter
+	requiredWindowSize := prefs.MemoryWindowSize
 
 	windowSize := len(messages) - triggerAfter
 

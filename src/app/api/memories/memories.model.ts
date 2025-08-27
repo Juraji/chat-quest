@@ -7,12 +7,3 @@ export interface Memory extends ChatQuestModel {
   createdAt: Nullable<string>
   content: string
 }
-
-export interface MemoryPreferences {
-  memoriesModelId: Nullable<number>
-  memoriesInstructionId: Nullable<number>
-  embeddingModelId: Nullable<number>
-  memoryMinP: number
-  memoryTriggerAfter: number
-  memoryWindowSize: number
-}

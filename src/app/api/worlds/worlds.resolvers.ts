@@ -1,7 +1,7 @@
 import {ResolveFn} from '@angular/router';
 import {inject} from '@angular/core';
 import {Worlds} from '@api/worlds/worlds.service';
-import {ChatPreferences, World} from '@api/worlds/index';
+import {World} from '@api/worlds/index';
 import {NEW_ID} from '@api/common';
 import {resolveNewOrExisting} from '@util/ng';
 
@@ -26,8 +26,3 @@ export function worldResolverFactory(idParam: string): ResolveFn<World> {
     )
   }
 }
-
-export const chatPreferencesResolver: ResolveFn<ChatPreferences> = () => {
-  const service = inject(Worlds)
-  return service.getPreferences();
-};

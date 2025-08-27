@@ -6,11 +6,6 @@ import (
 )
 
 func Routes(router *gin.RouterGroup) {
-	memoriesRoutes(router)
-	prefsRoutes(router)
-}
-
-func memoriesRoutes(router *gin.RouterGroup) {
 	memoriesRouter := router.Group("/worlds/:worldId/memories")
 
 	memoriesRouter.GET("", func(c *gin.Context) {
@@ -92,47 +87,5 @@ func memoriesRoutes(router *gin.RouterGroup) {
 
 		ok = DeleteMemory(memoryId)
 		controllers.RespondEmpty(c, ok)
-	})
-}
-
-func prefsRoutes(router *gin.RouterGroup) {
-	prefsRouter := router.Group("/memories/preferences")
-
-	prefsRouter.GET("", func(c *gin.Context) {
-		prefs, ok := GetMemoryPreferences()
-		controllers.RespondSingle(c, ok, prefs)
-	})
-
-	prefsRouter.PUT("", func(c *gin.Context) {
-		var update MemoryPreferences
-		if err := c.ShouldBind(&update); err != nil {
-			controllers.RespondBadRequest(c, "Invalid preference data")
-			return
-		}
-
-		ok := UpdateMemoryPreferences(&update)
-		controllers.RespondSingle(c, ok, &update)
-	})
-
-	prefsRouter.GET("/is-valid", func(c *gin.Context) {
-		var messages []string
-
-		prefs, ok := GetMemoryPreferences()
-		if !ok {
-			controllers.RespondInternalError(c, nil)
-			return
-		}
-
-		if prefs.MemoriesModelID == nil {
-			messages = append(messages, "No memory model set")
-		}
-		if prefs.MemoriesInstructionID == nil {
-			messages = append(messages, "No memory instruction set")
-		}
-		if prefs.EmbeddingModelID == nil {
-			messages = append(messages, "No memory embedding model set")
-		}
-
-		controllers.RespondSingle(c, true, &messages)
 	})
 }

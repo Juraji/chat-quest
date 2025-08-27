@@ -2,7 +2,7 @@
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Instruction Templates</h5>
-      <button class="btn btn-outline-primary"
+      <button type="button" class="btn btn-outline-primary"
               routerLink="/settings/instruction-templates/new">Add template
       </button>
     </div>
@@ -27,17 +27,17 @@
             <td class="text-muted">{{ instruction.type }}</td>
             <td>
               <div class="btn-toolbar justify-content-end gap-1">
-                <button class="btn btn-sm btn-secondary" (click)="onDuplicateInstruction($event, instruction)">
+                <button type="button" class="btn btn-sm btn-secondary"
+                        (click)="onDuplicateInstruction($event, instruction)">
                   <span class="bi bi-copy"></span>
                 </button>
-                <button class="btn btn-sm btn-primary">
+                <button type="button" class="btn btn-sm btn-primary">
                   <span class="bi bi-pencil"></span>
                 </button>
               </div>
             </td>
           </tr>
         }
-      <tr></tr>
       </tbody>
     </table>
   </div>

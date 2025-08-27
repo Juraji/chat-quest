@@ -103,7 +103,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		messages, ok := GetChatMessages(sessionId)
+		messages, ok := GetAllChatMessages(sessionId)
 		controllers.RespondList(c, ok, messages)
 	})
 

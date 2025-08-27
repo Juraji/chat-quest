@@ -2,7 +2,7 @@ import {computed, inject, Injectable, linkedSignal, Signal, WritableSignal} from
 import {ActivatedRoute, Router} from '@angular/router';
 import {SSE} from '@api/sse';
 import {routeDataSignal} from '@util/ng';
-import {ChatPreferences, ChatPreferencesUpdated, World} from '@api/worlds';
+import {World} from '@api/worlds';
 import {
   ChatMessage,
   ChatMessageCreated,
@@ -19,8 +19,9 @@ import {Character, CharacterCreated, CharacterDeleted, CharacterUpdated} from '@
 import {Scenario, ScenarioCreated, ScenarioDeleted, ScenarioUpdated} from '@api/scenarios';
 import {entityIdFilter} from '@api/common';
 import {arrayAddItem, arrayRemoveItem, arrayUpsertItem} from '@util/array';
-import {map, tap} from 'rxjs';
+import {map} from 'rxjs';
 import {LlmModelView} from '@api/providers';
+import {CQPreferences, PreferencesUpdated} from '@api/preferences';
 
 @Injectable()
 export class ChatSessionData {
@@ -48,8 +49,8 @@ export class ChatSessionData {
   private readonly _scenarios: Signal<Scenario[]> = routeDataSignal(this.activatedRoute, 'scenarios')
   readonly scenarios: WritableSignal<Scenario[]> = linkedSignal(() => this._scenarios())
 
-  private readonly _chatPreferences: Signal<ChatPreferences> = routeDataSignal(this.activatedRoute, 'chatPreferences')
-  readonly chatPreferences: WritableSignal<ChatPreferences> = linkedSignal(() => this._chatPreferences())
+  private readonly _preferences: Signal<CQPreferences> = routeDataSignal(this.activatedRoute, 'preferences')
+  readonly preferences: WritableSignal<CQPreferences> = linkedSignal(() => this._preferences())
 
   readonly llmModels: Signal<LlmModelView[]> = routeDataSignal(this.activatedRoute, 'llmModels')
 
@@ -112,8 +113,7 @@ export class ChatSessionData {
         .update(prev => arrayRemoveItem(prev, ({id}) => id === messageId)))
 
     this.sse
-      .on(ChatPreferencesUpdated)
-      .pipe(tap(x => console.log(x)))
-      .subscribe(prefs => this.chatPreferences.set(prefs))
+      .on(PreferencesUpdated)
+      .subscribe(prefs => this.preferences.set(prefs))
   }
 }

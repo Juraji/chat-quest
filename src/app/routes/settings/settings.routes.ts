@@ -8,10 +8,9 @@ import {
   llmModelViewsResolver
 } from '@api/providers/providers.resolvers';
 import {EditConnectionProfile,} from "./connection-profiles"
-import {instructionResolverFactory, instructionsResolver} from '@api/instructions/instructions.resolvers';
+import {instructionResolverFactory, instructionsResolver} from '@api/instructions';
 import {EditInstruction} from './edit-instruction-templates';
-import {chatPreferencesResolver} from '@api/worlds/worlds.resolvers';
-import {memoryPreferencesResolver} from '@api/memories/memories.resolvers';
+import {preferencesResolver} from '@api/preferences';
 
 const routes: Routes = [
   {
@@ -21,8 +20,7 @@ const routes: Routes = [
     resolve: {
       profiles: connectionProfilesResolver,
       instructions: instructionsResolver,
-      chatPreferences: chatPreferencesResolver,
-      memoryPreferences: memoryPreferencesResolver,
+      preferences: preferencesResolver,
       llmModelViews: llmModelViewsResolver
     }
   },

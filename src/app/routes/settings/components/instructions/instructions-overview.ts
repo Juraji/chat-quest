@@ -1,9 +1,10 @@
-import {Component, inject, input, InputSignal} from '@angular/core';
+import {Component, inject, Signal} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {EmptyPipe} from '@components/empty.pipe';
 import {Instruction, Instructions} from '@api/instructions';
 import {NEW_ID} from '@api/common';
 import {Notifications} from '@components/notifications';
+import {routeDataSignal} from '@util/ng';
 
 @Component({
   selector: 'instruction-overview',
@@ -19,7 +20,7 @@ export class InstructionOverview {
   private readonly notifications = inject(Notifications)
   private readonly router = inject(Router)
 
-  readonly instructionList: InputSignal<Instruction[]> = input.required({alias: "instructions"})
+  readonly instructionList: Signal<Instruction[]> = routeDataSignal(this.activatedRoute, 'instructions')
 
   onDuplicateInstruction(event: Event, instruction: Instruction) {
     event.stopPropagation();

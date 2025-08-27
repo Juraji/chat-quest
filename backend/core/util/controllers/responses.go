@@ -50,6 +50,16 @@ func RespondSingle[T any](c *gin.Context, ok bool, entity *T) {
 	}
 }
 
+func RespondSingleE[T any](c *gin.Context, entity *T, err error) {
+	if err != nil {
+		RespondInternalError(c, err)
+	} else if entity == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Entity not found"})
+	} else {
+		c.JSON(http.StatusOK, entity)
+	}
+}
+
 func RespondEmpty(c *gin.Context, ok bool) {
 	if !ok {
 		RespondInternalError(c, nil)
@@ -70,6 +80,11 @@ func RespondInternalError(c *gin.Context, err error) {
 func RespondBadRequest(c *gin.Context, message string) {
 	c.JSON(http.StatusBadRequest, gin.H{"error": message})
 	log.Get().Warn("Bad API Request", zap.String("uri", c.Request.RequestURI), zap.String("message", message))
+}
+
+func RespondBadRequestE(c *gin.Context, err error) {
+	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+	log.Get().Warn("Bad API Request", zap.String("uri", c.Request.RequestURI), zap.Error(err))
 }
 
 func RespondNotAcceptable(c *gin.Context, message string, err error) {

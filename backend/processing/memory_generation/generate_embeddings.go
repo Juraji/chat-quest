@@ -4,7 +4,9 @@ import (
 	"context"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
+	p "juraji.nl/chat-quest/core/providers"
 	m "juraji.nl/chat-quest/model/memories"
+	"juraji.nl/chat-quest/model/preferences"
 )
 
 func GenerateEmbeddings(ctx context.Context, memory *m.Memory) {
@@ -23,9 +25,27 @@ func GenerateEmbeddings(ctx context.Context, memory *m.Memory) {
 		return
 	}
 
-	embeddings, modelId, ok := m.GenerateEmbeddingForContent(memoryContent)
+	prefs, err := preferences.GetPreferences()
+	if err != nil {
+		logger.Error("Failed to get preferences", zap.Error(err))
+		return
+	}
+	if err := prefs.Validate(); err != nil {
+		logger.Error("Error validating memory preferences", zap.Error(err))
+		return
+	}
+
+	modelId := *prefs.EmbeddingModelId
+	modelInstance, ok := p.GetLlmModelInstanceById(modelId)
 	if !ok {
-		logger.Warn("Failed to generate embeddings")
+		logger.Warn("Error getting embedding model instance",
+			zap.Int("modelId", modelId))
+		return
+	}
+
+	embeddings, err := p.GenerateEmbeddings(modelInstance, memoryContent)
+	if err != nil {
+		logger.Error("Error generating embeddings", zap.Error(err))
 		return
 	}
 

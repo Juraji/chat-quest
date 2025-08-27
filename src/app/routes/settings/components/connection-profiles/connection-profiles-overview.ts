@@ -1,7 +1,8 @@
-import {Component, input, InputSignal} from '@angular/core';
-import {RouterLink} from '@angular/router';
+import {Component, inject, Signal} from '@angular/core';
+import {ActivatedRoute, RouterLink} from '@angular/router';
 import {EmptyPipe} from '@components/empty.pipe';
 import {ConnectionProfile} from '@api/providers';
+import {routeDataSignal} from '@util/ng';
 
 @Component({
   selector: 'connection-profiles-overview',
@@ -12,5 +13,7 @@ import {ConnectionProfile} from '@api/providers';
   templateUrl: './connection-profiles-overview.html'
 })
 export class ConnectionProfilesOverview {
-  readonly profiles: InputSignal<ConnectionProfile[]> = input.required()
+  private readonly activatedRoute = inject(ActivatedRoute);
+
+  readonly profiles: Signal<ConnectionProfile[]> = routeDataSignal(this.activatedRoute, 'profiles')
 }

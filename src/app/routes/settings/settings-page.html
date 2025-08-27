@@ -1,24 +1,156 @@
-<div class="container mt-3">
-  <app-page-header>
-    <span class="page-title">Settings</span>
-  </app-page-header>
+<form [formGroup]="formGroup" (submit)="onFormSubmit()">
+  <div class="container mt-3">
+    <app-page-header>
+      <span class="page-title">Settings</span>
+      @if (formGroup.dirty) {
+        <button type="button" class="btn btn-outline-secondary"
+                (click)="onRevertChanges()">Revert changes
+        </button>
+      }
+      <button class="btn btn-primary btn-magical"
+              [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
+      </button>
+    </app-page-header>
 
-  <div class="grid">
-    <div class="g-col-12 g-col-lg-8">
-      <connection-profiles-overview [profiles]="profiles()" class="d-block mb-3"/>
-      <instruction-overview [instructions]="instructions()"/>
-    </div>
-    <div class="g-col-12 g-col-lg-4">
-      <chat-settings
-        [preferences]="chatPreferences()"
-        [instructionTemplates]="instructions()"
-        [llmModelViews]="llmModelViews()"/>
-    </div>
-    <div class="g-col-12">
-      <memory-settings
-        [preferences]="memoryPreferences()"
-        [instructionTemplates]="instructions()"
-        [llmModelViews]="llmModelViews()"/>
+    <div class="grid">
+      <div class="g-col-12 g-col-lg-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Chat Settings</h5>
+
+            <div class="mb-3">
+              <label for="chatModelIdInput">Chat Model</label>
+              <select class="form-select"
+                      formControlName="chatModelId"
+                      id="chatModelIdInput"
+                      aria-describedby="chatModelIdInputHelp">
+                @for (llm of llmModelViews(); track llm.id) {
+                  <option [ngValue]="llm.id">{{ llm.modelId }}&nbsp;&bullet;&nbsp;{{ llm.profileName }}</option>
+                }
+              </select>
+              <div id="chatModelIdInputHelp" class="form-text">
+                Select the model you want to use for the chat.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="chatInstructionIdInput">Chat Instructions</label>
+              <select class="form-select"
+                      id="chatInstructionIdInput"
+                      formControlName="chatInstructionId"
+                      aria-describedby="chatInstructionIdInputHelp">
+                @for (template of chatInstructionTemplates(); track template.id) {
+                  <option [ngValue]="template.id">{{ template.name }}</option>
+                }
+              </select>
+              <div id="chatInstructionIdInputHelp" class="form-text">
+                Select the instruction you want to use for generating chat responses.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-col-12 g-col-lg-8">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Memories</h5>
+
+            <div class="grid">
+              <div class="g-col-12 g-col-lg-6">
+                <div class="mb-3">
+                  <label for="memoriesModelIdInput">Memory Model</label>
+                  <select class="form-select"
+                          formControlName="memoriesModelId"
+                          id="memoriesModelIdInput"
+                          aria-describedby="memoriesModelIdInputHelp">
+                    @for (llm of llmModelViews(); track llm.id) {
+                      <option [ngValue]="llm.id">{{ llm.modelId }}&nbsp;&bullet;&nbsp;{{ llm.profileName }}</option>
+                    }
+                  </select>
+                  <div id="memoriesModelIdInputHelp" class="form-text">
+                    Select the model you want to use for memory generation.
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="memoriesInstructionIdInput">Memory Instructions</label>
+                  <select class="form-select"
+                          id="memoriesInstructionIdInput"
+                          formControlName="memoriesInstructionId"
+                          aria-describedby="memoriesInstructionIdInputHelp">
+                    @for (template of memoryInstructionTemplates(); track template.id) {
+                      <option [ngValue]="template.id">{{ template.name }}</option>
+                    }
+                  </select>
+                  <div id="memoriesInstructionIdInputHelp" class="form-text">
+                    Select the instruction you want to use for generating memories.
+                  </div>
+                </div>
+
+                <div>
+                  <label for="embeddingModelIdInput">Embedding Model</label>
+                  <select class="form-select"
+                          formControlName="embeddingModelId"
+                          id="embeddingModelIdInput"
+                          aria-describedby="embeddingModelIdInputHelp">
+                    @for (llm of llmModelViews(); track llm.id) {
+                      <option [ngValue]="llm.id">{{ llm.modelId }}&nbsp;&bullet;&nbsp;{{ llm.profileName }}</option>
+                    }
+                  </select>
+                  <div id="embeddingModelIdInputHelp" class="form-text">
+                    Select the embedding model you want to use for memories.
+                  </div>
+                </div>
+              </div>
+              <div class="g-col-12 g-col-lg-6">
+                <div class="mb-3">
+                  <label for="memoryTriggerAfterInput">Max Messages in Context</label>
+                  <input type="number" class="form-control"
+                         step="1"
+                         id="memoryTriggerAfterInput"
+                         aria-describedby="memoryTriggerAfterInputHelp"
+                         formControlName="memoryTriggerAfter"/>
+                  <div id="memoryTriggerAfterInputHelp" class="form-text">
+                    After how many messages should chat truncation and generating memories kick in.
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="memoryWindowSizeInput">Interaction Window Size</label>
+                  <input type="number" class="form-control"
+                         step="1"
+                         id="memoryWindowSizeInput"
+                         aria-describedby="memoryWindowSizeInputHelp"
+                         formControlName="memoryWindowSize"/>
+                  <div id="memoryWindowSizeInputHelp" class="form-text">
+                    How many messages should be saved up before generating memories.
+                  </div>
+                </div>
+
+                <div>
+                  <label for="memoryMinPInput">Min P</label>
+                  <input type="number" class="form-control"
+                         step="0.01"
+                         id="memoryMinPInput"
+                         aria-describedby="memoryMinPInputHelp"
+                         formControlName="memoryMinP"/>
+                  <div id="memoryMinPInputHelp" class="form-text">
+                    Minimum base probability for a memory to be selected for inclusion in RAG data.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-col-12 g-col-lg-6">
+        <connection-profiles-overview/>
+      </div>
+      <div class="g-col-12 g-col-lg-6">
+        <instruction-overview/>
+      </div>
     </div>
   </div>
-</div>
+</form>

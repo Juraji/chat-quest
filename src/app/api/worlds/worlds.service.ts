@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {ChatPreferences, World} from './worlds.model';
+import {World} from './worlds.model';
 import {isNew} from '@api/common';
 
 @Injectable({
@@ -28,17 +28,5 @@ export class Worlds {
 
   delete(worldId: number): Observable<void> {
     return this.http.delete<void>(`/worlds/${worldId}`)
-  }
-
-  getPreferences(): Observable<ChatPreferences> {
-    return this.http.get<ChatPreferences>(`/worlds/preferences`)
-  }
-
-  savePreferences(preferences: ChatPreferences): Observable<ChatPreferences> {
-    return this.http.put<ChatPreferences>(`/worlds/preferences`, preferences)
-  }
-
-  validatePreferences(): Observable<string[] | null> {
-    return this.http.get<string[]>(`/worlds/preferences/is-valid`)
   }
 }

@@ -15,6 +15,7 @@ import (
 	"juraji.nl/chat-quest/model/chat-sessions"
 	"juraji.nl/chat-quest/model/instructions"
 	"juraji.nl/chat-quest/model/memories"
+	"juraji.nl/chat-quest/model/preferences"
 	"juraji.nl/chat-quest/model/scenarios"
 	"juraji.nl/chat-quest/model/worlds"
 	"juraji.nl/chat-quest/processing"
@@ -77,6 +78,7 @@ func main() {
 	apiRouter := router.Group(ApiBasePath)
 	mainLogger.Info("Registering route handlers...")
 	system.Routes(apiRouter)
+	preferences.Routes(apiRouter)
 	characters.Routes(apiRouter)
 	instructions.Routes(apiRouter)
 	providers.Routes(apiRouter)
