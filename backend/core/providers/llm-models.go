@@ -1,7 +1,6 @@
 package providers
 
 import (
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
@@ -50,16 +49,10 @@ func llModelViewScanner(scanner database.RowScanner, dest *LlmModelView) error {
 	)
 }
 
-func LlmModelsByConnectionProfileId(profileId int) ([]LlmModel, bool) {
+func LlmModelsByConnectionProfileId(profileId int) ([]LlmModel, error) {
 	query := "SELECT * FROM llm_models WHERE connection_profile_id = ?"
 	args := []any{profileId}
-	list, err := database.QueryForList(query, args, llmModelScanner)
-	if err != nil {
-		log.Get().Error("Error querying for llm models", zap.Error(err))
-		return list, false
-	}
-
-	return list, true
+	return database.QueryForList(query, args, llmModelScanner)
 }
 
 func createLlmModel(ctx *database.TxContext, profileId int, llmModel *LlmModel) error {
@@ -82,7 +75,7 @@ func createLlmModel(ctx *database.TxContext, profileId int, llmModel *LlmModel) 
 	return ctx.InsertRecord(query, args, &llmModel.ID)
 }
 
-func UpdateLlmModel(id int, llmModel *LlmModel) bool {
+func UpdateLlmModel(id int, llmModel *LlmModel) error {
 	query := `UPDATE llm_models
               SET temperature = ?,
                   max_tokens = ?,
@@ -102,27 +95,18 @@ func UpdateLlmModel(id int, llmModel *LlmModel) bool {
 	}
 
 	err := database.UpdateRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error updating llm model", zap.Int("modelId", id), zap.Error(err))
-		return false
+
+	if err == nil {
+		LlmModelUpdatedSignal.EmitBG(llmModel)
 	}
 
-	LlmModelUpdatedSignal.EmitBG(llmModel)
-	return true
+	return err
 }
 
-func DeleteLlmModelById(id int) bool {
-	query := "DELETE FROM llm_models WHERE id = ?"
-	args := []any{id}
-
-	err := database.DeleteRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error deleting llm model", zap.Error(err))
-		return false
-	}
-
-	LlmModelDeletedSignal.EmitBG(id)
-	return true
+func DeleteLlmModelById(id int) error {
+	return database.Transactional(func(ctx *database.TxContext) error {
+		return deleteLlmModelById(ctx, id)
+	})
 }
 
 func deleteLlmModelById(ctx *database.TxContext, id int) error {
@@ -130,24 +114,24 @@ func deleteLlmModelById(ctx *database.TxContext, id int) error {
 	args := []any{id}
 
 	err := ctx.DeleteRecord(query, args)
-	if err != nil {
-		return errors.Wrap(err, "Error deleting llm model")
+
+	if err == nil {
+		LlmModelDeletedSignal.EmitBG(id)
 	}
 
-	LlmModelDeletedSignal.EmitBG(id)
-	return nil
+	return err
 }
 
-func MergeLlmModels(profileId int, newModels []*LlmModel) bool {
+func MergeLlmModels(profileId int, newModels []*LlmModel) error {
 	// New model id set
 	newModelIdSet := util.NewSetFrom(newModels, func(t *LlmModel) string {
 		return t.ModelId
 	})
 
 	// Existing model id set
-	existingModels, ok := LlmModelsByConnectionProfileId(profileId)
-	if !ok {
-		return false
+	existingModels, err := LlmModelsByConnectionProfileId(profileId)
+	if err != nil {
+		return err
 	}
 
 	existingModelIdSet := util.NewSetFrom(existingModels, func(t LlmModel) string {
@@ -158,7 +142,7 @@ func MergeLlmModels(profileId int, newModels []*LlmModel) bool {
 	var deletedModelIds []int
 	logger := log.Get().With(zap.Int("profileId", profileId))
 
-	err := database.Transactional(func(ctx *database.TxContext) error {
+	err = database.Transactional(func(ctx *database.TxContext) error {
 		// Add new models
 		for _, newModel := range newModels {
 			if existingModelIdSet.NotContains(newModel.ModelId) {
@@ -186,16 +170,15 @@ func MergeLlmModels(profileId int, newModels []*LlmModel) bool {
 		return nil
 	})
 
-	if err != nil {
-		return false
+	if err == nil {
+		LlmModelCreatedSignal.EmitAllBG(createdModels)
+		LlmModelDeletedSignal.EmitAllBG(deletedModelIds)
 	}
 
-	LlmModelCreatedSignal.EmitAllBG(createdModels)
-	LlmModelDeletedSignal.EmitAllBG(deletedModelIds)
-	return true
+	return err
 }
 
-func GetAllLlmModelViews() ([]LlmModelView, bool) {
+func GetAllLlmModelViews() ([]LlmModelView, error) {
 	query := `SELECT lm.id       AS model_id,
                    lm.model_id AS model_model_id,
                    p.id       AS profile_id,
@@ -203,12 +186,7 @@ func GetAllLlmModelViews() ([]LlmModelView, bool) {
             FROM llm_models lm
                      JOIN connection_profiles p on p.id = lm.connection_profile_id
                      WHERE lm.disabled = ?`
-	list, err := database.QueryForList(query, []any{false}, llModelViewScanner)
-	if err != nil {
-		log.Get().Error("Error querying for llm models", zap.Error(err))
-		return list, false
-	}
-	return list, true
+	return database.QueryForList(query, []any{false}, llModelViewScanner)
 }
 
 func DefaultLlmModel(ConnectionProfileId int, ModelId string, opts ...func(*LlmModel)) *LlmModel {

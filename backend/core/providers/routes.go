@@ -9,8 +9,8 @@ func Routes(router *gin.RouterGroup) {
 	connectionProfilesRouter := router.Group("/connection-profiles")
 
 	connectionProfilesRouter.GET("", func(c *gin.Context) {
-		profiles, ok := AllConnectionProfiles()
-		controllers.RespondList(c, ok, profiles)
+		profiles, err := AllConnectionProfiles()
+		controllers.RespondListE(c, profiles, err)
 	})
 
 	connectionProfilesRouter.GET("/:profileId", func(c *gin.Context) {
@@ -20,8 +20,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		profile, ok := ConnectionProfileById(profileId)
-		controllers.RespondSingle(c, ok, profile)
+		profile, err := ConnectionProfileById(profileId)
+		controllers.RespondSingleE(c, profile, err)
 	})
 
 	connectionProfilesRouter.POST("", func(c *gin.Context) {
@@ -37,8 +37,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok := CreateConnectionProfile(&newProfile, llmModels)
-		controllers.RespondSingle(c, ok, &newProfile)
+		err = CreateConnectionProfile(&newProfile, llmModels)
+		controllers.RespondSingleE(c, &newProfile, err)
 	})
 
 	connectionProfilesRouter.PUT("/:profileId", func(c *gin.Context) {
@@ -57,8 +57,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = UpdateConnectionProfile(profileId, &profile)
-		controllers.RespondSingle(c, ok, &profile)
+		err := UpdateConnectionProfile(profileId, &profile)
+		controllers.RespondSingleE(c, &profile, err)
 	})
 
 	connectionProfilesRouter.DELETE("/:profileId", func(c *gin.Context) {
@@ -68,8 +68,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = DeleteConnectionProfileById(profileId)
-		controllers.RespondEmpty(c, ok)
+		err := DeleteConnectionProfileById(profileId)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	connectionProfilesRouter.GET("/:profileId/models", func(c *gin.Context) {
@@ -79,8 +79,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		models, ok := LlmModelsByConnectionProfileId(profileId)
-		controllers.RespondList(c, ok, models)
+		models, err := LlmModelsByConnectionProfileId(profileId)
+		controllers.RespondListE(c, models, err)
 	})
 
 	connectionProfilesRouter.POST("/:profileId/models/refresh", func(c *gin.Context) {
@@ -90,9 +90,9 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		profile, ok := ConnectionProfileById(profileId)
-		if !ok {
-			controllers.RespondInternalError(c, nil)
+		profile, err := ConnectionProfileById(profileId)
+		if err != nil {
+			controllers.RespondInternalError(c, err)
 			return
 		}
 
@@ -102,8 +102,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = MergeLlmModels(profileId, llmModels)
-		controllers.RespondEmpty(c, ok)
+		err = MergeLlmModels(profileId, llmModels)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	connectionProfilesRouter.PUT("/:profileId/models/:modelId", func(c *gin.Context) {
@@ -119,8 +119,8 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = UpdateLlmModel(modelId, &llmModel)
-		controllers.RespondSingle(c, ok, &llmModel)
+		err := UpdateLlmModel(modelId, &llmModel)
+		controllers.RespondSingleE(c, &llmModel, err)
 	})
 
 	connectionProfilesRouter.DELETE("/:profileId/models/:modelId", func(c *gin.Context) {
@@ -130,12 +130,12 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ok = DeleteLlmModelById(modelId)
-		controllers.RespondEmpty(c, ok)
+		err := DeleteLlmModelById(modelId)
+		controllers.RespondEmptyE(c, err)
 	})
 
 	connectionProfilesRouter.GET("/model-views", func(c *gin.Context) {
-		views, ok := GetAllLlmModelViews()
-		controllers.RespondList(c, ok, views)
+		views, err := GetAllLlmModelViews()
+		controllers.RespondListE(c, views, err)
 	})
 }

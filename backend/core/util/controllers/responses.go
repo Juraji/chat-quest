@@ -76,6 +76,14 @@ func RespondEmpty(c *gin.Context, ok bool) {
 	}
 }
 
+func RespondEmptyE(c *gin.Context, err error) {
+	if err != nil {
+		RespondInternalError(c, err)
+	} else {
+		c.Status(http.StatusNoContent)
+	}
+}
+
 func RespondInternalError(c *gin.Context, err error) {
 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 	if err != nil {

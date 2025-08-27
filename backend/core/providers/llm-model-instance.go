@@ -1,9 +1,7 @@
 package providers
 
 import (
-	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
-	"juraji.nl/chat-quest/core/log"
 )
 
 type LlmModelInstance struct {
@@ -34,7 +32,7 @@ func llmModelInstanceScanner(scanner database.RowScanner, dest *LlmModelInstance
 	)
 }
 
-func GetLlmModelInstanceById(llmModelId int) (*LlmModelInstance, bool) {
+func GetLlmModelInstanceById(llmModelId int) (*LlmModelInstance, error) {
 	query := `SELECT
                 cp.id as provider_id,
                 cp.provider_type AS provider_type,
@@ -51,10 +49,5 @@ func GetLlmModelInstanceById(llmModelId int) (*LlmModelInstance, bool) {
                 WHERE lm.id = ?`
 	args := []any{llmModelId}
 
-	inst, err := database.QueryForRecord(query, args, llmModelInstanceScanner)
-	if err != nil {
-		log.Get().Error("Error querying for llm model", zap.Int("modelId", llmModelId), zap.Error(err))
-		return nil, false
-	}
-	return inst, true
+	return database.QueryForRecord(query, args, llmModelInstanceScanner)
 }

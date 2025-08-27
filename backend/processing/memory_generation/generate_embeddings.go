@@ -32,10 +32,10 @@ func GenerateEmbeddings(ctx context.Context, memory *m.Memory) {
 	}
 
 	modelId := *prefs.EmbeddingModelId
-	modelInstance, ok := p.GetLlmModelInstanceById(modelId)
-	if !ok {
+	modelInstance, err := p.GetLlmModelInstanceById(modelId)
+	if err != nil {
 		logger.Warn("Error getting embedding model instance",
-			zap.Int("modelId", modelId))
+			zap.Int("modelId", modelId), zap.Error(err))
 		return
 	}
 
@@ -45,7 +45,7 @@ func GenerateEmbeddings(ctx context.Context, memory *m.Memory) {
 		return
 	}
 
-	ok = m.SetMemoryEmbedding(memoryId, embeddings, modelId)
+	ok := m.SetMemoryEmbedding(memoryId, embeddings, modelId)
 	if !ok {
 		logger.Warn("Error setting memory embeddings")
 		return

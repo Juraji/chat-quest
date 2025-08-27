@@ -100,9 +100,9 @@ func generateAndExtractMemories(
 		logger.Debug("Could not fetch memory instruction")
 		return nil, false
 	}
-	modelInstance, ok := p.GetLlmModelInstanceById(*prefs.MemoriesModelId)
-	if !ok || modelInstance == nil {
-		logger.Debug("Could not fetch memory model")
+	modelInstance, err := p.GetLlmModelInstanceById(*prefs.MemoriesModelId)
+	if err != nil {
+		logger.Error("Could not fetch memory model", zap.Error(err))
 		return nil, false
 	}
 
@@ -117,7 +117,7 @@ func generateAndExtractMemories(
 	}
 
 	// Apply instruction template vars and generate memories
-	instruction, err := i.ApplyInstructionTemplates(*instruction, templateVars)
+	instruction, err = i.ApplyInstructionTemplates(*instruction, templateVars)
 	if err != nil {
 		logger.Error("Error applying instruction templates", zap.Error(err))
 		return nil, false

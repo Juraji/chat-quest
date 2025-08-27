@@ -148,9 +148,9 @@ func generateResponse(
 	}
 
 	// Get chat model instance
-	chatModelInst, ok := p.GetLlmModelInstanceById(*prefs.ChatModelId)
-	if !ok {
-		logger.Error("Error fetching chat model instance")
+	chatModelInst, err := p.GetLlmModelInstanceById(*prefs.ChatModelId)
+	if err != nil {
+		logger.Error("Error fetching chat model instance", zap.Error(err))
 		return
 	}
 

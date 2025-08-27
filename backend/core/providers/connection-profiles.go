@@ -1,9 +1,7 @@
 package providers
 
 import (
-	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
-	"juraji.nl/chat-quest/core/log"
 )
 
 type ProviderType string
@@ -39,29 +37,18 @@ func connectionProfileScanner(scanner database.RowScanner, dest *ConnectionProfi
 	)
 }
 
-func AllConnectionProfiles() ([]ConnectionProfile, bool) {
+func AllConnectionProfiles() ([]ConnectionProfile, error) {
 	query := "SELECT * FROM connection_profiles"
-	list, err := database.QueryForList(query, nil, connectionProfileScanner)
-	if err != nil {
-		log.Get().Error("Error querying for connection profiles", zap.Error(err))
-		return list, false
-	}
-
-	return list, true
+	return database.QueryForList(query, nil, connectionProfileScanner)
 }
 
-func ConnectionProfileById(id int) (*ConnectionProfile, bool) {
+func ConnectionProfileById(id int) (*ConnectionProfile, error) {
 	query := "SELECT * FROM connection_profiles WHERE id = ?"
 	args := []any{id}
-	p, err := database.QueryForRecord(query, args, connectionProfileScanner)
-	if err != nil {
-		log.Get().Error("Error querying for connection profile", zap.Int("profileId", id), zap.Error(err))
-		return nil, false
-	}
-	return p, true
+	return database.QueryForRecord(query, args, connectionProfileScanner)
 }
 
-func CreateConnectionProfile(profile *ConnectionProfile, llmModels []*LlmModel) bool {
+func CreateConnectionProfile(profile *ConnectionProfile, llmModels []*LlmModel) error {
 	err := database.Transactional(func(ctx *database.TxContext) error {
 		query := "INSERT INTO connection_profiles (name, provider_type, base_url, api_key) VALUES (?, ?, ?, ?) RETURNING id"
 		args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey}
@@ -80,17 +67,14 @@ func CreateConnectionProfile(profile *ConnectionProfile, llmModels []*LlmModel) 
 		return nil
 	})
 
-	if err != nil {
-		log.Get().Error("Error creating connection profile", zap.Error(err))
-		return false
+	if err == nil {
+		ConnectionProfileCreatedSignal.EmitBG(profile)
+		LlmModelCreatedSignal.EmitAllBG(llmModels)
 	}
-
-	ConnectionProfileCreatedSignal.EmitBG(profile)
-	LlmModelCreatedSignal.EmitAllBG(llmModels)
-	return true
+	return err
 }
 
-func UpdateConnectionProfile(id int, profile *ConnectionProfile) bool {
+func UpdateConnectionProfile(id int, profile *ConnectionProfile) error {
 	query := `UPDATE connection_profiles
             SET name = ?,
                 provider_type = ?,
@@ -100,25 +84,23 @@ func UpdateConnectionProfile(id int, profile *ConnectionProfile) bool {
 	args := []any{profile.Name, profile.ProviderType, profile.BaseUrl, profile.ApiKey, id}
 
 	err := database.UpdateRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error updating connection profile", zap.Int("profileId", id), zap.Error(err))
-		return false
+
+	if err == nil {
+		ConnectionProfileUpdatedSignal.EmitBG(profile)
 	}
 
-	ConnectionProfileUpdatedSignal.EmitBG(profile)
-	return true
+	return err
 }
 
-func DeleteConnectionProfileById(id int) bool {
+func DeleteConnectionProfileById(id int) error {
 	query := "DELETE FROM connection_profiles WHERE id = ?"
 	args := []any{id}
 
 	err := database.DeleteRecord(query, args)
-	if err != nil {
-		log.Get().Error("Error deleting connection profile", zap.Int("profileId", id), zap.Error(err))
-		return false
+
+	if err == nil {
+		ConnectionProfileDeletedSignal.EmitBG(id)
 	}
 
-	ConnectionProfileDeletedSignal.EmitBG(id)
-	return true
+	return err
 }
