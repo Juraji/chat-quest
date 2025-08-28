@@ -23,6 +23,6 @@ VALUES (0,
         NULL,
         NULL,
         (SELECT id FROM instruction_templates WHERE type = 'MEMORIES' LIMIT 1),
-        0.95,
+        0.7,
         15,
         10);

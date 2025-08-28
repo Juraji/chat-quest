@@ -242,9 +242,9 @@ func getMemorizableMessages(
 	if windowSize < requiredWindowSize {
 		logger.Debug("Not enough messages to memorize",
 			zap.Int("triggerAfter", triggerAfter),
-			zap.Int("totalUnprocessedMessages", len(messages)),
-			zap.Int("requiredWindowSize", requiredWindowSize),
-			zap.Int("windowSize", windowSize))
+			zap.Int("availableMessages", len(messages)),
+			zap.Int("minWindowSize", requiredWindowSize),
+			zap.Int("inWindow", windowSize))
 		return nil, false
 	}
 
@@ -252,9 +252,9 @@ func getMemorizableMessages(
 
 	logger.Debug("Found messages to memorize",
 		zap.Int("triggerAfter", triggerAfter),
-		zap.Int("requiredWindowSize", requiredWindowSize),
-		zap.Int("totalUnprocessedMessages", len(messages)),
-		zap.Int("windowSize", windowSize))
+		zap.Int("availableMessages", len(messages)),
+		zap.Int("minWindowSize", requiredWindowSize),
+		zap.Int("inWindow", windowSize))
 
 	return messageWindow, true
 }

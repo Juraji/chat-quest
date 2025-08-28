@@ -3,8 +3,8 @@ package providers
 import (
 	"database/sql/driver"
 	"encoding/binary"
-	"errors"
 	"fmt"
+	"github.com/pkg/errors"
 	"math"
 )
 
@@ -53,22 +53,28 @@ func (e Embeddings) Value() (driver.Value, error) {
 
 //goland:noinspection GoMixedReceiverTypes See Scan and Value methods
 func (e *Embeddings) CosineSimilarity(other Embeddings) (float32, error) {
-	if e == nil || len(*e) != len(other) {
-		return 0.0, errors.New("embedding dimensions must match")
+	if e == nil {
+		return 0.0, errors.New("nil Embeddings")
+	}
+	if len(*e) != len(other) {
+		return 0.0, errors.Errorf("embedding dimensions must match (this %d, other %d)", len(*e), len(other))
 	}
 
 	dotProduct := float32(0)
 	normE, normO := float32(0), float32(0)
 
-	for i, v := range *e {
-		dotProduct += v * other[i]
-		normE += v * v
-		normO += other[i] * other[i]
+	for i := range *e {
+		v1, v2 := (*e)[i], other[i]
+		dotProduct += v1 * v2
+		normE += v1 * v1
+		normO += v2 * v2
 	}
 
-	denominator := math.Sqrt(float64(normE * normO))
-	if denominator == 0.0 {
+	productOfNorms := normE * normO
+	if productOfNorms == 0 {
 		return 0.0, nil
 	}
-	return dotProduct / float32(denominator), nil
+
+	denominator := float32(math.Sqrt(float64(productOfNorms)))
+	return dotProduct / denominator, nil
 }

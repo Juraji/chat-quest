@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"unicode"
 )
 
 var (
@@ -58,6 +59,20 @@ func getProviderLock(providerId int) *sync.Mutex {
 	return mutex
 }
 
+func cleanTextForEmbedding(text string) string {
+	var builder strings.Builder
+	const apos = '\''
+
+	for _, char := range text {
+		// Check if the character is alphanumeric or space/apostrophe (adjust as needed)
+		if unicode.IsLetter(char) || unicode.IsNumber(char) || unicode.IsSpace(char) || char == apos {
+			builder.WriteRune(unicode.ToLower(char))
+		}
+	}
+
+	return builder.String()
+}
+
 // GetAvailableModels retrieves the list of available models for a given connection profile.
 func GetAvailableModels(profile *ConnectionProfile) ([]*LlmModel, error) {
 	provider := newProvider(profile.ProviderType, profile.BaseUrl, profile.ApiKey)
@@ -76,10 +91,14 @@ func GetAvailableModels(profile *ConnectionProfile) ([]*LlmModel, error) {
 
 // GenerateEmbeddings creates vector embeddings from the given input text using a specified LLM model.
 // This function uses a provider-specific lock to ensure thread-safe access during embedding generation.
-func GenerateEmbeddings(llm *LlmModelInstance, input string) (Embeddings, error) {
+func GenerateEmbeddings(llm *LlmModelInstance, input string, cleanInput bool) (Embeddings, error) {
 	providerLock := getProviderLock(llm.ProviderId)
 	providerLock.Lock()
 	defer providerLock.Unlock()
+
+	if cleanInput {
+		input = cleanTextForEmbedding(input)
+	}
 
 	provider := newProvider(llm.ProviderType, llm.BaseUrl, llm.ApiKey)
 	embedding, err := provider.generateEmbeddings(input, llm.ModelId)

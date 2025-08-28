@@ -17,6 +17,7 @@ import (
 	sc "juraji.nl/chat-quest/model/scenarios"
 	w "juraji.nl/chat-quest/model/worlds"
 	"strings"
+	"sync"
 )
 
 const (
@@ -243,11 +244,11 @@ func callLlmAndProcessResponse(ctx context.Context, logger *zap.Logger, sessionI
 }
 
 func createChatRequestMessages(
-	chatMessages []cs.ChatMessage,
+	chatHistory []cs.ChatMessage,
 	instruction *inst.InstructionTemplate,
 ) []p.ChatRequestMessage {
 	// Pre-allocate messages with history len + max number of messages added here
-	messages := make([]p.ChatRequestMessage, 0, len(chatMessages)+3)
+	messages := make([]p.ChatRequestMessage, 0, len(chatHistory)+3)
 
 	// Add system and world setup messages
 	messages = append(messages,
@@ -256,7 +257,7 @@ func createChatRequestMessages(
 	)
 
 	// Add chat history
-	for _, msg := range chatMessages {
+	for _, msg := range chatHistory {
 		if msg.IsUser {
 			messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: msg.Content})
 		} else {
@@ -289,32 +290,32 @@ func createChatInstruction(
 	scenarioDescriptionChan := getScenarioDescription(session)
 	participantsChan := getTemplatedParticipants(session, responderId)
 	dialogueExamplesChan := getDialogueExamples(responderId)
-	memoriesChan := getMemories(session, responderId)
+	memoriesChan := getMemories(session, prefs, responderId, history, triggerMessage)
 
 	// Unpack/handle everything
 	responder, otherParticipants, err := (<-participantsChan).Unpack()
 	if err != nil {
-		logger.Error("Error unpacking participants", zap.Error(err))
+		logger.Error("Error fetching participants", zap.Error(err))
 		return nil, false
 	}
 	worldDescription, err := (<-worldDescriptionChan).Unpack()
 	if err != nil {
-		logger.Error("Error unpacking world description", zap.Error(err))
+		logger.Error("Error fetching world description", zap.Error(err))
 		return nil, false
 	}
 	scenarioDescription, err := (<-scenarioDescriptionChan).Unpack()
 	if err != nil {
-		logger.Error("Error unpacking scenario description", zap.Error(err))
+		logger.Error("Error fetching scenario description", zap.Error(err))
 		return nil, false
 	}
 	memories, err := (<-memoriesChan).Unpack()
 	if err != nil {
-		logger.Error("Error unpacking memories", zap.Error(err))
+		logger.Error("Error fetching relevant memories", zap.Error(err))
 		return nil, false
 	}
 	dialogueExamples, err := (<-dialogueExamplesChan).Unpack()
 	if err != nil {
-		logger.Error("Error unpacking dialog examples", zap.Error(err))
+		logger.Error("Error fetching dialog examples", zap.Error(err))
 		return nil, false
 	}
 
@@ -326,15 +327,16 @@ func createChatInstruction(
 	}
 
 	instructionVars := instructionTemplateVars{
-		MessageIndex:        len(history),
-		Message:             messageContent,
-		Character:           responder,
-		DialogueExamples:    dialogueExamples,
-		IsSingleCharacter:   len(otherParticipants) == 0,
-		OtherParticipants:   otherParticipants,
-		WorldDescription:    worldDescription,
-		ScenarioDescription: scenarioDescription,
-		Memories:            memories,
+		MessageIndex:         len(history),
+		Message:              messageContent,
+		IsTriggeredByMessage: triggerMessage != nil,
+		Character:            responder,
+		DialogueExamples:     dialogueExamples,
+		IsSingleCharacter:    len(otherParticipants) == 0,
+		OtherParticipants:    otherParticipants,
+		WorldDescription:     worldDescription,
+		ScenarioDescription:  scenarioDescription,
+		Memories:             memories,
 	}
 
 	instruction.SystemPrompt, err = util.ParseAndApplyTextTemplate(instruction.SystemPrompt, instructionVars)
@@ -442,13 +444,97 @@ func getScenarioDescription(session *cs.ChatSession) chan *channels.Result[strin
 	return resultChan
 }
 
-func getMemories(session *cs.ChatSession, characterId int) chan *channels.Result[[]m.Memory] {
+func getMemories(
+	session *cs.ChatSession,
+	prefs *preferences.Preferences,
+	responderId int,
+	history []cs.ChatMessage,
+	triggerMessage *cs.ChatMessage,
+) chan *channels.Result[[]m.Memory] {
 	memoriesChan := make(chan *channels.Result[[]m.Memory])
 
 	go func() {
 		defer close(memoriesChan)
-		// TODO: All the memory things
-		memoriesChan <- channels.NewResult([]m.Memory{}, nil)
+
+		// Determine subject (what should be remember)
+		var subject string
+		if triggerMessage != nil {
+			subject = triggerMessage.Content
+		} else if len(history) > 0 {
+			subject = history[len(history)-1].Content
+		} else {
+			// No topic message, skip memories
+			memoriesChan <- channels.NewResult([]m.Memory{}, nil)
+			return
+		}
+
+		memories, err := m.GetMemoriesByWorldAndCharacterIdWithEmbeddings(
+			session.WorldID, responderId, *prefs.EmbeddingModelId)
+		if err != nil {
+			memoriesChan <- channels.NewResult([]m.Memory{}, err)
+			return
+		}
+		if len(memories) == 0 {
+			// No memories for character
+			memoriesChan <- channels.NewResult([]m.Memory{}, nil)
+			return
+		}
+
+		// Embed subject
+		embeddingModelInst, err := p.GetLlmModelInstanceById(*prefs.EmbeddingModelId)
+		if err != nil {
+			memoriesChan <- channels.NewResult([]m.Memory{}, err)
+			return
+		}
+
+		subjectEmbeddings, err := p.GenerateEmbeddings(embeddingModelInst, subject, true)
+		if err != nil {
+			memoriesChan <- channels.NewResult([]m.Memory{}, err)
+			return
+		}
+
+		const batchSize = 10
+		memoriesLen := len(memories)
+		maxBatchCount := memoriesLen/batchSize + 1
+		relevantMemoriesChan := make(chan []m.Memory, maxBatchCount)
+		wg := sync.WaitGroup{}
+
+		// Process memories in batches using goroutines
+		for i := 0; i < memoriesLen; i += batchSize {
+			end := i + batchSize
+			if end > memoriesLen {
+				end = memoriesLen
+			}
+			batch := memories[i:end]
+			wg.Add(1)
+			go func(batch []m.Memory, minP float32) {
+				defer wg.Done()
+
+				var relevantMemories []m.Memory
+				for _, memory := range batch {
+					similarity, eErr := subjectEmbeddings.CosineSimilarity(memory.Embedding)
+					if eErr != nil {
+						panic(errors.Wrapf(eErr, "cosine similarity error for memory with id '%v'", memory.ID))
+					}
+					if similarity >= minP {
+						relevantMemories = append(relevantMemories, memory)
+					}
+				}
+
+				relevantMemoriesChan <- relevantMemories
+			}(batch, prefs.MemoryMinP)
+		}
+
+		wg.Wait()
+		close(relevantMemoriesChan)
+
+		// Collect results from all batches
+		var relevantMemories []m.Memory
+		for rv := range relevantMemoriesChan {
+			relevantMemories = append(relevantMemories, rv...)
+		}
+
+		memoriesChan <- channels.NewResult(relevantMemories, nil)
 	}()
 
 	return memoriesChan

@@ -63,14 +63,15 @@ func GetMemoriesByWorldAndCharacterId(
 func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 	worldId int,
 	characterId int,
+	modelId int,
 ) ([]Memory, error) {
 	query := `SELECT *
               FROM memories m
               WHERE world_id = ?
                 AND embedding IS NOT NULL
-                And embedding IS NOT NULL
+                AND embedding_model_id = ?
                 AND (character_id IS NULL OR character_id = ?)`
-	args := []any{worldId, characterId}
+	args := []any{worldId, modelId, characterId}
 
 	return database.QueryForList(query, args, memoryScanner)
 }
