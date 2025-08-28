@@ -27,7 +27,7 @@ type CharacterListView struct {
 	Name      string     `json:"name"`
 	Favorite  bool       `json:"favorite"`
 	AvatarUrl *string    `json:"avatarUrl"`
-	Tags      []Tag      `json:"tags,omitempty"`
+	Tags      []Tag      `json:"tags"`
 }
 
 func CharacterScanner(scanner database.RowScanner, dest *Character) error {
