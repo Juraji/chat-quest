@@ -1,29 +1,5 @@
 import {Routes} from '@angular/router';
 import {ChatPage} from './chat-page';
-import {ManageCharactersPage} from './characters/manage/manage-characters-page';
-import {EditCharacterPage} from './characters/edit/edit-character-page';
-import {WorldsOverviewPage} from './worlds/overview/worlds-overview-page';
-import {ScenariosOverview} from './scenarios/overview/scenarios-overview';
-import {EditScenarioPage} from './scenarios/edit/edit-scenario-page';
-import {
-  characterDialogExamplesResolverFactory,
-  characterGreetingsResolverFactory,
-  characterGroupGreetingsResolverFactory,
-  characterResolverFactory,
-  charactersResolver,
-  characterTagsResolverFactory
-} from '@api/characters/characters.resolvers';
-import {scenarioResolverFactory, scenariosResolver} from '@api/scenarios/scenarios.resolvers';
-import {worldResolverFactory, worldsResolver} from '@api/worlds';
-import {EditWorldPage} from './worlds/edit/edit-world-page';
-import {ChatSessionPage, newChatSessionGuard, validatePreferencesGuard} from './worlds/session';
-import {
-  chatMessagesResolverFactory,
-  chatParticipantsResolverFactory,
-  chatSessionResolverFactory
-} from '@api/chat-sessions';
-import {llmModelViewsResolver} from '@api/providers';
-import {preferencesResolver} from '@api/preferences';
 
 const routes: Routes = [
   {
@@ -32,73 +8,15 @@ const routes: Routes = [
     children: [
       {
         path: 'worlds',
-        component: WorldsOverviewPage,
-        resolve: {
-          worlds: worldsResolver
-        }
-      },
-      {
-        path: 'worlds/:worldId/session/:chatSessionId',
-        component: ChatSessionPage,
-        canActivate: [
-          validatePreferencesGuard,
-          newChatSessionGuard
-        ],
-        resolve: {
-          world: worldResolverFactory('worldId'),
-          chatSession: chatSessionResolverFactory('worldId', 'chatSessionId'),
-          participants: chatParticipantsResolverFactory('worldId', 'chatSessionId'),
-          messages: chatMessagesResolverFactory('worldId', 'chatSessionId'),
-          characters: charactersResolver,
-          scenarios: scenariosResolver,
-          llmModels: llmModelViewsResolver,
-          preferences: preferencesResolver,
-        }
-      },
-      {
-        path: 'worlds/:worldId',
-        component: EditWorldPage,
-        runGuardsAndResolvers: "paramsOrQueryParamsChange",
-        loadChildren: () => import("./worlds/edit/edit-world.routes"),
-        resolve: {
-          world: worldResolverFactory('worldId')
-        }
+        loadChildren: () => import("./worlds/worlds.routes")
       },
       {
         path: 'characters',
-        component: ManageCharactersPage,
-        resolve: {
-          characters: charactersResolver,
-          worlds: worldsResolver
-        }
-      },
-      {
-        path: 'characters/:characterId',
-        component: EditCharacterPage,
-        runGuardsAndResolvers: "paramsOrQueryParamsChange",
-        loadChildren: () => import("./characters/edit/character-edit.routes"),
-        resolve: {
-          character: characterResolverFactory('characterId'),
-          tags: characterTagsResolverFactory('characterId'),
-          dialogueExamples: characterDialogExamplesResolverFactory('characterId'),
-          greetings: characterGreetingsResolverFactory('characterId'),
-          groupGreetings: characterGroupGreetingsResolverFactory('characterId'),
-        }
+        loadChildren: () => import("./characters/characters.routes")
       },
       {
         path: 'scenarios',
-        component: ScenariosOverview,
-        resolve: {
-          scenarios: scenariosResolver
-        }
-      },
-      {
-        path: 'scenarios/:scenarioId',
-        component: EditScenarioPage,
-        runGuardsAndResolvers: "paramsOrQueryParamsChange",
-        resolve: {
-          scenario: scenarioResolverFactory('scenarioId'),
-        }
+        loadChildren: () => import("./scenarios/scenarios.routes")
       },
       {
         path: '**',
