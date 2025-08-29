@@ -73,7 +73,7 @@ func DeleteScenario(id int) error {
 	query := "DELETE FROM scenarios WHERE id=?"
 	args := []interface{}{id}
 
-	err := database.DeleteRecord(query, args)
+	_, err := database.DeleteRecord(query, args)
 
 	if err == nil {
 		ScenarioDeletedSignal.EmitBG(id)

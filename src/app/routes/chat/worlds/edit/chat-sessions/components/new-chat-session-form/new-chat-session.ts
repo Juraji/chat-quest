@@ -14,7 +14,7 @@ import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Character, characterSortingTransformer} from '@api/characters';
 import {CharacterCard} from '@components/cards/character-card';
 import {ChatSession} from '@api/chat-sessions';
-import {arrayAddItem, arrayRemoveItem} from '@util/array';
+import {arrayAdd, arrayRemove} from '@util/array';
 import {Scalable} from '@components/scalable/scalable';
 
 @Component({
@@ -86,8 +86,8 @@ export class NewChatSession {
   onToggleCharacter(c: Character) {
     this.selectedCharacterIds.update(ids =>
       ids.includes(c.id)
-        ? arrayRemoveItem(ids, id => id === c.id)
-        : arrayAddItem(ids, c.id))
+        ? arrayRemove(ids, id => id === c.id)
+        : arrayAdd(ids, c.id))
   }
 
   onNewChatSession() {

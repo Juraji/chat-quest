@@ -113,7 +113,7 @@ func deleteLlmModelById(ctx *database.TxContext, id int) error {
 	query := "DELETE FROM llm_models WHERE id = ?"
 	args := []any{id}
 
-	err := ctx.DeleteRecord(query, args)
+	_, err := ctx.DeleteRecord(query, args)
 
 	if err == nil {
 		LlmModelDeletedSignal.EmitBG(id)

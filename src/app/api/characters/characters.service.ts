@@ -1,18 +1,41 @@
-import {inject, Injectable} from '@angular/core';
+import {computed, inject, Injectable, Signal, signal, WritableSignal} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Observable} from 'rxjs';
-import {Character, CharacterListView} from './characters.model';
+import {defer, Observable} from 'rxjs';
+import {Character, CharacterCreated, CharacterDeleted, CharacterListView, CharacterUpdated} from './characters.model';
 import {isNew} from '@api/common';
-import {Tag} from '@api/tags';
+import {CharacterTagRemoved, Tag, TagDeleted, TagUpdated} from './tags.model';
+import {SSE} from '@api/sse';
+import {arrayAdd, arrayRemove, arrayReplace, arrayUpdate} from '@util/array';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Characters {
   private http: HttpClient = inject(HttpClient)
+  private readonly sse = inject(SSE)
 
+  private readonly lvCache: WritableSignal<CharacterListView[]> = signal([]);
+  readonly all: Signal<CharacterListView[]> = this.lvCache
+
+  constructor() {
+    this.setupLVCache()
+  }
+
+  /** @deprecated */
   getAll(): Observable<CharacterListView[]> {
-    return this.http.get<CharacterListView[]>('/characters')
+    return defer(() => [this.lvCache()])
+  }
+
+  listViewBy(idFn: () => Nullable<number>): Signal<Nullable<CharacterListView>> {
+    return computed(() => {
+      const id = idFn()
+      if (!!id) {
+        const chars = this.lvCache()
+        return chars.find(char => char.id === id)
+      } else {
+        return null
+      }
+    })
   }
 
   get(characterId: number): Observable<Character> {
@@ -61,5 +84,54 @@ export class Characters {
 
   saveGroupGreetings(characterId: number, greetings: string[]): Observable<void> {
     return this.http.post<void>(`/characters/${characterId}/group-greetings`, greetings)
+  }
+
+  private setupLVCache() {
+    // Hydrate
+    this.http
+      .get<CharacterListView[]>('/characters')
+      .subscribe(chars => this.lvCache.set(chars))
+
+    // Listen for changes
+    this.sse
+      .on(CharacterCreated)
+      .subscribe(char => {
+        const lv: CharacterListView = {...char, tags: []}
+        this.lvCache.update(cache =>
+          arrayAdd(cache, lv))
+      })
+    this.sse
+      .on(CharacterUpdated)
+      .subscribe(char => {
+        this.lvCache.update(cache =>
+          arrayUpdate(cache, c => ({...c, ...char}), c => c.id === char.id))
+      })
+    this.sse
+      .on(CharacterDeleted)
+      .subscribe(id => this.lvCache.update(cache =>
+        arrayRemove(cache, id)))
+
+    // this.sse
+    //   .on(CharacterTagAdded)
+    //   .subscribe(([charId, tagId]) => {
+    //     const tag = this._tagCache().find(t => t.id === tagId)!
+    //     this._characterCache.update(cache =>
+    //       arrayUpdate(cache, c => ({...c, tags: arrayAdd(c.tags, tag)}), c => c.id === charId));
+    //   })
+    this.sse
+      .on(CharacterTagRemoved)
+      .subscribe(([charId, tagId]) => this.lvCache.update(cache =>
+        arrayUpdate(cache, c => ({...c, tags: arrayRemove(c.tags, t => t.id === tagId)}), c => c.id === charId)))
+
+    this.sse
+      .on(TagUpdated)
+      .subscribe(tag =>
+        this.lvCache.update(cache => cache
+          .map(c => ({...c, tags: arrayReplace(c.tags, tag, t => t.id === tag.id)}),)))
+    this.sse
+      .on(TagDeleted)
+      .subscribe(tagId =>
+        this.lvCache.update(cache => cache
+          .map(c => ({...c, tags: arrayRemove(c.tags, t => t.id === tagId)}),)))
   }
 }

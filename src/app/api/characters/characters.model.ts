@@ -1,6 +1,6 @@
-import {Tag} from '@api/tags';
 import {ChatQuestModel} from '@api/common';
 import {SseEvent} from '@api/sse';
+import {Tag} from './tags.model';
 
 export interface BaseCharacter extends ChatQuestModel {
   createdAt: Nullable<string>

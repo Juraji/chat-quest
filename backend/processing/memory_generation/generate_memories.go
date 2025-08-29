@@ -43,6 +43,8 @@ func GenerateMemories(
 		return
 	}
 
+	logger.Info("Generating memories...")
+
 	session, err := cs.GetById(sessionID)
 	if err != nil {
 		logger.Error("Error getting session", zap.Error(err))
@@ -59,12 +61,17 @@ func GenerateMemories(
 		return
 	}
 
-	memorizableMessages, ok := getMemorizableMessages(logger, prefs, sessionID)
-	if !ok {
+	messageWindow, err := getMessageWindow(prefs, sessionID)
+	if err != nil {
+		logger.Error("Error getting message window", zap.Error(err))
+		return
+	}
+	if messageWindow == nil {
+		logger.Info("Message window not yet full, skipping generation")
 		return
 	}
 
-	memories, ok := generateAndExtractMemories(logger, ctx, sessionID, prefs, memorizableMessages)
+	memories, ok := generateAndExtractMemories(logger, ctx, sessionID, prefs, messageWindow)
 	if !ok {
 		return
 	}
@@ -83,14 +90,14 @@ func GenerateMemories(
 	}
 
 	// Update message processed states
-	for _, chatMessage := range memorizableMessages {
+	for _, chatMessage := range messageWindow {
 		err = cs.SetMessageArchived(sessionID, chatMessage.ID)
 		if err != nil {
 			logger.Error("Error setting message archived bit", zap.Error(err))
 		}
 	}
 
-	logger.Debug("Memory generation completed")
+	logger.Info("Memory generation completed", zap.Int("memoryCount", len(memories)))
 }
 
 func generateAndExtractMemories(
@@ -221,16 +228,13 @@ func callLlm(
 	}
 }
 
-func getMemorizableMessages(
-	logger *zap.Logger,
+func getMessageWindow(
 	prefs *preferences.Preferences,
 	sessionID int,
-) ([]cs.ChatMessage, bool) {
+) ([]cs.ChatMessage, error) {
 	messages, err := cs.GetUnarchivedChatMessages(sessionID)
 	if err != nil {
-		logger.Error("Failed to get messages for session",
-			zap.Int("sessionId", sessionID), zap.Error(err))
-		return nil, false
+		return nil, err
 	}
 
 	triggerAfter := prefs.MemoryTriggerAfter
@@ -240,21 +244,8 @@ func getMemorizableMessages(
 
 	// Only proceed if we have enough messages to create a valid window
 	if windowSize < requiredWindowSize {
-		logger.Debug("Not enough messages to memorize",
-			zap.Int("triggerAfter", triggerAfter),
-			zap.Int("availableMessages", len(messages)),
-			zap.Int("minWindowSize", requiredWindowSize),
-			zap.Int("inWindow", windowSize))
-		return nil, false
+		return nil, nil
 	}
 
-	messageWindow := messages[:windowSize]
-
-	logger.Debug("Found messages to memorize",
-		zap.Int("triggerAfter", triggerAfter),
-		zap.Int("availableMessages", len(messages)),
-		zap.Int("minWindowSize", requiredWindowSize),
-		zap.Int("inWindow", windowSize))
-
-	return messageWindow, true
+	return messages[:windowSize], nil
 }

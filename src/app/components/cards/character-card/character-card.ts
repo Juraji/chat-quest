@@ -1,7 +1,6 @@
 import {Component, computed, effect, inject, input, InputSignal, signal, Signal, WritableSignal} from '@angular/core';
 import {TagsControl} from '@components/tags-control';
-import {BaseCharacter, CharacterListView, Characters} from '@api/characters';
-import {Tag} from '@api/tags';
+import {BaseCharacter, CharacterListView, Characters, Tag} from '@api/characters';
 
 @Component({
   selector: 'app-character-card',

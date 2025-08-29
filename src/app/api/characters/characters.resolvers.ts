@@ -2,7 +2,7 @@ import {ResolveFn} from '@angular/router';
 import {inject} from '@angular/core';
 import {Characters} from './characters.service';
 import {NEW_ID} from '@api/common';
-import {Tag} from '@api/tags';
+import {Tag} from './tags.model';
 import {resolveNewOrExisting} from '@util/ng';
 import {Character, CharacterListView} from '@api/characters/characters.model';
 

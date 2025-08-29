@@ -96,7 +96,7 @@ func DeleteConnectionProfileById(id int) error {
 	query := "DELETE FROM connection_profiles WHERE id = ?"
 	args := []any{id}
 
-	err := database.DeleteRecord(query, args)
+	_, err := database.DeleteRecord(query, args)
 
 	if err == nil {
 		ConnectionProfileDeletedSignal.EmitBG(id)

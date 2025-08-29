@@ -11,8 +11,7 @@ import {
 } from '@util/ng';
 import {FormArray, Validators} from '@angular/forms';
 import {Observable, Subject} from 'rxjs';
-import {Character} from '@api/characters';
-import {Tag} from '@api/tags';
+import {Character, Tag} from '@api/characters';
 
 @Injectable()
 export class CharacterEditFormService {

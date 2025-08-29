@@ -1,5 +1,4 @@
-import {Character} from '@api/characters';
-import {Tag} from '@api/tags';
+import {Character, Tag} from '@api/characters';
 
 export interface CharacterFormData {
   character: Character

@@ -25,6 +25,28 @@ export function routeQueryParamSignal<R = string>(
   return toSignal(obs$, {initialValue: null});
 }
 
+export function routeParamSignal(
+  route: ActivatedRoute,
+  key: string,
+): Signal<string | null>
+export function routeParamSignal<R>(
+  route: ActivatedRoute,
+  key: string,
+  transform: (value: string | null) => R
+): Signal<R>
+export function routeParamSignal<R = string>(
+  route: ActivatedRoute,
+  key: string,
+  transform?: (value: string | null) => R,
+): Signal<R | null> {
+  const obs$ = route.paramMap.pipe(
+    map(queryParamMap => queryParamMap.get(key)),
+    map(data => !!transform ? transform(data) : data as R)
+  )
+
+  return toSignal(obs$, {initialValue: null});
+}
+
 export function routeDataSignal<T>(
   route: ActivatedRoute,
   key: string

@@ -9,6 +9,30 @@ import (
 	"juraji.nl/chat-quest/model/preferences"
 )
 
+func RegenerateEmbeddingsOnPrefsUpdate(ctx context.Context, prefs *preferences.Preferences) {
+	logger := log.Get().With(zap.Intp("embeddingModelId", prefs.EmbeddingModelId))
+
+	logger.Info("Preferences updated, checking memory embeddings...")
+
+	memories, err := m.GetMemoriesNotMatchingEmbeddingModelId(*prefs.EmbeddingModelId)
+	if err != nil {
+		logger.Error("Error fetching memories to regenerate", zap.Error(err))
+		return
+	}
+	if len(memories) == 0 {
+		logger.Info("No memories to regenerate")
+		return
+	}
+
+	logger.Info("Updating memories...", zap.Int("memoryCount", len(memories)))
+
+	for _, memory := range memories {
+		GenerateEmbeddings(ctx, &memory)
+	}
+
+	logger.Info("Embeddings updated")
+}
+
 func GenerateEmbeddings(ctx context.Context, memory *m.Memory) {
 	if memory == nil {
 		return
@@ -16,9 +40,9 @@ func GenerateEmbeddings(ctx context.Context, memory *m.Memory) {
 
 	memoryId := memory.ID
 	memoryContent := memory.Content
-	logger := log.Get().With(
-		zap.Int("memoryId", memoryId),
-		zap.String("content", memoryContent))
+	logger := log.Get().With(zap.Int("memoryId", memoryId))
+
+	logger.Info("Generating embeddings for memory")
 
 	if ctx.Err() != nil {
 		logger.Debug("Cancelled by context")

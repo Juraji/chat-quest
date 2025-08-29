@@ -37,7 +37,7 @@ func UpdateRecord(query string, args []any) error {
 	return updateRecord(GetDB(), query, args)
 }
 
-func DeleteRecord(query string, args []any) error {
+func DeleteRecord(query string, args []any) ([]int, error) {
 	return deleteRecord(GetDB(), query, args)
 }
 
@@ -73,7 +73,7 @@ func (tx *TxContext) InsertRecord(query string, args []any, scanTo ...any) error
 func (tx *TxContext) UpdateRecord(query string, args []any) error {
 	return updateRecord(tx.tx, query, args)
 }
-func (tx *TxContext) DeleteRecord(query string, args []any) error {
+func (tx *TxContext) DeleteRecord(query string, args []any) ([]int, error) {
 	return deleteRecord(tx.tx, query, args)
 }
 
@@ -187,9 +187,30 @@ func deleteRecord(
 	q queryExecutor,
 	query string,
 	args []any,
-) error {
-	_, err := q.Exec(query, args...)
-	return err
+) ([]int, error) {
+	rows, err := q.Query(query, args...)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	var ids []int
+
+	for rows.Next() {
+		var dest int
+
+		err = rows.Scan(&dest)
+		if err != nil {
+			return nil, err
+		}
+
+		ids = append(ids, dest)
+	}
+
+	return ids, err
 }
 
 func StringScanner(scanner RowScanner, dest *string) error {

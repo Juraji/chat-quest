@@ -46,6 +46,14 @@ func (p *Preferences) Validate() []string {
 	return errs
 }
 
+func (p *Preferences) ValidateErr() error {
+	if errs := p.Validate(); len(errs) > 0 {
+		return errors.Errorf("preferences invalid: %v", errs)
+	}
+
+	return nil
+}
+
 func preferencesScanner(scanner database.RowScanner, dest *Preferences) error {
 	var idSink int
 	return scanner.Scan(
@@ -69,8 +77,8 @@ func GetPreferences(validate bool) (*Preferences, error) {
 		return nil, err
 	}
 	if validate {
-		if errs := prefs.Validate(); len(errs) > 0 {
-			return nil, errors.Errorf("preferences invalid: %v", errs)
+		if err = prefs.ValidateErr(); err != nil {
+			return nil, err
 		}
 	}
 
@@ -78,6 +86,10 @@ func GetPreferences(validate bool) (*Preferences, error) {
 }
 
 func UpdatePreferences(prefs *Preferences) error {
+	if err := prefs.ValidateErr(); err != nil {
+		return err
+	}
+
 	query := `UPDATE preferences
              SET chat_model_id = ?,
                  chat_instruction_id = ?,

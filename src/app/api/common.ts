@@ -4,8 +4,12 @@ export interface ChatQuestModel {
 
 export const NEW_ID = 0
 
-export function isNew(m: ChatQuestModel | null | undefined): boolean {
-  return !m || m.id === NEW_ID;
+export function isNew(m: ChatQuestModel | number | null | undefined): boolean {
+  if (typeof m === 'number') {
+    return m === NEW_ID
+  } else {
+    return !m || m.id === NEW_ID;
+  }
 }
 
 export function entityIdFilter<T extends ChatQuestModel | number>(

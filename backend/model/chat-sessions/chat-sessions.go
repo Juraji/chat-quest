@@ -128,7 +128,7 @@ func Delete(worldId int, id int) error {
 	query := "DELETE FROM chat_sessions WHERE world_id=? AND id=?"
 	args := []any{worldId, id}
 
-	err := database.DeleteRecord(query, args)
+	_, err := database.DeleteRecord(query, args)
 
 	if err == nil {
 		ChatSessionDeletedSignal.EmitBG(worldId)

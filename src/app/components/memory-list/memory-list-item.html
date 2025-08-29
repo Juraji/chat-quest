@@ -1,0 +1,66 @@
+<div class="card">
+  <div class="card-body">
+    @if (editMode()) {
+      <form [formGroup]="formGroup" (submit)="onFormSubmit()">
+        <div class="mb-3">
+          <label for="characterIdSelect">Character</label>
+          <select class="form-select"
+                  id="characterIdSelect"
+                  aria-describedby="characterIdSelectHelp"
+                  formControlName="characterId">
+            <option [ngValue]="null">All</option>
+            @for (c of allCharacters(); track c.id) {
+              <option [ngValue]="c.id">{{ c.name }}</option>
+            }
+          </select>
+          <div class="form-text" id="characterIdSelectHelp">
+            You can set this memory to be for a specific character
+            or "All" for a general memory applicable to everyone.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="contentInput">Content</label>
+          <input type="text" class="form-control"
+                 id="contentInput"
+                 aria-describedby="contentInputHelp"
+                 formControlName="content"/>
+          <div class="form-text" id="contentInputHelp">
+            Memories should be a short and descriptive.
+          </div>
+        </div>
+
+        <div class="btn-toolbar justify-content-end gap-1">
+          <button class="btn btn-primary btn-magical"
+                  [disabled]="formGroup.invalid || formGroup.pristine">
+            Save Changes
+          </button>
+          <button type="button" class="btn btn-outline-danger"
+                  (click)="deleteRequested.emit()">
+            Delete Memory
+          </button>
+
+          @if (!isNew()) {
+            <button type="button" class="btn btn-sm"
+                    (click)="editMode.setFalse()">
+              <span class="bi bi-x"></span>
+            </button>
+          }
+        </div>
+      </form>
+    } @else {
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <span>{{ memory().content }}</span><br/>
+          <span
+            class="small text-muted">{{ character()?.name || 'All' }}&nbsp;-&nbsp;{{ memory().createdAt | date }}</span>
+        </div>
+        <div class="btn-toolbar">
+          <button type="button" class="btn btn-sm" (click)="editMode.setTrue()">
+            <span class="bi bi-pencil"></span>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -18,7 +18,7 @@ import {
 import {Character, CharacterCreated, CharacterDeleted, CharacterUpdated} from '@api/characters';
 import {Scenario, ScenarioCreated, ScenarioDeleted, ScenarioUpdated} from '@api/scenarios';
 import {entityIdFilter} from '@api/common';
-import {arrayAddItem, arrayRemoveItem, arrayUpsertItem} from '@util/array';
+import {arrayAdd, arrayRemove, arrayReplace} from '@util/array';
 import {map} from 'rxjs';
 import {LlmModelView} from '@api/providers';
 import {CQPreferences, PreferencesUpdated} from '@api/preferences';
@@ -65,52 +65,52 @@ export class ChatSessionData {
     this.sse
       .on(CharacterCreated)
       .subscribe(c => this.characters
-        .update(prev => arrayAddItem(prev, c)));
+        .update(prev => arrayAdd(prev, c)));
     this.sse
       .on(CharacterUpdated)
       .subscribe(c => this.characters
-        .update(prev => arrayUpsertItem(prev, c, ({id}) => id === c.id)));
+        .update(prev => arrayReplace(prev, c, ({id}) => id === c.id)));
     this.sse
       .on(CharacterDeleted)
       .subscribe(characterId => this.characters
-        .update(prev => arrayRemoveItem(prev, ({id}) => id === characterId)))
+        .update(prev => arrayRemove(prev, ({id}) => id === characterId)))
 
     this.sse
       .on(ScenarioCreated)
       .subscribe(s => this.scenarios
-        .update(prev => arrayAddItem(prev, s)))
+        .update(prev => arrayAdd(prev, s)))
     this.sse
       .on(ScenarioUpdated)
       .subscribe(s => this.scenarios
-        .update(prev => arrayUpsertItem(prev, s, ({id}) => id === s.id)));
+        .update(prev => arrayReplace(prev, s, ({id}) => id === s.id)));
     this.sse
       .on(ScenarioDeleted)
       .subscribe(scenarioId => this.scenarios
-        .update(prev => arrayRemoveItem(prev, ({id}) => id === scenarioId)))
+        .update(prev => arrayRemove(prev, ({id}) => id === scenarioId)))
 
     this.sse
       .on(ChatParticipantAdded, sessionEntityFilter(this.chatSessionId))
       .pipe(map(({characterId}) => this.characters().find(({id}) => id === characterId)!))
       .subscribe(c => this.participants
-        .update(prev => arrayAddItem(prev, c)))
+        .update(prev => arrayAdd(prev, c)))
     this.sse
       .on(ChatParticipantRemoved, sessionEntityFilter(this.chatSessionId))
       .pipe(map(({characterId}) => characterId))
       .subscribe(characterId => this.participants
-        .update(prev => arrayRemoveItem(prev, ({id}) => id === characterId)))
+        .update(prev => arrayRemove(prev, ({id}) => id === characterId)))
 
     this.sse
       .on(ChatMessageCreated, sessionEntityFilter(this.chatSessionId))
       .subscribe(message => this.messages
-        .update(prev => arrayAddItem(prev, message)))
+        .update(prev => arrayAdd(prev, message)))
     this.sse
       .on(ChatMessageUpdated, sessionEntityFilter(this.chatSessionId))
       .subscribe(message => this.messages
-        .update(prev => arrayUpsertItem(prev, message, ({id}) => id === message.id)))
+        .update(prev => arrayReplace(prev, message, ({id}) => id === message.id)))
     this.sse
       .on(ChatMessageDeleted)
       .subscribe(messageId => this.messages
-        .update(prev => arrayRemoveItem(prev, ({id}) => id === messageId)))
+        .update(prev => arrayRemove(prev, ({id}) => id === messageId)))
 
     this.sse
       .on(PreferencesUpdated)

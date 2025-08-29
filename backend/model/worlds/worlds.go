@@ -77,7 +77,7 @@ func DeleteWorld(id int) error {
 	query := "DELETE FROM worlds WHERE id=?"
 	args := []any{id}
 
-	err := database.DeleteRecord(query, args)
+	_, err := database.DeleteRecord(query, args)
 
 	if err == nil {
 		WorldDeletedSignal.EmitBG(id)

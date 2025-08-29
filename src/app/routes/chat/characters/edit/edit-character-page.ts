@@ -11,8 +11,7 @@ import {defer, forkJoin, mergeMap, tap} from 'rxjs';
 import {TagsControl} from '@components/tags-control/tags-control';
 import {CharacterEditFormService} from './character-edit-form.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {Character, Characters} from '@api/characters';
-import {Tag} from '@api/tags';
+import {Character, Characters, Tag} from '@api/characters';
 
 @Component({
   selector: 'app-edit-character-page',

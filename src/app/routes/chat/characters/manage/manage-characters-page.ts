@@ -4,8 +4,7 @@ import {routeDataSignal} from '@util/ng';
 import {PageHeader} from '@components/page-header';
 import {CharacterCard} from '@components/cards/character-card';
 import {NewItemCard} from '@components/cards/new-item-card';
-import {Tag, Tags} from '@api/tags';
-import {CharacterListView, characterSortingTransformer} from '@api/characters';
+import {CharacterListView, characterSortingTransformer, Tag, Tags} from '@api/characters';
 import {World} from '@api/worlds';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
 import {Scalable} from '@components/scalable/scalable';
@@ -29,7 +28,7 @@ export class ManageCharactersPage {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly tags = inject(Tags)
 
-  readonly allTags: Signal<Tag[]> = this.tags.cachedTags
+  readonly allTags: Signal<Tag[]> = this.tags.all
   readonly characters: Signal<CharacterListView[]> =
     routeDataSignal<CharacterListView[]>(this.activatedRoute, 'characters', characterSortingTransformer);
   readonly worlds: Signal<World[]> = routeDataSignal(this.activatedRoute, 'worlds');

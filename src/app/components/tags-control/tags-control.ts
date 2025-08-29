@@ -14,9 +14,9 @@ import {
 import {ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {filter, iif, map, mergeMap, of, toArray} from 'rxjs';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '../dropdown';
-import {Tag, Tags} from '@api/tags';
 import {isNew, NEW_ID} from '@api/common';
-import {arrayAddItem, arrayMerge} from '@util/array';
+import {arrayAdd, arrayMerge} from '@util/array';
+import {Tag, Tags} from '@api/characters';
 
 @Component({
   selector: 'app-tags-control',
@@ -42,17 +42,17 @@ export class TagsControl implements ControlValueAccessor {
   private onChange: (value: Tag[]) => void = () => null;
   private onTouched: () => void = () => null;
 
-  readonly availableTags: Signal<Tag[]> = this.tags.cachedTags
+  private readonly availableTags: Signal<Tag[]> = this.tags.all
 
   readonly tagsInput: InputSignal<Tag[]> = input<Tag[]>([], {alias: 'tags'})
   readonly disabled: InputSignal<boolean> = input(false)
 
-  readonly inputText: WritableSignal<string> = signal('')
-  readonly isDisabled: WritableSignal<boolean> = linkedSignal(() => this.disabled())
-  readonly currentTags: WritableSignal<Tag[]> = linkedSignal(() => this.tagsInput())
-  readonly currentTagIds: Signal<number[]> = computed(() => this.currentTags().map(t => t.id))
+  protected readonly inputText: WritableSignal<string> = signal('')
+  protected readonly isDisabled: WritableSignal<boolean> = linkedSignal(() => this.disabled())
+  protected readonly currentTags: WritableSignal<Tag[]> = linkedSignal(() => this.tagsInput())
+  protected readonly currentTagIds: Signal<number[]> = computed(() => this.currentTags().map(t => t.id))
 
-  readonly missingTags: Signal<Tag[]> = computed(() => {
+  protected readonly missingTags: Signal<Tag[]> = computed(() => {
     const availableTags = this.availableTags()
     const currentTagIds = this.currentTagIds()
     return availableTags.filter(t => !currentTagIds.includes(t.id))
@@ -87,7 +87,7 @@ export class TagsControl implements ControlValueAccessor {
   }
 
   onAddFromMenu(t: Tag) {
-    this.currentTags.update(tags => arrayAddItem(tags, t))
+    this.currentTags.update(tags => arrayAdd(tags, t))
     this.onChange(this.currentTags())
   }
 

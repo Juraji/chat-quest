@@ -99,7 +99,7 @@ func DeleteInstruction(id int) error {
 	query := "DELETE FROM instruction_templates WHERE id = ?"
 	args := []any{id}
 
-	err := database.DeleteRecord(query, args)
+	_, err := database.DeleteRecord(query, args)
 
 	if err == nil {
 		InstructionDeletedSignal.EmitBG(id)

@@ -9,7 +9,7 @@ import (
 type Memory struct {
 	ID               int                  `json:"id"`
 	WorldId          int                  `json:"worldId"`
-	CharacterId      int                  `json:"characterId"`
+	CharacterId      *int                 `json:"characterId"`
 	CreatedAt        *time.Time           `json:"createdAt"`
 	Content          string               `json:"content"`
 	Embedding        providers.Embeddings `json:"-"`
@@ -58,13 +58,9 @@ func GetMemoriesByWorldAndCharacterId(
 	worldId int,
 	characterId int,
 ) ([]Memory, error) {
-	query := `SELECT id,
-                   world_id,
-                   character_id,
-                   created_at,
-                   content
-            FROM memories
-            WHERE world_id = ? AND character_id = ?`
+	query := `SELECT id, world_id, character_id, created_at, content
+				FROM memories
+            	WHERE world_id = ? AND character_id = ?`
 	args := []any{worldId, characterId}
 
 	return database.QueryForList(query, args, memoryScanner)
@@ -84,6 +80,14 @@ func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 	args := []any{worldId, modelId, characterId}
 
 	return database.QueryForList(query, args, memoryWithEmbeddingsScanner)
+}
+
+func GetMemoriesNotMatchingEmbeddingModelId(modelId int) ([]Memory, error) {
+	query := `SELECT id, world_id, character_id, created_at, content
+			  FROM memories
+			  WHERE embedding_model_id != ?`
+	args := []any{modelId}
+	return database.QueryForList(query, args, memoryScanner)
 }
 
 func CreateMemory(worldId int, memory *Memory) error {
@@ -107,8 +111,11 @@ func CreateMemory(worldId int, memory *Memory) error {
 }
 
 func UpdateMemory(id int, memory *Memory) error {
-	query := `UPDATE memories SET content = ? WHERE id = ?`
-	args := []any{memory.Content, id}
+	query := `UPDATE memories
+			  SET content = ?,
+			      character_id = ?
+			  WHERE id = ?`
+	args := []any{memory.Content, memory.CharacterId, id}
 
 	err := database.UpdateRecord(query, args)
 
@@ -129,7 +136,7 @@ func DeleteMemory(id int) error {
 	query := `DELETE FROM memories WHERE id = ?`
 	args := []any{id}
 
-	err := database.DeleteRecord(query, args)
+	_, err := database.DeleteRecord(query, args)
 
 	if err == nil {
 		MemoryDeletedSignal.EmitBG(id)

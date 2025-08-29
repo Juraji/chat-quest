@@ -127,7 +127,7 @@ func RemoveParticipant(sessionId int, characterId int) error {
 	query := `DELETE FROM chat_participants WHERE chat_session_id = ? AND character_id = ?`
 	args := []any{sessionId, characterId}
 
-	err := database.DeleteRecord(query, args)
+	_, err := database.DeleteRecord(query, args)
 
 	if err == nil {
 		participant := ChatParticipant{sessionId, characterId}

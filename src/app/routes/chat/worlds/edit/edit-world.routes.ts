@@ -18,7 +18,7 @@ const routes: Routes = [
   },
   {
     path: 'memories',
-    component: WorldMemories
+    component: WorldMemories,
   },
   {
     path: '**',

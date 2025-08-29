@@ -5,7 +5,6 @@ import (
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/util"
-	"strings"
 	"time"
 )
 
@@ -144,7 +143,7 @@ func DeleteCharacterById(id int) error {
 	query := "DELETE FROM characters WHERE id = ?"
 	args := []any{id}
 
-	err := database.DeleteRecord(query, args)
+	_, err := database.DeleteRecord(query, args)
 
 	if err != nil {
 		CharacterDeletedSignal.EmitBG(id)
@@ -166,7 +165,7 @@ func DialogueExamplesByCharacterId(characterId int) ([]string, error) {
 func SetDialogueExamplesByCharacterId(characterId int, examples []string) error {
 	return database.Transactional(func(ctx *database.TxContext) error {
 		deleteQuery := "DELETE FROM character_dialogue_examples WHERE character_id = ?"
-		if err := ctx.DeleteRecord(deleteQuery, []any{characterId}); err != nil {
+		if _, err := ctx.DeleteRecord(deleteQuery, []any{characterId}); err != nil {
 			log.Get().Error("Error removing dialogue examples",
 				zap.Int("characterId", characterId), zap.Error(err))
 			return err
@@ -199,7 +198,7 @@ func CharacterGreetingsByCharacterId(characterId int) ([]string, error) {
 func SetGreetingsByCharacterId(characterId int, greetings []string) error {
 	return database.Transactional(func(ctx *database.TxContext) error {
 		deleteQuery := "DELETE FROM character_greetings WHERE character_id = ?"
-		if err := ctx.DeleteRecord(deleteQuery, []any{characterId}); err != nil {
+		if _, err := ctx.DeleteRecord(deleteQuery, []any{characterId}); err != nil {
 			log.Get().Error("Error removing greetings",
 				zap.Int("characterId", characterId), zap.Error(err))
 			return err
@@ -232,7 +231,7 @@ func CharacterGroupGreetingsByCharacterId(characterId int) ([]string, error) {
 func SetGroupGreetingsByCharacterId(characterId int, greetings []string) error {
 	return database.Transactional(func(ctx *database.TxContext) error {
 		deleteQuery := "DELETE FROM character_group_greetings WHERE character_id = ?"
-		if err := ctx.DeleteRecord(deleteQuery, []any{characterId}); err != nil {
+		if _, err := ctx.DeleteRecord(deleteQuery, []any{characterId}); err != nil {
 			log.Get().Error("Error removing group greetings",
 				zap.Int("characterId", characterId), zap.Error(err))
 			return err
@@ -263,40 +262,4 @@ func RandomGreetingByCharacterId(characterId int, useGroupGreetings bool) (*stri
 	args := []any{characterId, useGroupGreetings}
 
 	return database.QueryForRecord(query, args, database.StringScanner)
-}
-
-func AllTags() ([]Tag, error) {
-	query := "SELECT * FROM tags"
-	return database.QueryForList(query, nil, tagScanner)
-}
-
-func TagById(id int) (*Tag, error) {
-	query := "SELECT * FROM tags WHERE id = ?"
-	args := []any{id}
-	return database.QueryForRecord(query, args, tagScanner)
-}
-
-func CreateTag(newTag *Tag) error {
-	newTag.Lowercase = strings.ToLower(newTag.Label)
-
-	query := "INSERT INTO tags(label, lowercase) VALUES (?, ?) RETURNING id"
-	args := []any{newTag.Label, newTag.Lowercase}
-
-	return database.InsertRecord(query, args, &newTag.ID)
-}
-
-func UpdateTag(id int, tag *Tag) error {
-	tag.Lowercase = strings.ToLower(tag.Label)
-
-	query := "UPDATE tags SET label = ?, lowercase = ? WHERE id = ?"
-	args := []any{id, tag.Label, tag.Lowercase}
-
-	return database.UpdateRecord(query, args)
-}
-
-func DeleteTagById(id int) error {
-	query := "DELETE FROM tags WHERE id = ?"
-	args := []any{id}
-
-	return database.DeleteRecord(query, args)
 }

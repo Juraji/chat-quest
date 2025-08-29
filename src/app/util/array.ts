@@ -6,7 +6,7 @@
  * @param {T} itemToAdd - The item to be added to the array.
  * @returns {T[]} A new array containing all elements from the original array plus the new item.
  */
-export function arrayAddItem<T>(
+export function arrayAdd<T>(
   items: T[],
   itemToAdd: T
 ): T[] {
@@ -14,7 +14,7 @@ export function arrayAddItem<T>(
 }
 
 /**
- * Adds or updates an item in an array based on a condition.
+ * Adds or replaces an item in an array based on a condition.
  *
  * This function first attempts to find an existing item that matches the condition.
  * If found, it replaces that item with the new item. If not found,
@@ -26,14 +26,38 @@ export function arrayAddItem<T>(
  * @param {(item: T) => boolean} where - A predicate function to find the item to update.
  * @returns {T[]} A new array with either the specified item updated or the new item added.
  */
-export function arrayUpsertItem<T>(
+export function arrayReplace<T>(
   items: T[],
   newItem: T,
   where: (item: T) => boolean
 ): T[] {
   const index = items.findIndex(where)
-  if (index === -1) return arrayAddItem(items, newItem)
+  if (index === -1) return arrayAdd(items, newItem)
   return [...items.slice(0, index), newItem, ...items.slice(index + 1)];
+}
+
+/**
+ * Updates an item in an array based on a condition and returns a new array.
+ *
+ * This function finds an existing item that matches the condition, applies an update function to it,
+ * and returns a new array with the updated item. If no matching item is found, it throws an error.
+ *
+ * @template T - The type of elements in the array.
+ * @param {T[]} items - The original array of items.
+ * @param {(item: T) => T} update - A function that takes an item and returns its updated version.
+ * @param {(item: T) => boolean} where - A predicate function to find the item to update.
+ * @returns {T[]} A new array with the specified item updated.
+ * @throws {Error} Throws an error if no matching item is found for updating.
+ */
+export function arrayUpdate<T>(
+  items: T[],
+  update: (item: T) => T,
+  where: (item: T) => boolean
+): T[] {
+  const i = items.findIndex(where)
+  if (i === -1) throw new Error("Update for unknown entity")
+  const u: T = update(items[i])
+  return [...items.slice(0, i), u, ...items.slice(i + 1)]
 }
 
 /**
@@ -44,7 +68,7 @@ export function arrayUpsertItem<T>(
  * @param {((item: T) => boolean) | number} where - A predicate function to find the item to remove or the index to remove.
  * @returns {T[]} A new array with the specified item removed, or the original array if no match was found.
  */
-export function arrayRemoveItem<T>(
+export function arrayRemove<T>(
   items: T[],
   where: ((item: T) => boolean) | number
 ): T[] {
