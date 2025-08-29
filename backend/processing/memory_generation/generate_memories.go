@@ -67,7 +67,9 @@ func GenerateMemories(
 		return
 	}
 	if messageWindow == nil {
-		logger.Info("Message window not yet full, skipping generation")
+		logger.Info("Message window not yet full, skipping generation",
+			zap.Int("windowSize", prefs.MemoryWindowSize),
+			zap.Int("currentWindow", len(messageWindow)))
 		return
 	}
 
@@ -97,7 +99,7 @@ func GenerateMemories(
 		}
 	}
 
-	logger.Info("Memory generation completed", zap.Int("memoryCount", len(memories)))
+	logger.Info("Memory generation completed", zap.Int("newMemories", len(memories)))
 }
 
 func generateAndExtractMemories(
