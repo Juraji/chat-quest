@@ -7,13 +7,13 @@ import (
 )
 
 type Memory struct {
-	ID               int        `json:"id"`
-	WorldId          int        `json:"worldId"`
-	CharacterId      int        `json:"characterId"`
-	CreatedAt        *time.Time `json:"createdAt"`
-	Content          string     `json:"content"`
-	Embedding        providers.Embeddings
-	EmbeddingModelId *int
+	ID               int                  `json:"id"`
+	WorldId          int                  `json:"worldId"`
+	CharacterId      int                  `json:"characterId"`
+	CreatedAt        *time.Time           `json:"createdAt"`
+	Content          string               `json:"content"`
+	Embedding        providers.Embeddings `json:"-"`
+	EmbeddingModelId *int                 `json:"-"`
 }
 
 func (m *Memory) CosineSimilarity(other providers.Embeddings) (float32, error) {
@@ -21,6 +21,16 @@ func (m *Memory) CosineSimilarity(other providers.Embeddings) (float32, error) {
 }
 
 func memoryScanner(scanner database.RowScanner, dest *Memory) error {
+	return scanner.Scan(
+		&dest.ID,
+		&dest.WorldId,
+		&dest.CharacterId,
+		&dest.CreatedAt,
+		&dest.Content,
+	)
+}
+
+func memoryWithEmbeddingsScanner(scanner database.RowScanner, dest *Memory) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.WorldId,
@@ -73,7 +83,7 @@ func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
                 AND (character_id IS NULL OR character_id = ?)`
 	args := []any{worldId, modelId, characterId}
 
-	return database.QueryForList(query, args, memoryScanner)
+	return database.QueryForList(query, args, memoryWithEmbeddingsScanner)
 }
 
 func CreateMemory(worldId int, memory *Memory) error {
