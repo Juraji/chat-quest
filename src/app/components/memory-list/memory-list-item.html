@@ -2,22 +2,24 @@
   <div class="card-body">
     @if (editMode()) {
       <form [formGroup]="formGroup" (submit)="onFormSubmit()">
-        <div class="mb-3">
-          <label for="characterIdSelect">Character</label>
-          <select class="form-select"
-                  id="characterIdSelect"
-                  aria-describedby="characterIdSelectHelp"
-                  formControlName="characterId">
-            <option [ngValue]="null">All</option>
-            @for (c of allCharacters(); track c.id) {
-              <option [ngValue]="c.id">{{ c.name }}</option>
-            }
-          </select>
-          <div class="form-text" id="characterIdSelectHelp">
-            You can set this memory to be for a specific character
-            or "All" for a general memory applicable to everyone.
+        @if (!characterId()) {
+          <div class="mb-3">
+            <label for="characterIdSelect">Character</label>
+            <select class="form-select"
+                    id="characterIdSelect"
+                    aria-describedby="characterIdSelectHelp"
+                    formControlName="characterId">
+              <option [ngValue]="null">All</option>
+              @for (c of allCharacters(); track c.id) {
+                <option [ngValue]="c.id">{{ c.name }}</option>
+              }
+            </select>
+            <div class="form-text" id="characterIdSelectHelp">
+              You can set this memory to be for a specific character
+              or "All" for a general memory applicable to everyone.
+            </div>
           </div>
-        </div>
+        }
 
         <div class="mb-3">
           <label for="contentInput">Content</label>
@@ -56,9 +58,11 @@
             class="small text-muted">{{ character()?.name || 'All' }}&nbsp;-&nbsp;{{ memory().createdAt | date }}</span>
         </div>
         <div class="btn-toolbar">
-          <button type="button" class="btn btn-sm" (click)="editMode.setTrue()">
-            <span class="bi bi-pencil"></span>
-          </button>
+          @if (!disabled()) {
+            <button type="button" class="btn btn-sm" (click)="editMode.setTrue()">
+              <span class="bi bi-pencil"></span>
+            </button>
+          }
         </div>
       </div>
     }

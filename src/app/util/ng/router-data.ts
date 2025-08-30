@@ -87,8 +87,8 @@ export function resolveNewOrExisting<T>(
   return onExisting(paramAsId(idStr))
 }
 
-export function paramAsId(paramValue: string): number
-export function paramAsId(route: ActivatedRouteSnapshot, param: string): number
+export function paramAsId(paramValue: string | null): number
+export function paramAsId(route: ActivatedRouteSnapshot, param: string | null): number
 export function paramAsId(...args: any): number {
   const arg0 = args[0]
   const arg1 = args[1]

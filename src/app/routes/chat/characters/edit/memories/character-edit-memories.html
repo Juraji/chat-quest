@@ -1,6 +1,8 @@
-<div class="card">
-  <div class="card-body">
-    <h5 class="card-title">Memories</h5>
-    <p class="mb-0 form-text">Memories have not yet been implemented.</p>
+@for (w of worlds(); track w.id) {
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">{{ w.name }}</h5>
+      <memory-list [worldId]="w.id" [characterId]="characterId()"/>
+    </div>
   </div>
-</div>
+}

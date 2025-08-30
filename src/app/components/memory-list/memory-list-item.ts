@@ -1,4 +1,14 @@
-import {Component, computed, effect, inject, input, InputSignal, output, OutputEmitterRef} from '@angular/core';
+import {
+  booleanAttribute,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  InputSignal,
+  output,
+  OutputEmitterRef
+} from '@angular/core';
 import {Memory} from '@api/memories';
 import {DatePipe} from '@angular/common';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -19,6 +29,8 @@ export class MemoryListItem {
   private readonly characters = inject(Characters)
 
   readonly memory: InputSignal<Memory> = input.required()
+  readonly characterId: InputSignal<Nullable<number>> = input()
+  readonly disabled = input(false, {transform: booleanAttribute})
   readonly memoryChanged: OutputEmitterRef<Memory> = output()
   readonly deleteRequested: OutputEmitterRef<void> = output()
 

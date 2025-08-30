@@ -1,4 +1,4 @@
-import {Component, effect, inject, input, InputSignal, signal, WritableSignal} from '@angular/core';
+import {booleanAttribute, Component, effect, inject, input, InputSignal, signal, WritableSignal} from '@angular/core';
 import {Memories, Memory} from '@api/memories';
 import {MemoryListItem} from './memory-list-item';
 import {arrayRemove, arrayReplace} from '@util/array';
@@ -16,6 +16,8 @@ export class MemoryList {
 
   readonly worldId: InputSignal<number> = input.required()
   readonly characterId: InputSignal<Nullable<number>> = input()
+  readonly disabled = input(false, {transform: booleanAttribute})
+
   protected readonly memories: WritableSignal<Memory[]> = signal([])
   protected readonly newMemories: WritableSignal<Memory[]> = signal([])
 
@@ -40,7 +42,7 @@ export class MemoryList {
     const newMemory: Memory = {
       id: NEW_ID,
       worldId: this.worldId(),
-      characterId: null,
+      characterId: this.characterId(),
       createdAt: null,
       content: ''
     }

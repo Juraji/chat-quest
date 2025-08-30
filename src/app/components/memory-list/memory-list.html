@@ -1,25 +1,30 @@
-<div class="memory-list-header mb-3">
-  <div class="card">
-    <div class="card-body">
-      <div class="btn-toolbar justify-content-end">
-        <button type="button" class="btn btn-primary"
-                (click)="onAddMemory()">Add Memory
-        </button>
+@if (!disabled()) {
+  <div class="memory-list-header mb-3">
+    <div class="card">
+      <div class="card-body">
+        <div class="btn-toolbar justify-content-end">
+          <button type="button" class="btn btn-primary"
+                  (click)="onAddMemory()">Add Memory
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+}
 <div class="memory-list d-flex flex-column gap-3">
   @for (m of newMemories(); track m.id) {
     <memory-list-item
       [memory]="m"
+      [characterId]="characterId()"
       (memoryChanged)="onSaveMemory($event, $index)"
       (deleteRequested)="onDeleteNewMemory($index)"/>
   }
   @for (m of memories(); track m.id) {
     <memory-list-item
       [memory]="m"
+      [characterId]="characterId()"
       (memoryChanged)="onSaveMemory($event, null)"
-      (deleteRequested)="onDeleteMemory(m.id)"/>
+      (deleteRequested)="onDeleteMemory(m.id)"
+      [disabled]="disabled()"/>
   }
 </div>
