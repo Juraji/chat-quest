@@ -61,15 +61,12 @@ func GenerateMemories(
 		return
 	}
 
-	messageWindow, err := getMessageWindow(prefs, sessionID)
+	messageWindow, err := getMessageWindow(logger, prefs, sessionID)
 	if err != nil {
 		logger.Error("Error getting message window", zap.Error(err))
 		return
 	}
 	if messageWindow == nil {
-		logger.Info("Message window not yet full, skipping generation",
-			zap.Int("windowSize", prefs.MemoryWindowSize),
-			zap.Int("currentWindow", len(messageWindow)))
 		return
 	}
 
@@ -230,10 +227,7 @@ func callLlm(
 	}
 }
 
-func getMessageWindow(
-	prefs *preferences.Preferences,
-	sessionID int,
-) ([]cs.ChatMessage, error) {
+func getMessageWindow(logger *zap.Logger, prefs *preferences.Preferences, sessionID int) ([]cs.ChatMessage, error) {
 	messages, err := cs.GetUnarchivedChatMessages(sessionID)
 	if err != nil {
 		return nil, err
@@ -246,6 +240,9 @@ func getMessageWindow(
 
 	// Only proceed if we have enough messages to create a valid window
 	if windowSize < requiredWindowSize {
+		logger.Info("Message window not yet full, skipping generation",
+			zap.Int("requiredWindowSize", requiredWindowSize),
+			zap.Int("windowSize", windowSize))
 		return nil, nil
 	}
 
