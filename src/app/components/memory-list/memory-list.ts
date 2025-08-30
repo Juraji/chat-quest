@@ -1,10 +1,11 @@
 import {booleanAttribute, Component, effect, inject, input, InputSignal, signal, WritableSignal} from '@angular/core';
-import {Memories, Memory} from '@api/memories';
+import {Memories, Memory, MemoryCreated, MemoryDeleted, MemoryUpdated} from '@api/memories';
 import {MemoryListItem} from './memory-list-item';
-import {arrayRemove, arrayReplace} from '@util/array';
+import {arrayAdd, arrayRemove, arrayReplace} from '@util/array';
 import {NEW_ID} from '@api/common';
 import {defer, map} from 'rxjs';
 import {booleanSignal} from '@util/ng';
+import {SSE} from '@api/sse';
 
 @Component({
   selector: 'memory-list',
@@ -16,6 +17,7 @@ import {booleanSignal} from '@util/ng';
 })
 export class MemoryList {
   private readonly memoriesService = inject(Memories)
+  private readonly sse = inject(SSE)
 
   readonly worldId: InputSignal<number> = input.required()
   readonly characterId: InputSignal<Nullable<number>> = input()
@@ -46,6 +48,27 @@ export class MemoryList {
           .sort((a, b) => b.createdAt!.localeCompare(a.createdAt!))))
         .subscribe(memories => this.memories.set(memories))
     });
+
+    const eventFilter: (m: Memory) => boolean = m => {
+      if (m.worldId !== this.worldId()) return false;
+
+      const cId = this.characterId()
+      if (cId === undefined) return true;
+      return cId === m.characterId
+
+    }
+    this.sse
+      .on(MemoryCreated, eventFilter)
+      .subscribe(m => this.memories.update(memories =>
+        arrayAdd(memories, m, true)))
+    this.sse
+      .on(MemoryUpdated, eventFilter)
+      .subscribe(m => this.memories.update(memories =>
+        arrayReplace(memories, m, m2 => m2.id === m.id)))
+    this.sse
+      .on(MemoryDeleted)
+      .subscribe(id => this.memories.update(memories =>
+        arrayRemove(memories, m => m.id === id)))
   }
 
   onAddMemory() {

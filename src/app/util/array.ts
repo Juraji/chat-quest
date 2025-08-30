@@ -4,13 +4,19 @@
  * @template T - The type of elements in the array.
  * @param {T[]} items - The original array of items.
  * @param {T} itemToAdd - The item to be added to the array.
+ * @param toStart - When true, adds the item to the start of the array, else adds it at the end
  * @returns {T[]} A new array containing all elements from the original array plus the new item.
  */
 export function arrayAdd<T>(
   items: T[],
-  itemToAdd: T
+  itemToAdd: T,
+  toStart: boolean = false,
 ): T[] {
-  return [...items, itemToAdd];
+  if (toStart) {
+    return [itemToAdd, ...items];
+  } else {
+    return [...items, itemToAdd];
+  }
 }
 
 /**
