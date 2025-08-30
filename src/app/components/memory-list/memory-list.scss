@@ -1,0 +1,35 @@
+@import "../../../styles/colors";
+
+:host {
+  .memory-list {
+    position: relative;
+    padding-bottom: 2rem;
+
+    .collapsed-fade {
+      display: none;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4rem;
+
+      background-image: linear-gradient(to bottom, transparent, $dark);
+    }
+
+    .collapse-btn {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+
+    &.collapsed {
+      padding-bottom: unset;
+      overflow: hidden;
+      max-height: 20rem;
+
+      .collapsed-fade {
+        display: unset;
+      }
+    }
+  }
+}

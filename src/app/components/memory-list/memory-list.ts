@@ -4,6 +4,7 @@ import {MemoryListItem} from './memory-list-item';
 import {arrayRemove, arrayReplace} from '@util/array';
 import {NEW_ID} from '@api/common';
 import {defer, map} from 'rxjs';
+import {booleanSignal} from '@util/ng';
 
 @Component({
   selector: 'memory-list',
@@ -11,6 +12,7 @@ import {defer, map} from 'rxjs';
     MemoryListItem
   ],
   templateUrl: './memory-list.html',
+  styleUrls: ['./memory-list.scss'],
 })
 export class MemoryList {
   private readonly memoriesService = inject(Memories)
@@ -21,6 +23,8 @@ export class MemoryList {
 
   protected readonly memories: WritableSignal<Memory[]> = signal([])
   protected readonly newMemories: WritableSignal<Memory[]> = signal([])
+
+  protected readonly collapsed = booleanSignal(true)
 
   constructor() {
     effect(() => {

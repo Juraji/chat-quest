@@ -1,30 +1,47 @@
-@if (!disabled()) {
-  <div class="memory-list-header mb-3">
-    <div class="card">
-      <div class="card-body">
+<div class="card">
+  <div class="card-body">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <h5 class="mb-0">
+        <ng-content select="span.title">Memories</ng-content>
+      </h5>
+      @if (!disabled()) {
         <div class="btn-toolbar justify-content-end">
-          <button type="button" class="btn btn-primary"
+          <button type="button" class="btn btn-sm btn-primary"
                   (click)="onAddMemory()">Add Memory
           </button>
         </div>
-      </div>
+      }
+    </div>
+
+    <div class="memory-list d-flex flex-column" [class.collapsed]="collapsed()">
+      @for (m of newMemories(); track m.id) {
+        <memory-list-item
+          [memory]="m"
+          [characterId]="characterId()"
+          (memoryChanged)="onSaveMemory($event, $index)"
+          (deleteRequested)="onDeleteNewMemory($index)"/>
+        <hr/>
+      }
+      @for (m of memories(); track m.id) {
+        <memory-list-item
+          [memory]="m"
+          [characterId]="characterId()"
+          (memoryChanged)="onSaveMemory($event, null)"
+          (deleteRequested)="onDeleteMemory(m.id)"
+          [disabled]="disabled()"/>
+        @if (!$last) {
+          <hr/>
+        }
+      }
+
+      <div class="collapsed-fade"></div>
+      <button type="button" class="collapse-btn btn btn-sm btn-secondary" (click)="collapsed.toggle()">
+        @if (collapsed()) {
+          <span class="bi bi-chevron-double-down"></span>
+        } @else {
+          <span class="bi bi-chevron-double-up"></span>
+        }
+      </button>
     </div>
   </div>
-}
-<div class="memory-list d-flex flex-column gap-3">
-  @for (m of newMemories(); track m.id) {
-    <memory-list-item
-      [memory]="m"
-      [characterId]="characterId()"
-      (memoryChanged)="onSaveMemory($event, $index)"
-      (deleteRequested)="onDeleteNewMemory($index)"/>
-  }
-  @for (m of memories(); track m.id) {
-    <memory-list-item
-      [memory]="m"
-      [characterId]="characterId()"
-      (memoryChanged)="onSaveMemory($event, null)"
-      (deleteRequested)="onDeleteMemory(m.id)"
-      [disabled]="disabled()"/>
-  }
 </div>
