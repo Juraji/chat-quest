@@ -3,6 +3,7 @@
     <div class="d-flex align-items-center justify-content-between mb-2">
       <h5 class="mb-0">
         <ng-content select="span.title">Memories</ng-content>
+        <span class="text-muted small ms-2">({{ memories().length }})</span>
       </h5>
       @if (!disabled()) {
         <div class="btn-toolbar justify-content-end">

@@ -597,6 +597,10 @@ func applyCharacterTemplates(char *c.Character) error {
 	}
 
 	for _, fieldPtr := range fieldsToProcess {
+		if fieldPtr == nil {
+			continue
+		}
+
 		templated, err := util.ParseAndApplyTextTemplate(*fieldPtr, vars)
 		if err != nil {
 			return errors.Wrap(err, "failed to apply template for character field")
