@@ -22,11 +22,12 @@ export class MemoryList {
   readonly worldId: InputSignal<number> = input.required()
   readonly characterId: InputSignal<Nullable<number>> = input()
   readonly disabled = input(false, {transform: booleanAttribute})
+  readonly collapsed = input(true, {transform: booleanAttribute})
 
   protected readonly memories: WritableSignal<Memory[]> = signal([])
   protected readonly newMemories: WritableSignal<Memory[]> = signal([])
 
-  protected readonly collapsed = booleanSignal(true)
+  protected readonly isCollapsed = booleanSignal(this.collapsed)
 
   constructor() {
     effect(() => {

@@ -5,6 +5,7 @@ import {ChatSessionChatInputBlock, ChatSessionDetailsBlock, ChatSessionParticipa
 import {ChatSessionMessage} from './components/chat-session-message/chat-session-message';
 import {ChatSessionData} from './chat-session-data';
 import {MemoryList} from '@components/memory-list';
+import {booleanSignal} from '@util/ng';
 
 @Component({
   selector: 'chat-with-page',
@@ -28,6 +29,8 @@ export class ChatSessionPage {
   readonly worldId: Signal<number> = this.sessionData.worldId
   readonly chatSessionName: Signal<string> = computed(() => this.sessionData.chatSession().name)
   readonly messages: Signal<ChatMessage[]> = this.sessionData.messages
+
+  readonly focusMode = booleanSignal(false)
 
   protected readonly chatMessagesContainerRef: Signal<ElementRef<HTMLDivElement> | undefined> =
     viewChild('chatMessagesContainer', {read: ElementRef})

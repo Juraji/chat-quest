@@ -13,7 +13,7 @@
       }
     </div>
 
-    <div class="memory-list d-flex flex-column" [class.collapsed]="collapsed()">
+    <div class="memory-list d-flex flex-column" [class.collapsed]="isCollapsed()">
       @for (m of newMemories(); track m.id) {
         <memory-list-item
           [memory]="m"
@@ -35,8 +35,8 @@
       }
 
       <div class="collapsed-fade"></div>
-      <button type="button" class="collapse-btn btn btn-sm btn-secondary" (click)="collapsed.toggle()">
-        @if (collapsed()) {
+      <button type="button" class="collapse-btn btn btn-sm btn-secondary" (click)="isCollapsed.toggle()">
+        @if (isCollapsed()) {
           <span class="bi bi-chevron-double-down"></span>
         } @else {
           <span class="bi bi-chevron-double-up"></span>
