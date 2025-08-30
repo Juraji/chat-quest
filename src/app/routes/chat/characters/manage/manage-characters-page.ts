@@ -4,7 +4,7 @@ import {routeDataSignal} from '@util/ng';
 import {PageHeader} from '@components/page-header';
 import {CharacterCard} from '@components/cards/character-card';
 import {NewItemCard} from '@components/cards/new-item-card';
-import {CharacterListView, characterSortingTransformer, Tag, Tags} from '@api/characters';
+import {CharacterListView, Characters, Tag, Tags} from '@api/characters';
 import {World} from '@api/worlds';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
 import {Scalable} from '@components/scalable/scalable';
@@ -25,12 +25,12 @@ import {Scalable} from '@components/scalable/scalable';
   styleUrls: ['./manage-characters-page.scss'],
 })
 export class ManageCharactersPage {
-  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly activatedRoute = inject(ActivatedRoute)
   private readonly tags = inject(Tags)
+  private readonly charactersService = inject(Characters)
 
   readonly allTags: Signal<Tag[]> = this.tags.all
-  readonly characters: Signal<CharacterListView[]> =
-    routeDataSignal<CharacterListView[]>(this.activatedRoute, 'characters', characterSortingTransformer);
+  readonly characters: Signal<CharacterListView[]> = this.charactersService.all
   readonly worlds: Signal<World[]> = routeDataSignal(this.activatedRoute, 'worlds');
 
   readonly selectedTag: WritableSignal<Tag | null> = signal(null)

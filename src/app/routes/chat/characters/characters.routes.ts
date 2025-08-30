@@ -5,7 +5,6 @@ import {
   characterGreetingsResolverFactory,
   characterGroupGreetingsResolverFactory,
   characterResolverFactory,
-  charactersResolver,
   characterTagsResolverFactory
 } from '@api/characters';
 import {worldsResolver} from '@api/worlds';
@@ -16,7 +15,6 @@ const routes: Routes = [
     path: '',
     component: ManageCharactersPage,
     resolve: {
-      characters: charactersResolver,
       worlds: worldsResolver
     }
   },

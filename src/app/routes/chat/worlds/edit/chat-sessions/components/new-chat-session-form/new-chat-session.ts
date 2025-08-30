@@ -11,7 +11,7 @@ import {
   routeDataSignal
 } from '@util/ng';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
-import {Character, characterSortingTransformer} from '@api/characters';
+import {BaseCharacter, Characters} from '@api/characters';
 import {CharacterCard} from '@components/cards/character-card';
 import {ChatSession} from '@api/chat-sessions';
 import {arrayAdd, arrayRemove} from '@util/array';
@@ -29,10 +29,10 @@ import {Scalable} from '@components/scalable/scalable';
 export class NewChatSession {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly charactersService = inject(Characters)
 
   readonly scenarios: Signal<Scenario[]> = routeDataSignal(this.activatedRoute, 'scenarios');
-  readonly characters: Signal<Character[]> =
-    routeDataSignal<Character[]>(this.activatedRoute, 'characters', characterSortingTransformer);
+  readonly characters = this.charactersService.all
 
   readonly formGroup = formGroup<ChatSession>({
     id: readOnlyControl(),
@@ -83,7 +83,7 @@ export class NewChatSession {
     });
   }
 
-  onToggleCharacter(c: Character) {
+  onToggleCharacter(c: BaseCharacter) {
     this.selectedCharacterIds.update(ids =>
       ids.includes(c.id)
         ? arrayRemove(ids, id => id === c.id)

@@ -2,7 +2,6 @@ import {Routes} from '@angular/router';
 import {WorldChatSessions} from './chat-sessions/world-chat-sessions';
 import {WorldMemories} from './memories/world-memories';
 import {scenariosResolver} from '@api/scenarios';
-import {charactersResolver} from '@api/characters';
 import {chatSessionsResolverFactory} from '@api/chat-sessions';
 
 const routes: Routes = [
@@ -13,7 +12,6 @@ const routes: Routes = [
     resolve: {
       chatSessions: chatSessionsResolverFactory('worldId'),
       scenarios: scenariosResolver,
-      characters: charactersResolver
     }
   },
   {

@@ -1,7 +1,7 @@
 import {Component, computed, effect, inject, input, InputSignal, Signal} from '@angular/core';
 import {ChatMessage, ChatSessions} from '@api/chat-sessions';
 import {RenderedMessage} from '@components/rendered-message';
-import {Character} from '@api/characters';
+import {BaseCharacter} from '@api/characters';
 import {Notifications} from '@components/notifications';
 import {ChatSessionData} from '../../chat-session-data';
 import {booleanSignal, BooleanSignal, formControl, formGroup} from '@util/ng';
@@ -32,7 +32,7 @@ export class ChatSessionMessage {
   readonly isGenerating: Signal<boolean> = computed(() => this.message().isGenerating)
   readonly createdAt: Signal<string> = computed(() => this.message().createdAt!)
 
-  readonly character: Signal<Nullable<Character>> = computed(() => {
+  readonly character: Signal<Nullable<BaseCharacter>> = computed(() => {
     const characterId = this.message().characterId
     const characters = this.sessionData.characters()
     if (!characterId) return null

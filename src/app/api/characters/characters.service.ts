@@ -1,6 +1,6 @@
 import {computed, inject, Injectable, Signal, signal, WritableSignal} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {defer, Observable} from 'rxjs';
+import {Observable} from 'rxjs';
 import {Character, CharacterCreated, CharacterDeleted, CharacterListView, CharacterUpdated} from './characters.model';
 import {isNew} from '@api/common';
 import {CharacterTagRemoved, Tag, TagDeleted, TagUpdated} from './tags.model';
@@ -19,11 +19,6 @@ export class Characters {
 
   constructor() {
     this.setupLVCache()
-  }
-
-  /** @deprecated */
-  getAll(): Observable<CharacterListView[]> {
-    return defer(() => [this.lvCache()])
   }
 
   listViewBy(idFn: () => Nullable<number>): Signal<Nullable<CharacterListView>> {

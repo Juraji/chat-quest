@@ -7,7 +7,6 @@ import {
   chatParticipantsResolverFactory,
   chatSessionResolverFactory
 } from '@api/chat-sessions';
-import {charactersResolver} from '@api/characters';
 import {scenariosResolver} from '@api/scenarios';
 import {llmModelViewsResolver} from '@api/providers';
 import {preferencesResolver} from '@api/preferences';
@@ -33,7 +32,6 @@ const routes: Routes = [
       chatSession: chatSessionResolverFactory('worldId', 'chatSessionId'),
       participants: chatParticipantsResolverFactory('worldId', 'chatSessionId'),
       messages: chatMessagesResolverFactory('worldId', 'chatSessionId'),
-      characters: charactersResolver,
       scenarios: scenariosResolver,
       llmModels: llmModelViewsResolver,
       preferences: preferencesResolver,

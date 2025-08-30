@@ -4,12 +4,7 @@ import {Characters} from './characters.service';
 import {NEW_ID} from '@api/common';
 import {Tag} from './tags.model';
 import {resolveNewOrExisting} from '@util/ng';
-import {Character, CharacterListView} from '@api/characters/characters.model';
-
-export const charactersResolver: ResolveFn<CharacterListView[]> = () => {
-  const service = inject(Characters)
-  return service.getAll();
-}
+import {Character} from '@api/characters/characters.model';
 
 export function characterResolverFactory(idParam: string): ResolveFn<Character> {
   return route => {

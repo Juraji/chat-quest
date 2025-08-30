@@ -15,7 +15,7 @@ import {
   ChatSessionUpdated,
   sessionEntityFilter
 } from '@api/chat-sessions';
-import {Character, CharacterCreated, CharacterDeleted, CharacterUpdated} from '@api/characters';
+import {BaseCharacter, Characters} from '@api/characters';
 import {Scenario, ScenarioCreated, ScenarioDeleted, ScenarioUpdated} from '@api/scenarios';
 import {entityIdFilter} from '@api/common';
 import {arrayAdd, arrayRemove, arrayReplace} from '@util/array';
@@ -28,6 +28,7 @@ export class ChatSessionData {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly sse = inject(SSE)
+  private readonly charactersService = inject(Characters)
 
   private readonly _world: Signal<World> = routeDataSignal(this.activatedRoute, 'world')
   readonly world: WritableSignal<World> = linkedSignal(() => this._world())
@@ -37,14 +38,13 @@ export class ChatSessionData {
   readonly chatSession: WritableSignal<ChatSession> = linkedSignal(() => this._chatSession())
   readonly chatSessionId: Signal<number> = computed(() => this.chatSession().id)
 
-  private readonly _participants: Signal<Character[]> = routeDataSignal(this.activatedRoute, 'participants')
-  readonly participants: WritableSignal<Character[]> = linkedSignal(() => this._participants())
+  private readonly _participants: Signal<BaseCharacter[]> = routeDataSignal(this.activatedRoute, 'participants')
+  readonly participants: WritableSignal<BaseCharacter[]> = linkedSignal(() => this._participants())
 
   private readonly _messages: Signal<ChatMessage[]> = routeDataSignal(this.activatedRoute, 'messages')
   readonly messages: WritableSignal<ChatMessage[]> = linkedSignal(() => this._messages())
 
-  private readonly _characters: Signal<Character[]> = routeDataSignal(this.activatedRoute, 'characters')
-  readonly characters: WritableSignal<Character[]> = linkedSignal(() => this._characters())
+  readonly characters = this.charactersService.all
 
   private readonly _scenarios: Signal<Scenario[]> = routeDataSignal(this.activatedRoute, 'scenarios')
   readonly scenarios: WritableSignal<Scenario[]> = linkedSignal(() => this._scenarios())
@@ -61,19 +61,6 @@ export class ChatSessionData {
     this.sse
       .on(ChatSessionDeleted, entityIdFilter(this.chatSessionId))
       .subscribe(() => this.router.navigate(['/chat/worlds', this.worldId()]))
-
-    this.sse
-      .on(CharacterCreated)
-      .subscribe(c => this.characters
-        .update(prev => arrayAdd(prev, c)));
-    this.sse
-      .on(CharacterUpdated)
-      .subscribe(c => this.characters
-        .update(prev => arrayReplace(prev, c, ({id}) => id === c.id)));
-    this.sse
-      .on(CharacterDeleted)
-      .subscribe(characterId => this.characters
-        .update(prev => arrayRemove(prev, ({id}) => id === characterId)))
 
     this.sse
       .on(ScenarioCreated)
