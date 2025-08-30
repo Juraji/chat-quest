@@ -62,8 +62,8 @@ export class MemoryList {
       .subscribe(updated => {
         this.memories.update(memories =>
           arrayReplace(memories, updated, m => m.id === memory.id));
-        if (!!newMemoryIndex) {
-          this.onDeleteMemory(newMemoryIndex)
+        if (typeof newMemoryIndex === 'number') {
+          this.onDeleteNewMemory(newMemoryIndex)
         }
       })
   }

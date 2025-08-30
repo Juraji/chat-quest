@@ -22,10 +22,13 @@ import {arrayAdd, arrayRemove, arrayReplace} from '@util/array';
 import {map} from 'rxjs';
 import {LlmModelView} from '@api/providers';
 import {CQPreferences, PreferencesUpdated} from '@api/preferences';
+import {MemoryCreated} from '@api/memories';
+import {Notifications} from '@components/notifications';
 
 @Injectable()
 export class ChatSessionData {
   private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly notifications = inject(Notifications);
   private readonly router = inject(Router);
   private readonly sse = inject(SSE)
   private readonly charactersService = inject(Characters)
@@ -102,5 +105,19 @@ export class ChatSessionData {
     this.sse
       .on(PreferencesUpdated)
       .subscribe(prefs => this.preferences.set(prefs))
+
+    this.sse
+      .on(MemoryCreated)
+      .subscribe(m => {
+        let message: string
+        if (!!m.characterId) {
+          const char = this.characters().find(c => c.id === m.characterId)!
+          message = `<span>A new memory was created for ${char.name}:</span><br/><p class="text-body-emphasis">${m.content}</p>`
+        } else {
+          message = `<span>A new general memory was created:</span><br/><p class="text-body-emphasis">${m.content}</p>`
+        }
+
+        this.notifications.toast(message)
+      })
   }
 }
