@@ -41,6 +41,7 @@ export class ChatSessionDetailsBlock {
       const session = this.sessionData.chatSession();
       this.nameControl.reset(session.name, {emitEvent: false});
       this.enableMemoriesControl.reset(session.enableMemories, {emitEvent: false})
+      this.pauseAutomaticResponsesControl.reset(session.pauseAutomaticResponses, {emitEvent: false})
       this.scenarioControl.reset(session.scenarioId, {emitEvent: false})
     });
     effect(() => {
