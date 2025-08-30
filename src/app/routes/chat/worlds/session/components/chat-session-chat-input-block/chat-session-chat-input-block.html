@@ -1,6 +1,6 @@
 <form [formGroup]="formGroup" (submit)="onSendMessage()">
   <div class="input-group">
-      <textarea type="text" class="form-control" rows="2"
+      <textarea type="text" class="form-control" rows="3"
                 placeholder="Send your message!"
                 id="messageInput"
                 aria-describedby="messageInputHelp"
@@ -11,9 +11,12 @@
       <span class="bi bi-send"></span>
     </button>
   </div>
-  <div class="d-flex align-items-center justify-content-between">
-    <div id="messageInputHelp" class="form-text d-inline">
+  <div class="d-flex align-items-center gap-2">
+    <div id="messageInputHelp" class="form-text flex-grow-1">
       Press <kbd>Ctrl + Enter</kbd> to send.
+    </div>
+    <div class="badge text-bg-success mt-1">
+      <span>{{ totalMessageCount() }} messages</span>
     </div>
     <app-token-count [text]="messageValue()"/>
   </div>

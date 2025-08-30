@@ -1,4 +1,4 @@
-import {Component, inject, Signal} from '@angular/core';
+import {Component, computed, inject, Signal} from '@angular/core';
 import {ChatMessage, ChatSessions} from '@api/chat-sessions';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {controlValueSignal, formControl, formGroup} from '@util/ng';
@@ -24,6 +24,7 @@ export class ChatSessionChatInputBlock {
 
   readonly worldId: Signal<number> = this.sessionData.worldId
   readonly chatSessionId: Signal<number> = this.sessionData.chatSessionId
+  readonly totalMessageCount = computed(() => this.sessionData.messages().length)
 
   readonly formGroup = formGroup<ChatInputForm>({
     message: formControl('', [Validators.required])
