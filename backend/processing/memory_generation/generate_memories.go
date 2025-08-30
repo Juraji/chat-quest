@@ -17,7 +17,8 @@ import (
 )
 
 type instructionTemplateVars struct {
-	Participants []c.Character
+	Participants     []c.Character
+	ExistingMemories []m.Memory
 }
 
 var generationMutex sync.Mutex
@@ -64,7 +65,7 @@ func GenerateMemoriesForMessageID(
 
 	messageWindow := []cs.ChatMessage{*message}
 
-	memories, ok := generateAndExtractMemories(logger, ctx, sessionID, prefs, messageWindow)
+	memories, ok := generateAndExtractMemories(logger, ctx, session, prefs, messageWindow)
 	if !ok {
 		return
 	}
@@ -133,7 +134,7 @@ func GenerateMemories(
 		return
 	}
 
-	memories, ok := generateAndExtractMemories(logger, ctx, sessionID, prefs, messageWindow)
+	memories, ok := generateAndExtractMemories(logger, ctx, session, prefs, messageWindow)
 	if !ok {
 		return
 	}
@@ -164,7 +165,7 @@ func GenerateMemories(
 func generateAndExtractMemories(
 	logger *zap.Logger,
 	ctx context.Context,
-	sessionID int,
+	session *cs.ChatSession,
 	prefs *preferences.Preferences,
 	messages []cs.ChatMessage,
 ) ([]*m.Memory, bool) {
@@ -179,14 +180,21 @@ func generateAndExtractMemories(
 		return nil, false
 	}
 
-	participants, err := cs.GetParticipants(sessionID)
+	participants, err := cs.GetParticipants(session.ID)
 	if err != nil {
 		logger.Error("Error fetching participants", zap.Error(err))
 		return nil, false
 	}
 
+	existingMemories, err := m.GetMemoriesByWorldId(session.WorldID)
+	if err != nil {
+		logger.Error("Error fetching existing memories", zap.Error(err))
+		return nil, false
+	}
+
 	templateVars := instructionTemplateVars{
-		Participants: participants,
+		Participants:     participants,
+		ExistingMemories: existingMemories,
 	}
 
 	// Apply instruction template vars and generate memories
