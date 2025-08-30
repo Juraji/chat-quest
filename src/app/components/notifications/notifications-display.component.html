@@ -6,7 +6,7 @@
          role="alert" aria-live="assertive" aria-atomic="true">
     <div class="toast-header">
       <div class="me-auto">&nbsp;</div>
-      <small class="text-body-secondary">{{ toast.createdAt | timeAgo | async }}</small>
+      <small class="text-body-secondary">{{ toast.createdAt | timeAgo:true | async }}</small>
       <button type="button" class="btn-close" aria-label="Close" (click)="notifications.removeToast(toast.id)"></button>
     </div>
       <div class="toast-body" [innerHtml]="toast.message"></div>

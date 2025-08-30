@@ -55,7 +55,7 @@
         <div>
           <span>{{ memory().content }}</span><br/>
           <span
-            class="small text-muted">{{ character()?.name || 'All' }}&nbsp;-&nbsp;{{ memory().createdAt | date }}</span>
+            class="small text-muted">{{ character()?.name || 'All' }}&nbsp;-&nbsp;{{ memory().createdAt | timeAgo:false }}</span>
         </div>
         <div class="btn-toolbar">
           @if (!disabled()) {

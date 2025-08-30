@@ -10,18 +10,18 @@ import {
   OutputEmitterRef
 } from '@angular/core';
 import {Memory} from '@api/memories';
-import {DatePipe} from '@angular/common';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Characters} from '@api/characters';
 import {booleanSignal, BooleanSignal, formControl, formGroup, readOnlyControl} from '@util/ng';
 import {isNew} from '@api/common';
+import {TimeAgoPipe} from '@components/time-ago.pipe';
 
 @Component({
   selector: 'memory-list-item',
   imports: [
-    DatePipe,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    TimeAgoPipe
   ],
   templateUrl: './memory-list-item.html'
 })

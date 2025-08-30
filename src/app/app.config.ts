@@ -11,6 +11,7 @@ import {provideHttpClient, withFetch, withInterceptors} from '@angular/common/ht
 import {provideChatQuestConfig} from '@config/config';
 import {backendUriInterceptor} from '@config/backend-api-uri-interceptor';
 import {sseInitializer} from '@config/sse-initializer';
+import {provideLocaleConfig} from '@config/locale';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,6 +21,7 @@ export const appConfig: ApplicationConfig = {
       paramsInheritanceStrategy: "always",
       onSameUrlNavigation: "reload"
     })),
+    provideLocaleConfig(),
     provideChatQuestConfig(null),
     provideHttpClient(
       withFetch(),

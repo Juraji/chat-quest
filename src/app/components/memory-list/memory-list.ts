@@ -3,6 +3,7 @@ import {Memories, Memory} from '@api/memories';
 import {MemoryListItem} from './memory-list-item';
 import {arrayRemove, arrayReplace} from '@util/array';
 import {NEW_ID} from '@api/common';
+import {defer, map} from 'rxjs';
 
 @Component({
   selector: 'memory-list',
@@ -12,7 +13,7 @@ import {NEW_ID} from '@api/common';
   templateUrl: './memory-list.html',
 })
 export class MemoryList {
-  private readonly memoriesStore = inject(Memories)
+  private readonly memoriesService = inject(Memories)
 
   readonly worldId: InputSignal<number> = input.required()
   readonly characterId: InputSignal<Nullable<number>> = input()
@@ -26,15 +27,20 @@ export class MemoryList {
       const worldId = this.worldId()
       const characterId = this.characterId()
 
-      if (characterId === undefined) {
-        this.memoriesStore
-          .getAll(worldId)
-          .subscribe(memories => this.memories.set(memories))
-      } else if (!!characterId) {
-        this.memoriesStore
-          .getAllByCharacter(worldId, characterId)
-          .subscribe(memories => this.memories.set(memories))
-      }
+      const memories$ = defer(() => {
+        if (characterId === undefined) {
+          return this.memoriesService.getAll(worldId)
+        } else if (!!characterId) {
+          return this.memoriesService.getAllByCharacter(worldId, characterId)
+        } else {
+          return []
+        }
+      })
+
+      memories$
+        .pipe(map(memories => memories
+          .sort((a, b) => b.createdAt!.localeCompare(a.createdAt!))))
+        .subscribe(memories => this.memories.set(memories))
     });
   }
 
@@ -51,7 +57,7 @@ export class MemoryList {
   }
 
   onSaveMemory(memory: Memory, newMemoryIndex: Nullable<number>) {
-    this.memoriesStore
+    this.memoriesService
       .save(this.worldId(), memory)
       .subscribe(updated => {
         this.memories.update(memories =>
@@ -71,7 +77,7 @@ export class MemoryList {
     const doDelete = confirm('Are you sure you want to delete this memory?');
 
     if (doDelete) {
-      this.memoriesStore
+      this.memoriesService
         .delete(this.worldId(), id)
         .subscribe(() => this.memories.update(memories =>
           arrayRemove(memories, m => m.id === id)))
