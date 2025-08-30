@@ -32,6 +32,7 @@ export class ChatSessionDetailsBlock {
 
   readonly nameControl: TypedFormControl<string> = formControl('', [Validators.required])
   readonly enableMemoriesControl: TypedFormControl<boolean> = formControl(false)
+  readonly pauseAutomaticResponsesControl: TypedFormControl<boolean> = formControl(false)
   readonly scenarioControl: TypedFormControl<Nullable<number>> = formControl(null)
   readonly chatModelControl: TypedFormControl<Nullable<number>> = formControl(null, [Validators.required])
 
@@ -53,6 +54,9 @@ export class ChatSessionDetailsBlock {
     this.enableMemoriesControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(enableMemories => this.updateSession({enableMemories}))
+    this.pauseAutomaticResponsesControl.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(pauseAutomaticResponses => this.updateSession({pauseAutomaticResponses}))
     this.scenarioControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(scenarioId => this.updateSession({scenarioId}))

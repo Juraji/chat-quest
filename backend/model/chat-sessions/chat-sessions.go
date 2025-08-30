@@ -8,12 +8,13 @@ import (
 )
 
 type ChatSession struct {
-	ID             int        `json:"id"`
-	WorldID        int        `json:"worldId"`
-	CreatedAt      *time.Time `json:"createdAt"`
-	Name           string     `json:"name"`
-	ScenarioID     *int       `json:"scenarioId"`
-	EnableMemories bool       `json:"enableMemories"`
+	ID                      int        `json:"id"`
+	WorldID                 int        `json:"worldId"`
+	CreatedAt               *time.Time `json:"createdAt"`
+	Name                    string     `json:"name"`
+	ScenarioID              *int       `json:"scenarioId"`
+	EnableMemories          bool       `json:"enableMemories"`
+	PauseAutomaticResponses bool       `json:"pauseAutomaticResponses"`
 }
 
 func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
@@ -24,6 +25,7 @@ func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
 		&dest.Name,
 		&dest.ScenarioID,
 		&dest.EnableMemories,
+		&dest.PauseAutomaticResponses,
 	)
 }
 
@@ -52,13 +54,14 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 
 	var addedParticipants []*ChatParticipant
 	err := database.Transactional(func(ctx *database.TxContext) error {
-		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, enable_memories)
-            VALUES (?, ?, ?, ?) RETURNING id, created_at`
+		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, enable_memories, pause_automatic_responses)
+            VALUES (?, ?, ?, ?, ?) RETURNING id, created_at`
 		args := []any{
 			session.WorldID,
 			session.Name,
 			session.ScenarioID,
 			session.EnableMemories,
+			session.PauseAutomaticResponses,
 		}
 
 		err := ctx.InsertRecord(query, args, &session.ID, &session.CreatedAt)
@@ -104,13 +107,15 @@ func Update(worldId int, id int, session *ChatSession) error {
 	query := `UPDATE chat_sessions
             SET name = ?,
                 scenario_id = ?,
-                enable_memories = ?
+                enable_memories = ?,
+                pause_automatic_responses = ?
             WHERE world_id = ?
               AND id = ?`
 	args := []any{
 		session.Name,
 		session.ScenarioID,
 		session.EnableMemories,
+		session.PauseAutomaticResponses,
 		worldId,
 		id,
 	}

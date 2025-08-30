@@ -1,11 +1,12 @@
 CREATE TABLE chat_sessions
 (
-  id              INTEGER PRIMARY KEY AUTOINCREMENT,
-  world_id        INTEGER      NOT NULL REFERENCES worlds (id) ON DELETE CASCADE,
-  created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  name            VARCHAR(100) NOT NULL,
-  scenario_id     INTEGER REFERENCES scenarios (id) ON DELETE CASCADE,
-  enable_memories BIT(1)       NOT NULL
+  id                        INTEGER PRIMARY KEY AUTOINCREMENT,
+  world_id                  INTEGER      NOT NULL REFERENCES worlds (id) ON DELETE CASCADE,
+  created_at                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  name                      VARCHAR(100) NOT NULL,
+  scenario_id               INTEGER REFERENCES scenarios (id) ON DELETE CASCADE,
+  enable_memories           BIT(1)       NOT NULL,
+  pause_automatic_responses BIT(1)       NOT NULL
 );
 
 CREATE TABLE chat_participants

@@ -23,6 +23,7 @@ export const newChatSessionGuard: CanActivateFn = (route) => {
   const characterIds = query.getAll('with').map(paramAsId)
   const scenarioId = query.has('scenarioId') ? paramAsId(query.get('scenarioId')!) : null
   const enableMemories = booleanAttribute(query.get('enableMemories'))
+  const pauseAutomaticResponses = booleanAttribute(query.get('pauseAutomaticResponses'))
 
   const newChatSession: ChatSession = {
     id: NEW_ID,
@@ -30,7 +31,8 @@ export const newChatSessionGuard: CanActivateFn = (route) => {
     createdAt: null,
     name: sessionName,
     scenarioId,
-    enableMemories
+    enableMemories,
+    pauseAutomaticResponses
   }
 
   return service

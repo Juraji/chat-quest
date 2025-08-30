@@ -9,6 +9,7 @@ export interface ChatSession extends ChatQuestModel {
   name: string
   scenarioId: Nullable<number>
   enableMemories: boolean
+  pauseAutomaticResponses: boolean
 }
 
 export interface ChatMessage extends ChatQuestModel {

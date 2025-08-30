@@ -66,7 +66,14 @@ func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.C
 		return
 	}
 
-	generateResponse(ctx, logger, sessionId, responderId, nil)
+	// Fetch Session
+	session, err := cs.GetById(sessionId)
+	if err != nil {
+		logger.Error("Error fetching session", zap.Error(err))
+		return
+	}
+
+	generateResponse(ctx, logger, session, responderId, nil)
 }
 
 func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.ChatMessage) {
@@ -79,6 +86,17 @@ func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.Ch
 	logger := log.Get().With(
 		zap.String("source", "MessageCreated"),
 		zap.Int("chatSessionId", sessionId))
+
+	// Fetch Session
+	session, err := cs.GetById(sessionId)
+	if err != nil {
+		logger.Error("Error fetching session", zap.Error(err))
+		return
+	}
+
+	if session.PauseAutomaticResponses {
+		return
+	}
 
 	if contextCheckPoint(ctx, logger) {
 		return
@@ -98,25 +116,19 @@ func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.Ch
 	logger = logger.With(
 		zap.Intp("responderId", responderId))
 
-	generateResponse(ctx, logger, sessionId, *responderId, triggerMessage)
+	generateResponse(ctx, logger, session, *responderId, triggerMessage)
 }
 
 func generateResponse(
 	ctx context.Context,
 	logger *zap.Logger,
-	sessionId int,
+	session *cs.ChatSession,
 	responderId int,
 	triggerMessage *cs.ChatMessage,
 ) {
-	// Fetch Session
-	session, err := cs.GetById(sessionId)
-	if err != nil {
-		logger.Error("Error fetching session", zap.Error(err))
-		return
-	}
 
 	// Fetch chat history
-	chatHistory, err := cs.GetUnarchivedChatMessages(sessionId)
+	chatHistory, err := cs.GetUnarchivedChatMessages(session.ID)
 	if err != nil {
 		logger.Error("Error fetching chat history", zap.Error(err))
 		return
@@ -159,19 +171,19 @@ func generateResponse(
 
 	// Create target message
 	responseMessage := cs.NewChatMessage(false, true, &responderId, "")
-	if err := cs.CreateChatMessage(sessionId, responseMessage); err != nil {
+	if err := cs.CreateChatMessage(session.ID, responseMessage); err != nil {
 		logger.Error("Failed to create response chat message", zap.Error(err))
 		return
 	}
 	defer func() {
 		responseMessage.IsGenerating = false
-		if err := cs.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); err != nil {
+		if err := cs.UpdateChatMessage(session.ID, responseMessage.ID, responseMessage); err != nil {
 			logger.Error("Failed to update response chat message upon finalization", zap.Error(err))
 		}
 	}()
 
 	// Do LLM
-	callLlmAndProcessResponse(ctx, logger, sessionId, chatModelInst, requestMessages, instruction, responseMessage)
+	callLlmAndProcessResponse(ctx, logger, session.ID, chatModelInst, requestMessages, instruction, responseMessage)
 }
 
 func callLlmAndProcessResponse(ctx context.Context, logger *zap.Logger, sessionId int, chatModelInst *p.LlmModelInstance, requestMessages []p.ChatRequestMessage, instruction *inst.InstructionTemplate, responseMessage *cs.ChatMessage) {

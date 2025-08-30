@@ -12,11 +12,20 @@
              placeholder="Name"
              [formControl]="nameControl"/>
     </div>
-    <div class="form-check mb-3">
-      <input class="form-check-input" type="checkbox" id="enableMemoriesInput"
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox"
+             id="enableMemoriesInput"
              [formControl]="enableMemoriesControl"/>
       <label class="form-check-label" for="enableMemoriesInput">
         Enable memories
+      </label>
+    </div>
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox"
+             id="pauseAutomaticResponsesInput"
+             [formControl]="pauseAutomaticResponsesControl"/>
+      <label class="form-check-label" for="pauseAutomaticResponsesInput">
+        Pause Automatic Responses
       </label>
     </div>
     <div class="mb-3">

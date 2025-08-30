@@ -41,6 +41,7 @@ export class NewChatSession {
     name: formControl('', [Validators.required]),
     scenarioId: formControl<Nullable<number>>(null),
     enableMemories: formControl(true),
+    pauseAutomaticResponses: formControl(false),
   })
 
   readonly useCustomName: BooleanSignal = booleanSignal(false)
@@ -103,7 +104,8 @@ export class NewChatSession {
           with: characterIds,
           sessionName: session.name,
           scenarioId: session.scenarioId,
-          enableMemories: session.enableMemories
+          enableMemories: session.enableMemories,
+          pauseAutomaticResponses: session.pauseAutomaticResponses,
         }
       }
     )
