@@ -50,7 +50,8 @@ export class MemoryList {
       worldId: this.worldId(),
       characterId: this.characterId(),
       createdAt: null,
-      content: ''
+      content: '',
+      alwaysInclude: false
     }
 
     this.newMemories.update(memories => [newMemory, ...memories])

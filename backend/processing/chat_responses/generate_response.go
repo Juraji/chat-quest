@@ -512,6 +512,11 @@ func getMemories(
 
 				var relevantMemories []m.Memory
 				for _, memory := range batch {
+					if memory.AlwaysInclude {
+						relevantMemories = append(relevantMemories, memory)
+						continue
+					}
+
 					similarity, eErr := subjectEmbeddings.CosineSimilarity(memory.Embedding)
 					if eErr != nil {
 						panic(errors.Wrapf(eErr, "cosine similarity error for memory with id '%v'", memory.ID))

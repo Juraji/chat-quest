@@ -2,24 +2,33 @@
   <div class="card-body">
     @if (editMode()) {
       <form [formGroup]="formGroup" (submit)="onFormSubmit()">
-        @if (!characterId()) {
-          <div class="mb-3">
-            <label for="characterIdSelect">Character</label>
-            <select class="form-select"
-                    id="characterIdSelect"
-                    aria-describedby="characterIdSelectHelp"
-                    formControlName="characterId">
-              <option [ngValue]="null">All</option>
-              @for (c of allCharacters(); track c.id) {
-                <option [ngValue]="c.id">{{ c.name }}</option>
-              }
-            </select>
-            <div class="form-text" id="characterIdSelectHelp">
-              You can set this memory to be for a specific character
-              or "All" for a general memory applicable to everyone.
+        <div class="d-flex align-items-center gap-3 mb-3">
+          @if (!characterId()) {
+            <div>
+              <label for="characterIdSelect">Character</label>
+              <select class="form-select"
+                      id="characterIdSelect"
+                      aria-describedby="characterIdSelectHelp"
+                      formControlName="characterId">
+                <option [ngValue]="null">All</option>
+                @for (c of allCharacters(); track c.id) {
+                  <option [ngValue]="c.id">{{ c.name }}</option>
+                }
+              </select>
+              <div class="form-text" id="characterIdSelectHelp">
+                You can set this memory to be for a specific character
+                or "All" for a general memory applicable to everyone.
+              </div>
             </div>
+          }
+          <div class="form-check ">
+            <input class="form-check-input" type="checkbox" id="alwaysIncludeInput"
+                   formControlName="alwaysInclude"/>
+            <label class="form-check-label" for="alwaysIncludeInput">
+              Always include this memory
+            </label>
           </div>
-        }
+        </div>
 
         <div class="mb-3">
           <label for="contentInput">Content</label>
@@ -53,9 +62,19 @@
     } @else {
       <div class="d-flex justify-content-between align-items-center">
         <div>
-          <span>{{ memory().content }}</span><br/>
-          <span
-            class="small text-muted">{{ character()?.name || 'All' }}&nbsp;-&nbsp;{{ memory().createdAt | timeAgo:false }}</span>
+          <p class="mb-0">{{ content() }}</p>
+          <span class="small text-muted">
+            @if (characterName(); as cName) {
+              <span>{{ cName }}</span>
+            } @else {
+              <span>All</span>
+            }
+            <span>&nbsp;-&nbsp;</span>
+            <span>{{ createdAt() | timeAgo:false }}</span>
+            @if (alwaysInclude()) {
+              <span>&nbsp;-&nbsp;Always included</span>
+            }
+          </span>
         </div>
         <div class="btn-toolbar">
           @if (!disabled()) {

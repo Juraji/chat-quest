@@ -12,6 +12,7 @@ type Memory struct {
 	CharacterId      *int                 `json:"characterId"`
 	CreatedAt        *time.Time           `json:"createdAt"`
 	Content          string               `json:"content"`
+	AlwaysInclude    bool                 `json:"alwaysInclude"`
 	Embedding        providers.Embeddings `json:"-"`
 	EmbeddingModelId *int                 `json:"-"`
 }
@@ -27,6 +28,7 @@ func memoryScanner(scanner database.RowScanner, dest *Memory) error {
 		&dest.CharacterId,
 		&dest.CreatedAt,
 		&dest.Content,
+		&dest.AlwaysInclude,
 	)
 }
 
@@ -37,17 +39,14 @@ func memoryWithEmbeddingsScanner(scanner database.RowScanner, dest *Memory) erro
 		&dest.CharacterId,
 		&dest.CreatedAt,
 		&dest.Content,
+		&dest.AlwaysInclude,
 		&dest.Embedding,
 		&dest.EmbeddingModelId,
 	)
 }
 
 func GetMemoriesByWorldId(worldId int) ([]Memory, error) {
-	query := `SELECT id,
-                   world_id,
-                   character_id,
-                   created_at,
-                   content
+	query := `SELECT id, world_id, character_id, created_at, content, always_include
             FROM memories
             WHERE world_id = ?`
 	args := []any{worldId}
@@ -58,7 +57,7 @@ func GetMemoriesByWorldAndCharacterId(
 	worldId int,
 	characterId int,
 ) ([]Memory, error) {
-	query := `SELECT id, world_id, character_id, created_at, content
+	query := `SELECT id, world_id, character_id, created_at, content, always_include
 				FROM memories
             	WHERE world_id = ? AND character_id = ?`
 	args := []any{worldId, characterId}
@@ -83,7 +82,7 @@ func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 }
 
 func GetMemoriesNotMatchingEmbeddingModelId(modelId int) ([]Memory, error) {
-	query := `SELECT id, world_id, character_id, created_at, content
+	query := `SELECT id, world_id, character_id, created_at, content, always_include
 			  FROM memories
 			  WHERE embedding_model_id != ?`
 	args := []any{modelId}
@@ -93,12 +92,13 @@ func GetMemoriesNotMatchingEmbeddingModelId(modelId int) ([]Memory, error) {
 func CreateMemory(worldId int, memory *Memory) error {
 	memory.WorldId = worldId
 
-	query := `INSERT INTO memories (world_id, character_id, content)
-            VALUES (?, ?, ?) RETURNING id`
+	query := `INSERT INTO memories (world_id, character_id, content, always_include)
+            VALUES (?, ?, ?, ?) RETURNING id`
 	args := []any{
 		memory.WorldId,
 		memory.CharacterId,
 		memory.Content,
+		memory.AlwaysInclude,
 	}
 
 	err := database.InsertRecord(query, args, &memory.ID)
@@ -113,9 +113,10 @@ func CreateMemory(worldId int, memory *Memory) error {
 func UpdateMemory(id int, memory *Memory) error {
 	query := `UPDATE memories
 			  SET content = ?,
-			      character_id = ?
+			      character_id = ?,
+			      always_include = ?
 			  WHERE id = ?`
-	args := []any{memory.Content, memory.CharacterId, id}
+	args := []any{memory.Content, memory.CharacterId, memory.AlwaysInclude, id}
 
 	err := database.UpdateRecord(query, args)
 
