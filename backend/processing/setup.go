@@ -30,6 +30,8 @@ func SetupProcessing() {
 		"GenerateMemoryEmbeddings", memory_generation.GenerateEmbeddings)
 	m.MemoryUpdatedSignal.AddListener(
 		"GenerateMemoryEmbeddings", memory_generation.GenerateEmbeddings)
+	m.MemoryGenerationForMessageRequestedSignal.AddListener(
+		"GenerateMemoriesForMessageID", memory_generation.GenerateMemoriesForMessageID)
 	p.PreferencesUpdatedSignal.AddListener(
 		"RegenerateMemoryEmbeddings", memory_generation.RegenerateEmbeddingsOnPrefsUpdate)
 }

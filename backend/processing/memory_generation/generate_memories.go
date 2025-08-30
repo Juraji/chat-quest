@@ -22,6 +22,69 @@ type instructionTemplateVars struct {
 
 var generationMutex sync.Mutex
 
+func GenerateMemoriesForMessageID(
+	ctx context.Context,
+	messageId int,
+) {
+
+	// Lock while processing to avoid multiple messages invoking simultaneous generation
+	// for the same message window.
+	generationMutex.Lock()
+	defer generationMutex.Unlock()
+
+	logger := log.Get().With(
+		zap.Int("sourceMessageId", messageId))
+
+	logger.Info("Generating memories for specific message...")
+
+	message, err := cs.GetMessageById(messageId)
+	if err != nil {
+		logger.Error("Error fetching message", zap.Error(err))
+	}
+
+	sessionID := message.ChatSessionID
+	logger = logger.With(
+		zap.Int("sessionId", sessionID))
+
+	session, err := cs.GetById(sessionID)
+	if err != nil {
+		logger.Error("Error getting session", zap.Error(err))
+		return
+	}
+
+	prefs, err := preferences.GetPreferences(true)
+	if err != nil {
+		logger.Error("Error getting preferences", zap.Error(err))
+		return
+	}
+
+	if contextCheckPoint(ctx, logger) {
+		return
+	}
+
+	messageWindow := []cs.ChatMessage{*message}
+
+	memories, ok := generateAndExtractMemories(logger, ctx, sessionID, prefs, messageWindow)
+	if !ok {
+		return
+	}
+
+	if contextCheckPoint(ctx, logger) {
+		return
+	}
+
+	// We're done, save memories
+	for _, memory := range memories {
+		err = m.CreateMemory(session.WorldID, memory)
+		if err != nil {
+			logger.Error("Error creating memory", zap.Error(err))
+			return
+		}
+	}
+
+	logger.Info("Memory generation completed", zap.Int("newMemories", len(memories)))
+}
+
 func GenerateMemories(
 	ctx context.Context,
 	message *cs.ChatMessage,
@@ -38,8 +101,8 @@ func GenerateMemories(
 
 	sessionID := message.ChatSessionID
 	logger := log.Get().With(zap.Int("chatSessionId", sessionID))
-	if ctx.Err() != nil {
-		logger.Debug("Cancelled by context")
+
+	if contextCheckPoint(ctx, logger) {
 		return
 	}
 
@@ -74,8 +137,7 @@ func GenerateMemories(
 	if !ok {
 		return
 	}
-	if ctx.Err() != nil {
-		logger.Debug("Cancelled by context")
+	if contextCheckPoint(ctx, logger) {
 		return
 	}
 
@@ -247,4 +309,13 @@ func getMessageWindow(logger *zap.Logger, prefs *preferences.Preferences, sessio
 	}
 
 	return messages[:windowSize], nil
+}
+
+func contextCheckPoint(ctx context.Context, logger *zap.Logger) bool {
+	if ctx.Err() != nil {
+		logger.Error("Cancelled by context")
+		return true
+	}
+
+	return false
 }

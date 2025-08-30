@@ -87,4 +87,17 @@ func Routes(router *gin.RouterGroup) {
 		err := DeleteMemory(memoryId)
 		controllers.RespondEmpty(c, err)
 	})
+
+	memoriesRouter.POST("/generate-for-message/:messageId", func(c *gin.Context) {
+		messageId, ok := controllers.GetParamAsID(c, "messageId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid message ID", nil)
+			return
+		}
+
+		MemoryGenerationForMessageRequestedSignal.
+			Emit(c, messageId).
+			Wait()
+		controllers.RespondEmpty(c, nil)
+	})
 }

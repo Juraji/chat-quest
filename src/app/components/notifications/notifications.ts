@@ -11,7 +11,7 @@ interface Toast {
   timerHandle: number | null,
 }
 
-const DEFAULT_TOAST_TIMEOUT = 5000
+const DEFAULT_TOAST_TIMEOUT = 10000
 
 @Injectable({
   providedIn: 'root'

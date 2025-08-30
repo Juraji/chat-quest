@@ -54,6 +54,12 @@ func GetUnarchivedChatMessages(sessionId int) ([]ChatMessage, error) {
 	return database.QueryForList(query, args, ChatMessageScanner)
 }
 
+func GetMessageById(messageId int) (*ChatMessage, error) {
+	query := "SELECT * FROM chat_messages WHERE id=?"
+	args := []any{messageId}
+	return database.QueryForRecord(query, args, ChatMessageScanner)
+}
+
 func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 	chatMessage.ChatSessionID = sessionId
 	chatMessage.CreatedAt = nil

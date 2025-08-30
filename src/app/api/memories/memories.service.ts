@@ -29,4 +29,8 @@ export class Memories {
   delete(worldId: number, memoryId: number): Observable<void> {
     return this.http.delete<void>(`/worlds/${worldId}/memories/${memoryId}`)
   }
+
+  generateMemoriesForMessage(worldId: number, messageId: number): Observable<void> {
+    return this.http.post<void>(`/worlds/${worldId}/memories/generate-for-message/${messageId}`, null)
+  }
 }

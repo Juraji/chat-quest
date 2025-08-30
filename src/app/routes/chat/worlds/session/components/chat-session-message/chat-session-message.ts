@@ -6,6 +6,7 @@ import {Notifications} from '@components/notifications';
 import {ChatSessionData} from '../../chat-session-data';
 import {booleanSignal, BooleanSignal, formControl, formGroup} from '@util/ng';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
+import {Memories} from '@api/memories';
 
 type MessageFormGroup = Pick<ChatMessage, 'content'>
 
@@ -24,6 +25,7 @@ type MessageFormGroup = Pick<ChatMessage, 'content'>
 export class ChatSessionMessage {
   private readonly sessionData = inject(ChatSessionData)
   private readonly chatSessions = inject(ChatSessions)
+  private readonly memories = inject(Memories)
   private readonly notifications = inject(Notifications)
 
   readonly worldId: Signal<number> = this.sessionData.worldId
@@ -92,6 +94,13 @@ Note that this and all subsequent messages will be deleted and this action can n
   }
 
   onGenerateMemory() {
+    const worldId = this.worldId();
+    const {id, content} = this.message();
+    const contentPreview = content.substring(0, 10) + '...'
 
+    this.notifications.toast(`Requesting memory generation for <span class="text-info">${contentPreview}</span>...`);
+    this.memories
+      .generateMemoriesForMessage(worldId, id)
+      .subscribe(() => this.notifications.toast('Memory generation completed!'))
   }
 }
