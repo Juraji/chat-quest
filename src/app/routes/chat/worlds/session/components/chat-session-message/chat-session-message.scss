@@ -1,18 +1,16 @@
 :host {
+  &.is-archived {
+    opacity: 0.5;
+    transition: opacity 0.3s;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
   .character-avatar {
     width: 2rem;
     border-radius: var(--bs-border-radius);
-  }
-
-  .message-actions {
-    opacity: 0;
-    transition: opacity 0.4s;
-  }
-
-  &:hover {
-    .message-actions {
-      opacity: 1;
-    }
   }
 
   .dots-of-generation {

@@ -24,12 +24,23 @@
             <span class="bi bi-save"></span>
           </button>
         } @else if (!isGenerating()) {
+          @if (isArchived()) {
+            <span class="bi bi-archive p-1"
+                  title="This message is archived and will not be used in the context"></span>
+          }
           <button type="button" class="btn btn-sm btn-secondary"
-                  (click)="editMessage.toggle()">
+                  title="Generate a memory from this message"
+                  (click)="onGenerateMemory()">
+            <span class="bi bi-bookmark-heart"></span>
+          </button>
+          <button type="button" class="btn btn-sm btn-secondary"
+                  (click)="editMessage.toggle()"
+                  title="Edit this message">
             <span class="bi bi-pencil"></span>
           </button>
-          <button type="button" class="btn btn-sm btn-danger"
-                  (click)="onDeleteMessage()">
+          <button type="button" class="btn btn-sm btn-outline-danger"
+                  (click)="onDeleteMessage()"
+                  title="Delete this message (and all messages after this)">
             <span class="bi bi-trash"></span>
           </button>
         }

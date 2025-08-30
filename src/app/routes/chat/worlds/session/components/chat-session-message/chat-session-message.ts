@@ -16,7 +16,10 @@ type MessageFormGroup = Pick<ChatMessage, 'content'>
     ReactiveFormsModule
   ],
   templateUrl: './chat-session-message.html',
-  styleUrl: './chat-session-message.scss'
+  styleUrl: './chat-session-message.scss',
+  host: {
+    '[class.is-archived]': 'isArchived()'
+  }
 })
 export class ChatSessionMessage {
   private readonly sessionData = inject(ChatSessionData)
@@ -30,6 +33,7 @@ export class ChatSessionMessage {
   readonly content: Signal<string> = computed(() => this.message().content)
   readonly isUser: Signal<boolean> = computed(() => this.message().isUser)
   readonly isGenerating: Signal<boolean> = computed(() => this.message().isGenerating)
+  readonly isArchived: Signal<boolean> = computed(() => this.message().isArchived)
   readonly createdAt: Signal<string> = computed(() => this.message().createdAt!)
 
   readonly character: Signal<Nullable<BaseCharacter>> = computed(() => {
@@ -85,5 +89,9 @@ Note that this and all subsequent messages will be deleted and this action can n
         this.editMessage.set(false)
         this.notifications.toast('Message updated!');
       })
+  }
+
+  onGenerateMemory() {
+
   }
 }
