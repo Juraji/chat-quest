@@ -93,7 +93,7 @@ func CreateMemory(worldId int, memory *Memory) error {
 	memory.WorldId = worldId
 
 	query := `INSERT INTO memories (world_id, character_id, content, always_include)
-            VALUES (?, ?, ?, ?) RETURNING id`
+            VALUES (?, ?, ?, ?) RETURNING id, created_at`
 	args := []any{
 		memory.WorldId,
 		memory.CharacterId,
@@ -101,7 +101,7 @@ func CreateMemory(worldId int, memory *Memory) error {
 		memory.AlwaysInclude,
 	}
 
-	err := database.InsertRecord(query, args, &memory.ID)
+	err := database.InsertRecord(query, args, &memory.ID, &memory.CreatedAt)
 
 	if err == nil {
 		MemoryCreatedSignal.EmitBG(memory)
