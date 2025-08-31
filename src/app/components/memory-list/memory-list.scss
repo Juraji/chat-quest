@@ -3,28 +3,11 @@
 :host {
   .memory-list {
     position: relative;
-    padding-bottom: 2rem;
-
-    .collapsed-fade {
-      pointer-events: none;
-      display: none;
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 4rem;
-
-      background-image: linear-gradient(to bottom, transparent, $dark);
-    }
 
     &.collapsed {
-      padding-bottom: unset;
       overflow: hidden;
+      overflow-y: auto;
       max-height: 25rem;
-
-      .collapsed-fade {
-        display: unset;
-      }
     }
   }
 }

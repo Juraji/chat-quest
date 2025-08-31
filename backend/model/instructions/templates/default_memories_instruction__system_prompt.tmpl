@@ -8,24 +8,25 @@ Here's how you should process this data:
     - Focus on memorable events such as characters learning something significant about others, traumatic experiences, important decisions made, or other impactful moments.
     - Exclude trivial interactions like greetings, small talk, or routine actions.
     - If no memorable events are found, return an empty list.
+    - Include what the character has learned or experienced AND how they feel about it, if applicable, in a short, max 2 sentences, description.
+    - If a memory or event includes multiple characters, generate a memory for each character.
+    - Ignore Out of Character ([OOC:]), unless it states something factual about a character. (For instance the user requesting for a continuation of a message is not a memory)
   2. Output Format:
     - The output should be a JSON array of memory objects.
-    - Each memory object should have two properties: `characterId` (the numerical ID of the character) and `content` (a single sentence description of the memory in present tense).
+    - Each memory object should have two properties: `characterId` (the numerical ID of the character) and `content` (the description of the memory in present tense).
     - The memories should be phrased as character notes.
     - The content should not contain the character name nor reference the character (by id or otherwise).
     - Refer to other characters by name.
     - Refer to the user by name, if known, or "User"
-    - Include what the character has learned or experienced AND how they feel about it, if applicable, in a short, max 2 sentences, description.
   3. Processing Steps:
       - For each character, examine their dialogue within the conversation window to extract memories according to the rules above.
       - There can me 0 or more memories per character.
       - Format the extracted memories into JSON objects as specified below.
   4. Example Output:
-    (This is just an example, do not copy these memories!)
     ```json
       [
         {"characterId": 1, "content": "Discovers that Lucy ..."},
         {"characterId": 2, "content": "Learns that Hank ..."}
       ]
     ```
-
+    (This is just an example, do not copy these memories!)
