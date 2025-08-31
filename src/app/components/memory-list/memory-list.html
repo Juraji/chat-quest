@@ -12,9 +12,9 @@
                   title="Show/hide counts"
                   (click)="showCounts.toggle()">
             @if (showCounts()) {
-              <span class="bi bi-database-slash"></span>
+              <span class="bi bi-person-slash"></span>
             } @else {
-              <span class="bi bi-database"></span>
+              <span class="bi bi-person"></span>
             }
           </button>
           <button type="button" class="collapse-btn btn btn-sm btn-secondary"
@@ -38,16 +38,18 @@
         <thead>
         <tr>
           <th></th>
-          <th>Dynamic</th>
-          <th>Always included</th>
+          <th>Total</th>
+          <th title="Static/Always Included memories will be included to the world data regardless of content.">
+            <span>Static</span><span class="bi bi-question-circle ms-2"></span>
+          </th>
         </tr>
         </thead>
         <tbody>
           @for (cnt of counts(); track cnt.characterName) {
             <tr>
               <th>{{ cnt.characterName }}</th>
-              <td>{{ cnt.dynamicCount }}</td>
-              <td>{{ cnt.staticCount }}</td>
+              <td>{{ cnt.total }}</td>
+              <td>{{ cnt.always }}</td>
             </tr>
           }
         </tbody>

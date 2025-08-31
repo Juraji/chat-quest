@@ -21,8 +21,8 @@ import {Characters} from '@api/characters';
 
 interface PerCharacterCount {
   characterName: string
-  dynamicCount: number
-  staticCount: number
+  total: number
+  always: number
 }
 
 @Component({
@@ -47,7 +47,7 @@ export class MemoryList {
   protected readonly memories: WritableSignal<Memory[]> = signal([])
   protected readonly newMemories: WritableSignal<Memory[]> = signal([])
 
-  protected readonly showCounts = booleanSignal(true)
+  protected readonly showCounts = booleanSignal(false)
   protected readonly counts: Signal<PerCharacterCount[]> = computed(() => {
     const characters = this.charactersService.all()
     const memories = this.memories()
@@ -56,11 +56,11 @@ export class MemoryList {
     for (const char of characters) {
       const charMemories = memories.filter(m => m.characterId === char.id)
       if (charMemories.length === 0) continue
-
-      let dynamicCount = charMemories.filter(m => !m.alwaysInclude).length
-      let staticCount = charMemories.length - dynamicCount
-
-      counts.push({characterName: char.name, dynamicCount, staticCount,})
+      counts.push({
+        characterName: char.name,
+        total: charMemories.length,
+        always: charMemories.filter(m => m.alwaysInclude).length
+      })
     }
 
     return counts
