@@ -79,9 +79,18 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 
 		sessionId := session.ID
 		for _, characterId := range characterIds {
-			query = `INSERT INTO chat_participants (chat_session_id, character_id) VALUES (?, ?)`
+			participant := ChatParticipant{
+				ChatSessionID: session.ID,
+				CharacterID:   characterId,
+				AddedOn:       nil,
+				RemovedOn:     nil,
+			}
+
+			query = `INSERT INTO chat_participants (chat_session_id, character_id)
+					 VALUES (?, ?)
+					 RETURNING added_on`
 			args = []any{sessionId, characterId}
-			err := ctx.InsertRecord(query, args)
+			err = ctx.InsertRecord(query, args, &participant.AddedOn)
 			if err != nil {
 				log.Get().Error("Error adding chat participant",
 					zap.Int("sessionId", sessionId),
@@ -89,7 +98,7 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 					zap.Error(err))
 				return err
 			}
-			addedParticipants = append(addedParticipants, &ChatParticipant{session.ID, characterId})
+			addedParticipants = append(addedParticipants, &participant)
 		}
 
 		return nil

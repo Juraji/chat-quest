@@ -9,10 +9,13 @@ CREATE TABLE chat_sessions
   pause_automatic_responses BIT(1)       NOT NULL
 );
 
-CREATE TABLE chat_participants
+create table chat_participants
 (
-  chat_session_id INTEGER NOT NULL REFERENCES chat_sessions (id) ON DELETE CASCADE,
-  character_id    INTEGER NOT NULL REFERENCES characters (id) ON DELETE CASCADE
+  chat_session_id INTEGER                             NOT NULL REFERENCES chat_sessions ON DELETE CASCADE,
+  character_id    INTEGER                             NOT NULL REFERENCES characters ON DELETE CASCADE,
+  added_on        TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+  removed_on      TIMESTAMP DEFAULT NULL,
+  constraint chat_participants_pk primary key (chat_session_id, character_id)
 );
 
 CREATE TABLE chat_messages

@@ -17,8 +17,7 @@ import (
 )
 
 type instructionTemplateVars struct {
-	Participants     []c.Character
-	ExistingMemories []m.Memory
+	Participants []c.Character
 }
 
 var generationMutex sync.Mutex
@@ -167,7 +166,7 @@ func generateAndExtractMemories(
 	ctx context.Context,
 	session *cs.ChatSession,
 	prefs *preferences.Preferences,
-	messages []cs.ChatMessage,
+	messageWindow []cs.ChatMessage,
 ) ([]*m.Memory, bool) {
 	instruction, err := i.InstructionById(*prefs.MemoriesInstructionId)
 	if err != nil {
@@ -180,21 +179,15 @@ func generateAndExtractMemories(
 		return nil, false
 	}
 
-	participants, err := cs.GetParticipants(session.ID)
+	lastTimestampInWindow := *messageWindow[len(messageWindow)-1].CreatedAt
+	participants, err := cs.GetParticipantsBefore(session.ID, lastTimestampInWindow)
 	if err != nil {
 		logger.Error("Error fetching participants", zap.Error(err))
 		return nil, false
 	}
 
-	existingMemories, err := m.GetMemoriesByWorldId(session.WorldID)
-	if err != nil {
-		logger.Error("Error fetching existing memories", zap.Error(err))
-		return nil, false
-	}
-
 	templateVars := instructionTemplateVars{
-		Participants:     participants,
-		ExistingMemories: existingMemories,
+		Participants: participants,
 	}
 
 	// Apply instruction template vars and generate memories
@@ -204,7 +197,7 @@ func generateAndExtractMemories(
 		return nil, false
 	}
 
-	requestMessages := createChatRequestMessages(messages, instruction)
+	requestMessages := createChatRequestMessages(messageWindow, instruction)
 	memoryGenResponse, ok := callLlm(logger, ctx, modelInstance, requestMessages, instruction.Temperature)
 	if !ok {
 		return nil, false

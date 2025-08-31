@@ -170,7 +170,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		participants, err := GetParticipants(sessionId)
+		participants, err := GetCurrentParticipants(sessionId)
 		controllers.RespondList(c, participants, err)
 	})
 
