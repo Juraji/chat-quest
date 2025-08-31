@@ -6,6 +6,7 @@
     padding-bottom: 2rem;
 
     .collapsed-fade {
+      pointer-events: none;
       display: none;
       position: absolute;
       bottom: 0;
@@ -19,7 +20,7 @@
     &.collapsed {
       padding-bottom: unset;
       overflow: hidden;
-      max-height: 20rem;
+      max-height: 25rem;
 
       .collapsed-fade {
         display: unset;

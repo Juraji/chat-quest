@@ -68,7 +68,7 @@
               <span>All</span>
             }
         <span>&nbsp;-&nbsp;</span>
-            <span>{{ createdAt() | timeAgo:false }}</span>
+            <span>{{ createdAt() | timeAgo:true | async }}</span>
         @if (alwaysInclude()) {
           <span>&nbsp;-&nbsp;Always included</span>
         }

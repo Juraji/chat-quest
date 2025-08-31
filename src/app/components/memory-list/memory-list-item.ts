@@ -15,13 +15,15 @@ import {Characters} from '@api/characters';
 import {booleanSignal, BooleanSignal, formControl, formGroup, readOnlyControl} from '@util/ng';
 import {isNew} from '@api/common';
 import {TimeAgoPipe} from '@components/time-ago.pipe';
+import {AsyncPipe} from '@angular/common';
 
 @Component({
   selector: 'memory-list-item',
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    TimeAgoPipe
+    TimeAgoPipe,
+    AsyncPipe
   ],
   templateUrl: './memory-list-item.html'
 })

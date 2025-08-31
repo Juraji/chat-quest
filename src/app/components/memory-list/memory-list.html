@@ -5,8 +5,18 @@
         <ng-content select="span.title">Memories</ng-content>
         <span class="text-muted small ms-2">({{ memories().length }})</span>
       </h5>
+
       @if (!disabled()) {
         <div class="btn-toolbar justify-content-end gap-1">
+          <button type="button" class="collapse-btn btn btn-sm btn-secondary"
+                  title="Show/hide counts"
+                  (click)="showCounts.toggle()">
+            @if (showCounts()) {
+              <span class="bi bi-database-slash"></span>
+            } @else {
+              <span class="bi bi-database"></span>
+            }
+          </button>
           <button type="button" class="collapse-btn btn btn-sm btn-secondary"
                   title="Expand/Collapse memories"
                   (click)="isCollapsed.toggle()">
@@ -22,6 +32,27 @@
         </div>
       }
     </div>
+
+    @if (showCounts()) {
+      <table class="table table-sm table-striped table-borderless small">
+        <thead>
+        <tr>
+          <th></th>
+          <th>Dynamic</th>
+          <th>Always included</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (cnt of counts(); track cnt.characterName) {
+            <tr>
+              <th>{{ cnt.characterName }}</th>
+              <td>{{ cnt.dynamicCount }}</td>
+              <td>{{ cnt.staticCount }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
 
     <div class="memory-list d-flex flex-column" [class.collapsed]="isCollapsed()">
       @for (m of newMemories(); track m.id) {

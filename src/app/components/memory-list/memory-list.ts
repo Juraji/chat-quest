@@ -1,4 +1,15 @@
-import {booleanAttribute, Component, effect, inject, input, InputSignal, signal, WritableSignal} from '@angular/core';
+import {
+  booleanAttribute,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  InputSignal,
+  Signal,
+  signal,
+  WritableSignal
+} from '@angular/core';
 import {Memories, Memory, MemoryCreated, MemoryDeleted, MemoryUpdated} from '@api/memories';
 import {MemoryListItem} from './memory-list-item';
 import {arrayAdd, arrayRemove, arrayReplace} from '@util/array';
@@ -6,6 +17,13 @@ import {NEW_ID} from '@api/common';
 import {defer, map} from 'rxjs';
 import {booleanSignal} from '@util/ng';
 import {SSE} from '@api/sse';
+import {Characters} from '@api/characters';
+
+interface PerCharacterCount {
+  characterName: string
+  dynamicCount: number
+  staticCount: number
+}
 
 @Component({
   selector: 'memory-list',
@@ -17,17 +35,36 @@ import {SSE} from '@api/sse';
 })
 export class MemoryList {
   private readonly memoriesService = inject(Memories)
+  private readonly charactersService = inject(Characters)
   private readonly sse = inject(SSE)
 
   readonly worldId: InputSignal<number> = input.required()
   readonly characterId: InputSignal<Nullable<number>> = input()
   readonly disabled = input(false, {transform: booleanAttribute})
   readonly collapsed = input(true, {transform: booleanAttribute})
+  protected readonly isCollapsed = booleanSignal(this.collapsed)
 
   protected readonly memories: WritableSignal<Memory[]> = signal([])
   protected readonly newMemories: WritableSignal<Memory[]> = signal([])
 
-  protected readonly isCollapsed = booleanSignal(this.collapsed)
+  protected readonly showCounts = booleanSignal(true)
+  protected readonly counts: Signal<PerCharacterCount[]> = computed(() => {
+    const characters = this.charactersService.all()
+    const memories = this.memories()
+
+    const counts: PerCharacterCount[] = []
+    for (const char of characters) {
+      const charMemories = memories.filter(m => m.characterId === char.id)
+      if (charMemories.length === 0) continue
+
+      let dynamicCount = charMemories.filter(m => !m.alwaysInclude).length
+      let staticCount = charMemories.length - dynamicCount
+
+      counts.push({characterName: char.name, dynamicCount, staticCount,})
+    }
+
+    return counts
+  })
 
   constructor() {
     effect(() => {
