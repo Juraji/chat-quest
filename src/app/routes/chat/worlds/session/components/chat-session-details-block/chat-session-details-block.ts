@@ -10,6 +10,7 @@ import {LlmModelView} from '@api/providers';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {debounceTime} from 'rxjs';
 import {CQPreferences, Preferences} from '@api/preferences';
+import {World, Worlds} from '@api/worlds';
 
 @Component({
   selector: 'chat-session-details-block',
@@ -21,6 +22,7 @@ import {CQPreferences, Preferences} from '@api/preferences';
 })
 export class ChatSessionDetailsBlock {
   private readonly sessionData = inject(ChatSessionData)
+  private readonly worlds = inject(Worlds)
   private readonly chatSessions = inject(ChatSessions)
   private readonly preferences = inject(Preferences)
   private readonly notifications = inject(Notifications)
@@ -29,14 +31,20 @@ export class ChatSessionDetailsBlock {
   readonly createdAt: Signal<Nullable<string>> = computed(() => this.sessionData.chatSession().createdAt)
   readonly scenarios: Signal<Scenario[]> = this.sessionData.scenarios
   readonly llModels: Signal<LlmModelView[]> = this.sessionData.llmModels
+  readonly characters = this.sessionData.characters
 
   readonly nameControl: TypedFormControl<string> = formControl('', [Validators.required])
   readonly enableMemoriesControl: TypedFormControl<boolean> = formControl(false)
   readonly pauseAutomaticResponsesControl: TypedFormControl<boolean> = formControl(false)
+  readonly personaControl: TypedFormControl<Nullable<number>> = formControl(null)
   readonly scenarioControl: TypedFormControl<Nullable<number>> = formControl(null)
   readonly chatModelControl: TypedFormControl<Nullable<number>> = formControl(null, [Validators.required])
 
   constructor() {
+    effect(() => {
+      const world = this.sessionData.world()
+      this.personaControl.reset(world.personaId, {emitEvent: false})
+    });
     effect(() => {
       const session = this.sessionData.chatSession();
       this.nameControl.reset(session.name, {emitEvent: false});
@@ -58,12 +66,28 @@ export class ChatSessionDetailsBlock {
     this.pauseAutomaticResponsesControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(pauseAutomaticResponses => this.updateSession({pauseAutomaticResponses}))
+    this.personaControl.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(personaId => this.updateWorld({personaId}))
     this.scenarioControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(scenarioId => this.updateSession({scenarioId}))
     this.chatModelControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(chatModelId => this.updateChatPrefs({chatModelId}))
+  }
+
+  private updateWorld(w: Partial<World>) {
+    const world = this.sessionData.world()
+
+    const update: World = {
+      ...world,
+      ...w
+    }
+
+    this.worlds
+      .save(update)
+      .subscribe(() => this.notifications.toast("World data updated!"))
   }
 
   private updateSession(d: Partial<ChatSession>) {

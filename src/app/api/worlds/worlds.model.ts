@@ -4,4 +4,5 @@ export interface World extends ChatQuestModel {
   name: string
   description: Nullable<string>
   avatarUrl: Nullable<string>
+  personaId: Nullable<number>
 }

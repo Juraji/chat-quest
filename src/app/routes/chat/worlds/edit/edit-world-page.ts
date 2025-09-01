@@ -8,6 +8,7 @@ import {isNew} from '@api/common';
 import {AvatarControl} from '@components/avatar-control';
 import {TokenCount} from '@components/token-count';
 import {Notifications} from '@components/notifications';
+import {Characters} from '@api/characters';
 
 @Component({
   imports: [
@@ -25,9 +26,11 @@ export class EditWorldPage {
   readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly worlds = inject(Worlds)
+  private readonly characters = inject(Characters)
   private readonly notifications = inject(Notifications)
 
   readonly world: Signal<World> = routeDataSignal(this.activatedRoute, 'world');
+  readonly allCharacters = this.characters.all
 
   readonly isNew: Signal<boolean> = computed(() => isNew(this.world()))
   readonly name: Signal<string> = computed(() => this.world().name)
@@ -37,6 +40,7 @@ export class EditWorldPage {
     name: formControl('', [Validators.required]),
     description: formControl<Nullable<string>>(null),
     avatarUrl: formControl<Nullable<string>>(null),
+    personaId: formControl(null)
   })
 
   readonly descriptionValue: Signal<string> = controlValueSignal(this.formGroup, 'description')
