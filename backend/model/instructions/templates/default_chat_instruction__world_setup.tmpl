@@ -36,6 +36,14 @@
       {{end}}
     </DialogExamples>
     {{end}}
+    {{if .Memories}}
+    <Memories>
+    <!-- These memories are character notes about earlier events this character remembers -->
+      {{range $m := .Memories}}
+        <Memory>{{$m.Content}}<Memory>
+      {{end}}
+    </Memories>
+    {{end}}
   </Character>
   {{if .OtherParticipants}}
     {{range $c := .OtherParticipants}}
