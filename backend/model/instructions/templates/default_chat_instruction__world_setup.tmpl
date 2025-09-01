@@ -38,7 +38,8 @@
     {{end}}
     {{if .Memories}}
     <Memories>
-    <!-- These memories are character notes about earlier events this character remembers -->
+      <!-- These memories are character notes about earlier events this character remembers. -->
+      <!-- These memories are specifically for {{.Character.Name}}, only they remember this. -->
       {{range $m := .Memories}}
         <Memory>{{$m.Content}}<Memory>
       {{end}}

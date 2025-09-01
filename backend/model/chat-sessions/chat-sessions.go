@@ -13,7 +13,8 @@ type ChatSession struct {
 	CreatedAt               *time.Time `json:"createdAt"`
 	Name                    string     `json:"name"`
 	ScenarioID              *int       `json:"scenarioId"`
-	EnableMemories          bool       `json:"enableMemories"`
+	GenerateMemories        bool       `json:"generateMemories"`
+	UseMemories             bool       `json:"useMemories"`
 	PauseAutomaticResponses bool       `json:"pauseAutomaticResponses"`
 }
 
@@ -24,7 +25,8 @@ func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
 		&dest.CreatedAt,
 		&dest.Name,
 		&dest.ScenarioID,
-		&dest.EnableMemories,
+		&dest.GenerateMemories,
+		&dest.UseMemories,
 		&dest.PauseAutomaticResponses,
 	)
 }
@@ -54,13 +56,14 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 
 	var addedParticipants []*ChatParticipant
 	err := database.Transactional(func(ctx *database.TxContext) error {
-		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, enable_memories, pause_automatic_responses)
-            VALUES (?, ?, ?, ?, ?) RETURNING id, created_at`
+		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, generate_memories, use_memories, pause_automatic_responses)
+            VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at`
 		args := []any{
 			session.WorldID,
 			session.Name,
 			session.ScenarioID,
-			session.EnableMemories,
+			session.GenerateMemories,
+			session.UseMemories,
 			session.PauseAutomaticResponses,
 		}
 
@@ -116,14 +119,16 @@ func Update(worldId int, id int, session *ChatSession) error {
 	query := `UPDATE chat_sessions
             SET name = ?,
                 scenario_id = ?,
-                enable_memories = ?,
+                generate_memories = ?,
+                use_memories = ?,
                 pause_automatic_responses = ?
             WHERE world_id = ?
               AND id = ?`
 	args := []any{
 		session.Name,
 		session.ScenarioID,
-		session.EnableMemories,
+		session.GenerateMemories,
+		session.UseMemories,
 		session.PauseAutomaticResponses,
 		worldId,
 		id,

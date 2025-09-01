@@ -34,7 +34,8 @@ export class ChatSessionDetailsBlock {
   readonly characters = this.sessionData.characters
 
   readonly nameControl: TypedFormControl<string> = formControl('', [Validators.required])
-  readonly enableMemoriesControl: TypedFormControl<boolean> = formControl(false)
+  readonly generateMemoriesControl: TypedFormControl<boolean> = formControl(false)
+  readonly useMemoriesControl: TypedFormControl<boolean> = formControl(false)
   readonly pauseAutomaticResponsesControl: TypedFormControl<boolean> = formControl(false)
   readonly personaControl: TypedFormControl<Nullable<number>> = formControl(null)
   readonly scenarioControl: TypedFormControl<Nullable<number>> = formControl(null)
@@ -48,7 +49,8 @@ export class ChatSessionDetailsBlock {
     effect(() => {
       const session = this.sessionData.chatSession();
       this.nameControl.reset(session.name, {emitEvent: false});
-      this.enableMemoriesControl.reset(session.enableMemories, {emitEvent: false})
+      this.generateMemoriesControl.reset(session.generateMemories, {emitEvent: false})
+      this.useMemoriesControl.reset(session.useMemories, {emitEvent: false})
       this.pauseAutomaticResponsesControl.reset(session.pauseAutomaticResponses, {emitEvent: false})
       this.scenarioControl.reset(session.scenarioId, {emitEvent: false})
     });
@@ -60,9 +62,12 @@ export class ChatSessionDetailsBlock {
     this.nameControl.valueChanges
       .pipe(takeUntilDestroyed(), debounceTime(1000))
       .subscribe(name => this.updateSession({name}))
-    this.enableMemoriesControl.valueChanges
+    this.generateMemoriesControl.valueChanges
       .pipe(takeUntilDestroyed())
-      .subscribe(enableMemories => this.updateSession({enableMemories}))
+      .subscribe(generateMemories => this.updateSession({generateMemories}))
+    this.useMemoriesControl.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(useMemories => this.updateSession({useMemories}))
     this.pauseAutomaticResponsesControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(pauseAutomaticResponses => this.updateSession({pauseAutomaticResponses}))

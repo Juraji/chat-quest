@@ -1,6 +1,6 @@
 import {CanActivateFn, RedirectCommand, Router} from '@angular/router';
 import {ChatSession, ChatSessions} from '@api/chat-sessions';
-import {booleanAttribute, inject} from '@angular/core';
+import {inject} from '@angular/core';
 import {NEW_ID} from '@api/common';
 import {map} from 'rxjs';
 import {paramAsId} from '@util/ng';
@@ -22,8 +22,6 @@ export const newChatSessionGuard: CanActivateFn = (route) => {
   const sessionName = query.get('sessionName') || 'New Session'
   const characterIds = query.getAll('with').map(paramAsId)
   const scenarioId = query.has('scenarioId') ? paramAsId(query.get('scenarioId')!) : null
-  const enableMemories = booleanAttribute(query.get('enableMemories'))
-  const pauseAutomaticResponses = booleanAttribute(query.get('pauseAutomaticResponses'))
 
   const newChatSession: ChatSession = {
     id: NEW_ID,
@@ -31,8 +29,9 @@ export const newChatSessionGuard: CanActivateFn = (route) => {
     createdAt: null,
     name: sessionName,
     scenarioId,
-    enableMemories,
-    pauseAutomaticResponses
+    generateMemories: true,
+    useMemories: true,
+    pauseAutomaticResponses: false
   }
 
   return service

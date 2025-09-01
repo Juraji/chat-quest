@@ -14,10 +14,18 @@
     </div>
     <div class="form-check">
       <input class="form-check-input" type="checkbox"
-             id="enableMemoriesInput"
-             [formControl]="enableMemoriesControl"/>
-      <label class="form-check-label" for="enableMemoriesInput">
-        Enable memories
+             id="generateMemoriesInput"
+             [formControl]="generateMemoriesControl"/>
+      <label class="form-check-label" for="generateMemoriesInput">
+        Generate new memories
+      </label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox"
+             id="useMemoriesInput"
+             [formControl]="useMemoriesControl"/>
+      <label class="form-check-label" for="useMemoriesInput">
+        Use memories
       </label>
     </div>
     <div class="form-check mb-3">
@@ -28,7 +36,7 @@
         Pause Automatic Responses
       </label>
     </div>
-    <div>
+    <div class="mb-3">
       <label for="personaIdInput">Persona</label>
       <select [formControl]="personaControl"
               class="form-select"
@@ -39,12 +47,9 @@
           <option [ngValue]="c.id">{{ c.name }}</option>
         }
       </select>
-      <div class="form-text">You can set a character as a persona for yourself. This is added to the world data
-        so the assistant knows who you are.
-      </div>
     </div>
     <div class="mb-3">
-      <label for="chatScenarioInput">Change Scenario</label>
+      <label for="chatScenarioInput">Scenario</label>
       <select class="form-select"
               id="chatScenarioInput"
               [formControl]="scenarioControl">
@@ -64,9 +69,6 @@
           <option [ngValue]="llm.id">{{ llm.modelId }}&nbsp;&bullet;&nbsp;{{ llm.profileName }}</option>
         }
       </select>
-      <div id="chatModelIdInputHelp" class="form-text">
-        Select the model you want to use for the chat.
-      </div>
     </div>
   </div>
 </div>

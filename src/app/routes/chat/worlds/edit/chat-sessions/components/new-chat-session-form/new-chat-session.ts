@@ -40,8 +40,9 @@ export class NewChatSession {
     createdAt: readOnlyControl(),
     name: formControl('', [Validators.required]),
     scenarioId: formControl<Nullable<number>>(null),
-    enableMemories: formControl(true),
-    pauseAutomaticResponses: formControl(false),
+    generateMemories: readOnlyControl(),
+    useMemories: readOnlyControl(),
+    pauseAutomaticResponses: readOnlyControl(),
   })
 
   readonly useCustomName: BooleanSignal = booleanSignal(false)
@@ -94,7 +95,7 @@ export class NewChatSession {
   onNewChatSession() {
     if (this.formGroup.invalid) return
 
-    const session = this.formGroup.getRawValue()
+    const session = this.formGroup.value
     const characterIds = this.selectedCharacterIds()
 
     this.router.navigate(
@@ -104,8 +105,6 @@ export class NewChatSession {
           with: characterIds,
           sessionName: session.name,
           scenarioId: session.scenarioId,
-          enableMemories: session.enableMemories,
-          pauseAutomaticResponses: session.pauseAutomaticResponses,
         }
       }
     )

@@ -35,6 +35,10 @@ func GenerateMemoriesForMessageID(
 	logger := log.Get().With(
 		zap.Int("sourceMessageId", messageId))
 
+	if contextCheckPoint(ctx, logger) {
+		return
+	}
+
 	logger.Info("Generating memories for specific message...")
 
 	message, err := cs.GetMessageById(messageId)
@@ -113,7 +117,7 @@ func GenerateMemories(
 		logger.Error("Error getting session", zap.Error(err))
 		return
 	}
-	if !session.EnableMemories {
+	if !session.GenerateMemories {
 		// Memories are disabled for this session
 		return
 	}
