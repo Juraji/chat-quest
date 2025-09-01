@@ -23,6 +23,20 @@
          [class.g-start-4]="focusMode()">
       <div #chatMessagesContainer
            class="d-block flex-grow-1 overflow-y-scroll position-relative">
+        <div class="btn-toolbar justify-content-end gap-1 mb-3">
+          @if (olderMessagesAvailable()) {
+            <button type="button" class="btn btn-primary"
+                    (click)="onLoadOlderMessages()">
+              Load older messages
+            </button>
+          }
+          @if (olderMessagesShown()) {
+            <button type="button" class="btn btn-secondary"
+                    (click)="onResetMessageLimit()">
+              Reset
+            </button>
+          }
+        </div>
         @for (m of messages(); track m.id) {
           <chat-session-message class="d-block mb-3" [message]="m"/>
         }

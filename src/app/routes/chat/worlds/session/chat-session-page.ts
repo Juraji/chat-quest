@@ -1,6 +1,15 @@
-import {Component, computed, effect, ElementRef, inject, Signal, viewChild} from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  linkedSignal,
+  Signal,
+  viewChild,
+  WritableSignal
+} from '@angular/core';
 import {PageHeader} from '@components/page-header';
-import {ChatMessage} from '@api/chat-sessions';
 import {ChatSessionChatInputBlock, ChatSessionDetailsBlock, ChatSessionParticipantsBlock} from './components';
 import {ChatSessionMessage} from './components/chat-session-message/chat-session-message';
 import {ChatSessionData} from './chat-session-data';
@@ -28,7 +37,23 @@ export class ChatSessionPage {
 
   readonly worldId: Signal<number> = this.sessionData.worldId
   readonly chatSessionName: Signal<string> = computed(() => this.sessionData.chatSession().name)
-  readonly messages: Signal<ChatMessage[]> = this.sessionData.messages
+
+  readonly messageLimitPageSize = computed(() => {
+    const p = this.sessionData.preferences();
+    return p.memoryTriggerAfter + p.memoryWindowSize;
+  })
+  readonly messageLimit: WritableSignal<number> = linkedSignal(() => this.messageLimitPageSize())
+  readonly olderMessagesAvailable = computed(() => this.messageLimit() < this.sessionData.messages().length)
+  readonly olderMessagesShown = computed(() => this.messageLimit() > this.messageLimitPageSize())
+  readonly messages = computed(() => {
+    const messages = this.sessionData.messages()
+    const limit = this.messageLimit()
+    if (limit > messages.length) {
+      return messages
+    } else {
+      return messages.slice(messages.length - limit, messages.length)
+    }
+  })
 
   readonly focusMode = booleanSignal(false)
 
@@ -41,5 +66,14 @@ export class ChatSessionPage {
       const element = this.chatMessagesContainerRef()?.nativeElement;
       if (!!element) requestAnimationFrame(() => element.scrollTop = element.scrollHeight)
     });
+  }
+
+  onLoadOlderMessages() {
+    const incrWith = this.messageLimitPageSize()
+    this.messageLimit.update(limit => limit + incrWith)
+  }
+
+  onResetMessageLimit() {
+    this.messageLimit.set(this.messageLimitPageSize())
   }
 }
