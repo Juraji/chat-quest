@@ -10,6 +10,7 @@ type World struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
 	AvatarUrl   *string `json:"avatarUrl"`
+	PersonaID   *int    `json:"personaId"`
 }
 
 func worldScanner(scanner database.RowScanner, dest *World) error {
@@ -18,6 +19,7 @@ func worldScanner(scanner database.RowScanner, dest *World) error {
 		&dest.Name,
 		&dest.Description,
 		&dest.AvatarUrl,
+		&dest.PersonaID,
 	)
 }
 
@@ -36,8 +38,8 @@ func CreateWorld(newWorld *World) error {
 	util.EmptyStrPtrToNil(&newWorld.Description)
 	util.EmptyStrPtrToNil(&newWorld.AvatarUrl)
 
-	query := "INSERT INTO worlds (name, description, avatar_url) VALUES (?, ?, ?) RETURNING id"
-	args := []any{newWorld.Name, newWorld.Description, newWorld.AvatarUrl}
+	query := "INSERT INTO worlds (name, description, avatar_url, persona_id) VALUES (?, ?, ?, ?) RETURNING id"
+	args := []any{newWorld.Name, newWorld.Description, newWorld.AvatarUrl, newWorld.PersonaID}
 
 	err := database.InsertRecord(query, args, &newWorld.ID)
 
@@ -55,12 +57,14 @@ func UpdateWorld(id int, world *World) error {
 	query := `UPDATE worlds
             SET name=?,
                 description=?,
-                avatar_url=?
+                avatar_url=?,
+                persona_id =?
             WHERE id=?`
 	args := []any{
 		world.Name,
 		world.Description,
 		world.AvatarUrl,
+		world.PersonaID,
 		id,
 	}
 

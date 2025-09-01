@@ -39,6 +39,9 @@ type instructionTemplateVars struct {
 	Character        *c.Character
 	DialogueExamples []string
 
+	// Persona
+	Persona *c.Character
+
 	// Session details
 	IsSingleCharacter   bool
 	OtherParticipants   []c.Character
@@ -299,6 +302,7 @@ func createChatInstruction(
 
 	// Asynchronously fetch stuff for template
 	worldDescriptionChan := getWorldDescription(session)
+	personaChan := getWorldPersona(session)
 	scenarioDescriptionChan := getScenarioDescription(session)
 	participantsChan := getTemplatedParticipants(session, responderId)
 	dialogueExamplesChan := getDialogueExamples(responderId)
@@ -313,6 +317,11 @@ func createChatInstruction(
 	worldDescription, err := (<-worldDescriptionChan).Unpack()
 	if err != nil {
 		logger.Error("Error fetching world description", zap.Error(err))
+		return nil, false
+	}
+	persona, err := (<-personaChan).Unpack()
+	if err != nil {
+		logger.Error("Error fetching world persona", zap.Error(err))
 		return nil, false
 	}
 	scenarioDescription, err := (<-scenarioDescriptionChan).Unpack()
@@ -344,6 +353,7 @@ func createChatInstruction(
 		IsTriggeredByMessage: triggerMessage != nil,
 		Character:            responder,
 		DialogueExamples:     dialogueExamples,
+		Persona:              persona,
 		IsSingleCharacter:    len(otherParticipants) == 0,
 		OtherParticipants:    otherParticipants,
 		WorldDescription:     worldDescription,
@@ -435,6 +445,41 @@ func getWorldDescription(session *cs.ChatSession) chan *channels.Result[string] 
 	return resultChan
 }
 
+func getWorldPersona(session *cs.ChatSession) chan *channels.Result[*c.Character] {
+	resultChan := make(chan *channels.Result[*c.Character])
+
+	go func(worldId int) {
+		defer close(resultChan)
+
+		world, err := w.WorldById(worldId)
+		if err != nil {
+			resultChan <- channels.NewErrResult[*c.Character](err)
+			return
+		}
+
+		if world.PersonaID == nil {
+			resultChan <- channels.NewResult[*c.Character](nil, nil)
+			return
+		}
+
+		persona, err := c.CharacterById(*world.PersonaID)
+		if err != nil {
+			resultChan <- channels.NewErrResult[*c.Character](err)
+			return
+		}
+
+		err = applyCharacterTemplates(persona)
+		if err != nil {
+			resultChan <- channels.NewErrResult[*c.Character](err)
+			return
+		}
+
+		resultChan <- channels.NewResult(persona, nil)
+	}(session.WorldID)
+
+	return resultChan
+}
+
 func getScenarioDescription(session *cs.ChatSession) chan *channels.Result[string] {
 	resultChan := make(chan *channels.Result[string])
 
@@ -464,6 +509,7 @@ func getMemories(
 	triggerMessage *cs.ChatMessage,
 ) chan *channels.Result[[]m.Memory] {
 	memoriesChan := make(chan *channels.Result[[]m.Memory])
+	const batchSize = 10
 
 	go func() {
 		defer close(memoriesChan)
@@ -505,7 +551,6 @@ func getMemories(
 			return
 		}
 
-		const batchSize = 10
 		memoriesLen := len(memories)
 		maxBatchCount := memoriesLen/batchSize + 1
 		relevantMemoriesChan := make(chan []m.Memory, maxBatchCount)

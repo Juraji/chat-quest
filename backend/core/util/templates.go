@@ -16,7 +16,8 @@ func ParseAndApplyTextTemplate(
 		return template, nil
 	}
 
-	tpl, err := gt.New("Template").Parse(template)
+	tplName := "Template: " + template[:20] + "..."
+	tpl, err := gt.New(tplName).Parse(template)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to parse template")
 	}
