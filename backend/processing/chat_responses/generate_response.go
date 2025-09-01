@@ -76,7 +76,22 @@ func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.C
 		return
 	}
 
-	generateResponse(ctx, logger, session, responderId, nil)
+	// Fetch chat history
+	chatHistory, err := cs.GetUnarchivedChatMessages(session.ID)
+	if err != nil {
+		logger.Error("Error fetching chat history", zap.Error(err))
+		return
+	}
+
+	lastMessage := chatHistory[len(chatHistory)-1]
+	var triggerMessage *cs.ChatMessage
+	// If the last message is from the user, simulate a message trigger
+	if lastMessage.IsUser {
+		triggerMessage = &lastMessage
+		chatHistory = chatHistory[:len(chatHistory)-1]
+	}
+
+	generateResponse(ctx, logger, session, responderId, chatHistory, triggerMessage)
 }
 
 func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.ChatMessage) {
@@ -116,10 +131,17 @@ func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.Ch
 		return
 	}
 
+	// Fetch chat history
+	chatHistory, err := cs.GetUnarchivedChatMessages(session.ID)
+	if err != nil {
+		logger.Error("Error fetching chat history", zap.Error(err))
+		return
+	}
+
 	logger = logger.With(
 		zap.Intp("responderId", responderId))
 
-	generateResponse(ctx, logger, session, *responderId, triggerMessage)
+	generateResponse(ctx, logger, session, *responderId, chatHistory, triggerMessage)
 }
 
 func generateResponse(
@@ -127,18 +149,9 @@ func generateResponse(
 	logger *zap.Logger,
 	session *cs.ChatSession,
 	responderId int,
+	chatHistory []cs.ChatMessage,
 	triggerMessage *cs.ChatMessage,
 ) {
-
-	// Fetch chat history
-	chatHistory, err := cs.GetUnarchivedChatMessages(session.ID)
-	if err != nil {
-		logger.Error("Error fetching chat history", zap.Error(err))
-		return
-	}
-	if triggerMessage != nil && len(chatHistory) > 0 {
-		chatHistory = chatHistory[:len(chatHistory)-1]
-	}
 
 	// Fetch preferences
 	prefs, err := preferences.GetPreferences(true)
