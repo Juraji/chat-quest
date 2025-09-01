@@ -1,4 +1,4 @@
-{{- /*gotype: juraji.nl/chat-quest/processing/chat_response.instructionTemplateVars */ -}}
+{{- /*gotype: juraji.nl/chat-quest/processing/chat_responses.instructionTemplateVars*/ -}}
 ```rag.xml
 {{if .WorldDescription}}
 <WorldDescription>
@@ -51,6 +51,27 @@
     {{end}}
   {{end}}
 </Characters>
+{{if .Persona}}
+  <UserPersona>
+    <!-- This information describes the user, it is not a character in the chat -->
+    <Name>{{.Persona.Name}}</Name>
+    {{if .Persona.Appearance}}
+    <Appearance>
+      {{.Persona.Appearance}}
+    </Appearance>
+    {{end}}
+    {{if .Persona.Personality}}
+    <Personality>
+      {{.Persona.Personality}}
+    </Personality>
+    {{end}}
+    {{if .Persona.History}}
+    <History>
+      {{.Persona.History}}
+    </History>
+    {{end}}
+  </UserPersona>
+{{end}}
 ```
 
 [OOC: Do not recite the information in the rag.xml block, use it to enrich your understanding of the world and the individual character(s)]
