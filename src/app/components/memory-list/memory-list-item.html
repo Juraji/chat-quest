@@ -44,12 +44,11 @@
               [disabled]="formGroup.invalid || formGroup.pristine">
         Save Changes
       </button>
-      <button type="button" class="btn btn-sm btn-outline-danger"
-              (click)="deleteRequested.emit()">
-        Delete Memory
-      </button>
-
       @if (!isNew()) {
+        <button type="button" class="btn btn-sm btn-outline-danger"
+                (click)="deleteRequested.emit()">
+          Delete Memory
+        </button>
         <button type="button" class="btn btn-sm"
                 (click)="editMode.setFalse()">
           <span class="bi bi-x"></span>

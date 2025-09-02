@@ -42,10 +42,19 @@ export class MemoryList {
   readonly characterId: InputSignal<Nullable<number>> = input()
   readonly disabled = input(false, {transform: booleanAttribute})
   readonly collapsed = input(true, {transform: booleanAttribute})
+
   protected readonly isCollapsed = booleanSignal(this.collapsed)
+  protected readonly addMemoryActive = booleanSignal(false)
+  protected readonly newMemoryTpl = computed(() => ({
+    id: NEW_ID,
+    worldId: this.worldId(),
+    characterId: this.characterId(),
+    createdAt: null,
+    content: '',
+    alwaysInclude: false
+  }))
 
   protected readonly memories: WritableSignal<Memory[]> = signal([])
-  protected readonly newMemories: WritableSignal<Memory[]> = signal([])
 
   protected readonly showCounts = booleanSignal(false)
   protected readonly counts: Signal<PerCharacterCount[]> = computed(() => {
@@ -109,34 +118,14 @@ export class MemoryList {
         arrayRemove(memories, m => m.id === id)))
   }
 
-  onAddMemory() {
-    const newMemory: Memory = {
-      id: NEW_ID,
-      worldId: this.worldId(),
-      characterId: this.characterId(),
-      createdAt: null,
-      content: '',
-      alwaysInclude: false
-    }
-
-    this.newMemories.update(memories => [newMemory, ...memories])
-  }
-
-  onSaveMemory(memory: Memory, newMemoryIndex: Nullable<number>) {
+  onSaveMemory(memory: Memory) {
     this.memoriesService
       .save(this.worldId(), memory)
       .subscribe(updated => {
         this.memories.update(memories =>
           arrayReplace(memories, updated, m => m.id === memory.id));
-        if (typeof newMemoryIndex === 'number') {
-          this.onDeleteNewMemory(newMemoryIndex)
-        }
+        this.addMemoryActive.setFalse()
       })
-  }
-
-  onDeleteNewMemory(atIndex: number) {
-    this.newMemories.update(memories =>
-      arrayRemove(memories, atIndex))
   }
 
   onDeleteMemory(id: number) {

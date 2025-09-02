@@ -26,12 +26,28 @@
               <span class="bi bi-chevron-double-up"></span>
             }
           </button>
-          <button type="button" class="btn btn-sm btn-primary"
-                  (click)="onAddMemory()">Add Memory
-          </button>
+          @if (addMemoryActive()) {
+            <button type="button" class="btn btn-sm btn-outline-danger"
+                    (click)="addMemoryActive.setFalse()">Cancel
+            </button>
+          } @else {
+            <button type="button" class="btn btn-sm btn-primary"
+                    (click)="addMemoryActive.setTrue()">Add Memory
+            </button>
+          }
         </div>
       }
     </div>
+
+    @if (addMemoryActive()) {
+      <memory-list-item
+        class="d-block mb-3"
+        [memory]="newMemoryTpl()"
+        [characterId]="characterId()"
+        (memoryChanged)="onSaveMemory($event)"
+        (deleteRequested)="addMemoryActive.setFalse()"/>
+      <hr/>
+    }
 
     @if (showCounts()) {
       <table class="table table-sm table-striped table-borderless small">
@@ -54,22 +70,15 @@
           }
         </tbody>
       </table>
+      <hr/>
     }
 
     <div class="memory-list d-flex flex-column" [class.collapsed]="isCollapsed()">
-      @for (m of newMemories(); track m.id) {
-        <memory-list-item
-          [memory]="m"
-          [characterId]="characterId()"
-          (memoryChanged)="onSaveMemory($event, $index)"
-          (deleteRequested)="onDeleteNewMemory($index)"/>
-        <hr/>
-      }
       @for (m of memories(); track m.id) {
         <memory-list-item
           [memory]="m"
           [characterId]="characterId()"
-          (memoryChanged)="onSaveMemory($event, null)"
+          (memoryChanged)="onSaveMemory($event)"
           (deleteRequested)="onDeleteMemory(m.id)"
           [disabled]="disabled()"/>
         @if (!$last) {

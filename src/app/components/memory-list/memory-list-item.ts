@@ -37,13 +37,13 @@ export class MemoryListItem {
   readonly deleteRequested: OutputEmitterRef<void> = output()
 
   protected readonly isNew = computed(() => isNew(this.memory()))
-  protected readonly content = computed(() => this.memory().content)
-  protected readonly createdAt = computed(() => this.memory().createdAt)
-  protected readonly alwaysInclude = computed(() => this.memory().alwaysInclude)
+  protected readonly content = computed(() => this.memory()?.content)
+  protected readonly createdAt = computed(() => this.memory()?.createdAt)
+  protected readonly alwaysInclude = computed(() => this.memory()?.alwaysInclude)
 
   protected readonly editMode: BooleanSignal = booleanSignal(false)
   protected readonly allCharacters = this.characters.all
-  protected readonly character = this.characters.listViewBy(() => this.memory().characterId)
+  protected readonly character = this.characters.listViewBy(() => this.memory()?.characterId)
   protected readonly characterName = computed(() => this.character()?.name)
 
   readonly formGroup = formGroup<Memory>({
@@ -76,9 +76,5 @@ export class MemoryListItem {
     if (!this.isNew()) {
       this.editMode.setFalse()
     }
-  }
-
-  onDelete(): void {
-    this.deleteRequested.emit()
   }
 }
