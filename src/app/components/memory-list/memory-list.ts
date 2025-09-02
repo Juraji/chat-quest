@@ -15,9 +15,10 @@ import {MemoryListItem} from './memory-list-item';
 import {arrayAdd, arrayRemove, arrayReplace} from '@util/array';
 import {NEW_ID} from '@api/common';
 import {defer, map} from 'rxjs';
-import {booleanSignal} from '@util/ng';
+import {booleanSignal, controlValueSignal, formControl} from '@util/ng';
 import {SSE} from '@api/sse';
 import {Characters} from '@api/characters';
+import {ReactiveFormsModule} from '@angular/forms';
 
 interface PerCharacterCount {
   characterName: string
@@ -28,7 +29,8 @@ interface PerCharacterCount {
 @Component({
   selector: 'memory-list',
   imports: [
-    MemoryListItem
+    MemoryListItem,
+    ReactiveFormsModule
   ],
   templateUrl: './memory-list.html',
   styleUrls: ['./memory-list.scss'],
@@ -55,6 +57,16 @@ export class MemoryList {
   }))
 
   protected readonly memories: WritableSignal<Memory[]> = signal([])
+
+  protected readonly searchControl = formControl('')
+  protected readonly searchControlValue = controlValueSignal(this.searchControl)
+  protected readonly filteredMemories: Signal<Memory[]> = computed(() => {
+    const val = this.searchControlValue().toLowerCase()
+    const memories = this.memories()
+
+    if (val.length === 0) return memories
+    return memories.filter(m => m.content.toLowerCase().includes(val))
+  })
 
   protected readonly showCounts = booleanSignal(false)
   protected readonly counts: Signal<PerCharacterCount[]> = computed(() => {

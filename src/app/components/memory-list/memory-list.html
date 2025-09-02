@@ -73,8 +73,14 @@
       <hr/>
     }
 
+    <div class="mb-3">
+      <input type="text" class="form-control form-control-sm"
+             placeholder="Search contents"
+             [formControl]="searchControl"/>
+    </div>
+
     <div class="memory-list d-flex flex-column" [class.collapsed]="isCollapsed()">
-      @for (m of memories(); track m.id) {
+      @for (m of filteredMemories(); track m.id) {
         <memory-list-item
           [memory]="m"
           [characterId]="characterId()"
