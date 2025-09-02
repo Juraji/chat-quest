@@ -3,22 +3,32 @@
     <h5 class="card-title">Participants</h5>
 
     <div class="mb-4 grid gap-1">
-      @for (char of participants(); track char.id) {
+      @for (p of participants(); track p.characterId) {
         <div class="g-col-6">
           <scalable class="mx-auto">
-            <app-character-card [character]="char">
-              <button type="button" class="btn btn-danger"
+            <app-character-card [character]="p.characterId">
+              <button type="button" class="btn btn-outline-danger"
                       title="Remove from chat session"
-                      (click)="onRemoveParticipant(char)">
+                      (click)="onRemoveParticipant(p)">
                 <span class="bi bi-x"></span>
               </button>
-              <button type="button" class="btn btn-outline-primary"
-                      [routerLink]="['/chat/characters', char.id]">
+              <button type="button" class="btn btn-outline-secondary"
+                      title="Go to character edit"
+                      [routerLink]="['/chat/characters', p.characterId]">
                 <span class="bi bi-pencil"></span>
+              </button>
+              <button type="button" class="btn"
+                      [class.btn-outline-warning]="!p.muted"
+                      [class.btn-warning]="p.muted"
+                      title="Mute/Unmute character"
+                      (click)="onToggleMute(p)">
+                <span class="bi"
+                      [class.bi-mic]="!p.muted"
+                      [class.bi-mic-mute]="p.muted"></span>
               </button>
               <button type="button" class="btn btn-primary"
                       title="Trigger response"
-                      (click)="onTriggerResponse(char)">
+                      (click)="onTriggerResponse(p)">
                 <span class="bi bi-chat"></span>
               </button>
             </app-character-card>

@@ -14,6 +14,7 @@ type ChatParticipant struct {
 	CharacterID   int        `json:"characterId"`
 	AddedOn       *time.Time `json:"addedOn"`
 	RemovedOn     *time.Time `json:"removedOn"`
+	Muted         bool       `json:"muted"`
 }
 
 func chatParticipantScanner(scanner database.RowScanner, dest *ChatParticipant) error {
@@ -22,10 +23,20 @@ func chatParticipantScanner(scanner database.RowScanner, dest *ChatParticipant) 
 		&dest.CharacterID,
 		&dest.AddedOn,
 		&dest.RemovedOn,
+		&dest.Muted,
 	)
 }
 
-func GetCurrentParticipants(sessionId int) ([]characters.Character, error) {
+func GetAllParticipants(sessionId int) ([]ChatParticipant, error) {
+	query := `SELECT *
+			  FROM chat_participants
+			  WHERE chat_session_id = ?
+			    AND removed_on IS NULL`
+	args := []any{sessionId}
+	return database.QueryForList(query, args, chatParticipantScanner)
+}
+
+func GetAllParticipantsAsCharacters(sessionId int) ([]characters.Character, error) {
 	query := `SELECT c.* FROM chat_participants p
                 JOIN characters c ON p.character_id = c.id
             WHERE p.chat_session_id = ?
@@ -34,7 +45,7 @@ func GetCurrentParticipants(sessionId int) ([]characters.Character, error) {
 	return database.QueryForList(query, args, characters.CharacterScanner)
 }
 
-func GetParticipantsBefore(sessionId int, before time.Time) ([]characters.Character, error) {
+func GetAllParticipantsAsCharactersBefore(sessionId int, before time.Time) ([]characters.Character, error) {
 	query := `SELECT c.* FROM chat_participants p
                 JOIN characters c ON p.character_id = c.id
             WHERE p.chat_session_id = ?
@@ -44,7 +55,7 @@ func GetParticipantsBefore(sessionId int, before time.Time) ([]characters.Charac
 	return database.QueryForList(query, args, characters.CharacterScanner)
 }
 
-func GetParticipant(sessionId int, characterId int) (*ChatParticipant, error) {
+func GetParticipantAsCharacter(sessionId int, characterId int) (*ChatParticipant, error) {
 	query := `SELECT * FROM chat_participants
          	  WHERE chat_session_id = ?
          	    AND character_id = ?
@@ -75,7 +86,8 @@ func RandomParticipantId(sessionId int) (*int, error) {
             FROM chat_participants p
                 JOIN characters c ON p.character_id = c.id
             WHERE chat_session_id = ?
-			  AND removed_on IS NULL;`
+			  AND removed_on IS NULL
+			  AND muted = FALSE;`
 
 	args := []any{sessionId}
 	scanFunc := func(scanner database.RowScanner, dest *choice) error {
@@ -129,22 +141,27 @@ func RandomParticipantId(sessionId int) (*int, error) {
 	return nil, errors.New("incorrect weights")
 }
 
-func AddParticipant(sessionId int, characterId int) error {
+func AddParticipant(sessionId int, characterId int, muted bool) error {
 	participant := ChatParticipant{
 		ChatSessionID: sessionId,
 		CharacterID:   characterId,
 		AddedOn:       nil,
 		RemovedOn:     nil,
+		Muted:         muted,
 	}
 
-	query := `INSERT INTO chat_participants (chat_session_id, character_id)
-			  VALUES (?, ?)
+	query := `INSERT INTO chat_participants (chat_session_id, character_id, muted)
+			  VALUES (?, ?, ?)
 			  ON CONFLICT (chat_session_id, character_id)
-			      DO UPDATE SET removed_on = NULL
-              RETURNING added_on, removed_on; `
-	args := []any{sessionId, characterId}
+			      DO UPDATE SET removed_on = NULL,
+			                    muted = ?
+              RETURNING added_on, removed_on, muted; `
+	args := []any{sessionId, characterId, muted, muted}
 
-	err := database.InsertRecord(query, args, &participant.AddedOn, &participant.RemovedOn)
+	err := database.InsertRecord(query, args,
+		&participant.AddedOn,
+		&participant.RemovedOn,
+		&participant.Muted)
 
 	if err == nil {
 		ChatParticipantAddedSignal.EmitBG(&participant)
@@ -159,15 +176,20 @@ func RemoveParticipant(sessionId int, characterId int) error {
 		CharacterID:   characterId,
 		AddedOn:       nil,
 		RemovedOn:     nil,
+		Muted:         false,
 	}
 
 	query := `UPDATE chat_participants
-			  SET removed_on = CURRENT_TIMESTAMP
+			  SET removed_on = CURRENT_TIMESTAMP,
+			      muted = FALSE
               WHERE chat_session_id = ? AND character_id = ?
-              RETURNING added_on, removed_on;`
+              RETURNING added_on, removed_on, muted;`
 	args := []any{sessionId, characterId}
 
-	err := database.InsertRecord(query, args, &participant.AddedOn, &participant.RemovedOn)
+	err := database.InsertRecord(query, args,
+		&participant.AddedOn,
+		&participant.RemovedOn,
+		&participant.Muted)
 
 	if err == nil {
 		ChatParticipantRemovedSignal.EmitBG(&participant)

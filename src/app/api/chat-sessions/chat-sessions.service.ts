@@ -1,9 +1,8 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, throwError} from 'rxjs';
-import {ChatMessage, ChatSession} from './chat-sessions.model';
+import {ChatMessage, ChatParticipant, ChatSession} from './chat-sessions.model';
 import {isNew} from '@api/common';
-import {Character} from '@api/characters';
 
 @Injectable({
   providedIn: 'root'
@@ -39,12 +38,15 @@ export class ChatSessions {
     return this.http.delete<void>(`/worlds/${worldId}/chat-sessions/${sessionId}`)
   }
 
-  getParticipants(worldId: number, sessionId: number): Observable<Character[]> {
-    return this.http.get<Character[]>(`/worlds/${worldId}/chat-sessions/${sessionId}/participants`);
+  getParticipants(worldId: number, sessionId: number): Observable<ChatParticipant[]> {
+    return this.http.get<ChatParticipant[]>(`/worlds/${worldId}/chat-sessions/${sessionId}/participants`);
   }
 
-  addParticipant(worldId: number, sessionId: number, characterId: number): Observable<void> {
-    return this.http.post<void>(`/worlds/${worldId}/chat-sessions/${sessionId}/participants/${characterId}`, null);
+  addParticipant(worldId: number, sessionId: number, characterId: number, muted: boolean): Observable<void> {
+    return this.http.post<void>(
+      `/worlds/${worldId}/chat-sessions/${sessionId}/participants/${characterId}`,
+      null, {params: {muted}}
+    );
   }
 
   removeParticipant(worldId: number, sessionId: number, characterId: number): Observable<void> {

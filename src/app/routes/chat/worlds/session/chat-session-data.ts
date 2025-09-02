@@ -8,6 +8,7 @@ import {
   ChatMessageCreated,
   ChatMessageDeleted,
   ChatMessageUpdated,
+  ChatParticipant,
   ChatParticipantAdded,
   ChatParticipantRemoved,
   ChatSession,
@@ -15,11 +16,10 @@ import {
   ChatSessionUpdated,
   sessionEntityFilter
 } from '@api/chat-sessions';
-import {BaseCharacter, Characters} from '@api/characters';
+import {Characters} from '@api/characters';
 import {Scenario, ScenarioCreated, ScenarioDeleted, ScenarioUpdated} from '@api/scenarios';
 import {entityIdFilter} from '@api/common';
 import {arrayAdd, arrayRemove, arrayReplace} from '@util/array';
-import {map} from 'rxjs';
 import {LlmModelView} from '@api/providers';
 import {CQPreferences, PreferencesUpdated} from '@api/preferences';
 import {MemoryCreated} from '@api/memories';
@@ -41,8 +41,8 @@ export class ChatSessionData {
   readonly chatSession: WritableSignal<ChatSession> = linkedSignal(() => this._chatSession())
   readonly chatSessionId: Signal<number> = computed(() => this.chatSession().id)
 
-  private readonly _participants: Signal<BaseCharacter[]> = routeDataSignal(this.activatedRoute, 'participants')
-  readonly participants: WritableSignal<BaseCharacter[]> = linkedSignal(() => this._participants())
+  private readonly _participants: Signal<ChatParticipant[]> = routeDataSignal(this.activatedRoute, 'participants')
+  readonly participants: WritableSignal<ChatParticipant[]> = linkedSignal(() => this._participants())
 
   private readonly _messages: Signal<ChatMessage[]> = routeDataSignal(this.activatedRoute, 'messages')
   readonly messages: WritableSignal<ChatMessage[]> = linkedSignal(() => this._messages())
@@ -80,14 +80,12 @@ export class ChatSessionData {
 
     this.sse
       .on(ChatParticipantAdded, sessionEntityFilter(this.chatSessionId))
-      .pipe(map(({characterId}) => this.characters().find(({id}) => id === characterId)!))
-      .subscribe(c => this.participants
-        .update(prev => arrayAdd(prev, c)))
+      .subscribe(p => this.participants
+        .update(prev => arrayReplace(prev, p, (op) => op.characterId === p.characterId)));
     this.sse
       .on(ChatParticipantRemoved, sessionEntityFilter(this.chatSessionId))
-      .pipe(map(({characterId}) => characterId))
-      .subscribe(characterId => this.participants
-        .update(prev => arrayRemove(prev, ({id}) => id === characterId)))
+      .subscribe(p => this.participants
+        .update(prev => arrayRemove(prev, ({characterId}) => characterId === p.characterId)))
 
     this.sse
       .on(ChatMessageCreated, sessionEntityFilter(this.chatSessionId))

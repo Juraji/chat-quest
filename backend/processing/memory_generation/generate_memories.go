@@ -184,7 +184,7 @@ func generateAndExtractMemories(
 	}
 
 	lastTimestampInWindow := *messageWindow[len(messageWindow)-1].CreatedAt
-	participants, err := cs.GetParticipantsBefore(session.ID, lastTimestampInWindow)
+	participants, err := cs.GetAllParticipantsAsCharactersBefore(session.ID, lastTimestampInWindow)
 	if err != nil {
 		logger.Error("Error fetching participants", zap.Error(err))
 		return nil, false

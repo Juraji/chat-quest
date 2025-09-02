@@ -1,9 +1,8 @@
 import {ResolveFn} from '@angular/router';
 import {ChatSessions} from '@api/chat-sessions/chat-sessions.service';
-import {ChatMessage, ChatSession} from '@api/chat-sessions/chat-sessions.model';
+import {ChatMessage, ChatParticipant, ChatSession} from '@api/chat-sessions/chat-sessions.model';
 import {inject} from '@angular/core';
 import {paramAsId, resolveNewOrExisting} from '@util/ng';
-import {Character} from '@api/characters';
 
 export function chatSessionsResolverFactory(worldIdParam: string): ResolveFn<ChatSession[]> {
   return route => {
@@ -25,7 +24,7 @@ export function chatSessionResolverFactory(worldIdParam: string, sessionIdParam:
   }
 }
 
-export function chatParticipantsResolverFactory(worldIdParam: string, sessionIdParam: string): ResolveFn<Character[]> {
+export function chatParticipantsResolverFactory(worldIdParam: string, sessionIdParam: string): ResolveFn<ChatParticipant[]> {
   return route => {
     const service = inject(ChatSessions)
     const worldId = paramAsId(route, worldIdParam)

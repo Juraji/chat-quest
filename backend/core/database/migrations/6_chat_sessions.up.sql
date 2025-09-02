@@ -16,6 +16,7 @@ create table chat_participants
   character_id    INTEGER                             NOT NULL REFERENCES characters ON DELETE CASCADE,
   added_on        TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
   removed_on      TIMESTAMP DEFAULT NULL,
+  muted BIT(1) NOT NULL,
   constraint chat_participants_pk primary key (chat_session_id, character_id)
 );
 

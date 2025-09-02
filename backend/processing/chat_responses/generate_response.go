@@ -626,7 +626,7 @@ func getTemplatedParticipants(session *cs.ChatSession, responderId int) chan *ch
 
 	go func(sessionId int) {
 		defer close(resultChan)
-		allParticipants, err := cs.GetCurrentParticipants(sessionId)
+		allParticipants, err := cs.GetAllParticipantsAsCharacters(sessionId)
 		if err != nil {
 			resultChan <- channels.NewErrPairResult[*c.Character, []c.Character](err)
 			return

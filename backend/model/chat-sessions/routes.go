@@ -3,6 +3,7 @@ package chat_sessions
 import (
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/core/util/controllers"
+	"strings"
 )
 
 func Routes(router *gin.RouterGroup) {
@@ -170,7 +171,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		participants, err := GetCurrentParticipants(sessionId)
+		participants, err := GetAllParticipants(sessionId)
 		controllers.RespondList(c, participants, err)
 	})
 
@@ -186,7 +187,9 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		err := AddParticipant(sessionId, characterId)
+		muted := strings.ToLower(c.Query("muted")) == "true"
+
+		err := AddParticipant(sessionId, characterId, muted)
 		controllers.RespondEmpty(c, err)
 	})
 
@@ -218,7 +221,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		participant, err := GetParticipant(sessionId, characterId)
+		participant, err := GetParticipantAsCharacter(sessionId, characterId)
 		if err != nil {
 			controllers.RespondBadRequest(c, "Character is not a participant", err)
 			return

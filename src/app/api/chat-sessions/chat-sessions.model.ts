@@ -26,6 +26,9 @@ export interface ChatMessage extends ChatQuestModel {
 export interface ChatParticipant {
   chatSessionId: number
   characterId: number
+  addedOn: string
+  removedOn: Nullable<string>
+  muted: boolean
 }
 
 export const ChatSessionCreated: SseEvent<ChatSession> = 'ChatSessionCreated'

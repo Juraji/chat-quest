@@ -31,7 +31,7 @@ func CreateChatSessionGreetings(
 		return
 	}
 
-	participants, err := sessions.GetCurrentParticipants(sessionID)
+	participants, err := sessions.GetAllParticipantsAsCharacters(sessionID)
 	if err != nil {
 		logger.Error("Error getting participants", zap.Error(err))
 		return
