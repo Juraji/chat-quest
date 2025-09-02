@@ -12,6 +12,7 @@
 {{end}}
 <Characters>
   <Character>
+    <!-- This is the character you are currently impersonating. -->
     <Id>{{.Character.ID}}</Id>
     <Name>{{.Character.Name}}</Name>
     {{if .Character.Appearance}}
@@ -49,6 +50,7 @@
   {{if .OtherParticipants}}
     {{range $c := .OtherParticipants}}
       <Character>
+        <!-- This is a participant in the chat, but you should not impersonate this character. -->
         <Id>{{$c.ID}}</Id>
         <Name>{{$c.Name}}</Name>
         {{if $c.Appearance}}
