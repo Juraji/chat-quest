@@ -89,8 +89,8 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 				RemovedOn:     nil,
 			}
 
-			query = `INSERT INTO chat_participants (chat_session_id, character_id)
-					 VALUES (?, ?)
+			query = `INSERT INTO chat_participants (chat_session_id, character_id, muted)
+					 VALUES (?, ?, FALSE)
 					 RETURNING added_on`
 			args = []any{sessionId, characterId}
 			err = ctx.InsertRecord(query, args, &participant.AddedOn)
