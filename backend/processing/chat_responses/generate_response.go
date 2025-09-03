@@ -137,6 +137,11 @@ func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.Ch
 		logger.Error("Error fetching chat history", zap.Error(err))
 		return
 	}
+	// Remove the last message from the history, if it is the equal to the trigger message.
+	// Which it most likely is, but let's be sure
+	if len(chatHistory) != 0 && chatHistory[0].ID == triggerMessage.ID {
+		chatHistory = chatHistory[:len(chatHistory)-1]
+	}
 
 	logger = logger.With(
 		zap.Intp("responderId", responderId))
@@ -522,7 +527,7 @@ func getMemories(
 	triggerMessage *cs.ChatMessage,
 ) chan *channels.Result[[]m.Memory] {
 	memoriesChan := make(chan *channels.Result[[]m.Memory])
-	const batchSize = 10
+	const batchSize = 20
 
 	go func() {
 		defer close(memoriesChan)
@@ -533,18 +538,24 @@ func getMemories(
 			return
 		}
 
-		// Determine subject (what should be remember)
+		// Determine subject, based on the last n message and the trigger message.
 		var subject string
+		if len(history) > 0 {
+			end := len(history)
+			start := end - prefs.MemoryWindowSize
+			if start < 0 {
+				start = 0
+			}
+
+			for i := start; i < end; i++ {
+				subject += history[i].Content + " "
+			}
+		}
 		if triggerMessage != nil {
-			subject = triggerMessage.Content
-		} else if len(history) > 0 {
-			subject = history[len(history)-1].Content
-		} else {
-			// No topic message, skip memories
-			memoriesChan <- channels.NewResult([]m.Memory{}, nil)
-			return
+			subject += triggerMessage.Content
 		}
 
+		// Get memories for responder
 		memories, err := m.GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 			session.WorldID, responderId, *prefs.EmbeddingModelId)
 		if err != nil {
@@ -557,7 +568,7 @@ func getMemories(
 			return
 		}
 
-		// Embed subject
+		// Embed subject text
 		embeddingModelInst, err := p.GetLlmModelInstanceById(*prefs.EmbeddingModelId)
 		if err != nil {
 			memoriesChan <- channels.NewResult([]m.Memory{}, err)

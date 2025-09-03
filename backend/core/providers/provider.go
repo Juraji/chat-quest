@@ -70,7 +70,7 @@ func cleanTextForEmbedding(text string) string {
 		}
 	}
 
-	return builder.String()
+	return strings.TrimSpace(builder.String())
 }
 
 // GetAvailableModels retrieves the list of available models for a given connection profile.
