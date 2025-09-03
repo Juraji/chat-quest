@@ -160,6 +160,22 @@ func Routes(router *gin.RouterGroup) {
 		controllers.RespondEmpty(c, err)
 	})
 
+	sessionRouter.POST("/:sessionId/chat-messages/:messageId/fork", func(c *gin.Context) {
+		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
+			return
+		}
+		messageId, ok := controllers.GetParamAsID(c, "messageId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid chat message ID", nil)
+			return
+		}
+
+		session, err := ForkChatSession(sessionId, messageId)
+		controllers.RespondSingle(c, session, err)
+	})
+
 	sessionRouter.GET("/:sessionId/participants", func(c *gin.Context) {
 		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
 		if !ok {

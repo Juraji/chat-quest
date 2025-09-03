@@ -8,6 +8,7 @@ import {booleanSignal, BooleanSignal, formControl, formGroup} from '@util/ng';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Memories} from '@api/memories';
 import {mergeMap} from 'rxjs';
+import {ActivatedRoute, Router} from '@angular/router';
 
 type MessageFormGroup = Pick<ChatMessage, 'content'>
 
@@ -24,6 +25,8 @@ type MessageFormGroup = Pick<ChatMessage, 'content'>
   }
 })
 export class ChatSessionMessage {
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly sessionData = inject(ChatSessionData)
   private readonly chatSessions = inject(ChatSessions)
   private readonly memories = inject(Memories)
@@ -118,7 +121,18 @@ Note that this and all subsequent messages will be deleted and this action can n
       .subscribe()
   }
 
-  onBranchChat() {
+  onForkChat() {
+    const worldId = this.worldId()
+    const {id, chatSessionId} = this.message();
 
+    this.chatSessions
+      .forkChatSession(worldId, chatSessionId, id)
+      .subscribe(session => {
+        this.notifications.toast('Chat session forked!');
+        this.router.navigate(
+          ['..', session.id],
+          {relativeTo: this.activatedRoute}
+        );
+      });
   }
 }

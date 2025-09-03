@@ -131,3 +131,57 @@ func DeleteChatMessagesFrom(sessionId int, id int) error {
 
 	return err
 }
+
+func ForkChatSession(sessionId int, messageId int) (*ChatSession, error) {
+	var newSession *ChatSession
+
+	txErr := database.Transactional(func(ctx *database.TxContext) error {
+		// Copy chat session
+		var err error
+		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, generate_memories, use_memories, pause_automatic_responses)
+				  SELECT world_id,
+				         name || ' (copy)',
+				         scenario_id,
+				         generate_memories,
+				         use_memories,
+				         pause_automatic_responses
+				  FROM chat_sessions
+				  WHERE id = ?
+				  RETURNING id, world_id, created_at, name, scenario_id, generate_memories, use_memories, pause_automatic_responses;`
+		args := []any{sessionId}
+		if newSession, err = database.QueryForRecord(query, args, chatSessionScanner); err != nil {
+			return err
+		}
+
+		newSessionId := newSession.ID
+
+		// Copy participants
+		query = `INSERT INTO chat_participants (chat_session_id, character_id, added_on, removed_on, muted)
+				 SELECT ?, character_id, added_on, removed_on, muted
+				 FROM chat_participants
+				 WHERE chat_session_id = ?`
+		args = []any{newSessionId, sessionId}
+		if err = database.UpdateRecord(query, args); err != nil {
+			return err
+		}
+
+		// Copy messages up to messageId
+		query = `INSERT INTO chat_messages (chat_session_id, created_at, is_user, is_generating, is_archived, character_id, content)
+				 SELECT ?, created_at, is_user, is_generating, is_archived, character_id, content
+				 FROM chat_messages
+				 WHERE chat_session_id = ? AND id <= ?;`
+		args = []any{newSessionId, sessionId, messageId}
+		if err = database.UpdateRecord(query, args); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if txErr != nil {
+		return nil, txErr
+	}
+
+	ChatSessionCreatedSignal.EmitBG(newSession)
+	return newSession, nil
+}

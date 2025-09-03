@@ -64,4 +64,8 @@ export class ChatSessions {
   deleteMessage(worldId: number, sessionId: number, messageId: number): Observable<void> {
     return this.http.delete<void>(`/worlds/${worldId}/chat-sessions/${sessionId}/chat-messages/${messageId}`)
   }
+
+  forkChatSession(worldId: number, sessionId: number, messageId: number): Observable<ChatSession> {
+    return this.http.post<ChatSession>(`/worlds/${worldId}/chat-sessions/${sessionId}/chat-messages/${messageId}/fork`, null)
+  }
 }
