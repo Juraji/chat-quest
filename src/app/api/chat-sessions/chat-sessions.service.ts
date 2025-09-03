@@ -1,6 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Observable, throwError} from 'rxjs';
+import {Observable} from 'rxjs';
 import {ChatMessage, ChatParticipant, ChatSession} from './chat-sessions.model';
 import {isNew} from '@api/common';
 
@@ -18,17 +18,9 @@ export class ChatSessions {
     return this.http.get<ChatSession>(`/worlds/${worldId}/chat-sessions/${sessionId}`)
   }
 
-  create(worldId: number, session: ChatSession, characterIds: number[]): Observable<ChatSession> {
-    return this.http.post<ChatSession>(
-      `/worlds/${worldId}/chat-sessions`,
-      session,
-      {params: {characterId: characterIds}}
-    )
-  }
-
   save(worldId: number, session: ChatSession): Observable<ChatSession> {
     if (isNew(session)) {
-      return throwError(() => 'Create sessions using create()');
+      return this.http.post<ChatSession>(`/worlds/${worldId}/chat-sessions`, session)
     } else {
       return this.http.put<ChatSession>(`/worlds/${worldId}/chat-sessions/${session.id}`, session)
     }

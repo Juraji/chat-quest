@@ -43,11 +43,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		characterIds, ok := controllers.GetQueryParamsAsIDs(c, "characterId")
-		if !ok {
-			controllers.RespondBadRequest(c, "invalid characterId in query", nil)
-			return
-		}
+		characterIds, _ := controllers.GetQueryParamsAsIDs(c, "characterId")
 
 		var session ChatSession
 		if err := c.ShouldBindJSON(&session); err != nil {

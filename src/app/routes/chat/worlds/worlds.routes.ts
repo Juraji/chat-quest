@@ -1,7 +1,7 @@
 import {Routes} from '@angular/router';
 import {WorldsOverviewPage} from './overview/worlds-overview-page';
 import {worldResolverFactory, worldsResolver} from '@api/worlds';
-import {ChatSessionPage, newChatSessionGuard, validatePreferencesGuard} from './session';
+import {ChatSessionPage, validatePreferencesGuard} from './session';
 import {
   chatMessagesResolverFactory,
   chatParticipantsResolverFactory,
@@ -25,7 +25,6 @@ const routes: Routes = [
     component: ChatSessionPage,
     canActivate: [
       validatePreferencesGuard,
-      newChatSessionGuard
     ],
     resolve: {
       world: worldResolverFactory('worldId'),

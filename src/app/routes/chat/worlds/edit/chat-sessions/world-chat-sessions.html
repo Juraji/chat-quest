@@ -1,8 +1,8 @@
+<div class="btn-toolbar justify-content-end mb-3">
+  <button type="button" class="btn btn-primary" (click)="onNewChatSession()">New Session</button>
+</div>
 <div class="chat-sessions">
   @for (s of chatSessions(); track s.id) {
     <chat-session-record class="d-block mb-3" [chatSession]="s"/>
   }
-</div>
-<div class="new-chat-session-wrapper mb-3">
-  <new-chat-session-form/>
 </div>
