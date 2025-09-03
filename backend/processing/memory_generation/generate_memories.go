@@ -110,8 +110,6 @@ func GenerateMemories(
 		return
 	}
 
-	logger.Info("Generating memories...")
-
 	session, err := cs.GetById(sessionID)
 	if err != nil {
 		logger.Error("Error getting session", zap.Error(err))
@@ -121,6 +119,8 @@ func GenerateMemories(
 		// Memories are disabled for this session
 		return
 	}
+
+	logger.Info("Generating memories...")
 
 	prefs, err := preferences.GetPreferences(true)
 	if err != nil {
