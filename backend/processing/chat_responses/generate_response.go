@@ -524,14 +524,14 @@ func getMemories(
 	memoriesChan := make(chan *channels.Result[[]m.Memory])
 	const batchSize = 10
 
-	if !session.UseMemories {
-		// Memories are disabled, skip
-		memoriesChan <- channels.NewResult([]m.Memory{}, nil)
-		return memoriesChan
-	}
-
 	go func() {
 		defer close(memoriesChan)
+
+		if !session.UseMemories {
+			// Memories are disabled, skip
+			memoriesChan <- channels.NewResult([]m.Memory{}, nil)
+			return
+		}
 
 		// Determine subject (what should be remember)
 		var subject string
