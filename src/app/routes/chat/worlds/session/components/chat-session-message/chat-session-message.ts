@@ -7,6 +7,7 @@ import {ChatSessionData} from '../../chat-session-data';
 import {booleanSignal, BooleanSignal, formControl, formGroup} from '@util/ng';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Memories} from '@api/memories';
+import {mergeMap} from 'rxjs';
 
 type MessageFormGroup = Pick<ChatMessage, 'content'>
 
@@ -60,7 +61,7 @@ export class ChatSessionMessage {
   }
 
   onDeleteMessage() {
-    const doDelete = confirm(`Are you sure you want to delete the message?
+    const doDelete = confirm(`Are you sure you want to delete this message?
 Note that this and all subsequent messages will be deleted and this action can not be undone.`);
 
     if (doDelete) {
@@ -96,11 +97,28 @@ Note that this and all subsequent messages will be deleted and this action can n
   onGenerateMemory() {
     const worldId = this.worldId();
     const {id, content} = this.message();
-    const contentPreview = content.substring(0, 10) + '...'
+    const contentPreview = content.substring(0, 50)
 
-    this.notifications.toast(`Requesting memory generation for <span class="text-info">${contentPreview}</span>...`);
+    this.notifications.toast(`Requesting memory generation for "<span class="text-info">${contentPreview}</span>"...`);
     this.memories
       .generateMemoriesForMessage(worldId, id)
       .subscribe(() => this.notifications.toast('Memory generation completed!'))
+  }
+
+  onRegenerateMessage() {
+    const doRegen = confirm(`Are you sure you want to regenerate this message? This will delete all messages after this one.`)
+    if (!doRegen) return
+    const worldId = this.worldId()
+    const {id, chatSessionId, characterId} = this.message();
+
+    this.chatSessions
+      .deleteMessage(worldId, chatSessionId, id)
+      .pipe(mergeMap(() => this.chatSessions
+        .triggerParticipantResponse(worldId, chatSessionId, characterId!)))
+      .subscribe()
+  }
+
+  onBranchChat() {
+
   }
 }

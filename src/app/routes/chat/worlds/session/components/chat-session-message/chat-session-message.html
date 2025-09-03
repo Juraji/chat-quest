@@ -28,10 +28,22 @@
             <span class="bi bi-archive p-1"
                   title="This message is archived and will not be used in the context"></span>
           }
+          @if (!isUser()) {
+            <button type="button" class="btn btn-sm btn-secondary"
+                    title="Regenerate this message"
+                    (click)="onRegenerateMessage()">
+              <span class="bi bi-arrow-repeat"></span>
+            </button>
+          }
           <button type="button" class="btn btn-sm btn-secondary"
                   title="Generate a memory from this message"
                   (click)="onGenerateMemory()">
             <span class="bi bi-bookmark-heart"></span>
+          </button>
+          <button type="button" class="btn btn-sm btn-secondary"
+                  title="Branch into a new chat"
+                  (click)="onBranchChat()">
+            <span class="bi bi-box-arrow-down-right"></span>
           </button>
           <button type="button" class="btn btn-sm btn-secondary"
                   (click)="editMessage.toggle()"

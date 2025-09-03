@@ -83,12 +83,14 @@ func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.C
 		return
 	}
 
-	lastMessage := chatHistory[len(chatHistory)-1]
 	var triggerMessage *cs.ChatMessage
-	// If the last message is from the user, simulate a message trigger
-	if lastMessage.IsUser {
-		triggerMessage = &lastMessage
-		chatHistory = chatHistory[:len(chatHistory)-1]
+	if len(chatHistory) > 0 {
+		lastMessage := chatHistory[len(chatHistory)-1]
+		// If the last message is from the user, simulate a message trigger
+		if lastMessage.IsUser {
+			triggerMessage = &lastMessage
+			chatHistory = chatHistory[:len(chatHistory)-1]
+		}
 	}
 
 	generateResponse(ctx, logger, session, responderId, chatHistory, triggerMessage)
