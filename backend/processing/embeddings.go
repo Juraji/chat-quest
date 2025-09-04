@@ -1,4 +1,4 @@
-package memory_generation
+package processing
 
 import (
 	"context"

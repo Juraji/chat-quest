@@ -1,8 +1,7 @@
-package chat_responses
+package processing
 
 import (
 	"context"
-	"fmt"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
@@ -19,38 +18,6 @@ import (
 	"strings"
 	"sync"
 )
-
-const (
-	CharIdPrefix     = "<ByCharacterId>"
-	CharIdPrefixInit = "<"
-	CharIdSuffix     = "</ByCharacterId>\n\n"
-)
-
-type characterTemplateVars struct {
-	Character *c.Character
-}
-
-type instructionTemplateVars struct {
-	MessageIndex         int
-	Message              string
-	IsTriggeredByMessage bool
-
-	// Responding character info
-	Character        *c.Character
-	DialogueExamples []string
-
-	// Persona
-	Persona *c.Character
-
-	// Session details
-	IsSingleCharacter   bool
-	OtherParticipants   []c.Character
-	WorldDescription    string
-	ScenarioDescription string
-
-	// Memories
-	Memories []m.Memory
-}
 
 func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.ChatParticipant) {
 	if participant == nil {
@@ -278,34 +245,6 @@ func callLlmAndProcessResponse(ctx context.Context, logger *zap.Logger, sessionI
 	}
 }
 
-func createChatRequestMessages(
-	chatHistory []cs.ChatMessage,
-	instruction *inst.InstructionTemplate,
-) []p.ChatRequestMessage {
-	// Pre-allocate messages with history len + max number of messages added here
-	messages := make([]p.ChatRequestMessage, 0, len(chatHistory)+3)
-
-	// Add system and world setup messages
-	messages = append(messages,
-		p.ChatRequestMessage{Role: p.RoleSystem, Content: instruction.SystemPrompt},
-		p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.WorldSetup},
-	)
-
-	// Add chat history
-	for _, msg := range chatHistory {
-		if msg.IsUser {
-			messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: msg.Content})
-		} else {
-			content := fmt.Sprintf("%s%v%s%s", CharIdPrefix, *msg.CharacterID, CharIdSuffix, msg.Content)
-			messages = append(messages, p.ChatRequestMessage{Role: p.RoleAssistant, Content: content})
-		}
-	}
-
-	// Add user instruction message
-	messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.Instruction})
-	return messages
-}
-
 func createChatInstruction(
 	logger *zap.Logger,
 	session *cs.ChatSession,
@@ -367,7 +306,7 @@ func createChatInstruction(
 		messageContent = ""
 	}
 
-	instructionVars := instructionTemplateVars{
+	instructionVars := responseInstructionVars{
 		MessageIndex:         len(history),
 		Message:              messageContent,
 		IsTriggeredByMessage: triggerMessage != nil,
@@ -699,13 +638,4 @@ func applyCharacterTemplates(char *c.Character) error {
 	}
 
 	return nil
-}
-
-func contextCheckPoint(ctx context.Context, logger *zap.Logger) bool {
-	if ctx.Err() != nil {
-		logger.Error("Cancelled by context")
-		return true
-	}
-
-	return false
 }

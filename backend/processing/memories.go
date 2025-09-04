@@ -1,13 +1,11 @@
-package memory_generation
+package processing
 
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	p "juraji.nl/chat-quest/core/providers"
-	c "juraji.nl/chat-quest/model/characters"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	i "juraji.nl/chat-quest/model/instructions"
 	m "juraji.nl/chat-quest/model/memories"
@@ -15,10 +13,6 @@ import (
 	"strings"
 	"sync"
 )
-
-type instructionTemplateVars struct {
-	Participants []c.Character
-}
 
 var generationMutex sync.Mutex
 
@@ -190,7 +184,7 @@ func generateAndExtractMemories(
 		return nil, false
 	}
 
-	templateVars := instructionTemplateVars{
+	templateVars := memoryInstructionVars{
 		Participants: participants,
 	}
 
@@ -233,34 +227,6 @@ func generateAndExtractMemories(
 
 	logger.Debug("Memories generated successfully", zap.Int("memoryCount", len(memories)))
 	return memories, true
-}
-
-func createChatRequestMessages(
-	chatMessages []cs.ChatMessage,
-	instruction *i.InstructionTemplate,
-) []p.ChatRequestMessage {
-	// Pre-allocate messages with history len + max number of messages added here
-	messages := make([]p.ChatRequestMessage, 0, len(chatMessages)+3)
-
-	// Add system and world setup messages
-	messages = append(messages,
-		p.ChatRequestMessage{Role: p.RoleSystem, Content: instruction.SystemPrompt},
-		p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.WorldSetup},
-	)
-
-	// Add chat history
-	for _, msg := range chatMessages {
-		if msg.IsUser {
-			messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: msg.Content})
-		} else {
-			content := fmt.Sprintf("<ByCharacterId>%v</ByCharacterId>\n\n%s", *msg.CharacterID, msg.Content)
-			messages = append(messages, p.ChatRequestMessage{Role: p.RoleAssistant, Content: content})
-		}
-	}
-
-	// Add user instruction message
-	messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.Instruction})
-	return messages
 }
 
 func callLlm(
@@ -314,13 +280,4 @@ func getMessageWindow(logger *zap.Logger, prefs *preferences.Preferences, sessio
 	}
 
 	return messages[:windowSize], nil
-}
-
-func contextCheckPoint(ctx context.Context, logger *zap.Logger) bool {
-	if ctx.Err() != nil {
-		logger.Error("Cancelled by context")
-		return true
-	}
-
-	return false
 }
