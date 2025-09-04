@@ -1,6 +1,10 @@
 import {ChatQuestModel} from '@api/common';
 
 export type ProviderType = "OPEN_AI"
+export type LlmModelType =
+  "UNKNOWN" |
+  "CHAT_MODEL" |
+  "EMBEDDING_MODEL"
 
 export interface ConnectionProfile extends ChatQuestModel {
   name: string;
@@ -12,11 +16,7 @@ export interface ConnectionProfile extends ChatQuestModel {
 export interface LlmModel extends ChatQuestModel {
   profileId: number
   modelId: string
-  temperature: number
-  maxTokens: number
-  topP: number
-  stream: boolean
-  stopSequences: string
+  modelType: LlmModelType
   disabled: boolean
 }
 

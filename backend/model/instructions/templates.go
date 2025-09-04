@@ -5,7 +5,7 @@ import (
 	"juraji.nl/chat-quest/core/util"
 )
 
-func ApplyInstructionTemplates(instruction InstructionTemplate, variables any) (*InstructionTemplate, error) {
+func ApplyInstructionTemplates(instruction Instruction, variables any) (*Instruction, error) {
 	fields := []*string{
 		&instruction.SystemPrompt,
 		&instruction.WorldSetup,

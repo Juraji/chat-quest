@@ -46,15 +46,15 @@
                       id="typeInput"
                       aria-describedby="typeInputHelp"
                       formControlName="type">
-                <option value="CHAT">CHAT</option>
-                <option value="MEMORIES">MEMORIES</option>
+                <option value="CHAT">Chat</option>
+                <option value="MEMORIES">Memories</option>
               </select>
               <div id="typeInputHelp" class="form-text">
                 Makes this template available under specific conditions.
               </div>
             </div>
 
-            <div class="g-col-12 g-col-xl-6">
+            <div class="mb-3">
               <label for="temperatureInput">Temperature</label>
               <input type="number" class="form-control"
                      step="0.01"
@@ -68,116 +68,200 @@ Higher numbers (> 1.0) will increase creativity but decrease accuracy.">
                 <span class="bi bi-question-circle ms-1"></span>
               </div>
             </div>
+
+            <div class="mb-3">
+              <label for="maxTokensInput">Max Tokens</label>
+              <input type="number" class="form-control"
+                     step="1"
+                     id="maxTokensInput"
+                     aria-describedby="maxTokensInputHelp"
+                     formControlName="maxTokens"/>
+              <div id="maxTokensInputHelp" class="form-text"
+                   title="Note that this is a hard limit, not a model instruction.">
+                <span>Set the maximum amount of tokens the model may output per invocation</span>
+                <span class="bi bi-question-circle ms-1"></span>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="topPInput">Top P</label>
+              <input type="number" class="form-control"
+                     step="0.01"
+                     id="topPInput"
+                     aria-describedby="topPInputHelp"
+                     formControlName="topP"/>
+              <div id="topPInputHelp" class="form-text"
+                   title="Helps the AI choose from a range of possible responses by considering only the most probable
+options that add up to a probability of 'P', making the output more diverse yet coherent.">
+                <span>Diversity</span>
+                <span class="bi bi-question-circle ms-1"></span>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="streamInput"
+                       formControlName="stream"/>
+                <label class="form-check-label" for="streamInput"
+                       title="Enable streaming responses; Instead of generating the response and displaying it,
+the response will appear in chunks, like you see on popular chat platforms.">
+                  <span>Stream</span>
+                  <span class="bi bi-question-circle ms-1 form-text"></span>
+                </label>
+              </div>
+            </div>
+            <div class="g-col-12">
+              <label for="stopTokensInput">Stop sequences</label>
+              <input type="number" class="form-control"
+                     step="0.01"
+                     id="stopTokensInput"
+                     aria-describedby="stopTokensInputHelp"
+                     formControlName="stopSequences"/>
+              <div id="stopTokensInputHelp" class="form-text"
+                   title="Words or phrases (comma-separated) that make the AI stop responding.
+Example: '###,word' stops at '###' and 'word'.">
+                <span>Halts generation when encountered</span>
+                <span class="bi bi-question-circle ms-1"></span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="g-col-12 g-col-md-6 g-col-lg-8">
-        <div class="card mb-3">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h5 class="card-title mb-0">System Prompt</h5>
-              <button type="button" class="btn btn-sm" (click)="editSystemPrompt.toggle()">
-                @if (editSystemPrompt()) {
-                  <span class="bi bi-x"></span>
-                } @else {
-                  <span class="bi bi-pencil"></span>
-                }
-              </button>
-            </div>
+        <ul class="nav nav-underline mb-3">
+          <li class="nav-item">
+            <button type="button" class="nav-link"
+                    [class.active]="selectedTab() == 0"
+                    (click)="selectedTab.set(0)">
+              <span>System Prompt</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button type="button" class="nav-link"
+                    [class.active]="selectedTab() == 1"
+                    (click)="selectedTab.set(1)">
+              <span>World Setup</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button type="button" class="nav-link"
+                    [class.active]="selectedTab() == 2"
+                    (click)="selectedTab.set(2)">
+              <span>Instruction</span>
+            </button>
+          </li>
+        </ul>
 
-            @if (editSystemPrompt()) {
-              <div>
+        @switch (selectedTab()) {
+          @case (0) {
+            <div class="card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h5 class="card-title mb-0">System Prompt</h5>
+                  <button type="button" class="btn btn-sm" (click)="editSystemPrompt.toggle()">
+                    @if (editSystemPrompt()) {
+                      <span class="bi bi-x"></span>
+                    } @else {
+                      <span class="bi bi-pencil"></span>
+                    }
+                  </button>
+                </div>
+
+                @if (editSystemPrompt()) {
+                  <div>
                 <textarea type="text" class="form-control" rows="15"
                           id="systemPromptInput"
                           aria-describedby="systemPromptInputHelp"
                           formControlName="systemPrompt"></textarea>
-                <div id="systemPromptInputHelp" class="form-text">
-                  The rules of the system. Describe how the LLM should generate responses.
-                </div>
-              </div>
-            } @else if (!!systemPromptValue()) {
-              @let systemPrompt = systemPromptValue();
-              <app-rendered-message [message]="systemPrompt" [renderOptions]="{enableMD: true}"></app-rendered-message>
-              <app-token-count class="mt-2 float-end" [text]="systemPrompt"></app-token-count>
-            } @else {
-              <p class="form-text mb-0">
-                No system prompt defined.
-              </p>
-            }
-          </div>
-        </div>
-
-        <div class="card mb-3">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h5 class="card-title mb-0">World Setup</h5>
-              <button type="button" class="btn btn-sm" (click)="editWorldSetup.toggle()">
-                @if (editWorldSetup()) {
-                  <span class="bi bi-x"></span>
+                    <div id="systemPromptInputHelp" class="form-text">
+                      The rules of the system. Describe how the LLM should generate responses.
+                    </div>
+                  </div>
+                } @else if (!!systemPromptValue()) {
+                  @let systemPrompt = systemPromptValue();
+                  <app-rendered-message [message]="systemPrompt"
+                                        [renderOptions]="{enableMD: true}"></app-rendered-message>
                 } @else {
-                  <span class="bi bi-pencil"></span>
+                  <p class="form-text mb-0">
+                    No system prompt defined.
+                  </p>
                 }
-              </button>
+              </div>
             </div>
+          }
+          @case (1) {
+            <div class="card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h5 class="card-title mb-0">World Setup</h5>
+                  <button type="button" class="btn btn-sm" (click)="editWorldSetup.toggle()">
+                    @if (editWorldSetup()) {
+                      <span class="bi bi-x"></span>
+                    } @else {
+                      <span class="bi bi-pencil"></span>
+                    }
+                  </button>
+                </div>
 
-            @if (editWorldSetup()) {
-              <div>
+                @if (editWorldSetup()) {
+                  <div>
                 <textarea type="text" class="form-control" rows="15"
                           id="worldSetupInput"
                           aria-describedby="worldSetupInputHelp"
                           formControlName="worldSetup"></textarea>
-                <div id="worldSetupInputHelp" class="form-text">
-                  Used when creating a new chat session. Set up the world, scenario etc.
-                </div>
-              </div>
-            } @else if (!!worldSetupValue()) {
-              @let worldSetup = worldSetupValue();
-              <app-rendered-message [message]="worldSetup" [renderOptions]="{enableMD: true}"></app-rendered-message>
-              <app-token-count class="mt-2 float-end" [text]="worldSetup"></app-token-count>
-            } @else {
-              <p class="form-text mb-0">
-                No world setup defined.
-              </p>
-            }
-          </div>
-        </div>
-
-        <div class="card mb-3">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h5 class="card-title mb-0">Instruction</h5>
-              <button type="button" class="btn btn-sm" (click)="editInstruction.toggle()">
-                @if (editInstruction()) {
-                  <span class="bi bi-x"></span>
+                    <div id="worldSetupInputHelp" class="form-text">
+                      Used when creating a new chat session. Set up the world, scenario etc.
+                    </div>
+                  </div>
+                } @else if (!!worldSetupValue()) {
+                  @let worldSetup = worldSetupValue();
+                  <app-rendered-message [message]="worldSetup"
+                                        [renderOptions]="{enableMD: true}"></app-rendered-message>
                 } @else {
-                  <span class="bi bi-pencil"></span>
+                  <p class="form-text mb-0">
+                    No world setup defined.
+                  </p>
                 }
-              </button>
+              </div>
             </div>
+          }
+          @case (2) {
+            <div class="card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h5 class="card-title mb-0">Instruction</h5>
+                  <button type="button" class="btn btn-sm" (click)="editInstruction.toggle()">
+                    @if (editInstruction()) {
+                      <span class="bi bi-x"></span>
+                    } @else {
+                      <span class="bi bi-pencil"></span>
+                    }
+                  </button>
+                </div>
 
-            @if (editInstruction()) {
-              <div>
+                @if (editInstruction()) {
+                  <div>
                 <textarea type="text" class="form-control" rows="15"
                           id="instructionInput"
                           aria-describedby="instructionInputHelp"
                           formControlName="instruction"></textarea>
-                <div id="instructionInputHelp" class="form-text">
-                  The final instruction for the LLM, appended to the user message to instruct the LLM on what to do
-                  next.
-                </div>
+                    <div id="instructionInputHelp" class="form-text">
+                      The final instruction for the LLM, appended to the user message to instruct the LLM on what to do
+                      next.
+                    </div>
+                  </div>
+                } @else if (!!instructionValue()) {
+                  @let systemPrompt = instructionValue();
+                  <app-rendered-message [message]="systemPrompt"
+                                        [renderOptions]="{enableMD: true}"></app-rendered-message>
+                } @else {
+                  <p class="form-text mb-0">
+                    No instruction defined.
+                  </p>
+                }
               </div>
-            } @else if (!!instructionValue()) {
-              @let systemPrompt = instructionValue();
-              <app-rendered-message [message]="systemPrompt" [renderOptions]="{enableMD: true}"></app-rendered-message>
-              <app-token-count class="mt-2 float-end" [text]="systemPrompt"></app-token-count>
-            } @else {
-              <p class="form-text mb-0">
-                No instruction defined.
-              </p>
-            }
-          </div>
-        </div>
+            </div>
+          }
+        }
       </div>
     </div>
   </div>

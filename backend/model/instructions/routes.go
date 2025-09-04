@@ -6,14 +6,14 @@ import (
 )
 
 func Routes(router *gin.RouterGroup) {
-	instructionPromptsRouter := router.Group("/instruction-templates")
+	instructionsRouter := router.Group("/instruction")
 
-	instructionPromptsRouter.GET("", func(c *gin.Context) {
+	instructionsRouter.GET("", func(c *gin.Context) {
 		prompts, err := AllInstructions()
 		controllers.RespondList(c, prompts, err)
 	})
 
-	instructionPromptsRouter.GET("/:templateId", func(c *gin.Context) {
+	instructionsRouter.GET("/:templateId", func(c *gin.Context) {
 		templateId, ok := controllers.GetParamAsID(c, "templateId")
 		if !ok {
 			controllers.RespondBadRequest(c, "Invalid prompt ID", nil)
@@ -24,8 +24,8 @@ func Routes(router *gin.RouterGroup) {
 		controllers.RespondSingle(c, prompts, err)
 	})
 
-	instructionPromptsRouter.POST("", func(c *gin.Context) {
-		var newPrompt InstructionTemplate
+	instructionsRouter.POST("", func(c *gin.Context) {
+		var newPrompt Instruction
 		if err := c.ShouldBind(&newPrompt); err != nil {
 			controllers.RespondBadRequest(c, "Invalid prompt data", nil)
 			return
@@ -40,13 +40,13 @@ func Routes(router *gin.RouterGroup) {
 		controllers.RespondSingle(c, &newPrompt, err)
 	})
 
-	instructionPromptsRouter.PUT("/:templateId", func(c *gin.Context) {
+	instructionsRouter.PUT("/:templateId", func(c *gin.Context) {
 		templateId, ok := controllers.GetParamAsID(c, "templateId")
 		if !ok {
 			controllers.RespondBadRequest(c, "Invalid prompt ID", nil)
 			return
 		}
-		var prompt InstructionTemplate
+		var prompt Instruction
 		if err := c.ShouldBind(&prompt); err != nil {
 			controllers.RespondBadRequest(c, "Invalid prompt data", nil)
 			return
@@ -56,7 +56,7 @@ func Routes(router *gin.RouterGroup) {
 		controllers.RespondSingle(c, &prompt, err)
 	})
 
-	instructionPromptsRouter.DELETE("/:templateId", func(c *gin.Context) {
+	instructionsRouter.DELETE("/:templateId", func(c *gin.Context) {
 		templateId, ok := controllers.GetParamAsID(c, "templateId")
 		if !ok {
 			controllers.RespondBadRequest(c, "Invalid prompt ID", nil)

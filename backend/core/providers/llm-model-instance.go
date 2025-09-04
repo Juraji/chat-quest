@@ -5,16 +5,11 @@ import (
 )
 
 type LlmModelInstance struct {
-	ProviderId    int
-	ProviderType  ProviderType
-	BaseUrl       string
-	ApiKey        string
-	ModelId       string
-	Temperature   float32
-	MaxTokens     int
-	TopP          float32
-	Stream        bool
-	StopSequences *string
+	ProviderId   int
+	ProviderType ProviderType
+	BaseUrl      string
+	ApiKey       string
+	ModelId      string
 }
 
 func llmModelInstanceScanner(scanner database.RowScanner, dest *LlmModelInstance) error {
@@ -24,11 +19,6 @@ func llmModelInstanceScanner(scanner database.RowScanner, dest *LlmModelInstance
 		&dest.BaseUrl,
 		&dest.ApiKey,
 		&dest.ModelId,
-		&dest.Temperature,
-		&dest.MaxTokens,
-		&dest.TopP,
-		&dest.Stream,
-		&dest.StopSequences,
 	)
 }
 
@@ -38,12 +28,7 @@ func GetLlmModelInstanceById(llmModelId int) (*LlmModelInstance, error) {
                 cp.provider_type AS provider_type,
                 cp.base_url AS base_url,
                 cp.api_key AS api_key,
-                lm.model_id AS model_id,
-                lm.temperature AS temperature,
-                lm.max_tokens AS max_tokens,
-                lm.top_p AS top_p,
-                lm.stream AS stream,
-                lm.stop_sequences AS stop_sequences
+                lm.model_id AS model_id
             FROM llm_models lm
                 JOIN connection_profiles cp on cp.id = lm.connection_profile_id
                 WHERE lm.id = ?`

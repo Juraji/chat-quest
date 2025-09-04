@@ -11,22 +11,22 @@ export class Instructions {
   private http: HttpClient = inject(HttpClient)
 
   getAll(): Observable<Instruction[]> {
-    return this.http.get<Instruction[]>(`/instruction-templates`)
+    return this.http.get<Instruction[]>(`/instruction`)
   }
 
   get(promptId: number): Observable<Instruction> {
-    return this.http.get<Instruction>(`/instruction-templates/${promptId}`)
+    return this.http.get<Instruction>(`/instruction/${promptId}`)
   }
 
   save(prompt: Instruction): Observable<Instruction> {
     if (isNew(prompt)) {
-      return this.http.post<Instruction>(`/instruction-templates`, prompt)
+      return this.http.post<Instruction>(`/instruction`, prompt)
     } else {
-      return this.http.put<Instruction>(`/instruction-templates/${prompt.id}`, prompt)
+      return this.http.put<Instruction>(`/instruction/${prompt.id}`, prompt)
     }
   }
 
   delete(promptId: number): Observable<void> {
-    return this.http.delete<void>(`/instruction-templates/${promptId}`)
+    return this.http.delete<void>(`/instruction/${promptId}`)
   }
 }

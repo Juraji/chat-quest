@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"github.com/sashabaranov/go-openai"
 	"io"
-	"juraji.nl/chat-quest/core/util"
-	"math"
 )
 
 type openAIProvider struct {
@@ -56,9 +54,13 @@ func (o *openAIProvider) generateEmbeddings(input, modelID string) (Embeddings, 
 	return embeddings.Data[0].Embedding, nil
 }
 
-func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) <-chan ChatGenerateResponse {
-	messages := make([]openai.ChatCompletionMessage, len(request.Messages))
-	for i, msg := range request.Messages {
+func (o *openAIProvider) generateChatResponse(
+	messages []ChatRequestMessage,
+	modelId string,
+	params LlmParameters,
+) <-chan ChatGenerateResponse {
+	oMessages := make([]openai.ChatCompletionMessage, len(messages))
+	for i, msg := range messages {
 		var openAiRole string
 
 		switch msg.Role {
@@ -73,7 +75,7 @@ func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) <-ch
 			panic(fmt.Errorf("developer error, invalid role '%s'", msg.Role))
 		}
 
-		messages[i] = openai.ChatCompletionMessage{
+		oMessages[i] = openai.ChatCompletionMessage{
 			Role:    openAiRole,
 			Content: msg.Content,
 		}
@@ -81,22 +83,22 @@ func (o *openAIProvider) generateChatResponse(request *ChatGenerateRequest) <-ch
 
 	//goland:noinspection GoDeprecation for MaxTokens, we supply it for compat reasons
 	completionRequest := openai.ChatCompletionRequest{
-		Model:               request.ModelId,
-		Messages:            messages,
-		MaxTokens:           request.MaxTokens,
-		MaxCompletionTokens: request.MaxTokens,
-		Temperature:         util.MaxFloat32(math.SmallestNonzeroFloat32, request.Temperature),
-		TopP:                request.TopP,
-		Stream:              request.Stream,
-		Stop:                request.StopSequences,
-		PresencePenalty:     0,
-		FrequencyPenalty:    0,
+		Model:               modelId,
+		Messages:            oMessages,
+		MaxTokens:           params.MaxTokens,
+		MaxCompletionTokens: params.MaxTokens,
+		Temperature:         params.Temperature,
+		TopP:                params.TopP,
+		Stream:              params.Stream,
+		Stop:                params.StopSequencesAsSlice(),
+		PresencePenalty:     params.PresencePenalty,
+		FrequencyPenalty:    params.FrequencyPenalty,
 		StreamOptions:       nil,
 		Store:               false,
 		Prediction:          nil,
 	}
 
-	if request.Stream {
+	if params.Stream {
 		return generateChatResponseStream(o.ctx, o.client, completionRequest)
 	} else {
 		return generateChatResponseSingle(o.ctx, o.client, completionRequest)

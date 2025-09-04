@@ -25,7 +25,7 @@ func contextCheckPoint(ctx context.Context, logger *zap.Logger) bool {
 }
 func createChatRequestMessages(
 	chatHistory []cs.ChatMessage,
-	instruction *i.InstructionTemplate,
+	instruction *i.Instruction,
 ) []p.ChatRequestMessage {
 	// Pre-allocate messages with history len + max number of messages added here
 	messages := make([]p.ChatRequestMessage, 0, len(chatHistory)+3)

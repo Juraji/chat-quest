@@ -7,23 +7,41 @@ import (
 	"juraji.nl/chat-quest/core/util"
 )
 
+type LlmModelType string
+
+const (
+	UnknownModel   LlmModelType = "UNKNOWN"
+	ChatModel      LlmModelType = "CHAT_MODEL"
+	EmbeddingModel LlmModelType = "EMBEDDING_MODEL"
+)
+
+func (i LlmModelType) IsValid() bool {
+	switch i {
+	case UnknownModel:
+		return true
+	case ChatModel:
+		return true
+	case EmbeddingModel:
+		return true
+	default:
+		return false
+	}
+}
+
 type LlmModel struct {
-	ID                  int     `json:"id"`
-	ConnectionProfileId int     `json:"profileId"`
-	ModelId             string  `json:"modelId"`
-	Temperature         float32 `json:"temperature"`
-	MaxTokens           int     `json:"maxTokens"`
-	TopP                float32 `json:"topP"`
-	Stream              bool    `json:"stream"`
-	StopSequences       *string `json:"stopSequences"`
-	Disabled            bool    `json:"disabled"`
+	ID                  int          `json:"id"`
+	ConnectionProfileId int          `json:"profileId"`
+	ModelId             string       `json:"modelId"`
+	ModelType           LlmModelType `json:"modelType"`
+	Disabled            bool         `json:"disabled"`
 }
 
 type LlmModelView struct {
-	ID                    int    `json:"id"`
-	ModelId               string `json:"modelId"`
-	ConnectionProfileId   int    `json:"profileId"`
-	ConnectionProfileName string `json:"profileName"`
+	ID                    int          `json:"id"`
+	ModelId               string       `json:"modelId"`
+	ModelType             LlmModelType `json:"modelType"`
+	ConnectionProfileId   int          `json:"profileId"`
+	ConnectionProfileName string       `json:"profileName"`
 }
 
 func llmModelScanner(scanner database.RowScanner, dest *LlmModel) error {
@@ -31,11 +49,7 @@ func llmModelScanner(scanner database.RowScanner, dest *LlmModel) error {
 		&dest.ID,
 		&dest.ConnectionProfileId,
 		&dest.ModelId,
-		&dest.Temperature,
-		&dest.MaxTokens,
-		&dest.TopP,
-		&dest.Stream,
-		&dest.StopSequences,
+		&dest.ModelType,
 		&dest.Disabled,
 	)
 }
@@ -44,6 +58,7 @@ func llModelViewScanner(scanner database.RowScanner, dest *LlmModelView) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.ModelId,
+		&dest.ModelType,
 		&dest.ConnectionProfileId,
 		&dest.ConnectionProfileName,
 	)
@@ -57,18 +72,17 @@ func LlmModelsByConnectionProfileId(profileId int) ([]LlmModel, error) {
 
 func createLlmModel(ctx *database.TxContext, profileId int, llmModel *LlmModel) error {
 	llmModel.ConnectionProfileId = profileId
+	if llmModel.ModelType == "" {
+		llmModel.ModelType = UnknownModel
+	}
 
 	query := `INSERT INTO llm_models
-            (connection_profile_id, model_id, temperature, max_tokens, top_p, stream, stop_sequences, disabled)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
+            (connection_profile_id, model_id, model_type, disabled)
+            VALUES (?, ?, ?, ?) RETURNING id`
 	args := []any{
 		llmModel.ConnectionProfileId,
 		llmModel.ModelId,
-		llmModel.Temperature,
-		llmModel.MaxTokens,
-		llmModel.TopP,
-		llmModel.Stream,
-		llmModel.StopSequences,
+		llmModel.ModelType,
 		llmModel.Disabled,
 	}
 
@@ -77,19 +91,11 @@ func createLlmModel(ctx *database.TxContext, profileId int, llmModel *LlmModel) 
 
 func UpdateLlmModel(id int, llmModel *LlmModel) error {
 	query := `UPDATE llm_models
-              SET temperature = ?,
-                  max_tokens = ?,
-                  top_p = ?,
-                  stream = ?,
-                  stop_sequences = ?,
+              SET model_type= ?,
                   disabled = ?
               WHERE id = ?`
 	args := []any{
-		llmModel.Temperature,
-		llmModel.MaxTokens,
-		llmModel.TopP,
-		llmModel.Stream,
-		llmModel.StopSequences,
+		llmModel.ModelType,
 		llmModel.Disabled,
 		id,
 	}
@@ -180,28 +186,12 @@ func MergeLlmModels(profileId int, newModels []*LlmModel) error {
 
 func GetAllLlmModelViews() ([]LlmModelView, error) {
 	query := `SELECT lm.id       AS model_id,
-                   lm.model_id AS model_model_id,
-                   p.id       AS profile_id,
-                   p.name     AS profile_name
-            FROM llm_models lm
-                     JOIN connection_profiles p on p.id = lm.connection_profile_id
-                     WHERE lm.disabled = ?`
-	return database.QueryForList(query, []any{false}, llModelViewScanner)
-}
-
-func DefaultLlmModel(ConnectionProfileId int, ModelId string, opts ...func(*LlmModel)) *LlmModel {
-	model := LlmModel{
-		ConnectionProfileId: ConnectionProfileId,
-		ModelId:             ModelId,
-		Temperature:         1.0,
-		MaxTokens:           300,
-		TopP:                0.95,
-		Stream:              false,
-	}
-
-	for _, opt := range opts {
-		opt(&model)
-	}
-
-	return &model
+                     lm.model_id AS model_model_id,
+                     lm.model_type AS model_type,
+                     p.id       AS profile_id,
+                     p.name     AS profile_name
+              FROM llm_models lm
+                       JOIN connection_profiles p on p.id = lm.connection_profile_id
+                       WHERE lm.disabled = FALSE`
+	return database.QueryForList(query, nil, llModelViewScanner)
 }

@@ -176,7 +176,15 @@ func generateResponse(
 	callLlmAndProcessResponse(ctx, logger, session.ID, chatModelInst, requestMessages, instruction, responseMessage)
 }
 
-func callLlmAndProcessResponse(ctx context.Context, logger *zap.Logger, sessionId int, chatModelInst *p.LlmModelInstance, requestMessages []p.ChatRequestMessage, instruction *inst.InstructionTemplate, responseMessage *cs.ChatMessage) {
+func callLlmAndProcessResponse(
+	ctx context.Context,
+	logger *zap.Logger,
+	sessionId int,
+	chatModelInst *p.LlmModelInstance,
+	requestMessages []p.ChatRequestMessage,
+	instruction *inst.Instruction,
+	responseMessage *cs.ChatMessage,
+) {
 	const (
 		Idle = iota
 		InPrefix
@@ -187,7 +195,11 @@ func callLlmAndProcessResponse(ctx context.Context, logger *zap.Logger, sessionI
 	var prefixBuffer strings.Builder
 	var contentBuffer strings.Builder
 
-	chatResponseChan := p.GenerateChatResponse(chatModelInst, requestMessages, instruction.Temperature)
+	chatResponseChan := p.GenerateChatResponse(
+		chatModelInst,
+		requestMessages,
+		instruction.AsLlmParameters(),
+	)
 
 	for {
 		select {
@@ -252,7 +264,7 @@ func createChatInstruction(
 	prefs *preferences.Preferences,
 	history []cs.ChatMessage,
 	triggerMessage *cs.ChatMessage,
-) (*inst.InstructionTemplate, bool) {
+) (*inst.Instruction, bool) {
 	instruction, err := inst.InstructionById(*prefs.ChatInstructionId)
 	if err != nil {
 		logger.Error("Error fetching chat instruction", zap.Error(err))

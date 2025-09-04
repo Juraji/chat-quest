@@ -1,13 +1,13 @@
-import {Component, computed, effect, inject, Signal} from '@angular/core';
+import {Component, computed, effect, inject, linkedSignal, Signal, WritableSignal} from '@angular/core';
 import {Notifications} from '@components/notifications';
 import {ActivatedRoute, Router} from '@angular/router';
 import {PageHeader} from '@components/page-header';
 import {formControl, formGroup, readOnlyControl, routeDataSignal} from '@util/ng';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {EditConnectionProfileModel} from './models/edit-connection-profile-model';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
-import {AiProviders, ConnectionProfile, LlmModel, Providers, ProviderType} from '@api/providers';
+import {AiProviders, ConnectionProfile, LlmModel, LlmModelType, Providers, ProviderType} from '@api/providers';
 import {isNew} from '@api/common';
+import {arrayReplace} from '@util/array';
 
 @Component({
   selector: 'app-edit-connection-profile',
@@ -15,7 +15,6 @@ import {isNew} from '@api/common';
     PageHeader,
     FormsModule,
     ReactiveFormsModule,
-    EditConnectionProfileModel,
     DropdownContainer,
     DropdownToggle,
     DropdownMenu
@@ -26,11 +25,12 @@ export class EditConnectionProfile {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router)
   private readonly notifications = inject(Notifications);
-  private readonly connectionProfiles = inject(Providers)
+  private readonly providers = inject(Providers)
 
-  readonly providers: Signal<AiProviders> = routeDataSignal(this.activatedRoute, 'providers')
+  readonly aiProviders: Signal<AiProviders> = routeDataSignal(this.activatedRoute, 'providers')
   readonly profile: Signal<ConnectionProfile> = routeDataSignal(this.activatedRoute, 'profile')
-  readonly models: Signal<LlmModel[]> = routeDataSignal(this.activatedRoute, 'models')
+  private readonly _models: Signal<LlmModel[]> = routeDataSignal(this.activatedRoute, 'models')
+  readonly models: WritableSignal<LlmModel[]> = linkedSignal(() => this._models())
 
   readonly isNew = computed(() => isNew(this.profile()))
 
@@ -59,7 +59,7 @@ export class EditConnectionProfile {
       ...formValue,
     }
 
-    this.connectionProfiles
+    this.providers
       .save(update)
       .subscribe(profile => {
         this.notifications.toast("Connection Profile saved!")
@@ -81,7 +81,7 @@ export class EditConnectionProfile {
     const doDelete = confirm(`Are you sure you want to delete this connection?`)
 
     if (doDelete) {
-      this.connectionProfiles
+      this.providers
         .delete(p!.id)
         .subscribe(() => {
           this.notifications.toast("Connection Profile deleted!")
@@ -118,7 +118,7 @@ New models will be added and non-existent models will be removed.
     if (!doRefresh) return
     const profileId = this.profile().id
 
-    this.connectionProfiles
+    this.providers
       .refreshModels(profileId)
       .subscribe(() => {
         this.notifications.toast("Models updated!")
@@ -127,6 +127,25 @@ New models will be added and non-existent models will be removed.
           queryParams: {u: Date.now()},
           replaceUrl: true
         })
+      })
+  }
+
+  onModelTypeChange(model: LlmModel, event: Event) {
+    const modelType = (event.target as HTMLSelectElement).value as LlmModelType;
+    this.providers
+      .saveModel({...model, modelType})
+      .subscribe(res => {
+        this.models.update(models => arrayReplace(models, res, m => m.id === res.id))
+        this.notifications.toast("Model updated!");
+      })
+  }
+
+  onToggleModelDisabled(model: LlmModel) {
+    this.providers
+      .saveModel({...model, disabled: !model.disabled})
+      .subscribe(res => {
+        this.models.update(models => arrayReplace(models, res, m => m.id === res.id))
+        this.notifications.toast(`Model ${res.disabled ? 'disabled' : 'enabled'}!`);
       })
   }
 }

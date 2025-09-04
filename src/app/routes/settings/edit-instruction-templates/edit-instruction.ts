@@ -1,11 +1,10 @@
-import {Component, computed, effect, inject, Signal} from '@angular/core';
+import {Component, computed, effect, inject, signal, Signal, WritableSignal} from '@angular/core';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {PageHeader} from '@components/page-header';
 import {booleanSignal, controlValueSignal, formControl, formGroup, readOnlyControl, routeDataSignal} from '@util/ng';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Notifications} from '@components/notifications';
 import {RenderedMessage} from '@components/rendered-message/rendered-message';
-import {TokenCount} from '@components/token-count/token-count';
 import {Instruction, Instructions, InstructionType} from '@api/instructions';
 import {isNew} from '@api/common';
 
@@ -16,7 +15,6 @@ import {isNew} from '@api/common';
     PageHeader,
     ReactiveFormsModule,
     RenderedMessage,
-    TokenCount
   ],
   templateUrl: './edit-instruction.html',
 })
@@ -34,11 +32,19 @@ export class EditInstruction {
     id: readOnlyControl(),
     name: formControl('', [Validators.required]),
     type: formControl<InstructionType>('CHAT', [Validators.required]),
-    temperature: formControl<Nullable<number>>(null, [Validators.min(0.01)]),
+    temperature: formControl<number>(1.1, [Validators.required, Validators.min(0)]),
+    maxTokens: formControl<number>(300, [Validators.required, Validators.min(1)]),
+    topP: formControl<number>(0.95, [Validators.required, Validators.min(0.01), Validators.max(1.0)]),
+    presencePenalty: formControl<number>(1.1, [Validators.required, Validators.min(0)]),
+    frequencyPenalty: formControl<number>(1.1, [Validators.required, Validators.min(0)]),
+    stream: formControl<boolean>(true),
+    stopSequences: formControl<Nullable<string>>(null),
     systemPrompt: formControl('', [Validators.required]),
     worldSetup: formControl('', [Validators.required]),
     instruction: formControl('', [Validators.required]),
   })
+
+  readonly selectedTab: WritableSignal<number> = signal(0)
 
   readonly editSystemPrompt = booleanSignal(false)
   readonly systemPromptValue: Signal<string> = controlValueSignal(this.formGroup, 'systemPrompt')
@@ -53,7 +59,11 @@ export class EditInstruction {
     effect(() => {
       const input = this.template()
       this.formGroup.reset(input)
-      this.editSystemPrompt.set(isNew(input))
+
+      const n = isNew(input)
+      this.editSystemPrompt.set(n)
+      this.editWorldSetup.set(n)
+      this.editInstruction.set(n)
     });
   }
 

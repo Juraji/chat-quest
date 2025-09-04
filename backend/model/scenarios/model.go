@@ -35,7 +35,7 @@ func ScenarioById(id int) (*Scenario, error) {
 }
 
 func CreateScenario(scenario *Scenario) error {
-	util.EmptyStrPtrToNil(&scenario.AvatarUrl)
+	scenario.AvatarUrl = util.EmptyStrToNil(scenario.AvatarUrl)
 
 	query := `INSERT INTO scenarios (name, description, avatar_url, linked_character_id)
             VALUES (?, ?, ?, ?) RETURNING id`
@@ -50,7 +50,7 @@ func CreateScenario(scenario *Scenario) error {
 }
 
 func UpdateScenario(id int, scenario *Scenario) error {
-	util.EmptyStrPtrToNil(&scenario.AvatarUrl)
+	scenario.AvatarUrl = util.EmptyStrToNil(scenario.AvatarUrl)
 
 	query := `UPDATE scenarios
             SET name=?,

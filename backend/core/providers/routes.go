@@ -119,6 +119,11 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
+		if !llmModel.ModelType.IsValid() {
+			controllers.RespondBadRequest(c, "Invalid model type", nil)
+			return
+		}
+
 		err := UpdateLlmModel(modelId, &llmModel)
 		controllers.RespondSingle(c, &llmModel, err)
 	})

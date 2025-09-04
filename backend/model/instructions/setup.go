@@ -18,7 +18,7 @@ func init() {
 
 	database.MigrationsCompletedSignal.AddListener(migrationsListenerKey, func(ctx context.Context, event database.MigratedEvent) {
 		if event.IsUpIncludingVersion(migrationsListenerExecAtVersion) {
-			creators := map[string]func() (*InstructionTemplate, error){
+			creators := map[string]func() (*Instruction, error){
 				"Default Chat Instructions":     newChatInstructionTemplateFromDefault,
 				"Default Memories Instructions": newMemoriesInstructionTemplateFromDefault,
 			}
@@ -39,26 +39,26 @@ func init() {
 	})
 }
 
-func newChatInstructionTemplateFromDefault() (*InstructionTemplate, error) {
+func newChatInstructionTemplateFromDefault() (*Instruction, error) {
 	const systemPromptTplPath = "templates/default_chat_instruction__system_prompt.tmpl"
 	const worldSetupTplPath = "templates/default_chat_instruction__world_setup.tmpl"
 	const userInstructionTplPath = "templates/default_chat_instruction__instruction.tmpl"
 
 	return newInstructionTemplateFromDefault(
-		ChatInstructionType,
+		ChatInstruction,
 		systemPromptTplPath,
 		worldSetupTplPath,
 		userInstructionTplPath,
 	)
 }
 
-func newMemoriesInstructionTemplateFromDefault() (*InstructionTemplate, error) {
+func newMemoriesInstructionTemplateFromDefault() (*Instruction, error) {
 	const systemPromptTplPath = "templates/default_memories_instruction__system_prompt.tmpl"
 	const worldSetupTplPath = "templates/default_memories_instruction__world_setup.tmpl"
 	const userInstructionTplPath = "templates/default_memories_instruction__instruction.tmpl"
 
 	return newInstructionTemplateFromDefault(
-		MemoriesInstructionType,
+		MemoriesInstruction,
 		systemPromptTplPath,
 		worldSetupTplPath,
 		userInstructionTplPath,
@@ -70,7 +70,7 @@ func newInstructionTemplateFromDefault(
 	systemPromptTplPath string,
 	worldSetupTplPath string,
 	userInstructionTplPath string,
-) (*InstructionTemplate, error) {
+) (*Instruction, error) {
 	systemPromptTpl, err := util.ReadFileAsString(templatesFs, systemPromptTplPath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load template from '%s'", systemPromptTplPath)
@@ -88,7 +88,7 @@ func newInstructionTemplateFromDefault(
 	worldSetupTpl = strings.SplitN(worldSetupTpl, "\n", 2)[1]
 	instructionTpl = strings.SplitN(instructionTpl, "\n", 2)[1]
 
-	return &InstructionTemplate{
+	return &Instruction{
 		Type:         instructionType,
 		SystemPrompt: systemPromptTpl,
 		WorldSetup:   worldSetupTpl,

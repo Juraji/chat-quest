@@ -1,13 +1,34 @@
 package providers
 
-type ChatGenerateRequest struct {
-	Messages      []ChatRequestMessage
-	ModelId       string
-	MaxTokens     int
-	Temperature   float32
-	TopP          float32
-	Stream        bool
-	StopSequences []string
+import "strings"
+
+type LlmParameters struct {
+	MaxTokens        int
+	Temperature      float32
+	TopP             float32
+	PresencePenalty  float32
+	FrequencyPenalty float32
+	Stream           bool
+	StopSequences    *string
+}
+
+func (params *LlmParameters) StopSequencesAsSlice() []string {
+	if params.StopSequences == nil {
+		return nil
+	}
+
+	seqTrimmed := strings.TrimSpace(*params.StopSequences)
+	if seqTrimmed == "" {
+		return nil
+	}
+
+	var sequences []string
+	sequences = strings.Split(seqTrimmed, ",")
+	for i := range sequences {
+		sequences[i] = strings.TrimSpace(sequences[i])
+	}
+
+	return sequences
 }
 
 type ChatMessageRole string

@@ -35,8 +35,8 @@ func WorldById(id int) (*World, error) {
 }
 
 func CreateWorld(newWorld *World) error {
-	util.EmptyStrPtrToNil(&newWorld.Description)
-	util.EmptyStrPtrToNil(&newWorld.AvatarUrl)
+	newWorld.Description = util.EmptyStrToNil(newWorld.Description)
+	newWorld.AvatarUrl = util.EmptyStrToNil(newWorld.AvatarUrl)
 
 	query := "INSERT INTO worlds (name, description, avatar_url, persona_id) VALUES (?, ?, ?, ?) RETURNING id"
 	args := []any{newWorld.Name, newWorld.Description, newWorld.AvatarUrl, newWorld.PersonaID}
@@ -51,8 +51,8 @@ func CreateWorld(newWorld *World) error {
 }
 
 func UpdateWorld(id int, world *World) error {
-	util.EmptyStrPtrToNil(&world.Description)
-	util.EmptyStrPtrToNil(&world.AvatarUrl)
+	world.Description = util.EmptyStrToNil(world.Description)
+	world.AvatarUrl = util.EmptyStrToNil(world.AvatarUrl)
 
 	query := `UPDATE worlds
             SET name=?,

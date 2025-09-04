@@ -31,7 +31,11 @@ type Provider interface {
 	// generateChatResponse creates a channel that will stream chat responses based on the provided request.
 	// The function should be thread-safe and handle its own locking internally if needed.
 	// Returns a receive-only channel (<-chan) that will yield ChatGenerateResponse objects as they become available.
-	generateChatResponse(request *ChatGenerateRequest) <-chan ChatGenerateResponse
+	generateChatResponse(
+		messages []ChatRequestMessage,
+		modelId string,
+		params LlmParameters,
+	) <-chan ChatGenerateResponse
 }
 
 // newProvider creates a new instance of the specified provider type.
@@ -59,20 +63,6 @@ func getProviderLock(providerId int) *sync.Mutex {
 	return mutex
 }
 
-func cleanTextForEmbedding(text string) string {
-	var builder strings.Builder
-	const apos = '\''
-
-	for _, char := range text {
-		// Check if the character is alphanumeric or space/apostrophe (adjust as needed)
-		if unicode.IsLetter(char) || unicode.IsNumber(char) || unicode.IsSpace(char) || char == apos {
-			builder.WriteRune(unicode.ToLower(char))
-		}
-	}
-
-	return strings.TrimSpace(builder.String())
-}
-
 // GetAvailableModels retrieves the list of available models for a given connection profile.
 func GetAvailableModels(profile *ConnectionProfile) ([]*LlmModel, error) {
 	provider := newProvider(profile.ProviderType, profile.BaseUrl, profile.ApiKey)
@@ -82,8 +72,12 @@ func GetAvailableModels(profile *ConnectionProfile) ([]*LlmModel, error) {
 	}
 
 	llmModels := make([]*LlmModel, len(models))
-	for i, model := range models {
-		llmModels[i] = DefaultLlmModel(profile.ID, model)
+	for i, modelId := range models {
+		llmModels[i] = &LlmModel{
+			ConnectionProfileId: profile.ID,
+			ModelId:             modelId,
+			Disabled:            false,
+		}
 	}
 
 	return llmModels, nil
@@ -97,7 +91,17 @@ func GenerateEmbeddings(llm *LlmModelInstance, input string, cleanInput bool) (E
 	defer providerLock.Unlock()
 
 	if cleanInput {
-		input = cleanTextForEmbedding(input)
+		var builder strings.Builder
+		const apos = '\''
+
+		for _, char := range input {
+			// Check if the character is alphanumeric or space/apostrophe (adjust as needed)
+			if unicode.IsLetter(char) || unicode.IsNumber(char) || unicode.IsSpace(char) || char == apos {
+				builder.WriteRune(unicode.ToLower(char))
+			}
+		}
+
+		input = strings.TrimSpace(builder.String())
 	}
 
 	provider := newProvider(llm.ProviderType, llm.BaseUrl, llm.ApiKey)
@@ -114,7 +118,7 @@ func GenerateEmbeddings(llm *LlmModelInstance, input string, cleanInput bool) (E
 func GenerateChatResponse(
 	llm *LlmModelInstance,
 	messages []ChatRequestMessage,
-	overrideTemperature *float32,
+	params LlmParameters,
 ) <-chan ChatGenerateResponse {
 	providerLock := getProviderLock(llm.ProviderId)
 	providerLock.Lock()
@@ -122,32 +126,5 @@ func GenerateChatResponse(
 
 	provider := newProvider(llm.ProviderType, llm.BaseUrl, llm.ApiKey)
 
-	var temperature float32
-	if overrideTemperature != nil {
-		temperature = *overrideTemperature
-	} else {
-		temperature = llm.Temperature
-	}
-
-	var stopSequences []string
-	if llm.StopSequences == nil || *llm.StopSequences == "" {
-		stopSequences = nil
-	} else {
-		stopSequences = strings.Split(*llm.StopSequences, ",")
-		for i := range stopSequences {
-			stopSequences[i] = strings.TrimSpace(stopSequences[i])
-		}
-	}
-
-	request := &ChatGenerateRequest{
-		Messages:      messages,
-		ModelId:       llm.ModelId,
-		MaxTokens:     llm.MaxTokens,
-		Temperature:   temperature,
-		TopP:          llm.TopP,
-		Stream:        llm.Stream,
-		StopSequences: stopSequences,
-	}
-
-	return provider.generateChatResponse(request)
+	return provider.generateChatResponse(messages, llm.ModelId, params)
 }

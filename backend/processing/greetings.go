@@ -30,6 +30,8 @@ func GreetOnParticipantAdded(
 		return
 	}
 
+	logger = logger.With(zap.Bool("isGroupChat", *isGroupChat))
+
 	greeting, err := characters.RandomGreetingByCharacterId(characterID, *isGroupChat)
 	if err != nil {
 		logger.Error("Failed to fetch greeting", zap.Error(err))

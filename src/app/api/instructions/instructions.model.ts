@@ -5,7 +5,13 @@ export type InstructionType = 'CHAT' | 'MEMORIES'
 export interface Instruction extends ChatQuestModel {
   name: string
   type: InstructionType,
-  temperature: Nullable<number>
+  temperature: number
+  maxTokens: number
+  topP: number
+  presencePenalty: number
+  frequencyPenalty: number
+  stream: boolean
+  stopSequences: Nullable<string>
   systemPrompt: string
   worldSetup: string
   instruction: string

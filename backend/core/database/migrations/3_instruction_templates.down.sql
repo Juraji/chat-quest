@@ -1,1 +1,1 @@
-DROP TABLE instruction_templates;
+DROP TABLE instructions;

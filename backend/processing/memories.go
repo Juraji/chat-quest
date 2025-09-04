@@ -196,7 +196,7 @@ func generateAndExtractMemories(
 	}
 
 	requestMessages := createChatRequestMessages(messageWindow, instruction)
-	memoryGenResponse, ok := callLlm(logger, ctx, modelInstance, requestMessages, instruction.Temperature)
+	memoryGenResponse, ok := callLlm(logger, ctx, modelInstance, instruction, requestMessages)
 	if !ok {
 		return nil, false
 	}
@@ -233,10 +233,14 @@ func callLlm(
 	logger *zap.Logger,
 	ctx context.Context,
 	instance *p.LlmModelInstance,
+	instruction *i.Instruction,
 	messages []p.ChatRequestMessage,
-	temperature *float32,
 ) (string, bool) {
-	chatResponseChan := p.GenerateChatResponse(instance, messages, temperature)
+	chatResponseChan := p.GenerateChatResponse(
+		instance,
+		messages,
+		instruction.AsLlmParameters(),
+	)
 	var memoryGenResponse string
 
 	for {

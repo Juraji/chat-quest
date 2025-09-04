@@ -2,101 +2,145 @@ package instructions
 
 import (
 	"juraji.nl/chat-quest/core/database"
+	p "juraji.nl/chat-quest/core/providers"
 	"juraji.nl/chat-quest/core/util"
 )
 
 type InstructionType string
 
 const (
-	ChatInstructionType     InstructionType = "CHAT"
-	MemoriesInstructionType InstructionType = "MEMORIES"
+	ChatInstruction     InstructionType = "CHAT"
+	MemoriesInstruction InstructionType = "MEMORIES"
 )
 
 func (i InstructionType) IsValid() bool {
 	switch i {
-	case ChatInstructionType:
+	case ChatInstruction:
 		return true
-	case MemoriesInstructionType:
+	case MemoriesInstruction:
 		return true
 	default:
 		return false
 	}
 }
 
-type InstructionTemplate struct {
-	ID           int             `json:"id"`
-	Name         string          `json:"name"`
-	Type         InstructionType `json:"type"`
-	Temperature  *float32        `json:"temperature"`
-	SystemPrompt string          `json:"systemPrompt"`
-	WorldSetup   string          `json:"worldSetup"`
-	Instruction  string          `json:"instruction"`
+type Instruction struct {
+	ID               int             `json:"id"`
+	Name             string          `json:"name"`
+	Type             InstructionType `json:"type"`
+	Temperature      float32         `json:"temperature"`
+	MaxTokens        int             `json:"maxTokens"`
+	TopP             float32         `json:"topP"`
+	PresencePenalty  float32         `json:"presencePenalty"`
+	FrequencyPenalty float32         `json:"frequencyPenalty"`
+	Stream           bool            `json:"stream"`
+	StopSequences    *string         `json:"stopSequences"`
+	SystemPrompt     string          `json:"systemPrompt"`
+	WorldSetup       string          `json:"worldSetup"`
+	Instruction      string          `json:"instruction"`
 }
 
-func instructionPromptScanner(scanner database.RowScanner, dest *InstructionTemplate) error {
+func (i *Instruction) AsLlmParameters() p.LlmParameters {
+	return p.LlmParameters{
+		MaxTokens:        i.MaxTokens,
+		Temperature:      i.Temperature,
+		TopP:             i.TopP,
+		PresencePenalty:  i.PresencePenalty,
+		FrequencyPenalty: i.FrequencyPenalty,
+		Stream:           i.Stream,
+		StopSequences:    i.StopSequences,
+	}
+}
+
+func instructionPromptScanner(scanner database.RowScanner, dest *Instruction) error {
 	return scanner.Scan(
 		&dest.ID,
 		&dest.Name,
 		&dest.Type,
 		&dest.Temperature,
+		&dest.MaxTokens,
+		&dest.TopP,
+		&dest.PresencePenalty,
+		&dest.FrequencyPenalty,
+		&dest.Stream,
+		&dest.StopSequences,
 		&dest.SystemPrompt,
 		&dest.WorldSetup,
 		&dest.Instruction,
 	)
 }
 
-func AllInstructions() ([]InstructionTemplate, error) {
-	query := "SELECT * FROM instruction_templates"
+func AllInstructions() ([]Instruction, error) {
+	query := "SELECT * FROM instructions"
 	return database.QueryForList(query, nil, instructionPromptScanner)
 }
 
-func InstructionById(id int) (*InstructionTemplate, error) {
-	query := "SELECT * FROM instruction_templates WHERE id = ?"
+func InstructionById(id int) (*Instruction, error) {
+	query := "SELECT * FROM instructions WHERE id = ?"
 	args := []any{id}
 	return database.QueryForRecord(query, args, instructionPromptScanner)
 }
 
-func CreateInstruction(it *InstructionTemplate) error {
-	util.NegFloat32PtrToNil(&it.Temperature)
+func CreateInstruction(inst *Instruction) error {
+	es := util.EmptyStrToNil
+	zf := util.ZeroFloat32ToNil
+	zi := util.ZeroIntToNil
 
-	query := `INSERT INTO instruction_templates (name, type, temperature, system_prompt, world_setup, instruction)
-            VALUES (?, ?, ?, ?, ?, ?) RETURNING id`
-	args := []any{it.Name, it.Type, it.Temperature, it.SystemPrompt, it.WorldSetup, it.Instruction}
+	query := `INSERT INTO instructions (name, type,
+                          temperature, max_tokens, top_p,
+                          presence_penalty, frequency_penalty,
+                          stream, stop_sequences,
+                          system_prompt, world_setup, instruction)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id`
+	args := []any{
+		inst.Name, inst.Type,
+		zf(inst.Temperature), zi(inst.MaxTokens), zf(inst.TopP),
+		zf(inst.PresencePenalty), zf(inst.FrequencyPenalty),
+		inst.Stream, es(inst.StopSequences),
+		inst.SystemPrompt, inst.WorldSetup, inst.Instruction,
+	}
 
-	err := database.InsertRecord(query, args, &it.ID)
+	err := database.InsertRecord(query, args, &inst.ID)
 
 	if err == nil {
-		InstructionCreatedSignal.EmitBG(it)
+		InstructionCreatedSignal.EmitBG(inst)
 	}
 
 	return err
 }
 
-func UpdateInstruction(id int, it *InstructionTemplate) error {
-	util.NegFloat32PtrToNil(&it.Temperature)
+func UpdateInstruction(id int, inst *Instruction) error {
+	es := util.EmptyStrToNil
+	zf := util.ZeroFloat32ToNil
+	zi := util.ZeroIntToNil
 
-	query := `UPDATE instruction_templates
-            SET name = ?,
-                type = ?,
-                temperature = ?,
-                system_prompt = ?,
-                world_setup = ?,
-                instruction = ?
+	query := `UPDATE instructions
+            SET name = ?, type = ?,
+                temperature = ?, max_tokens = ?, top_p = ?,
+                presence_penalty = ?, frequency_penalty = ?,
+                stream = ?, stop_sequences = ?,
+                system_prompt = ?, world_setup = ?, instruction = ?
             WHERE id = ?`
-	args := []any{it.Name, it.Type, it.Temperature,
-		it.SystemPrompt, it.WorldSetup, it.Instruction, id}
+	args := []any{
+		inst.Name, inst.Type,
+		zf(inst.Temperature), zi(inst.MaxTokens), zf(inst.TopP),
+		zf(inst.PresencePenalty), zf(inst.FrequencyPenalty),
+		inst.Stream, es(inst.StopSequences),
+		inst.SystemPrompt, inst.WorldSetup, inst.Instruction,
+		id,
+	}
 
 	err := database.UpdateRecord(query, args)
 
 	if err == nil {
-		InstructionUpdatedSignal.EmitBG(it)
+		InstructionUpdatedSignal.EmitBG(inst)
 	}
 
 	return err
 }
 
 func DeleteInstruction(id int) error {
-	query := "DELETE FROM instruction_templates WHERE id = ?"
+	query := "DELETE FROM instructions WHERE id = ?"
 	args := []any{id}
 
 	_, err := database.DeleteRecord(query, args)

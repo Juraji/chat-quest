@@ -5,8 +5,8 @@ import (
 	"juraji.nl/chat-quest/core/util/signals"
 )
 
-var InstructionCreatedSignal = signals.New[*InstructionTemplate]()
-var InstructionUpdatedSignal = signals.New[*InstructionTemplate]()
+var InstructionCreatedSignal = signals.New[*Instruction]()
+var InstructionUpdatedSignal = signals.New[*Instruction]()
 var InstructionDeletedSignal = signals.New[int]()
 
 func init() {

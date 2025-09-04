@@ -78,10 +78,10 @@ func CharacterById(id int) (*Character, error) {
 }
 
 func CreateCharacter(newCharacter *Character) error {
-	util.EmptyStrPtrToNil(&newCharacter.AvatarUrl)
-	util.EmptyStrPtrToNil(&newCharacter.Appearance)
-	util.EmptyStrPtrToNil(&newCharacter.Personality)
-	util.EmptyStrPtrToNil(&newCharacter.History)
+	newCharacter.AvatarUrl = util.EmptyStrToNil(newCharacter.AvatarUrl)
+	newCharacter.Appearance = util.EmptyStrToNil(newCharacter.Appearance)
+	newCharacter.Personality = util.EmptyStrToNil(newCharacter.Personality)
+	newCharacter.History = util.EmptyStrToNil(newCharacter.History)
 
 	query := `INSERT INTO characters (name, favorite, avatar_url, appearance, personality, history, group_talkativeness)
             VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at`
@@ -105,10 +105,10 @@ func CreateCharacter(newCharacter *Character) error {
 }
 
 func UpdateCharacter(id int, character *Character) error {
-	util.EmptyStrPtrToNil(&character.AvatarUrl)
-	util.EmptyStrPtrToNil(&character.Appearance)
-	util.EmptyStrPtrToNil(&character.Personality)
-	util.EmptyStrPtrToNil(&character.History)
+	character.AvatarUrl = util.EmptyStrToNil(character.AvatarUrl)
+	character.Appearance = util.EmptyStrToNil(character.Appearance)
+	character.Personality = util.EmptyStrToNil(character.Personality)
+	character.History = util.EmptyStrToNil(character.History)
 
 	query := `UPDATE characters
             SET name = ?,
