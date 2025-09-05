@@ -78,6 +78,12 @@ func GetAvailableModels(profile *ConnectionProfile) ([]*LlmModel, error) {
 			ModelId:             modelId,
 			Disabled:            false,
 		}
+
+		if strings.Contains(modelId, "embedding-") {
+			llmModels[i].ModelType = EmbeddingModel
+		} else {
+			llmModels[i].ModelType = ChatModel
+		}
 	}
 
 	return llmModels, nil
@@ -95,7 +101,6 @@ func GenerateEmbeddings(llm *LlmModelInstance, input string, cleanInput bool) (E
 		const apos = '\''
 
 		for _, char := range input {
-			// Check if the character is alphanumeric or space/apostrophe (adjust as needed)
 			if unicode.IsLetter(char) || unicode.IsNumber(char) || unicode.IsSpace(char) || char == apos {
 				builder.WriteRune(unicode.ToLower(char))
 			}
