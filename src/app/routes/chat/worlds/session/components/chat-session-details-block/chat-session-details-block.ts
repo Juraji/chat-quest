@@ -12,13 +12,16 @@ import {debounceTime} from 'rxjs';
 import {CQPreferences, Preferences} from '@api/preferences';
 import {World, Worlds} from '@api/worlds';
 import {LlmLabelPipe} from '@components/llm-label.pipe';
+import {Instruction} from '@api/instructions';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'chat-session-details-block',
   imports: [
     DatePipe,
     ReactiveFormsModule,
-    LlmLabelPipe
+    LlmLabelPipe,
+    RouterLink
   ],
   templateUrl: './chat-session-details-block.html',
 })
@@ -33,6 +36,7 @@ export class ChatSessionDetailsBlock {
   readonly createdAt: Signal<Nullable<string>> = computed(() => this.sessionData.chatSession().createdAt)
   readonly scenarios: Signal<Scenario[]> = this.sessionData.scenarios
   readonly llModels: Signal<LlmModelView[]> = this.sessionData.llmModels
+  readonly instructions: Signal<Instruction[]> = this.sessionData.instructions
   readonly characters = this.sessionData.characters
 
   readonly nameControl: TypedFormControl<string> = formControl('', [Validators.required])
@@ -42,6 +46,12 @@ export class ChatSessionDetailsBlock {
   readonly personaControl: TypedFormControl<Nullable<number>> = formControl(null)
   readonly scenarioControl: TypedFormControl<Nullable<number>> = formControl(null)
   readonly chatModelControl: TypedFormControl<Nullable<number>> = formControl(null, [Validators.required])
+  readonly chatInstructionControl: TypedFormControl<Nullable<number>> = formControl(null, [Validators.required])
+
+  readonly selectedModel: Signal<LlmModelView> = computed(() => {
+    const {chatModelId} = this.sessionData.preferences()
+    return this.llModels().find(l => l.id === chatModelId)!
+  })
 
   constructor() {
     effect(() => {
@@ -57,8 +67,9 @@ export class ChatSessionDetailsBlock {
       this.scenarioControl.reset(session.scenarioId, {emitEvent: false})
     });
     effect(() => {
-      const {chatModelId} = this.sessionData.preferences()
-      this.chatModelControl.reset(chatModelId, {emitEvent: false})
+      const prefs = this.sessionData.preferences()
+      this.chatModelControl.reset(prefs.chatModelId, {emitEvent: false})
+      this.chatInstructionControl.reset(prefs.chatInstructionId, {emitEvent: false})
     });
 
     this.nameControl.valueChanges
@@ -82,6 +93,9 @@ export class ChatSessionDetailsBlock {
     this.chatModelControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(chatModelId => this.updateChatPrefs({chatModelId}))
+    this.chatInstructionControl.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(chatInstructionId => this.updateChatPrefs({chatInstructionId}))
   }
 
   private updateWorld(w: Partial<World>) {

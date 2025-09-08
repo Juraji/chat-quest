@@ -1,6 +1,6 @@
 <div class="card">
   <div class="card-body">
-    <div class="mb-3">
+    <div class="mb-1">
       <h5 class="card-title mb-0">Session Details</h5>
       <h6 class="small text-muted mb-0">In {{ worldName() }}</h6>
       <div class="small text-muted">Started at {{ createdAt() | date }}</div>
@@ -12,63 +12,123 @@
              placeholder="Name"
              [formControl]="nameControl"/>
     </div>
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox"
-             id="generateMemoriesInput"
-             [formControl]="generateMemoriesControl"/>
-      <label class="form-check-label" for="generateMemoriesInput">
-        Generate new memories
-      </label>
-    </div>
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox"
-             id="useMemoriesInput"
-             [formControl]="useMemoriesControl"/>
-      <label class="form-check-label" for="useMemoriesInput">
-        Use memories
-      </label>
-    </div>
-    <div class="form-check mb-3">
-      <input class="form-check-input" type="checkbox"
-             id="pauseAutomaticResponsesInput"
-             [formControl]="pauseAutomaticResponsesControl"/>
-      <label class="form-check-label" for="pauseAutomaticResponsesInput">
-        Pause Automatic Responses
-      </label>
-    </div>
     <div class="mb-3">
-      <label for="personaIdInput">Persona</label>
-      <select [formControl]="personaControl"
-              class="form-select"
-              id="personaIdInput">
-        <option [ngValue]="null">No persona</option>
-        <option disabled>──────────</option>
-        @for (c of characters(); track c.id) {
-          <option [ngValue]="c.id">{{ c.name }}</option>
-        }
-      </select>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox"
+               id="generateMemoriesInput"
+               [formControl]="generateMemoriesControl"/>
+        <label class="form-check-label" for="generateMemoriesInput">
+          Generate new memories
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox"
+               id="useMemoriesInput"
+               [formControl]="useMemoriesControl"/>
+        <label class="form-check-label" for="useMemoriesInput">
+          Use memories
+        </label>
+      </div>
+      <div class="form-check mb-1">
+        <input class="form-check-input" type="checkbox"
+               id="pauseAutomaticResponsesInput"
+               [formControl]="pauseAutomaticResponsesControl"/>
+        <label class="form-check-label" for="pauseAutomaticResponsesInput">
+          Pause Automatic Responses
+        </label>
+      </div>
     </div>
-    <div class="mb-3">
-      <label for="chatScenarioInput">Scenario</label>
-      <select class="form-select"
-              id="chatScenarioInput"
-              [formControl]="scenarioControl">
-        <option [ngValue]="null">No Scenario *</option>
-        @for (scene of scenarios(); track scene.id) {
-          <option [ngValue]="scene.id">{{ scene.name }}</option>
-        }
-      </select>
+    <div class="grid gap-1 align-items-center mb-1">
+      <div class="g-col-3">
+        <label for="personaIdInput">Persona</label>
+      </div>
+      <div class="g-col-9">
+        <div class="input-group input-group-sm">
+          <select [formControl]="personaControl"
+                  class="form-select"
+                  id="personaIdInput">
+            <option [ngValue]="null">No persona</option>
+            <option disabled>──────────</option>
+            @for (c of characters(); track c.id) {
+              <option [ngValue]="c.id">{{ c.name }}</option>
+            }
+          </select>
+          <a [routerLink]="['/chat/characters/', personaControl.value]"
+             target="_blank"
+             class="btn btn-secondary"
+             title="Open edit in new window/tab">
+            <span class="bi bi-box-arrow-up-right"></span>
+          </a>
+        </div>
+      </div>
     </div>
-    <div class="mb-3">
-      <label for="chatModelIdInput">Chat Model</label>
-      <select class="form-select"
-              [formControl]="chatModelControl"
-              id="chatModelIdInput"
-              aria-describedby="chatModelIdInputHelp">
-        @for (llm of llModels(); track llm.id) {
-          <option [ngValue]="llm.id">{{ llm | llmLabel }}</option>
-        }
-      </select>
+    <div class="grid gap-1 align-items-center mb-1">
+      <div class="g-col-3">
+        <label for="chatScenarioInput">Scenario</label>
+      </div>
+      <div class="g-col-9">
+        <div class="input-group input-group-sm">
+          <select class="form-select"
+                  id="chatScenarioInput"
+                  [formControl]="scenarioControl">
+            <option [ngValue]="null">No Scenario</option>
+            <option disabled>──────────</option>
+            @for (scene of scenarios(); track scene.id) {
+              <option [ngValue]="scene.id">{{ scene.name }}</option>
+            }
+          </select>
+          <a [routerLink]="['/chat/scenarios/', scenarioControl.value]"
+             target="_blank"
+             class="btn btn-secondary"
+             title="Open edit in new window/tab">
+            <span class="bi bi-box-arrow-up-right"></span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="grid gap-1 align-items-center mb-1">
+      <div class="g-col-3">
+        <label for="chatModelIdInput">Chat Model</label>
+      </div>
+      <div class="g-col-9">
+        <div class="input-group input-group-sm">
+          <select class="form-select"
+                  [formControl]="chatModelControl"
+                  id="chatModelIdInput">
+            @for (llm of llModels(); track llm.id) {
+              <option [ngValue]="llm.id">{{ llm | llmLabel }}</option>
+            }
+          </select>
+          <a [routerLink]="['/settings/connections/', selectedModel().profileId]"
+             target="_blank"
+             class="btn btn-secondary"
+             title="Open edit in new window/tab">
+            <span class="bi bi-box-arrow-up-right"></span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="grid gap-1 align-items-center">
+      <div class="g-col-3">
+        <label for="chatInstructionInput">Instructions</label>
+      </div>
+      <div class="g-col-9">
+        <div class="input-group input-group-sm">
+          <select class="form-select"
+                  [formControl]="chatInstructionControl"
+                  id="chatInstructionInput">
+            @for (inst of instructions(); track inst.id) {
+              <option [ngValue]="inst.id">{{ inst.name }}</option>
+            }
+          </select>
+          <a [routerLink]="['/settings/instruction-templates/', chatInstructionControl.value]"
+             target="_blank"
+             class="btn btn-secondary"
+             title="Open edit in new window/tab">
+            <span class="bi bi-box-arrow-up-right"></span>
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </div>

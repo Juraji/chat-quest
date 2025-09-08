@@ -11,6 +11,7 @@ import {scenariosResolver} from '@api/scenarios';
 import {llmModelViewsResolver} from '@api/providers';
 import {preferencesResolver} from '@api/preferences';
 import {EditWorldPage} from './edit/edit-world-page';
+import {instructionsResolver} from '@api/instructions';
 
 const routes: Routes = [
   {
@@ -34,6 +35,7 @@ const routes: Routes = [
       scenarios: scenariosResolver,
       llmModels: llmModelViewsResolver,
       preferences: preferencesResolver,
+      instructions: instructionsResolver
     }
   },
   {

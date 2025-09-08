@@ -24,6 +24,7 @@ import {LlmModelView} from '@api/providers';
 import {CQPreferences, PreferencesUpdated} from '@api/preferences';
 import {MemoryCreated} from '@api/memories';
 import {Notifications} from '@components/notifications';
+import {Instruction} from '@api/instructions';
 
 @Injectable()
 export class ChatSessionData {
@@ -56,6 +57,7 @@ export class ChatSessionData {
   readonly preferences: WritableSignal<CQPreferences> = linkedSignal(() => this._preferences())
 
   readonly llmModels: Signal<LlmModelView[]> = routeDataSignal(this.activatedRoute, 'llmModels')
+  readonly instructions: Signal<Instruction[]> = routeDataSignal(this.activatedRoute, 'instructions')
 
   constructor() {
     this.sse
