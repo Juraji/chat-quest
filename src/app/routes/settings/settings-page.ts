@@ -10,6 +10,7 @@ import {formControl, formGroup, routeDataSignal, routeQueryParamSignal} from '@u
 import {LlmModelView} from '@api/providers';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Instruction} from '@api/instructions';
+import {LlmLabelPipe} from '@components/llm-label.pipe';
 
 @Component({
   selector: 'app-settings-page',
@@ -18,6 +19,7 @@ import {Instruction} from '@api/instructions';
     ConnectionProfilesOverview,
     InstructionOverview,
     ReactiveFormsModule,
+    LlmLabelPipe,
   ],
   templateUrl: './settings-page.html'
 })

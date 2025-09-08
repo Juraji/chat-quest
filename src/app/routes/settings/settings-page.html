@@ -25,7 +25,7 @@
                       id="chatModelIdInput"
                       aria-describedby="chatModelIdInputHelp">
                 @for (llm of llmModelViews(); track llm.id) {
-                  <option [ngValue]="llm.id">{{ llm.modelId }}&nbsp;&bullet;&nbsp;{{ llm.profileName }}</option>
+                  <option [ngValue]="llm.id">{{ llm | llmLabel }}</option>
                 }
               </select>
               <div id="chatModelIdInputHelp" class="form-text">
@@ -65,7 +65,7 @@
                           id="memoriesModelIdInput"
                           aria-describedby="memoriesModelIdInputHelp">
                     @for (llm of llmModelViews(); track llm.id) {
-                      <option [ngValue]="llm.id">{{ llm.modelId }}&nbsp;&bullet;&nbsp;{{ llm.profileName }}</option>
+                      <option [ngValue]="llm.id">{{ llm | llmLabel }}</option>
                     }
                   </select>
                   <div id="memoriesModelIdInputHelp" class="form-text">
@@ -95,7 +95,7 @@
                           id="embeddingModelIdInput"
                           aria-describedby="embeddingModelIdInputHelp">
                     @for (llm of llmModelViews(); track llm.id) {
-                      <option [ngValue]="llm.id">{{ llm.modelId }}&nbsp;&bullet;&nbsp;{{ llm.profileName }}</option>
+                      <option [ngValue]="llm.id">{{ llm | llmLabel }}</option>
                     }
                   </select>
                   <div id="embeddingModelIdInputHelp" class="form-text">

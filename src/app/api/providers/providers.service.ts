@@ -10,6 +10,7 @@ import {isNew} from '@api/common';
 export class Providers {
   private http: HttpClient = inject(HttpClient)
 
+
   getTemplates(): Observable<AiProviders> {
     return this.http.get<AiProviders>(`${location.origin}/data/ai-providers.json`);
   }

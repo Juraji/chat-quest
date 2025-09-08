@@ -23,6 +23,7 @@ export interface LlmModel extends ChatQuestModel {
 export interface LlmModelView {
   id: number
   modelId: string
+  modelType: LlmModelType
   profileId: number
   profileName: string
 }

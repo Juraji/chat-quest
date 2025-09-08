@@ -11,12 +11,14 @@ import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {debounceTime} from 'rxjs';
 import {CQPreferences, Preferences} from '@api/preferences';
 import {World, Worlds} from '@api/worlds';
+import {LlmLabelPipe} from '@components/llm-label.pipe';
 
 @Component({
   selector: 'chat-session-details-block',
   imports: [
     DatePipe,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    LlmLabelPipe
   ],
   templateUrl: './chat-session-details-block.html',
 })
