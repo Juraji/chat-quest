@@ -29,6 +29,7 @@ export interface ChatParticipant {
   addedOn: string
   removedOn: Nullable<string>
   muted: boolean
+  newlyAdded: boolean
 }
 
 export const ChatSessionCreated: SseEvent<ChatSession> = 'ChatSessionCreated'

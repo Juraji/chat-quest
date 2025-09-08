@@ -15,6 +15,7 @@ type ChatParticipant struct {
 	AddedOn       *time.Time `json:"addedOn"`
 	RemovedOn     *time.Time `json:"removedOn"`
 	Muted         bool       `json:"muted"`
+	NewlyAdded    bool       `json:"newlyAdded"`
 }
 
 func chatParticipantScanner(scanner database.RowScanner, dest *ChatParticipant) error {
@@ -153,15 +154,21 @@ func AddParticipant(sessionId int, characterId int, muted bool) error {
 	query := `INSERT INTO chat_participants (chat_session_id, character_id, muted)
 			  VALUES (?, ?, ?)
 			  ON CONFLICT (chat_session_id, character_id)
-			      DO UPDATE SET removed_on = NULL,
-			                    muted = ?
-              RETURNING added_on, removed_on, muted; `
-	args := []any{sessionId, characterId, muted, muted}
+			  DO UPDATE SET
+			  	removed_on = NULL,
+			  	muted = excluded.muted
+			  RETURNING
+			  	added_on,
+			  	removed_on,
+			  	muted,
+			  	(added_on = CURRENT_TIMESTAMP) AS was_insert;`
+	args := []any{sessionId, characterId, muted}
 
 	err := database.InsertRecord(query, args,
 		&participant.AddedOn,
 		&participant.RemovedOn,
-		&participant.Muted)
+		&participant.Muted,
+		&participant.NewlyAdded)
 
 	if err == nil {
 		ChatParticipantAddedSignal.EmitBG(&participant)

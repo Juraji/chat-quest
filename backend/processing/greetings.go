@@ -12,7 +12,8 @@ func GreetOnParticipantAdded(
 	ctx context.Context,
 	participant *sessions.ChatParticipant,
 ) {
-	if participant == nil {
+	if participant == nil || !participant.NewlyAdded {
+		// Skip nil or not newly added
 		return
 	}
 
