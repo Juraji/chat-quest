@@ -4,13 +4,19 @@
       @if (isNew()) {
         <span class="page-title">New Connection Profile</span>
       } @else {
-        <span class="page-title"><span>{{ template().name }}</span>&nbsp;<span
-          class="text-muted small">&bullet;&nbsp;{{ template().type }}</span></span>
+        <span class="page-title"><span>{{ instruction().name }}</span>&nbsp;<span
+          class="text-muted small">&bullet;&nbsp;{{ instruction().type }}</span></span>
       }
 
       @if (!isNew()) {
         <button type="button" class="btn btn-outline-danger"
                 (click)="onDeleteTemplate()">Delete
+        </button>
+      }
+
+      @if (!isNew()) {
+        <button type="button" class="btn btn-secondary"
+                (click)="onDuplicateInstruction()">Create Copy
         </button>
       }
       @if (!isNew() && formGroup.dirty) {

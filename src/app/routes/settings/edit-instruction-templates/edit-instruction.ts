@@ -6,7 +6,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {Notifications} from '@components/notifications';
 import {RenderedMessage} from '@components/rendered-message/rendered-message';
 import {Instruction, Instructions, InstructionType} from '@api/instructions';
-import {isNew} from '@api/common';
+import {isNew, NEW_ID} from '@api/common';
 
 @Component({
   selector: 'app-edit-instruction-template-page',
@@ -19,14 +19,15 @@ import {isNew} from '@api/common';
   templateUrl: './edit-instruction.html',
 })
 export class EditInstruction {
-  private readonly templates = inject(Instructions)
+  private readonly instructions = inject(Instructions)
   private readonly activatedRoute = inject(ActivatedRoute)
   private readonly router = inject(Router)
   private readonly notifications = inject(Notifications)
 
-  readonly template: Signal<Instruction> = routeDataSignal(this.activatedRoute, 'template');
 
-  readonly isNew = computed(() => isNew(this.template()))
+  readonly instruction: Signal<Instruction> = routeDataSignal(this.activatedRoute, 'template');
+
+  readonly isNew = computed(() => isNew(this.instruction()))
 
   readonly formGroup = formGroup<Instruction>({
     id: readOnlyControl(),
@@ -57,7 +58,7 @@ export class EditInstruction {
 
   constructor() {
     effect(() => {
-      const input = this.template()
+      const input = this.instruction()
       this.formGroup.reset(input)
 
       const n = isNew(input)
@@ -72,15 +73,15 @@ export class EditInstruction {
 
     const formValue = this.formGroup.value
     const update: Instruction = {
-      ...this.template(),
+      ...this.instruction(),
       ...formValue
     }
 
-    this.templates
+    this.instructions
       .save(update)
-      .subscribe(template => {
+      .subscribe(res => {
         this.notifications.toast("Instruction Template saved!")
-        this.router.navigate(['..', template.id], {
+        this.router.navigate(['..', res.id], {
           relativeTo: this.activatedRoute,
           queryParams: {u: Date.now()},
           replaceUrl: true
@@ -89,16 +90,35 @@ export class EditInstruction {
   }
 
   onRevertChanges() {
-    this.formGroup.reset(this.template());
+    this.formGroup.reset(this.instruction());
+  }
+
+  onDuplicateInstruction() {
+    const instruction = this.instruction()
+
+    const newInstruction = {
+      ...instruction,
+      id: NEW_ID,
+      name: instruction.name + ' (copy)',
+    }
+
+    this.instructions
+      .save(newInstruction)
+      .subscribe(res => {
+        this.notifications.toast(`Instruction copied as "${res.name}"!`)
+        this.router.navigate(['..', res.id], {
+          relativeTo: this.activatedRoute
+        })
+      })
   }
 
   onDeleteTemplate() {
-    const t = this.template();
+    const t = this.instruction();
     if (isNew(t)) return
     const doDelete = confirm(`Are you sure you want to delete this template?`)
 
     if (doDelete) {
-      this.templates
+      this.instructions
         .delete(t!.id)
         .subscribe(() => {
           this.notifications.toast("Instruction Template deleted!")
