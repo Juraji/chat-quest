@@ -21,7 +21,7 @@ type Provider interface {
 	// getAvailableModelIds returns a list of available model IDs that can be used with this provider.
 	// The returned models are provider-specific identifiers for different AI models.
 	// Returns an empty slice if no models are available or an error occurred.
-	getAvailableModelIds() ([]string, error)
+	getAvailableModelIds() ([]*LlmModel, error)
 
 	// generateEmbeddings creates vector embeddings from the given input text using the specified model.
 	// The function should be thread-safe and handle its own locking internally if needed.
@@ -71,22 +71,7 @@ func GetAvailableModels(profile *ConnectionProfile) ([]*LlmModel, error) {
 		return nil, fmt.Errorf("failed to get models for profile %s (id %d): %w", profile.Name, profile.ID, err)
 	}
 
-	llmModels := make([]*LlmModel, len(models))
-	for i, modelId := range models {
-		llmModels[i] = &LlmModel{
-			ConnectionProfileId: profile.ID,
-			ModelId:             modelId,
-			Disabled:            false,
-		}
-
-		if strings.Contains(modelId, "embedding-") {
-			llmModels[i].ModelType = EmbeddingModel
-		} else {
-			llmModels[i].ModelType = ChatModel
-		}
-	}
-
-	return llmModels, nil
+	return models, nil
 }
 
 // GenerateEmbeddings creates vector embeddings from the given input text using a specified LLM model.

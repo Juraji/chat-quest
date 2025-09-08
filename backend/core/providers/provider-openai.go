@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/sashabaranov/go-openai"
 	"io"
+	"strings"
 )
 
 type openAIProvider struct {
@@ -23,15 +24,27 @@ func newOpenAiProvider(baseUrl string, apiKey string) *openAIProvider {
 	}
 }
 
-func (o *openAIProvider) getAvailableModelIds() ([]string, error) {
+func (o *openAIProvider) getAvailableModelIds() ([]*LlmModel, error) {
 	models, err := o.client.ListModels(o.ctx)
 	if err != nil {
 		return nil, fmt.Errorf("openAIProvider failed to list models: %w", err)
 	}
 
-	modelIds := make([]string, len(models.Models))
+	modelIds := make([]*LlmModel, len(models.Models))
 	for i, model := range models.Models {
-		modelIds[i] = model.ID
+
+		// OpenAI endpoints don't have a type, but we can generally infer from model id here.
+		var t LlmModelType
+		if strings.Contains(model.ID, "embedding-") {
+			t = EmbeddingModel
+		} else {
+			t = ChatModel
+		}
+
+		modelIds[i] = &LlmModel{
+			ModelId:   model.ID,
+			ModelType: t,
+		}
 	}
 
 	return modelIds, nil
