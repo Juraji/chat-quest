@@ -2,6 +2,11 @@ package processing
 
 import (
 	"context"
+	"regexp"
+	"strconv"
+	"strings"
+	"sync"
+
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
@@ -15,8 +20,6 @@ import (
 	"juraji.nl/chat-quest/model/preferences"
 	sc "juraji.nl/chat-quest/model/scenarios"
 	w "juraji.nl/chat-quest/model/worlds"
-	"strings"
-	"sync"
 )
 
 func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.ChatParticipant) {
@@ -108,8 +111,9 @@ func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.Ch
 	}
 	// Remove the last message from the history, if it is the equal to the trigger message.
 	// Which it most likely is, but let's be sure
-	if len(chatHistory) != 0 && chatHistory[0].ID == triggerMessage.ID {
-		chatHistory = chatHistory[:len(chatHistory)-1]
+	lastMsgIndex := len(chatHistory) - 1
+	if len(chatHistory) != 0 && chatHistory[lastMsgIndex].ID == triggerMessage.ID {
+		chatHistory = chatHistory[:lastMsgIndex]
 	}
 
 	logger = logger.With(
@@ -159,41 +163,42 @@ func generateResponse(
 		return
 	}
 
-	// Create target message
-	responseMessage := cs.NewChatMessage(false, true, &responderId, "")
-	if err := cs.CreateChatMessage(session.ID, responseMessage); err != nil {
-		logger.Error("Failed to create response chat message", zap.Error(err))
-		return
-	}
-	defer func() {
-		responseMessage.IsGenerating = false
-		if err := cs.UpdateChatMessage(session.ID, responseMessage.ID, responseMessage); err != nil {
-			logger.Error("Failed to update response chat message upon finalization", zap.Error(err))
-		}
-	}()
-
-	// Do LLM
-	callLlmAndProcessResponse(ctx, logger, session.ID, chatModelInst, requestMessages, instruction, responseMessage)
-}
-
-func callLlmAndProcessResponse(
-	ctx context.Context,
-	logger *zap.Logger,
-	sessionId int,
-	chatModelInst *p.LlmModelInstance,
-	requestMessages []p.ChatRequestMessage,
-	instruction *inst.Instruction,
-	responseMessage *cs.ChatMessage,
-) {
+	// Create message stack
 	const (
-		Idle = iota
+		Initial = iota
 		InPrefix
 		InContent
 	)
 
-	var currentState = Idle
+	var currentState = Initial
 	var prefixBuffer strings.Builder
 	var contentBuffer strings.Builder
+	var messageStack []*cs.ChatMessage
+	var currentMessage *cs.ChatMessage
+	var extractRegex = regexp.MustCompile(CharIdTagPrefix + `(\d+)` + CharIdTagSuffix)
+
+	addMessageToStack := func() {
+		currentMessage = cs.NewChatMessage(false, true, &responderId, "")
+		if err := cs.CreateChatMessage(session.ID, currentMessage); err != nil {
+			logger.Error("Failed to create response chat message", zap.Error(err))
+			return
+		}
+		messageStack = append(messageStack, currentMessage)
+	}
+
+	defer func() {
+		for _, message := range messageStack {
+			message.IsGenerating = false
+			message.Content = strings.TrimSpace(message.Content)
+			if err := cs.UpdateChatMessage(session.ID, message.ID, message); err != nil {
+				logger.Error("Failed to update response chat message upon finalization",
+					zap.Int("messageId", message.ID), zap.Error(err))
+			}
+		}
+	}()
+
+	// Create initial response message
+	addMessageToStack()
 
 	chatResponseChan := p.GenerateChatResponse(
 		chatModelInst,
@@ -214,9 +219,8 @@ func callLlmAndProcessResponse(
 
 			for _, token := range strings.Split(response.Content, "") {
 				switch currentState {
-				case Idle:
-					// Check if this token starts a new prefix
-					if token == CharIdPrefixInit {
+				case Initial:
+					if token == CharIdTagPrefixInit {
 						currentState = InPrefix
 						prefixBuffer.WriteString(token)
 					} else {
@@ -227,23 +231,55 @@ func callLlmAndProcessResponse(
 				case InPrefix:
 					// Accumulate tokens until we complete the prefix
 					prefixBuffer.WriteString(token)
+					currentPrefix := strings.TrimSpace(prefixBuffer.String())
+
+					// When we reach the prefix length, check whether this tag sequence is actually a char id tag.
+					// If not, we write the current buffer to the content and continue as InContent,
+					// as this tag was not meant for us.
+					if len(currentPrefix) == len(CharIdTagPrefix) && currentPrefix != CharIdTagPrefix {
+						contentBuffer.WriteString(currentPrefix)
+						currentState = InContent
+					}
 
 					// Check if this completes a character ID prefix
-					if strings.HasSuffix(prefixBuffer.String(), CharIdSuffix) {
+					if strings.HasSuffix(currentPrefix, CharIdTagSuffix) {
+						// We have the complete char id tag. Extract the ID within
+						// and set it as the current message's character id.
+						if number := extractRegex.FindStringSubmatch(currentPrefix); number != nil && len(number) > 1 {
+							charId, err := strconv.Atoi(number[1])
+							if err != nil {
+								logger.Warn("Invalid character prefix found in LLM response stream",
+									zap.String("prefix", currentPrefix))
+								return
+							}
+							currentMessage.CharacterID = &charId
+						} else {
+							logger.Warn("Invalid character prefix found in LLM response stream",
+								zap.String("prefix", currentPrefix))
+						}
+
 						currentState = InContent
 						prefixBuffer.Reset()
 					}
-
 				case InContent:
-					// Output all tokens as they're part of the actual content
-					contentBuffer.WriteString(token)
+					// Check if this token starts a new prefix
+					if token == CharIdTagPrefixInit {
+						currentState = InPrefix
+						prefixBuffer.WriteString(token)
+
+						addMessageToStack()
+					} else {
+						// Output the token directly as it's not part of a prefix
+						contentBuffer.WriteString(token)
+					}
 				}
 			}
 
 			if contentBuffer.Len() > 0 {
-				responseMessage.Content += contentBuffer.String()
-				if err := cs.UpdateChatMessage(sessionId, responseMessage.ID, responseMessage); err != nil {
-					logger.Error("Failed to update response chat message", zap.Error(err))
+				currentMessage.Content += contentBuffer.String()
+				if err := cs.UpdateChatMessage(session.ID, currentMessage.ID, currentMessage); err != nil {
+					logger.Error("Failed to update response chat message",
+						zap.Int("messageId", currentMessage.ID), zap.Error(err))
 					return
 				}
 

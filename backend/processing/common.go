@@ -3,6 +3,7 @@ package processing
 import (
 	"context"
 	"fmt"
+
 	"go.uber.org/zap"
 	p "juraji.nl/chat-quest/core/providers"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
@@ -10,9 +11,9 @@ import (
 )
 
 const (
-	CharIdPrefix     = "<ByCharacterId>"
-	CharIdPrefixInit = "<"
-	CharIdSuffix     = "</ByCharacterId>\n\n"
+	CharIdTagPrefix     = "<ByCharacterId>"
+	CharIdTagPrefixInit = "<"
+	CharIdTagSuffix     = "</ByCharacterId>"
 )
 
 func contextCheckPoint(ctx context.Context, logger *zap.Logger) bool {
@@ -41,7 +42,7 @@ func createChatRequestMessages(
 		if msg.IsUser {
 			messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: msg.Content})
 		} else {
-			content := fmt.Sprintf("%s%v%s%s", CharIdPrefix, *msg.CharacterID, CharIdSuffix, msg.Content)
+			content := fmt.Sprintf("%s%v%s\n\n%s", CharIdTagPrefix, *msg.CharacterID, CharIdTagSuffix, msg.Content)
 			messages = append(messages, p.ChatRequestMessage{Role: p.RoleAssistant, Content: content})
 		}
 	}
