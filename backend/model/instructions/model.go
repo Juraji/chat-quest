@@ -1,6 +1,7 @@
 package instructions
 
 import (
+	"github.com/pkg/errors"
 	"juraji.nl/chat-quest/core/database"
 	p "juraji.nl/chat-quest/core/providers"
 	"juraji.nl/chat-quest/core/util"
@@ -50,6 +51,25 @@ func (i *Instruction) AsLlmParameters() p.LlmParameters {
 		Stream:           i.Stream,
 		StopSequences:    i.StopSequences,
 	}
+}
+
+func (i *Instruction) ApplyTemplates(variables any) error {
+	fields := []*string{
+		&i.SystemPrompt,
+		&i.WorldSetup,
+		&i.Instruction,
+	}
+
+	for _, fieldPtr := range fields {
+		result, err := util.ParseAndApplyTextTemplate(*fieldPtr, variables)
+		if err != nil {
+			return errors.Wrap(err, "Error creating template for instruction template")
+		}
+
+		*fieldPtr = result
+	}
+
+	return nil
 }
 
 func instructionPromptScanner(scanner database.RowScanner, dest *Instruction) error {
