@@ -3,8 +3,9 @@ package signals
 import (
 	"context"
 	"fmt"
-	"juraji.nl/chat-quest/core/util"
 	"sync"
+
+	"juraji.nl/chat-quest/core/util"
 )
 
 // SignalListener defines a callback function type for handling signal events.

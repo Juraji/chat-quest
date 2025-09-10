@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+
 	"github.com/pkg/errors"
 )
 
@@ -9,6 +10,8 @@ import (
 type RowScanner interface {
 	Scan(dest ...any) error
 }
+
+type RowScannerFunc[T any] = func(scanner RowScanner, dest *T) error
 
 // queryExecutor interface that works with both *sql.DB and *sql.Tx
 type queryExecutor interface {
@@ -21,12 +24,12 @@ type TxContext struct {
 	tx *sql.Tx
 }
 
-func QueryForList[T any](query string, args []any, scanFunc func(scanner RowScanner, dest *T) error) ([]T, error) {
-	return queryForList(GetDB(), query, args, scanFunc)
+func QueryForList[T any](query string, args []any, scanFunc RowScannerFunc[T]) ([]T, error) {
+	return queryForList[T](GetDB(), query, args, scanFunc)
 }
 
-func QueryForRecord[T any](query string, args []any, scanFunc func(scanner RowScanner, dest *T) error) (*T, error) {
-	return queryForRecord(GetDB(), query, args, scanFunc)
+func QueryForRecord[T any](query string, args []any, scanFunc RowScannerFunc[T]) (*T, error) {
+	return queryForRecord[T](GetDB(), query, args, scanFunc)
 }
 
 func InsertRecord(query string, args []any, scanTo ...any) error {
@@ -81,7 +84,7 @@ func queryForList[T any](
 	q queryExecutor,
 	query string,
 	args []any,
-	scanFunc func(scanner RowScanner, dest *T) error,
+	scanFunc RowScannerFunc[T],
 ) ([]T, error) {
 	records := make([]T, 0)
 
@@ -115,7 +118,7 @@ func queryForRecord[T any](
 	q queryExecutor,
 	query string,
 	args []any,
-	scanFunc func(scanner RowScanner, dest *T) error,
+	scanFunc RowScannerFunc[T],
 ) (*T, error) {
 	var dest T
 

@@ -2,6 +2,7 @@ package processing
 
 import (
 	"context"
+
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/model/characters"

@@ -24,6 +24,7 @@ func contextCheckPoint(ctx context.Context, logger *zap.Logger) bool {
 
 	return false
 }
+
 func createChatRequestMessages(
 	chatHistory []cs.ChatMessage,
 	instruction *i.Instruction,

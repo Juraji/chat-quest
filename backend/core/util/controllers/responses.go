@@ -1,11 +1,12 @@
 package controllers
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
-	"net/http"
-	"strconv"
 )
 
 func GetParamAsID(c *gin.Context, key string) (int, bool) {

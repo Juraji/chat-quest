@@ -2,9 +2,10 @@ package util
 
 import (
 	"bytes"
-	"github.com/pkg/errors"
 	"strings"
 	gt "text/template"
+
+	"github.com/pkg/errors"
 )
 
 func ParseAndApplyTextTemplate(

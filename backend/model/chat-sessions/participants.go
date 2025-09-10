@@ -2,11 +2,12 @@ package chat_sessions
 
 import (
 	"errors"
+	"math/rand"
+	"time"
+
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/util"
 	"juraji.nl/chat-quest/model/characters"
-	"math/rand"
-	"time"
 )
 
 type ChatParticipant struct {

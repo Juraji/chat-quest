@@ -2,6 +2,7 @@ package sse
 
 import (
 	"context"
+
 	"juraji.nl/chat-quest/core/util/signals"
 )
 

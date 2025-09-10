@@ -1,9 +1,10 @@
 package characters
 
 import (
+	"strings"
+
 	"github.com/pkg/errors"
 	"juraji.nl/chat-quest/core/database"
-	"strings"
 )
 
 type Tag struct {

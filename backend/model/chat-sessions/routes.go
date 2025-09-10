@@ -1,9 +1,10 @@
 package chat_sessions
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/core/util/controllers"
-	"strings"
 )
 
 func Routes(router *gin.RouterGroup) {

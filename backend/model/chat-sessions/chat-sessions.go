@@ -1,10 +1,11 @@
 package chat_sessions
 
 import (
+	"time"
+
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
-	"time"
 )
 
 type ChatSession struct {

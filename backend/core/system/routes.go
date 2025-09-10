@@ -1,15 +1,16 @@
 package system
 
 import (
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/providers"
 	"juraji.nl/chat-quest/core/util/controllers"
-	"net/http"
-	"os"
-	"time"
 )
 
 func Routes(router *gin.RouterGroup) {

@@ -1,11 +1,12 @@
 package characters
 
 import (
+	"time"
+
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/util"
-	"time"
 )
 
 type Character struct {

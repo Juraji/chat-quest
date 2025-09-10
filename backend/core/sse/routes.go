@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 func Routes(router *gin.RouterGroup) {

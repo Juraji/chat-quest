@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/sashabaranov/go-openai"
 	"io"
 	"strings"
+
+	"github.com/sashabaranov/go-openai"
 )
 
 type openAIProvider struct {

@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"

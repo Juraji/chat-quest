@@ -2,9 +2,10 @@ package log
 
 import (
 	"fmt"
+	"os"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"os"
 )
 
 var loggerInstance *zap.Logger

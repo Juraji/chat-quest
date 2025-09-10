@@ -1,8 +1,9 @@
 package chat_sessions
 
 import (
-	"juraji.nl/chat-quest/core/database"
 	"time"
+
+	"juraji.nl/chat-quest/core/database"
 )
 
 type ChatMessage struct {

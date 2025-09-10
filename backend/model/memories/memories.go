@@ -1,9 +1,10 @@
 package memories
 
 import (
+	"time"
+
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/providers"
-	"time"
 )
 
 type Memory struct {

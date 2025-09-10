@@ -1,12 +1,13 @@
 package system
 
 import (
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
-	"juraji.nl/chat-quest/core/log"
 	"net/http"
 	"os"
 	"path"
+
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	"juraji.nl/chat-quest/core/log"
 )
 
 func ChatQuestUIHandler(chatQuestUIDir string) func(c *gin.Context) {
