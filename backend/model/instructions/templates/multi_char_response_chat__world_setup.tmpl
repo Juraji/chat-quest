@@ -1,0 +1,93 @@
+{{- /*gotype: juraji.nl/chat-quest/processings.instructionTemplateVars*/ -}}
+```rag.xml
+{{if .WorldDescription}}
+<WorldDescription>
+  {{.WorldDescription}}
+</WorldDescription>
+{{end}}
+{{if .ScenarioDescription}}
+<Scenario>
+  {{.ScenarioDescription}}
+</Scenario>
+{{end}}
+<Characters>
+  <Character>
+    <!-- This is the character you are currently impersonating. -->
+    <Id>{{.Character.ID}}</Id>
+    <Name>{{.Character.Name}}</Name>
+    {{if .Character.Appearance}}
+    <Appearance>
+      {{.Character.Appearance}}
+    </Appearance>
+    {{end}}
+    {{if .Character.Personality}}
+    <Personality>
+      {{.Character.Personality}}
+    </Personality>
+    {{end}}
+    {{if .Character.History}}
+    <History>
+      {{.Character.History}}
+    </History>
+    {{end}}
+    {{if .DialogueExamples}}
+    <DialogExamples>
+      {{range $ex := .DialogueExamples}}
+        <DialogExample>{{$ex}}<DialogExample>
+      {{end}}
+    </DialogExamples>
+    {{end}}
+    {{if .Memories}}
+    <Memories>
+      <!-- These memories are character notes about earlier events this character remembers. -->
+      <!-- These memories are specifically for {{.Character.Name}}, only they remember this. -->
+      {{range $m := .Memories}}
+        <Memory>{{$m.Content}}<Memory>
+      {{end}}
+    </Memories>
+    {{end}}
+  </Character>
+  {{if .OtherParticipants}}
+    {{range $c := .OtherParticipants}}
+      <Character>
+        <!-- This is another participant in the chat. -->
+        <Id>{{$c.ID}}</Id>
+        <Name>{{$c.Name}}</Name>
+        {{if $c.Appearance}}
+        <Appearance>
+          {{$c.Appearance}}
+        </Appearance>
+        {{end}}
+        {{if $c.Personality}}
+        <Personality>
+          {{$c.Personality}}
+        </Personality>
+        {{end}}
+      </Character>
+    {{end}}
+  {{end}}
+</Characters>
+{{if .Persona}}
+  <UserPersona>
+    <!-- This information describes the user, it is not a character in the chat -->
+    <Name>{{.Persona.Name}}</Name>
+    {{if .Persona.Appearance}}
+    <Appearance>
+      {{.Persona.Appearance}}
+    </Appearance>
+    {{end}}
+    {{if .Persona.Personality}}
+    <Personality>
+      {{.Persona.Personality}}
+    </Personality>
+    {{end}}
+    {{if .Persona.History}}
+    <History>
+      {{.Persona.History}}
+    </History>
+    {{end}}
+  </UserPersona>
+{{end}}
+```
+
+(Do not recite the information in the rag.xml block, use it to enrich your understanding of the world and the individual characters)

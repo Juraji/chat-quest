@@ -175,7 +175,8 @@ func generateResponse(
 	var contentBuffer strings.Builder
 	var messageStack []*cs.ChatMessage
 	var currentMessage *cs.ChatMessage
-	var extractRegex = regexp.MustCompile(CharIdTagPrefix + `(\d+)` + CharIdTagSuffix)
+	var extractCharIdRegex = regexp.MustCompile(
+		regexp.QuoteMeta(CharIdTagPrefix) + "(\\d+)" + regexp.QuoteMeta(CharIdTagSuffix))
 
 	addMessageToStack := func() {
 		currentMessage = cs.NewChatMessage(false, true, &responderId, "")
@@ -245,7 +246,7 @@ func generateResponse(
 					if strings.HasSuffix(currentPrefix, CharIdTagSuffix) {
 						// We have the complete char id tag. Extract the ID within
 						// and set it as the current message's character id.
-						if number := extractRegex.FindStringSubmatch(currentPrefix); number != nil && len(number) > 1 {
+						if number := extractCharIdRegex.FindStringSubmatch(currentPrefix); number != nil && len(number) > 1 {
 							charId, err := strconv.Atoi(number[1])
 							if err != nil {
 								logger.Warn("Invalid character prefix found in LLM response stream",
@@ -368,19 +369,8 @@ func createChatInstruction(
 		Memories:             memories,
 	}
 
-	instruction.SystemPrompt, err = util.ParseAndApplyTextTemplate(instruction.SystemPrompt, instructionVars)
-	if err != nil {
-		logger.Error("Error parsing system prompt", zap.Error(err))
-		return nil, false
-	}
-	instruction.WorldSetup, err = util.ParseAndApplyTextTemplate(instruction.WorldSetup, instructionVars)
-	if err != nil {
-		logger.Error("Error parsing world setup", zap.Error(err))
-		return nil, false
-	}
-	instruction.Instruction, err = util.ParseAndApplyTextTemplate(instruction.Instruction, instructionVars)
-	if err != nil {
-		logger.Error("Error parsing instruction", zap.Error(err))
+	if err = instruction.ApplyTemplates(instructionVars); err != nil {
+		logger.Error("Error applying instruction templates", zap.Error(err))
 		return nil, false
 	}
 

@@ -3,6 +3,9 @@ package processing
 import (
 	"context"
 	"encoding/json"
+	"strings"
+	"sync"
+
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	p "juraji.nl/chat-quest/core/providers"
@@ -10,8 +13,6 @@ import (
 	i "juraji.nl/chat-quest/model/instructions"
 	m "juraji.nl/chat-quest/model/memories"
 	"juraji.nl/chat-quest/model/preferences"
-	"strings"
-	"sync"
 )
 
 var generationMutex sync.Mutex
@@ -62,7 +63,7 @@ func GenerateMemoriesForMessageID(
 
 	messageWindow := []cs.ChatMessage{*message}
 
-	memories, ok := generateAndExtractMemories(logger, ctx, session, prefs, messageWindow)
+	memories, ok := generateMemories(logger, ctx, session, prefs, messageWindow)
 	if !ok {
 		return
 	}
@@ -131,7 +132,7 @@ func GenerateMemories(
 		return
 	}
 
-	memories, ok := generateAndExtractMemories(logger, ctx, session, prefs, messageWindow)
+	memories, ok := generateMemories(logger, ctx, session, prefs, messageWindow)
 	if !ok {
 		return
 	}
@@ -159,7 +160,7 @@ func GenerateMemories(
 	logger.Info("Memory generation completed", zap.Int("newMemories", len(memories)))
 }
 
-func generateAndExtractMemories(
+func generateMemories(
 	logger *zap.Logger,
 	ctx context.Context,
 	session *cs.ChatSession,
@@ -188,17 +189,37 @@ func generateAndExtractMemories(
 		Participants: participants,
 	}
 
-	// Apply instruction template vars and generate memories
-	instruction, err = i.ApplyInstructionTemplates(*instruction, templateVars)
-	if err != nil {
+	if err = instruction.ApplyTemplates(templateVars); err != nil {
 		logger.Error("Error applying instruction templates", zap.Error(err))
 		return nil, false
 	}
 
+	// Generate memories
 	requestMessages := createChatRequestMessages(messageWindow, instruction)
-	memoryGenResponse, ok := callLlm(logger, ctx, modelInstance, instruction, requestMessages)
-	if !ok {
-		return nil, false
+	chatResponseChan := p.GenerateChatResponse(modelInstance, requestMessages, instruction.AsLlmParameters())
+	var memoryGenResponse string
+
+responseLoop:
+	for {
+		select {
+		case r, hasNext := <-chatResponseChan:
+			if !hasNext {
+				// Done
+				break responseLoop
+			}
+
+			if r.Error != nil {
+				logger.Error("Error generating memories",
+					zap.String("generated", memoryGenResponse),
+					zap.Error(r.Error))
+				return nil, false
+			}
+
+			memoryGenResponse = memoryGenResponse + r.Content
+		case <-ctx.Done():
+			logger.Debug("Cancelled by context")
+			return nil, false
+		}
 	}
 
 	// We expect a JSON markdown block, extract it
@@ -227,41 +248,6 @@ func generateAndExtractMemories(
 
 	logger.Debug("Memories generated successfully", zap.Int("memoryCount", len(memories)))
 	return memories, true
-}
-
-func callLlm(
-	logger *zap.Logger,
-	ctx context.Context,
-	instance *p.LlmModelInstance,
-	instruction *i.Instruction,
-	messages []p.ChatRequestMessage,
-) (string, bool) {
-	chatResponseChan := p.GenerateChatResponse(
-		instance,
-		messages,
-		instruction.AsLlmParameters(),
-	)
-	var memoryGenResponse string
-
-	for {
-		select {
-		case r, hasNext := <-chatResponseChan:
-			if !hasNext {
-				// Done
-				return memoryGenResponse, true
-			}
-
-			if r.Error != nil {
-				logger.Error("Error generating memories", zap.Error(r.Error))
-				return "", false
-			}
-
-			memoryGenResponse = memoryGenResponse + r.Content
-		case <-ctx.Done():
-			logger.Debug("Cancelled by context")
-			return "", false
-		}
-	}
 }
 
 func getMessageWindow(logger *zap.Logger, prefs *preferences.Preferences, sessionID int) ([]cs.ChatMessage, error) {
