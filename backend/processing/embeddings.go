@@ -31,7 +31,7 @@ func RegenerateEmbeddingsOnPrefsUpdate(ctx context.Context, prefs *preferences.P
 		GenerateEmbeddings(ctx, &memory)
 	}
 
-	logger.Info("Embeddings updated")
+	logger.Info("Embedding updated")
 }
 
 func GenerateEmbeddings(ctx context.Context, memory *m.Memory) {

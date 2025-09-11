@@ -26,7 +26,7 @@ type Provider interface {
 	// generateEmbeddings creates vector embeddings from the given input text using the specified model.
 	// The function should be thread-safe and handle its own locking internally if needed.
 	// Returns the generated embeddings as a slice of floats or an error if generation failed.
-	generateEmbeddings(input string, modelId string) (Embeddings, error)
+	generateEmbeddings(input string, modelId string) (Embedding, error)
 
 	// generateChatResponse creates a channel that will stream chat responses based on the provided request.
 	// The function should be thread-safe and handle its own locking internally if needed.
@@ -76,7 +76,7 @@ func GetAvailableModels(profile *ConnectionProfile) ([]*LlmModel, error) {
 
 // GenerateEmbeddings creates vector embeddings from the given input text using a specified LLM model.
 // This function uses a provider-specific lock to ensure thread-safe access during embedding generation.
-func GenerateEmbeddings(llm *LlmModelInstance, input string, cleanInput bool) (Embeddings, error) {
+func GenerateEmbeddings(llm *LlmModelInstance, input string, cleanInput bool) (Embedding, error) {
 	providerLock := getProviderLock(llm.ProviderId)
 	providerLock.Lock()
 	defer providerLock.Unlock()
@@ -100,7 +100,7 @@ func GenerateEmbeddings(llm *LlmModelInstance, input string, cleanInput bool) (E
 		return nil, fmt.Errorf("failed to generate embeddings for %s (%s): %w", llm.ModelId, llm.ProviderType, err)
 	}
 
-	return embedding, nil
+	return embedding.Normalize(), nil
 }
 
 // GenerateChatResponse creates a channel that will stream chat responses based on the provided messages and model configuration.

@@ -8,18 +8,14 @@ import (
 )
 
 type Memory struct {
-	ID               int                  `json:"id"`
-	WorldId          int                  `json:"worldId"`
-	CharacterId      *int                 `json:"characterId"`
-	CreatedAt        *time.Time           `json:"createdAt"`
-	Content          string               `json:"content"`
-	AlwaysInclude    bool                 `json:"alwaysInclude"`
-	Embedding        providers.Embeddings `json:"-"`
-	EmbeddingModelId *int                 `json:"-"`
-}
-
-func (m *Memory) CosineSimilarity(other providers.Embeddings) (float32, error) {
-	return m.Embedding.CosineSimilarity(other)
+	ID               int                 `json:"id"`
+	WorldId          int                 `json:"worldId"`
+	CharacterId      *int                `json:"characterId"`
+	CreatedAt        *time.Time          `json:"createdAt"`
+	Content          string              `json:"content"`
+	AlwaysInclude    bool                `json:"alwaysInclude"`
+	Embedding        providers.Embedding `json:"-"`
+	EmbeddingModelId *int                `json:"-"`
 }
 
 func memoryScanner(scanner database.RowScanner, dest *Memory) error {
@@ -85,7 +81,8 @@ func GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 func GetMemoriesNotMatchingEmbeddingModelId(modelId int) ([]Memory, error) {
 	query := `SELECT id, world_id, character_id, created_at, content, always_include
 			  FROM memories
-			  WHERE embedding_model_id != ?`
+			  WHERE embedding_model_id IS NULL
+			     OR embedding_model_id != ?`
 	args := []any{modelId}
 	return database.QueryForList(query, args, memoryScanner)
 }
@@ -128,7 +125,7 @@ func UpdateMemory(id int, memory *Memory) error {
 	return err
 }
 
-func SetMemoryEmbedding(id int, embeddings providers.Embeddings, embeddingModelId int) error {
+func SetMemoryEmbedding(id int, embeddings providers.Embedding, embeddingModelId int) error {
 	query := `UPDATE memories SET embedding = ?, embedding_model_id = ? WHERE id = ?`
 	args := []any{embeddings, embeddingModelId, id}
 	return database.UpdateRecord(query, args)

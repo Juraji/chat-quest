@@ -9,10 +9,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Embeddings []float32
+type Embedding []float32
 
+// Scan implements the sql.Scanner interface for Embedding type.
+// It converts a database value to an Embedding object.
+//
 //goland:noinspection GoMixedReceiverTypes as needed by the sql.Scanner interface.
-func (e *Embeddings) Scan(value any) error {
+func (e *Embedding) Scan(value any) error {
 	if value == nil {
 		*e = nil
 		return nil
@@ -27,7 +30,7 @@ func (e *Embeddings) Scan(value any) error {
 	}
 
 	n := len(b) / 4
-	embedding := make(Embeddings, n)
+	embedding := make(Embedding, n)
 	for i := 0; i < n; i++ {
 		start := i * 4
 		bits := binary.LittleEndian.Uint32(b[start : start+4])
@@ -37,8 +40,11 @@ func (e *Embeddings) Scan(value any) error {
 	return nil
 }
 
+// Value implements the driver.Valuer interface for Embedding type.
+// It converts an Embedding object to a database value.
+//
 //goland:noinspection GoMixedReceiverTypes as needed by the driver.Valuer interface.
-func (e Embeddings) Value() (driver.Value, error) {
+func (e Embedding) Value() (driver.Value, error) {
 	if len(e) == 0 {
 		return nil, nil
 	}
@@ -52,30 +58,53 @@ func (e Embeddings) Value() (driver.Value, error) {
 	return b, nil
 }
 
+// CosineSimilarity calculates the cosine similarity between two embeddings.
+// It returns a float32 value representing the cosine of the angle between the vectors.
+//
 //goland:noinspection GoMixedReceiverTypes See Scan and Value methods
-func (e *Embeddings) CosineSimilarity(other Embeddings) (float32, error) {
+func (e *Embedding) CosineSimilarity(other Embedding) float32 {
 	if e == nil {
-		return 0.0, errors.New("nil Embeddings")
+		panic("nil Embedding")
 	}
 	if len(*e) != len(other) {
-		return 0.0, errors.Errorf("embedding dimensions must match (this %d, other %d)", len(*e), len(other))
+		panic(fmt.Sprintf("embedding dimensions must match (this %d, other %d)", len(*e), len(other)))
 	}
 
+	this := *e
 	dotProduct := float32(0)
-	normE, normO := float32(0), float32(0)
 
-	for i := range *e {
-		v1, v2 := (*e)[i], other[i]
+	for i := range this {
+		v1, v2 := this[i], other[i]
 		dotProduct += v1 * v2
-		normE += v1 * v1
-		normO += v2 * v2
 	}
 
-	productOfNorms := normE * normO
-	if productOfNorms == 0 {
-		return 0.0, nil
+	return dotProduct
+}
+
+// Normalize scales the embedding vector to have unit length.
+// It returns a new Embedding object with normalized values.
+//
+//goland:noinspection GoMixedReceiverTypes See Scan and Value methods
+func (e *Embedding) Normalize() Embedding {
+	if e == nil {
+		panic("nil Embedding")
 	}
 
-	denominator := float32(math.Sqrt(float64(productOfNorms)))
-	return dotProduct / denominator, nil
+	this := *e
+	magnitude := float64(0)
+	for _, v := range this {
+		magnitude += float64(v * v)
+	}
+	magnitude = math.Sqrt(magnitude)
+
+	if magnitude == 0 {
+		// Handle zero vector case to avoid division by zero.
+		return this
+	}
+
+	normalized := make([]float32, len(this))
+	for i, v := range this {
+		normalized[i] = float32(float64(v) / magnitude)
+	}
+	return normalized
 }

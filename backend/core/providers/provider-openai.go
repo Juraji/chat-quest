@@ -51,7 +51,7 @@ func (o *openAIProvider) getAvailableModelIds() ([]*LlmModel, error) {
 	return modelIds, nil
 }
 
-func (o *openAIProvider) generateEmbeddings(input, modelID string) (Embeddings, error) {
+func (o *openAIProvider) generateEmbeddings(input, modelID string) (Embedding, error) {
 	request := openai.EmbeddingRequest{
 		Input: input,
 		Model: openai.EmbeddingModel(modelID),

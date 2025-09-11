@@ -547,6 +547,20 @@ func getMemories(
 			return
 		}
 
+		// Shortcut: If the subject is empty it means there is no history or trigger message.
+		// Just return the static memories.
+		if len(subject) == 0 {
+			var staticMemories []m.Memory
+			for _, mem := range memories {
+				if mem.AlwaysInclude {
+					staticMemories = append(staticMemories, mem)
+				}
+			}
+
+			memoriesChan <- channels.NewResult(staticMemories, nil)
+			return
+		}
+
 		// Embed subject text
 		embeddingModelInst, err := p.GetLlmModelInstanceById(*prefs.EmbeddingModelId)
 		if err != nil {
@@ -583,10 +597,7 @@ func getMemories(
 						continue
 					}
 
-					similarity, eErr := subjectEmbeddings.CosineSimilarity(memory.Embedding)
-					if eErr != nil {
-						panic(errors.Wrapf(eErr, "cosine similarity error for memory with id '%v'", memory.ID))
-					}
+					similarity := subjectEmbeddings.CosineSimilarity(memory.Embedding)
 					if similarity >= minP {
 						relevantMemories = append(relevantMemories, memory)
 					}
