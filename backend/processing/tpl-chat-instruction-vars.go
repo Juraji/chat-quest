@@ -12,6 +12,7 @@ import (
 
 type ChatInstructionVars interface {
 	IsTriggeredByMessage() bool
+	IsFirstMessage() bool
 	CurrentMessageIndex() int
 	MessageText() string
 
@@ -39,6 +40,9 @@ func (c *chatInstructionVarsImpl) IsTriggeredByMessage() bool {
 }
 func (c *chatInstructionVarsImpl) CurrentMessageIndex() int {
 	return c.currentMessageIndex
+}
+func (c *chatInstructionVarsImpl) IsFirstMessage() bool {
+	return c.currentMessageIndex == 0
 }
 func (c *chatInstructionVarsImpl) MessageText() string {
 	if c.triggerMessage == nil {

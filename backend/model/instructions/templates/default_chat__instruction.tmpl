@@ -1,7 +1,7 @@
 {{- /*gotype: juraji.nl/chat-quest/processing.ChatInstructionVars*/ -}}
-{{if .MessageText}}
 {{.MessageText}}
 
+{{if .IsFirstMessage}}
 [OOC: Respond ONLY as {{.Character.Name}}]
 {{else}}
 [OOC: Respond ONLY as {{.Character.Name}} to the previous message]
