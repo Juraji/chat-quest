@@ -37,9 +37,3 @@ CREATE TABLE character_greetings
   character_id INTEGER NOT NULL REFERENCES characters (id) ON DELETE CASCADE,
   text         TEXT    NOT NULL
 );
-
-CREATE TABLE character_group_greetings
-(
-  character_id INTEGER NOT NULL REFERENCES characters (id) ON DELETE CASCADE,
-  text         TEXT    NOT NULL
-);

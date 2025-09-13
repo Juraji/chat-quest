@@ -1,6 +1,6 @@
 <form [formGroup]="formGroup" (submit)="onFormSubmit()">
   <div class="grid">
-    <div class="g-col-12 g-col-xl-6">
+    <div class="g-col-12">
       <div class="card">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -15,7 +15,7 @@
           </div>
 
           <p class="form-text">
-            Greetings are messages your character (randomly) posts when starting a new chat.
+            Greetings are messages your character (randomly) posts when entering a chat for the first time.<br/>
             It is recommended to have at least one greeting, else the character won't greet the user.
           </p>
 
@@ -54,7 +54,6 @@
               <div class="card character-text mb-2">
                 <div class="card-body">
                   <app-rendered-message [message]="greeting"></app-rendered-message>
-                  <app-token-count class="mt-2 float-end" [text]="greeting"></app-token-count>
                 </div>
               </div>
             }
@@ -63,7 +62,7 @@
       </div>
     </div>
 
-    <div class="g-col-12 g-col-xl-6">
+    <div class="g-col-12">
       <div class="card mb-3">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
@@ -116,91 +115,6 @@
               <div class="card character-text mb-2">
                 <div class="card-body">
                   <app-rendered-message [message]="example"></app-rendered-message>
-                  <app-token-count class="mt-2 float-end" [text]="example"></app-token-count>
-                </div>
-              </div>
-            }
-          }
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h5 class="card-title mb-0">Group Greetings</h5>
-            <button type="button" class="btn btn-sm" (click)="editGroupGreetings.toggle()">
-              @if (editGroupGreetings()) {
-                <span class="bi bi-x"></span>
-              } @else {
-                <span class="bi bi-pencil"></span>
-              }
-            </button>
-          </div>
-
-          <p class="form-text">
-            Group greetings are used (randomly) instead of greetings, when the chat is started with multiple characters.
-            If no group greetings are defined, the normal greetings are used, else the character won't greet the user.
-          </p>
-
-
-          <div class="mb-3" formGroupName="character">
-            <label for="characterTalkativenessInput" class="form-label">Talkativeness</label>
-            <div class="d-flex justify-content-between small text-muted">
-              <div>Fairly silent</div>
-              <div>Normal</div>
-              <div>Very Noisy</div>
-            </div>
-            @if (editGroupGreetings()) {
-              <input type="range" class="form-range px-4"
-                     formControlName="groupTalkativeness"
-                     id="characterTalkativenessInput"
-                     aria-describedby="characterTalkativenessInputHelp" min="0" max="1" step="0.1">
-            } @else {
-              <div class="progress mx-4 mt-1">
-                <div class="progress-bar" [style.width]="groupTalkativenessPercent()"></div>
-              </div>
-            }
-            <div class="form-text" id="characterTalkativenessInputHelp">
-              Talkativeness in group chats.
-            </div>
-          </div>
-
-          @if (editGroupGreetings()) {
-            <div class="mb-3" formArrayName="groupGreetings">
-              @if (groupGreetings() | empty) {
-                <p class="form-text mb-0 text-warning">
-                  No group greetings defined.
-                </p>
-              }
-
-              @for (c of groupGreetingsFA.controls; track c) {
-                <div class="input-group mb-2">
-                  <textarea type="text" class="form-control form-control-sm" rows="3"
-                            [formControlName]="$index"></textarea>
-                  <button type="button" class="btn btn-outline-danger btn-sm"
-                          (click)="onRemoveControl(groupGreetingsFA, $index)">
-                    <span class="bi bi-trash"></span>
-                  </button>
-                </div>
-              }
-
-              <div class="btn-toolbar justify-content-end mt-1">
-                <button type="button" class="btn btn-outline-primary btn-sm"
-                        (click)="onAddControl(groupGreetingsFA)">
-                  <span class="bi bi-plus-lg"></span>
-                </button>
-              </div>
-            </div>
-          } @else if (groupGreetings() | empty) {
-            <p class="form-text mb-0 text-warning">
-              No group greetings defined.
-            </p>
-          } @else {
-            @for (greeting of groupGreetings(); track greeting) {
-              <div class="card character-text mb-2">
-                <div class="card-body">
-                  <app-rendered-message [message]="greeting"></app-rendered-message>
-                  <app-token-count class="mt-2 float-end" [text]="greeting"></app-token-count>
                 </div>
               </div>
             }

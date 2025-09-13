@@ -3,7 +3,6 @@ import {ManageCharactersPage} from './manage/manage-characters-page';
 import {
   characterDialogExamplesResolverFactory,
   characterGreetingsResolverFactory,
-  characterGroupGreetingsResolverFactory,
   characterResolverFactory,
   characterTagsResolverFactory
 } from '@api/characters';
@@ -28,7 +27,6 @@ const routes: Routes = [
       tags: characterTagsResolverFactory('characterId'),
       dialogueExamples: characterDialogExamplesResolverFactory('characterId'),
       greetings: characterGreetingsResolverFactory('characterId'),
-      groupGreetings: characterGroupGreetingsResolverFactory('characterId'),
     }
   },
 ]

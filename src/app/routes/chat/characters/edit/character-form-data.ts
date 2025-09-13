@@ -5,5 +5,4 @@ export interface CharacterFormData {
   tags: Tag[]
   dialogueExamples: string[]
   greetings: string[]
-  groupGreetings: string[]
 }

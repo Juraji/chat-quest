@@ -52,18 +52,6 @@ export function characterGreetingsResolverFactory(idParam: string): ResolveFn<st
   }
 }
 
-export function characterGroupGreetingsResolverFactory(idParam: string): ResolveFn<string[]> {
-  return route => {
-    const service = inject(Characters)
-    return resolveNewOrExisting(
-      route,
-      idParam,
-      () => [],
-      id => service.getGroupGreetings(id)
-    );
-  }
-}
-
 export function characterTagsResolverFactory(idParam: string): ResolveFn<Tag[]> {
   return route => {
     const service = inject(Characters)

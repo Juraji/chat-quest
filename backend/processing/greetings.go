@@ -23,7 +23,7 @@ func GreetOnParticipantAdded(ctx context.Context, participant *chat_sessions.Cha
 
 	contextCheckPoint(ctx, logger)
 
-	greeting, err := characters.RandomGreetingByCharacterId(characterID, false)
+	greeting, err := characters.RandomGreetingByCharacterId(characterID)
 	if err != nil {
 		logger.Error("Failed to fetch greeting", zap.Error(err))
 		return

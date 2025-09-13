@@ -41,13 +41,11 @@ export class EditCharacterPage {
   readonly tags: Signal<Tag[]> = routeDataSignal(this.activatedRoute, 'tags')
   readonly dialogueExamples: Signal<string[]> = routeDataSignal(this.activatedRoute, 'dialogueExamples')
   readonly greetings: Signal<string[]> = routeDataSignal(this.activatedRoute, 'greetings')
-  readonly groupGreetings: Signal<string[]> = routeDataSignal(this.activatedRoute, 'groupGreetings')
   readonly characterFormData: Signal<CharacterFormData> = computed(() => ({
     character: this.character(),
     tags: this.tags(),
     dialogueExamples: this.dialogueExamples(),
     greetings: this.greetings(),
-    groupGreetings: this.groupGreetings(),
   }))
 
   readonly isNew = computed(() => isNew(this.character()))
@@ -57,8 +55,8 @@ export class EditCharacterPage {
   readonly formGroup = this.formService.formGroup
 
   readonly subMenuItems = [
-    {route: 'chat-settings', label: 'Chat Settings'},
     {route: 'descriptions', label: 'Descriptions'},
+    {route: 'chat-settings', label: 'Chat Settings'},
     {route: 'memories', label: 'Memories'},
   ]
 
@@ -83,7 +81,6 @@ export class EditCharacterPage {
     const tagsCtrl = this.formService.tagsCtrl;
     const dialogueExamplesFA = this.formService.dialogueExamplesFA;
     const greetingsFA = this.formService.greetingsFA;
-    const groupGreetingsFA = this.formService.groupGreetingsFA;
 
     this.characters
       .save({...character, ...characterFG.value})
@@ -107,12 +104,6 @@ export class EditCharacterPage {
             ? this.characters
               .saveGreetings(c.id, greetingsFA.value)
               .pipe(tap(() => greetingsFA.reset()))
-            : [null]
-          ),
-          groupGreetings: defer(() => !isNew && groupGreetingsFA.dirty
-            ? this.characters
-              .saveGroupGreetings(c.id, groupGreetingsFA.value)
-              .pipe(tap(() => groupGreetingsFA.reset()))
             : [null]
           ),
         })),

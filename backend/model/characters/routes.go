@@ -183,34 +183,6 @@ func charactersRoutes(router *gin.RouterGroup) {
 		err := SetGreetingsByCharacterId(characterId, greetings)
 		controllers.RespondEmpty(c, err)
 	})
-
-	charactersRouter.GET("/:characterId/group-greetings", func(c *gin.Context) {
-		characterId, ok := controllers.GetParamAsID(c, "characterId")
-		if !ok {
-			controllers.RespondBadRequest(c, "Invalid character ID", nil)
-			return
-		}
-
-		greetings, err := CharacterGroupGreetingsByCharacterId(characterId)
-		controllers.RespondList(c, greetings, err)
-	})
-
-	charactersRouter.POST("/:characterId/group-greetings", func(c *gin.Context) {
-		characterId, ok := controllers.GetParamAsID(c, "characterId")
-		if !ok {
-			controllers.RespondBadRequest(c, "Invalid character ID", nil)
-			return
-		}
-
-		var greetings []string
-		if err := c.ShouldBind(&greetings); err != nil {
-			controllers.RespondBadRequest(c, "Invalid greetings data", nil)
-			return
-		}
-
-		err := SetGroupGreetingsByCharacterId(characterId, greetings)
-		controllers.RespondEmpty(c, err)
-	})
 }
 
 func tagsRoutes(router *gin.RouterGroup) {

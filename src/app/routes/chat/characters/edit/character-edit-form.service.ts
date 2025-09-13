@@ -31,7 +31,6 @@ export class CharacterEditFormService {
     tags: formControl([]),
     dialogueExamples: formArray([]),
     greetings: formArray([]),
-    groupGreetings: formArray([]),
   })
 
   readonly characterFG: TypedFormGroup<Character> =
@@ -42,8 +41,6 @@ export class CharacterEditFormService {
     this.formGroup.get('dialogueExamples') as FormArray
   readonly greetingsFA: TypedFormArray<string> =
     this.formGroup.get('greetings') as FormArray
-  readonly groupGreetingsFA: TypedFormArray<string> =
-    this.formGroup.get('groupGreetings') as FormArray
 
   private readonly requestSubmit: Subject<void> = new Subject()
   readonly onSubmitRequested: Observable<void> = this.requestSubmit
@@ -56,7 +53,6 @@ export class CharacterEditFormService {
 
     this.setControlsTo(this.dialogueExamplesFA, formData.dialogueExamples)
     this.setControlsTo(this.greetingsFA, formData.greetings)
-    this.setControlsTo(this.groupGreetingsFA, formData.groupGreetings)
   }
 
   requestSubmitFn(): () => void {

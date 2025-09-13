@@ -6,12 +6,12 @@ import {worldsResolver} from '@api/worlds';
 
 const routes: Routes = [
   {
-    path: "chat-settings",
-    component: CharacterEditChatSettings,
-  },
-  {
     path: "descriptions",
     component: CharacterEditDescriptions,
+  },
+  {
+    path: "chat-settings",
+    component: CharacterEditChatSettings,
   },
   {
     path: "memories",
@@ -22,7 +22,7 @@ const routes: Routes = [
   },
   {
     path: "**",
-    redirectTo: "chat-settings"
+    redirectTo: "descriptions"
   }
 ]
 

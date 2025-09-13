@@ -196,6 +196,13 @@ func CharacterGreetingsByCharacterId(characterId int) ([]string, error) {
 	return database.QueryForList(query, args, database.StringScanner)
 }
 
+func RandomGreetingByCharacterId(characterId int) (*string, error) {
+	query := `SELECT text FROM character_greetings WHERE character_id = ? ORDER BY RANDOM() LIMIT 1;`
+	args := []any{characterId}
+
+	return database.QueryForRecord(query, args, database.StringScanner)
+}
+
 func SetGreetingsByCharacterId(characterId int, greetings []string) error {
 	return database.Transactional(func(ctx *database.TxContext) error {
 		deleteQuery := "DELETE FROM character_greetings WHERE character_id = ?"
@@ -220,47 +227,4 @@ func SetGreetingsByCharacterId(characterId int, greetings []string) error {
 
 		return nil
 	})
-}
-
-func CharacterGroupGreetingsByCharacterId(characterId int) ([]string, error) {
-	query := "SELECT text FROM character_group_greetings WHERE character_id = ?"
-	args := []any{characterId}
-
-	return database.QueryForList(query, args, database.StringScanner)
-}
-
-func SetGroupGreetingsByCharacterId(characterId int, greetings []string) error {
-	return database.Transactional(func(ctx *database.TxContext) error {
-		deleteQuery := "DELETE FROM character_group_greetings WHERE character_id = ?"
-		if _, err := ctx.DeleteRecord(deleteQuery, []any{characterId}); err != nil {
-			log.Get().Error("Error removing group greetings",
-				zap.Int("characterId", characterId), zap.Error(err))
-			return err
-		}
-
-		if len(greetings) == 0 {
-			return nil
-		}
-
-		insertQuery := "INSERT INTO character_group_greetings (character_id, text) VALUES (?, ?)"
-		for _, greeting := range greetings {
-			if err := ctx.InsertRecord(insertQuery, []any{characterId, greeting}); err != nil {
-				log.Get().Error("Error adding group greetings",
-					zap.Int("characterId", characterId), zap.Error(err))
-				return err
-			}
-		}
-
-		return nil
-	})
-}
-
-func RandomGreetingByCharacterId(characterId int, useGroupGreetings bool) (*string, error) {
-	query := `SELECT text FROM character_greetings WHERE character_id = ? ORDER BY RANDOM() LIMIT 1;`
-	if useGroupGreetings {
-		query = `SELECT text FROM character_group_greetings WHERE character_id = ? ORDER BY RANDOM() LIMIT 1;`
-	}
-	args := []any{characterId, useGroupGreetings}
-
-	return database.QueryForRecord(query, args, database.StringScanner)
 }

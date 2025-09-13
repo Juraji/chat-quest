@@ -1,17 +1,19 @@
 import {computed, inject, Injectable, Signal, signal, WritableSignal} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {Observable} from 'rxjs';
+import {map, mergeMap, Observable} from 'rxjs';
 import {Character, CharacterCreated, CharacterDeleted, CharacterListView, CharacterUpdated} from './characters.model';
 import {isNew} from '@api/common';
-import {CharacterTagRemoved, Tag, TagDeleted, TagUpdated} from './tags.model';
+import {CharacterTagAdded, CharacterTagRemoved, Tag, TagDeleted, TagUpdated} from './tags.model';
 import {SSE} from '@api/sse';
 import {arrayAdd, arrayRemove, arrayReplace, arrayUpdate} from '@util/array';
+import {Tags} from '@api/characters/tags.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Characters {
   private http: HttpClient = inject(HttpClient)
+  private readonly tags = inject(Tags)
   private readonly sse = inject(SSE)
 
   private readonly lvCache: WritableSignal<CharacterListView[]> = signal([]);
@@ -73,14 +75,6 @@ export class Characters {
     return this.http.post<void>(`/characters/${characterId}/greetings`, greetings)
   }
 
-  getGroupGreetings(characterId: number): Observable<string[]> {
-    return this.http.get<string[]>(`/characters/${characterId}/group-greetings`)
-  }
-
-  saveGroupGreetings(characterId: number, greetings: string[]): Observable<void> {
-    return this.http.post<void>(`/characters/${characterId}/group-greetings`, greetings)
-  }
-
   private setupLVCache() {
     // Hydrate
     this.http
@@ -106,13 +100,14 @@ export class Characters {
       .subscribe(id => this.lvCache.update(cache =>
         arrayRemove(cache, id)))
 
-    // this.sse
-    //   .on(CharacterTagAdded)
-    //   .subscribe(([charId, tagId]) => {
-    //     const tag = this._tagCache().find(t => t.id === tagId)!
-    //     this._characterCache.update(cache =>
-    //       arrayUpdate(cache, c => ({...c, tags: arrayAdd(c.tags, tag)}), c => c.id === charId));
-    //   })
+    this.sse
+      .on(CharacterTagAdded)
+      .pipe(mergeMap(([charId, tagId]) => this.tags
+        .get(tagId)
+        .pipe(map(t => ([charId, t]) as [number, Tag]))
+      ))
+      .subscribe(([charId, tag]) => this.lvCache.update(cache =>
+        arrayUpdate(cache, c => ({...c, tags: arrayAdd(c.tags, tag)}), c => c.id === charId)))
     this.sse
       .on(CharacterTagRemoved)
       .subscribe(([charId, tagId]) => this.lvCache.update(cache =>
