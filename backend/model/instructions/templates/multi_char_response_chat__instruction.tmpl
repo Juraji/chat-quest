@@ -1,8 +1,8 @@
-{{- /*gotype: juraji.nl/chat-quest/processing.responseInstructionVars */ -}}
-{{if .IsTriggeredByMessage}}
+{{- /*gotype: juraji.nl/chat-quest/processing.ChatInstructionVars*/ -}}
+{{if .MessageText}}
+{{.MessageText}}
 
 (Respond to this message initially as {{.Character.Name}}, after that you are allowed to append responses from other characters if the situation requires it)
-{{.Message}}
 {{else}}
-(Respond as {{.Character.Name}} to the previous message)
+(Respond to the previous message initially as as {{.Character.Name}}, after that you are allowed to append responses from other characters if the situation requires it)
 {{end}}

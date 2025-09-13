@@ -27,8 +27,15 @@ func RegenerateEmbeddingsOnPrefsUpdate(ctx context.Context, prefs *preferences.P
 
 	logger.Info("Updating memories...", zap.Int("memoryCount", len(memories)))
 
+	if contextCheckPoint(ctx, logger) {
+		return
+	}
+
 	for _, memory := range memories {
 		GenerateEmbeddings(ctx, &memory)
+		if contextCheckPoint(ctx, logger) {
+			return
+		}
 	}
 
 	logger.Info("Embedding updated")
@@ -45,8 +52,7 @@ func GenerateEmbeddings(ctx context.Context, memory *m.Memory) {
 
 	logger.Info("Generating embeddings for memory")
 
-	if ctx.Err() != nil {
-		logger.Debug("Cancelled by context")
+	if contextCheckPoint(ctx, logger) {
 		return
 	}
 

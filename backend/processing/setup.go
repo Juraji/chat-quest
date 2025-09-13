@@ -22,12 +22,12 @@ func SetupProcessing() {
 		"GenerateMemories", GenerateMemories)
 	cs.ChatMessageUpdatedSignal.AddListener(
 		"GenerateMemories", GenerateMemories)
+	m.MemoryGenerationForMessageRequestedSignal.AddListener(
+		"GenerateMemoriesForMessageID", GenerateMemoriesForMessageID)
 	m.MemoryCreatedSignal.AddListener(
 		"GenerateMemoryEmbeddings", GenerateEmbeddings)
 	m.MemoryUpdatedSignal.AddListener(
 		"GenerateMemoryEmbeddings", GenerateEmbeddings)
-	m.MemoryGenerationForMessageRequestedSignal.AddListener(
-		"GenerateMemoriesForMessageID", GenerateMemoriesForMessageID)
 	p.PreferencesUpdatedSignal.AddListener(
 		"RegenerateMemoryEmbeddings", RegenerateEmbeddingsOnPrefsUpdate)
 }

@@ -6,13 +6,10 @@ import (
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/model/characters"
-	sessions "juraji.nl/chat-quest/model/chat-sessions"
+	"juraji.nl/chat-quest/model/chat-sessions"
 )
 
-func GreetOnParticipantAdded(
-	ctx context.Context,
-	participant *sessions.ChatParticipant,
-) {
+func GreetOnParticipantAdded(ctx context.Context, participant *chat_sessions.ChatParticipant) {
 	if participant == nil || !participant.NewlyAdded {
 		// Skip nil or not newly added
 		return
@@ -26,15 +23,7 @@ func GreetOnParticipantAdded(
 
 	contextCheckPoint(ctx, logger)
 
-	isGroupChat, err := sessions.IsGroupSession(sessionID)
-	if err != nil {
-		logger.Error("Error checking group chat status", zap.Error(err))
-		return
-	}
-
-	logger = logger.With(zap.Bool("isGroupChat", *isGroupChat))
-
-	greeting, err := characters.RandomGreetingByCharacterId(characterID, *isGroupChat)
+	greeting, err := characters.RandomGreetingByCharacterId(characterID, false)
 	if err != nil {
 		logger.Error("Failed to fetch greeting", zap.Error(err))
 		return
@@ -44,8 +33,8 @@ func GreetOnParticipantAdded(
 		return
 	}
 
-	message := sessions.NewChatMessage(false, false, &characterID, *greeting)
-	err = sessions.CreateChatMessage(sessionID, message)
+	message := chat_sessions.NewChatMessage(false, false, &characterID, *greeting)
+	err = chat_sessions.CreateChatMessage(sessionID, message)
 	if err != nil {
 		logger.Error("Error creating chat message", zap.Error(err))
 	}

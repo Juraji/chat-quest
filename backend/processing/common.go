@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 	p "juraji.nl/chat-quest/core/providers"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
-	i "juraji.nl/chat-quest/model/instructions"
+	inst "juraji.nl/chat-quest/model/instructions"
 )
 
 const (
@@ -27,7 +27,7 @@ func contextCheckPoint(ctx context.Context, logger *zap.Logger) bool {
 
 func createChatRequestMessages(
 	chatHistory []cs.ChatMessage,
-	instruction *i.Instruction,
+	instruction *inst.Instruction,
 ) []p.ChatRequestMessage {
 	// Pre-allocate messages with history len + max number of messages added here
 	messages := make([]p.ChatRequestMessage, 0, len(chatHistory)+3)

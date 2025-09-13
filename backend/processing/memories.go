@@ -21,7 +21,6 @@ func GenerateMemoriesForMessageID(
 	ctx context.Context,
 	messageId int,
 ) {
-
 	// Lock while processing to avoid multiple messages invoking simultaneous generation
 	// for the same message window.
 	generationMutex.Lock()
@@ -179,16 +178,7 @@ func generateMemories(
 	}
 
 	lastTimestampInWindow := *messageWindow[len(messageWindow)-1].CreatedAt
-	participants, err := cs.GetAllParticipantsAsCharactersBefore(session.ID, lastTimestampInWindow)
-	if err != nil {
-		logger.Error("Error fetching participants", zap.Error(err))
-		return nil, false
-	}
-
-	templateVars := memoryInstructionVars{
-		Participants: participants,
-	}
-
+	templateVars := NewMemoryInstructionVars(session, lastTimestampInWindow)
 	if err = instruction.ApplyTemplates(templateVars); err != nil {
 		logger.Error("Error applying instruction templates", zap.Error(err))
 		return nil, false

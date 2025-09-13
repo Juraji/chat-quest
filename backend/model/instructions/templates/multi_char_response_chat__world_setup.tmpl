@@ -1,52 +1,53 @@
-{{- /*gotype: juraji.nl/chat-quest/processings.instructionTemplateVars*/ -}}
+{{- /*gotype: juraji.nl/chat-quest/processing.ChatInstructionVars*/ -}}
 ```rag.xml
-{{if .WorldDescription}}
+{{if .World}}
 <WorldDescription>
-  {{.WorldDescription}}
+  {{.World}}
 </WorldDescription>
 {{end}}
-{{if .ScenarioDescription}}
+{{if .Scenario}}
 <Scenario>
-  {{.ScenarioDescription}}
+  {{.Scenario}}
 </Scenario>
 {{end}}
 <Characters>
-  <Character>
-    <!-- This is the character you are currently impersonating. -->
-    <Id>{{.Character.ID}}</Id>
-    <Name>{{.Character.Name}}</Name>
-    {{if .Character.Appearance}}
-    <Appearance>
-      {{.Character.Appearance}}
-    </Appearance>
-    {{end}}
-    {{if .Character.Personality}}
-    <Personality>
-      {{.Character.Personality}}
-    </Personality>
-    {{end}}
-    {{if .Character.History}}
-    <History>
-      {{.Character.History}}
-    </History>
-    {{end}}
-    {{if .DialogueExamples}}
-    <DialogExamples>
-      {{range $ex := .DialogueExamples}}
-        <DialogExample>{{$ex}}<DialogExample>
+  {{with .Character}}
+    <Character>
+      <!-- This is the character you are currently impersonating. -->
+      <Id>{{.ID}}</Id>
+      <Name>{{.Name}}</Name>
+      {{if .Appearance}}
+      <Appearance>
+        {{.Appearance}}
+      </Appearance>
       {{end}}
-    </DialogExamples>
-    {{end}}
-    {{if .Memories}}
-    <Memories>
-      <!-- These memories are character notes about earlier events this character remembers. -->
-      <!-- These memories are specifically for {{.Character.Name}}, only they remember this. -->
-      {{range $m := .Memories}}
-        <Memory>{{$m.Content}}<Memory>
+      {{if .Personality}}
+      <Personality>
+        {{.Personality}}
+      </Personality>
       {{end}}
-    </Memories>
-    {{end}}
-  </Character>
+      {{if .History}}
+      <History>
+        {{.History}}
+      </History>
+      {{end}}
+      {{if .DialogueExamples}}
+      <DialogExamples>
+        {{range $ex := .DialogueExamples}}
+          <DialogExample>{{$ex}}<DialogExample>
+        {{end}}
+      </DialogExamples>
+      {{end}}
+      {{if .Memories}}
+      <Memories>
+        <!-- These memories are character notes about earlier events this character remembers and are specifically for {{.Name}}, only they remember this. -->
+        {{range $m := .Memories}}
+          <Memory>{{$m}}<Memory>
+        {{end}}
+      </Memories>
+      {{end}}
+    </Character>
+  {{end}}
   {{if .OtherParticipants}}
     {{range $c := .OtherParticipants}}
       <Character>
@@ -90,4 +91,4 @@
 {{end}}
 ```
 
-(Do not recite the information in the rag.xml block, use it to enrich your understanding of the world and the individual characters)
+(Do not recite the information in the rag.xml block, use it to enrich your understanding of the world and the individual character(s))

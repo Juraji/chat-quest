@@ -5,66 +5,14 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 
-	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
-	p "juraji.nl/chat-quest/core/providers"
-	"juraji.nl/chat-quest/core/util"
-	"juraji.nl/chat-quest/core/util/channels"
-	c "juraji.nl/chat-quest/model/characters"
+	prov "juraji.nl/chat-quest/core/providers"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	inst "juraji.nl/chat-quest/model/instructions"
-	m "juraji.nl/chat-quest/model/memories"
-	"juraji.nl/chat-quest/model/preferences"
-	sc "juraji.nl/chat-quest/model/scenarios"
-	w "juraji.nl/chat-quest/model/worlds"
+	p "juraji.nl/chat-quest/model/preferences"
 )
-
-func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.ChatParticipant) {
-	if participant == nil {
-		// Ignore null
-		return
-	}
-
-	sessionId := participant.ChatSessionID
-	responderId := participant.CharacterID
-	logger := log.Get().With(
-		zap.String("source", "ParticipantTrigger"),
-		zap.Int("chatSessionId", sessionId),
-		zap.Int("responderId", responderId))
-
-	if contextCheckPoint(ctx, logger) {
-		return
-	}
-
-	// Fetch Session
-	session, err := cs.GetById(sessionId)
-	if err != nil {
-		logger.Error("Error fetching session", zap.Error(err))
-		return
-	}
-
-	// Fetch chat history
-	chatHistory, err := cs.GetUnarchivedChatMessages(session.ID)
-	if err != nil {
-		logger.Error("Error fetching chat history", zap.Error(err))
-		return
-	}
-
-	var triggerMessage *cs.ChatMessage
-	if len(chatHistory) > 0 {
-		lastMessage := chatHistory[len(chatHistory)-1]
-		// If the last message is from the user, simulate a message trigger
-		if lastMessage.IsUser {
-			triggerMessage = &lastMessage
-			chatHistory = chatHistory[:len(chatHistory)-1]
-		}
-	}
-
-	generateResponse(ctx, logger, session, responderId, chatHistory, triggerMessage)
-}
 
 func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.ChatMessage) {
 	if triggerMessage == nil || !triggerMessage.IsUser {
@@ -119,33 +67,67 @@ func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.Ch
 	logger = logger.With(
 		zap.Intp("responderId", responderId))
 
-	generateResponse(ctx, logger, session, *responderId, chatHistory, triggerMessage)
+	generateResponse(ctx, logger, session, chatHistory, triggerMessage, *responderId)
+}
+
+func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.ChatParticipant) {
+	if participant == nil {
+		// Ignore null
+		return
+	}
+
+	sessionId := participant.ChatSessionID
+	responderId := participant.CharacterID
+	logger := log.Get().With(
+		zap.String("source", "ParticipantTrigger"),
+		zap.Int("chatSessionId", sessionId),
+		zap.Int("responderId", responderId))
+
+	if contextCheckPoint(ctx, logger) {
+		return
+	}
+
+	// Fetch Session
+	session, err := cs.GetById(sessionId)
+	if err != nil {
+		logger.Error("Error fetching session", zap.Error(err))
+		return
+	}
+
+	// Fetch chat history
+	chatHistory, err := cs.GetUnarchivedChatMessages(session.ID)
+	if err != nil {
+		logger.Error("Error fetching chat history", zap.Error(err))
+		return
+	}
+
+	generateResponse(ctx, logger, session, chatHistory, nil, responderId)
 }
 
 func generateResponse(
 	ctx context.Context,
 	logger *zap.Logger,
 	session *cs.ChatSession,
-	responderId int,
 	chatHistory []cs.ChatMessage,
 	triggerMessage *cs.ChatMessage,
+	responderId int,
 ) {
-
 	// Fetch preferences
-	prefs, err := preferences.GetPreferences(true)
+	prefs, err := p.GetPreferences(true)
 	if err != nil {
 		logger.Error("Error getting preferences", zap.Error(err))
 		return
 	}
 
-	if contextCheckPoint(ctx, logger) {
+	// Create instructions
+	instructionVars := NewChatInstructionVars(chatHistory, session, prefs, triggerMessage, responderId)
+	instruction, err := inst.InstructionById(*prefs.ChatInstructionId)
+	if err != nil {
+		logger.Error("Error fetching chat instruction", zap.Error(err))
 		return
 	}
-
-	// Build chat instructions
-	instruction, ok := createChatInstruction(logger, session, responderId, prefs, chatHistory, triggerMessage)
-	if !ok {
-		logger.Error("Error creating chat instruction")
+	if err = instruction.ApplyTemplates(instructionVars); err != nil {
+		logger.Error("Error applying instruction templates", zap.Error(err))
 		return
 	}
 
@@ -157,7 +139,7 @@ func generateResponse(
 	}
 
 	// Get chat model instance
-	chatModelInst, err := p.GetLlmModelInstanceById(*prefs.ChatModelId)
+	chatModelInst, err := prov.GetLlmModelInstanceById(*prefs.ChatModelId)
 	if err != nil {
 		logger.Error("Error fetching chat model instance", zap.Error(err))
 		return
@@ -201,7 +183,7 @@ func generateResponse(
 	// Create initial response message
 	addMessageToStack()
 
-	chatResponseChan := p.GenerateChatResponse(
+	chatResponseChan := prov.GenerateChatResponse(
 		chatModelInst,
 		requestMessages,
 		instruction.AsLlmParameters(),
@@ -294,399 +276,4 @@ func generateResponse(
 			return
 		}
 	}
-}
-
-func createChatInstruction(
-	logger *zap.Logger,
-	session *cs.ChatSession,
-	responderId int,
-	prefs *preferences.Preferences,
-	history []cs.ChatMessage,
-	triggerMessage *cs.ChatMessage,
-) (*inst.Instruction, bool) {
-	instruction, err := inst.InstructionById(*prefs.ChatInstructionId)
-	if err != nil {
-		logger.Error("Error fetching chat instruction", zap.Error(err))
-		return nil, false
-	}
-
-	// Asynchronously fetch stuff for template
-	worldDescriptionChan := getWorldDescription(session)
-	personaChan := getWorldPersona(session)
-	scenarioDescriptionChan := getScenarioDescription(session)
-	participantsChan := getTemplatedParticipants(session, responderId)
-	dialogueExamplesChan := getDialogueExamples(responderId)
-	memoriesChan := getMemories(session, prefs, responderId, history, triggerMessage)
-
-	// Unpack/handle everything
-	responder, otherParticipants, err := (<-participantsChan).Unpack()
-	if err != nil {
-		logger.Error("Error fetching participants", zap.Error(err))
-		return nil, false
-	}
-	worldDescription, err := (<-worldDescriptionChan).Unpack()
-	if err != nil {
-		logger.Error("Error fetching world description", zap.Error(err))
-		return nil, false
-	}
-	persona, err := (<-personaChan).Unpack()
-	if err != nil {
-		logger.Error("Error fetching world persona", zap.Error(err))
-		return nil, false
-	}
-	scenarioDescription, err := (<-scenarioDescriptionChan).Unpack()
-	if err != nil {
-		logger.Error("Error fetching scenario description", zap.Error(err))
-		return nil, false
-	}
-	memories, err := (<-memoriesChan).Unpack()
-	if err != nil {
-		logger.Error("Error fetching relevant memories", zap.Error(err))
-		return nil, false
-	}
-	dialogueExamples, err := (<-dialogueExamplesChan).Unpack()
-	if err != nil {
-		logger.Error("Error fetching dialog examples", zap.Error(err))
-		return nil, false
-	}
-
-	var messageContent string
-	if triggerMessage != nil {
-		messageContent = triggerMessage.Content
-	} else {
-		messageContent = ""
-	}
-
-	instructionVars := responseInstructionVars{
-		MessageIndex:         len(history),
-		Message:              messageContent,
-		IsTriggeredByMessage: triggerMessage != nil,
-		Character:            responder,
-		DialogueExamples:     dialogueExamples,
-		Persona:              persona,
-		IsSingleCharacter:    len(otherParticipants) == 0,
-		OtherParticipants:    otherParticipants,
-		WorldDescription:     worldDescription,
-		ScenarioDescription:  scenarioDescription,
-		Memories:             memories,
-	}
-
-	if err = instruction.ApplyTemplates(instructionVars); err != nil {
-		logger.Error("Error applying instruction templates", zap.Error(err))
-		return nil, false
-	}
-
-	return instruction, true
-}
-
-func getDialogueExamples(characterId int) chan *channels.Result[[]string] {
-	resultChan := make(chan *channels.Result[[]string])
-
-	go func() {
-		defer close(resultChan)
-		examples, err := c.DialogueExamplesByCharacterId(characterId)
-		if err != nil {
-			resultChan <- channels.NewErrResult[[]string](err)
-			return
-		}
-
-		if len(examples) == 0 {
-			// Shortcut, if there are no examples, we can skip this
-			resultChan <- channels.NewResult(examples, nil)
-			return
-		}
-
-		char, err := c.CharacterById(characterId)
-		if err != nil {
-			resultChan <- channels.NewErrResult[[]string](err)
-			return
-		}
-
-		vars := &characterTemplateVars{
-			Character: char,
-		}
-
-		for i, example := range examples {
-			templated, err := util.ParseAndApplyTextTemplate(example, vars)
-			if err != nil {
-				err = errors.Wrapf(err, "Error parsing template for example '%s'", example)
-				resultChan <- channels.NewErrResult[[]string](err)
-				return
-			}
-
-			examples[i] = templated
-		}
-
-		resultChan <- channels.NewResult(examples, nil)
-	}()
-
-	return resultChan
-}
-
-func getWorldDescription(session *cs.ChatSession) chan *channels.Result[string] {
-	resultChan := make(chan *channels.Result[string])
-
-	go func(worldId int) {
-		defer close(resultChan)
-		world, err := w.WorldById(worldId)
-		if err != nil {
-			resultChan <- channels.NewResult[string]("", err)
-			return
-		}
-
-		if world.Description != nil {
-			resultChan <- channels.NewResult(*world.Description, nil)
-		} else {
-			resultChan <- channels.NewResult("", nil)
-		}
-	}(session.WorldID)
-
-	return resultChan
-}
-
-func getWorldPersona(session *cs.ChatSession) chan *channels.Result[*c.Character] {
-	resultChan := make(chan *channels.Result[*c.Character])
-
-	go func(worldId int) {
-		defer close(resultChan)
-
-		world, err := w.WorldById(worldId)
-		if err != nil {
-			resultChan <- channels.NewErrResult[*c.Character](err)
-			return
-		}
-
-		if world.PersonaID == nil {
-			resultChan <- channels.NewResult[*c.Character](nil, nil)
-			return
-		}
-
-		persona, err := c.CharacterById(*world.PersonaID)
-		if err != nil {
-			resultChan <- channels.NewErrResult[*c.Character](err)
-			return
-		}
-
-		err = applyCharacterTemplates(persona)
-		if err != nil {
-			resultChan <- channels.NewErrResult[*c.Character](err)
-			return
-		}
-
-		resultChan <- channels.NewResult(persona, nil)
-	}(session.WorldID)
-
-	return resultChan
-}
-
-func getScenarioDescription(session *cs.ChatSession) chan *channels.Result[string] {
-	resultChan := make(chan *channels.Result[string])
-
-	go func(scenarioId *int) {
-		defer close(resultChan)
-		if scenarioId == nil {
-			resultChan <- channels.NewResult[string]("", nil)
-			return
-		}
-
-		scenario, err := sc.ScenarioById(*scenarioId)
-		if err != nil {
-			resultChan <- channels.NewResult("", err)
-		} else {
-			resultChan <- channels.NewResult(scenario.Description, nil)
-		}
-	}(session.ScenarioID)
-
-	return resultChan
-}
-
-func getMemories(
-	session *cs.ChatSession,
-	prefs *preferences.Preferences,
-	responderId int,
-	history []cs.ChatMessage,
-	triggerMessage *cs.ChatMessage,
-) chan *channels.Result[[]m.Memory] {
-	memoriesChan := make(chan *channels.Result[[]m.Memory])
-	const batchSize = 20
-
-	go func() {
-		defer close(memoriesChan)
-
-		if !session.UseMemories {
-			// Memories are disabled, skip
-			memoriesChan <- channels.NewResult([]m.Memory{}, nil)
-			return
-		}
-
-		// Determine subject, based on the last n message and the trigger message.
-		var subject string
-		if len(history) > 0 {
-			end := len(history)
-			start := end - prefs.MemoryWindowSize
-			if start < 0 {
-				start = 0
-			}
-
-			for i := start; i < end; i++ {
-				subject += history[i].Content + " "
-			}
-		}
-		if triggerMessage != nil {
-			subject += triggerMessage.Content
-		}
-
-		// Get memories for responder
-		memories, err := m.GetMemoriesByWorldAndCharacterIdWithEmbeddings(
-			session.WorldID, responderId, *prefs.EmbeddingModelId)
-		if err != nil {
-			memoriesChan <- channels.NewResult([]m.Memory{}, err)
-			return
-		}
-		if len(memories) == 0 {
-			// No memories for character
-			memoriesChan <- channels.NewResult([]m.Memory{}, nil)
-			return
-		}
-
-		// Shortcut: If the subject is empty it means there is no history or trigger message.
-		// Just return the static memories.
-		if len(subject) == 0 {
-			var staticMemories []m.Memory
-			for _, mem := range memories {
-				if mem.AlwaysInclude {
-					staticMemories = append(staticMemories, mem)
-				}
-			}
-
-			memoriesChan <- channels.NewResult(staticMemories, nil)
-			return
-		}
-
-		// Embed subject text
-		embeddingModelInst, err := p.GetLlmModelInstanceById(*prefs.EmbeddingModelId)
-		if err != nil {
-			memoriesChan <- channels.NewResult([]m.Memory{}, err)
-			return
-		}
-
-		subjectEmbeddings, err := p.GenerateEmbeddings(embeddingModelInst, subject, true)
-		if err != nil {
-			memoriesChan <- channels.NewResult([]m.Memory{}, err)
-			return
-		}
-
-		memoriesLen := len(memories)
-		maxBatchCount := memoriesLen/batchSize + 1
-		relevantMemoriesChan := make(chan []m.Memory, maxBatchCount)
-		wg := sync.WaitGroup{}
-
-		// Process memories in batches using goroutines
-		for i := 0; i < memoriesLen; i += batchSize {
-			end := i + batchSize
-			if end > memoriesLen {
-				end = memoriesLen
-			}
-			batch := memories[i:end]
-			wg.Add(1)
-			go func(batch []m.Memory, minP float32) {
-				defer wg.Done()
-
-				var relevantMemories []m.Memory
-				for _, memory := range batch {
-					if memory.AlwaysInclude {
-						relevantMemories = append(relevantMemories, memory)
-						continue
-					}
-
-					similarity := subjectEmbeddings.CosineSimilarity(memory.Embedding)
-					if similarity >= minP {
-						relevantMemories = append(relevantMemories, memory)
-					}
-				}
-
-				relevantMemoriesChan <- relevantMemories
-			}(batch, prefs.MemoryMinP)
-		}
-
-		wg.Wait()
-		close(relevantMemoriesChan)
-
-		// Collect results from all batches
-		var relevantMemories []m.Memory
-		for rv := range relevantMemoriesChan {
-			relevantMemories = append(relevantMemories, rv...)
-		}
-
-		memoriesChan <- channels.NewResult(relevantMemories, nil)
-	}()
-
-	return memoriesChan
-}
-
-func getTemplatedParticipants(session *cs.ChatSession, responderId int) chan *channels.PairResult[*c.Character, []c.Character] {
-	resultChan := make(chan *channels.PairResult[*c.Character, []c.Character])
-
-	go func(sessionId int) {
-		defer close(resultChan)
-		allParticipants, err := cs.GetAllParticipantsAsCharacters(sessionId)
-		if err != nil {
-			resultChan <- channels.NewErrPairResult[*c.Character, []c.Character](err)
-			return
-		}
-
-		otherParticipants := make([]c.Character, 0, len(allParticipants)-1)
-		var responder *c.Character
-
-		for _, participant := range allParticipants {
-			err := applyCharacterTemplates(&participant)
-			if err != nil {
-				resultChan <- channels.NewErrPairResult[*c.Character, []c.Character](err)
-				return
-			}
-
-			if participant.ID == responderId {
-				responder = &participant
-			} else {
-				otherParticipants = append(otherParticipants, participant)
-			}
-		}
-
-		if responder == nil {
-			err := errors.New("Responder is not a participant")
-			resultChan <- channels.NewErrPairResult[*c.Character, []c.Character](err)
-			return
-		}
-
-		resultChan <- channels.NewPairResult(responder, otherParticipants, nil)
-	}(session.ID)
-
-	return resultChan
-}
-
-func applyCharacterTemplates(char *c.Character) error {
-	fieldsToProcess := []*string{
-		char.Appearance,
-		char.Personality,
-		char.History,
-	}
-
-	vars := &characterTemplateVars{
-		Character: char,
-	}
-
-	for _, fieldPtr := range fieldsToProcess {
-		if fieldPtr == nil {
-			continue
-		}
-
-		templated, err := util.ParseAndApplyTextTemplate(*fieldPtr, vars)
-		if err != nil {
-			return errors.Wrap(err, "failed to apply template for character field")
-		}
-
-		*fieldPtr = templated
-	}
-
-	return nil
 }
