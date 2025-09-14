@@ -4,14 +4,12 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {booleanSignal, BooleanSignal, controlValueSignal} from '@util/ng';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {RenderedMessage} from '@components/rendered-message';
-import {TokenCount} from '@components/token-count';
 
 @Component({
   selector: 'app-character-edit-descriptions',
   imports: [
     ReactiveFormsModule,
     RenderedMessage,
-    TokenCount
   ],
   templateUrl: './character-edit-descriptions.html',
 })

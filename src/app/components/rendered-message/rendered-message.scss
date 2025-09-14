@@ -1,43 +1,72 @@
 :host {
-  ::ng-deep.rendered-message {
+  .rendered-message {
     text-wrap: wrap;
     white-space: pre-wrap;
 
-    .action {
-      color: var(--bs-secondary-color) !important;
-      font-style: italic;
-    }
+    ::ng-deep {
+      .action {
+        color: var(--bs-secondary-color) !important;
+        font-style: italic;
+      }
 
-    .variable {
-      color: var(--bs-code-color) !important;
-      font-family: var(--bs-font-monospace), monospace;
-      font-style: normal;
-      font-size: 0.875rem;
-      background-color: var(--bs-secondary-bg);
-      padding: 2px;
-      border-radius: var(--bs-border-radius-sm);
-    }
+      .variable {
+        color: var(--bs-code-color) !important;
+        font-family: var(--bs-font-monospace), monospace;
+        font-style: normal;
+        font-size: 0.875rem;
+        background-color: var(--bs-secondary-bg);
+        padding: 2px;
+        border-radius: var(--bs-border-radius-sm);
+      }
 
-    .variable-block {
-      color: var(--bs-gray) !important;
-    }
+      .variable-block {
+        color: var(--bs-gray) !important;
+      }
 
-    .out-of-character {
-      color: var(--bs-secondary-color) !important;
-      font-family: var(--bs-font-monospace), monospace;
-      font-style: italic;
-      font-size: 0.875rem;
-    }
+      .out-of-character {
+        color: var(--bs-secondary-color) !important;
+        font-family: var(--bs-font-monospace), monospace;
+        font-style: italic;
+        font-size: 0.875rem;
+      }
 
-    .md-block {
-      display: block;
-      color: unset;
-      font-family: var(--bs-font-monospace), monospace;
-      font-style: normal;
-      font-size: 0.875rem;
-      background-color: rgba(0, 0, 0, 0.1);
-      padding: 0.5rem;
-      border-radius: var(--bs-border-radius-sm);
+      .md-block {
+        display: block;
+        color: unset;
+        font-family: var(--bs-font-monospace), monospace;
+        font-style: normal;
+        font-size: 0.875rem;
+        background-color: rgba(0, 0, 0, 0.1);
+        padding: 0.5rem;
+        border-radius: var(--bs-border-radius-sm);
+      }
+
+      .thought {
+        display: block;
+        height: 2rem;
+        overflow: hidden;
+        border: var(--bs-card-border-width) solid var(--bs-card-border-color);
+        border-radius: var(--bs-card-border-radius);
+        padding: 0.15rem 0.25rem;
+        opacity: 0.5;
+
+        &::before {
+          content: "Thoughts (Hover to view)";
+          font-style: italic;
+          margin-bottom: 0.5rem;
+          display: block;
+        }
+
+        &:hover {
+          height: unset;
+          opacity: 1;
+
+          &::before {
+            content: "Thoughts";
+            opacity: 0.5;
+          }
+        }
+      }
     }
   }
 
