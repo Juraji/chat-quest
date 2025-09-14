@@ -9,7 +9,12 @@
 
       @if (!isNew()) {
         <button type="button" class="btn btn-outline-danger"
-                (click)="onDeleteCharacter()">Delete Character
+                (click)="onDeleteCharacter()">Delete
+        </button>
+      }
+      @if (!isNew()) {
+        <button type="button" class="btn btn-outline-secondary"
+                (click)="onDuplicateCharacter()">Duplicate
         </button>
       }
       @if (!isNew() && formGroup.dirty) {

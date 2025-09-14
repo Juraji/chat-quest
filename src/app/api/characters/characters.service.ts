@@ -47,6 +47,10 @@ export class Characters {
     }
   }
 
+  duplicate(characterId: number): Observable<Character> {
+    return this.http.post<Character>(`/characters/${characterId}/duplicate`, null)
+  }
+
   delete(characterId: number): Observable<void> {
     return this.http.delete<void>(`/characters/${characterId}`)
   }

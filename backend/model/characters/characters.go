@@ -228,3 +228,65 @@ func SetGreetingsByCharacterId(characterId int, greetings []string) error {
 		return nil
 	})
 }
+
+func DuplicateCharacter(characterId int) (*Character, error) {
+	var newCharacter *Character
+
+	txErr := database.Transactional(func(ctx *database.TxContext) error {
+		var err error
+		query := `INSERT INTO characters (name, favorite, avatar_url,
+                        appearance, personality, history, group_talkativeness)
+				  SELECT name || ' (copy)',
+				         favorite,
+				         avatar_url,
+				         appearance,
+				         personality,
+				         history,
+				         group_talkativeness
+				  FROM characters
+				  WHERE id = ?
+				  RETURNING *`
+		args := []any{characterId}
+		if newCharacter, err = database.QueryForRecord(query, args, CharacterScanner); err != nil {
+			return err
+		}
+
+		newCharId := newCharacter.ID
+
+		query = `INSERT INTO character_tags (character_id, tag_id)
+				 SELECT ?, tag_id
+				 FROM character_tags
+				 WHERE character_id = ?`
+		args = []any{newCharId, characterId}
+		if err = database.UpdateRecord(query, args); err != nil {
+			return err
+		}
+
+		query = `INSERT INTO character_dialogue_examples (character_id, text)
+				 SELECT ?, text
+				 FROM character_dialogue_examples
+				 WHERE character_id = ?`
+		args = []any{newCharId, characterId}
+		if err = database.UpdateRecord(query, args); err != nil {
+			return err
+		}
+
+		query = `INSERT INTO character_greetings (character_id, text)
+				 SELECT ?, text
+				 FROM character_greetings
+				 WHERE character_id = ?`
+		args = []any{newCharId, characterId}
+		if err = database.UpdateRecord(query, args); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if txErr != nil {
+		return nil, txErr
+	}
+
+	CharacterCreatedSignal.EmitBG(newCharacter)
+	return newCharacter, nil
+}

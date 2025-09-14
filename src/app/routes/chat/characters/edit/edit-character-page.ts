@@ -128,6 +128,20 @@ export class EditCharacterPage {
     this.formService.resetFormData(this.characterFormData())
   }
 
+  onDuplicateCharacter() {
+    if (this.isNew()) return
+    const characterId = this.character().id
+
+    this.characters
+      .duplicate(characterId)
+      .subscribe(res => {
+        this.notifications.toast(`Character duplicated successfully!`)
+        this.router.navigate(['..', res.id], {
+          relativeTo: this.activatedRoute,
+        })
+      })
+  }
+
   onDeleteCharacter() {
     if (this.isNew()) return
 

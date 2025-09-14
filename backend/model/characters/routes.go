@@ -183,6 +183,17 @@ func charactersRoutes(router *gin.RouterGroup) {
 		err := SetGreetingsByCharacterId(characterId, greetings)
 		controllers.RespondEmpty(c, err)
 	})
+
+	charactersRouter.POST("/:characterId/duplicate", func(c *gin.Context) {
+		characterId, ok := controllers.GetParamAsID(c, "characterId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid character ID", nil)
+			return
+		}
+
+		newCharacter, err := DuplicateCharacter(characterId)
+		controllers.RespondSingle(c, newCharacter, err)
+	})
 }
 
 func tagsRoutes(router *gin.RouterGroup) {

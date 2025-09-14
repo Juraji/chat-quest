@@ -172,7 +172,7 @@ func ForkChatSession(sessionId int, messageId int) (*ChatSession, error) {
 		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, generate_memories, use_memories,
                            auto_archive_messages, pause_automatic_responses)
 				  SELECT world_id,
-				         name || ' (copy)',
+				         name || ' (forked)',
 				         scenario_id,
 				         generate_memories,
 				         use_memories,
