@@ -30,4 +30,10 @@ func SetupProcessing() {
 		"GenerateMemoryEmbeddings", GenerateEmbeddings)
 	p.PreferencesUpdatedSignal.AddListener(
 		"RegenerateMemoryEmbeddings", RegenerateEmbeddingsOnPrefsUpdate)
+
+	// Auto archival
+	cs.ChatMessageCreatedSignal.AddListener(
+		"AutoArchiveMessages", AutoArchiveMessages)
+	cs.ChatMessageUpdatedSignal.AddListener(
+		"AutoArchiveMessages", AutoArchiveMessages)
 }

@@ -122,7 +122,7 @@ func GenerateMemories(
 		return
 	}
 
-	messageWindow, err := getMessageWindow(logger, prefs, sessionID)
+	messageWindow, err := getMemoryMessageWindow(logger, prefs, sessionID)
 	if err != nil {
 		logger.Error("Error getting message window", zap.Error(err))
 		return
@@ -240,7 +240,7 @@ responseLoop:
 	return memories, true
 }
 
-func getMessageWindow(logger *zap.Logger, prefs *preferences.Preferences, sessionID int) ([]cs.ChatMessage, error) {
+func getMemoryMessageWindow(logger *zap.Logger, prefs *preferences.Preferences, sessionID int) ([]cs.ChatMessage, error) {
 	messages, err := cs.GetUnarchivedChatMessages(sessionID)
 	if err != nil {
 		return nil, err

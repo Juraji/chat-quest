@@ -29,6 +29,15 @@
           Use memories
         </label>
       </div>
+      <div class="form-check"
+           title="Enables auto archival of messages older than the memory trigger, when memory generation is disabled.">
+        <input class="form-check-input" type="checkbox"
+               id="autoArchiveMessagesInput"
+               [formControl]="autoArchiveMessagesControl"/>
+        <label class="form-check-label" for="autoArchiveMessagesInput">
+          Auto archive messages <span class="bi bi-question-circle small"></span>
+        </label>
+      </div>
       <div class="form-check mb-1">
         <input class="form-check-input" type="checkbox"
                id="pauseAutomaticResponsesInput"

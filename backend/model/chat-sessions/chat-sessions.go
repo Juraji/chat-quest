@@ -16,6 +16,7 @@ type ChatSession struct {
 	ScenarioID              *int       `json:"scenarioId"`
 	GenerateMemories        bool       `json:"generateMemories"`
 	UseMemories             bool       `json:"useMemories"`
+	AutoArchiveMessages     bool       `json:"autoArchiveMessages"`
 	PauseAutomaticResponses bool       `json:"pauseAutomaticResponses"`
 }
 
@@ -28,6 +29,7 @@ func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
 		&dest.ScenarioID,
 		&dest.GenerateMemories,
 		&dest.UseMemories,
+		&dest.AutoArchiveMessages,
 		&dest.PauseAutomaticResponses,
 	)
 }
@@ -57,14 +59,16 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 
 	var addedParticipants []*ChatParticipant
 	err := database.Transactional(func(ctx *database.TxContext) error {
-		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, generate_memories, use_memories, pause_automatic_responses)
-            VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at`
+		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, generate_memories, use_memories,
+                           auto_archive_messages, pause_automatic_responses)
+            VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at`
 		args := []any{
 			session.WorldID,
 			session.Name,
 			session.ScenarioID,
 			session.GenerateMemories,
 			session.UseMemories,
+			session.AutoArchiveMessages,
 			session.PauseAutomaticResponses,
 		}
 
@@ -122,6 +126,7 @@ func Update(worldId int, id int, session *ChatSession) error {
                 scenario_id = ?,
                 generate_memories = ?,
                 use_memories = ?,
+                auto_archive_messages = ?,
                 pause_automatic_responses = ?
             WHERE world_id = ?
               AND id = ?`
@@ -130,6 +135,7 @@ func Update(worldId int, id int, session *ChatSession) error {
 		session.ScenarioID,
 		session.GenerateMemories,
 		session.UseMemories,
+		session.AutoArchiveMessages,
 		session.PauseAutomaticResponses,
 		worldId,
 		id,

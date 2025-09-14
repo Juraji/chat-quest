@@ -42,6 +42,7 @@ export class ChatSessionDetailsBlock {
   readonly nameControl: TypedFormControl<string> = formControl('', [Validators.required])
   readonly generateMemoriesControl: TypedFormControl<boolean> = formControl(false)
   readonly useMemoriesControl: TypedFormControl<boolean> = formControl(false)
+  readonly autoArchiveMessagesControl: TypedFormControl<boolean> = formControl(false)
   readonly pauseAutomaticResponsesControl: TypedFormControl<boolean> = formControl(false)
   readonly personaControl: TypedFormControl<Nullable<number>> = formControl(null)
   readonly scenarioControl: TypedFormControl<Nullable<number>> = formControl(null)
@@ -63,8 +64,15 @@ export class ChatSessionDetailsBlock {
       this.nameControl.reset(session.name, {emitEvent: false});
       this.generateMemoriesControl.reset(session.generateMemories, {emitEvent: false})
       this.useMemoriesControl.reset(session.useMemories, {emitEvent: false})
+      this.autoArchiveMessagesControl.reset(session.autoArchiveMessages, {emitEvent: false})
       this.pauseAutomaticResponsesControl.reset(session.pauseAutomaticResponses, {emitEvent: false})
       this.scenarioControl.reset(session.scenarioId, {emitEvent: false})
+
+      if (session.generateMemories) {
+        this.autoArchiveMessagesControl.disable({emitEvent: false})
+      } else {
+        this.autoArchiveMessagesControl.enable({emitEvent: false})
+      }
     });
     effect(() => {
       const prefs = this.sessionData.preferences()
@@ -81,6 +89,9 @@ export class ChatSessionDetailsBlock {
     this.useMemoriesControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(useMemories => this.updateSession({useMemories}))
+    this.autoArchiveMessagesControl.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(autoArchiveMessages => this.updateSession({autoArchiveMessages}))
     this.pauseAutomaticResponsesControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(pauseAutomaticResponses => this.updateSession({pauseAutomaticResponses}))

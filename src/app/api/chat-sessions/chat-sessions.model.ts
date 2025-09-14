@@ -10,6 +10,7 @@ export interface ChatSession extends ChatQuestModel {
   scenarioId: Nullable<number>
   generateMemories: boolean
   useMemories: boolean
+  autoArchiveMessages: boolean
   pauseAutomaticResponses: boolean
 }
 
