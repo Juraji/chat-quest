@@ -5,7 +5,12 @@
 
     ::ng-deep {
       .action {
-        color: var(--bs-secondary-color) !important;
+        color: var(--bs-secondary-color);
+        font-style: italic;
+      }
+
+      .quoted {
+        color: var(--bs-warning);
         font-style: italic;
       }
 

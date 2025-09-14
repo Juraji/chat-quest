@@ -2,6 +2,7 @@ import {Component, computed, input, InputSignal, InputSignalWithTransform} from 
 
 type RendererOptions = {
   enableActions: boolean
+  enableQuoted: boolean
   enableVariables: boolean
   enableThink: boolean
   enableOOC: boolean
@@ -10,6 +11,7 @@ type RendererOptions = {
 
 const DEFAULT_OPTIONS: RendererOptions = {
   enableActions: true,
+  enableQuoted: true,
   enableVariables: true,
   enableThink: true,
   enableOOC: true,
@@ -41,6 +43,10 @@ export class RenderedMessage {
 
     if (opts.enableActions) {
       result = this.wrap(result, 'action', '*', '*');
+    }
+    if (opts.enableQuoted) {
+      result = this.wrap(result, 'quoted', '&quot;', '&quot;');
+      result = this.wrap(result, 'quoted', '&ldquo;', '&rdquo;');
     }
     if (opts.enableVariables) {
       result = this.wrap(result, 'variable-block', '{{r', '}}');
@@ -112,6 +118,8 @@ export class RenderedMessage {
       .replaceAll('<', '&lt;')
       .replaceAll('>', '&gt;')
       .replaceAll('"', '&quot;')
+      .replaceAll('“', '&ldquo;')
+      .replaceAll('”', '&rdquo;')
       .replaceAll("'", '&#039;');
   };
 }
