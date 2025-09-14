@@ -5,6 +5,7 @@ import {routeDataSignal} from '@util/ng';
 import {World} from '@api/worlds';
 import {
   ChatMessage,
+  ChatMessageArchivedSignal,
   ChatMessageCreated,
   ChatMessageDeleted,
   ChatMessageUpdated,
@@ -19,7 +20,7 @@ import {
 import {Characters} from '@api/characters';
 import {Scenario, ScenarioCreated, ScenarioDeleted, ScenarioUpdated} from '@api/scenarios';
 import {entityIdFilter} from '@api/common';
-import {arrayAdd, arrayRemove, arrayReplace} from '@util/array';
+import {arrayAdd, arrayRemove, arrayReplace, arrayUpdate} from '@util/array';
 import {LlmModelView} from '@api/providers';
 import {CQPreferences, PreferencesUpdated} from '@api/preferences';
 import {MemoryCreated} from '@api/memories';
@@ -101,6 +102,10 @@ export class ChatSessionData {
       .on(ChatMessageDeleted)
       .subscribe(messageId => this.messages
         .update(prev => arrayRemove(prev, ({id}) => id === messageId)))
+    this.sse
+      .on(ChatMessageArchivedSignal)
+      .subscribe(messageId => this.messages
+        .update(prev => arrayUpdate(prev, m => ({...m, isArchived: true}), m => m.id === messageId)));
 
     this.sse
       .on(PreferencesUpdated)

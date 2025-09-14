@@ -25,6 +25,7 @@ func init() {
 	sse.RegisterOnSSE("ChatMessageCreated", ChatMessageCreatedSignal)
 	sse.RegisterOnSSE("ChatMessageUpdated", ChatMessageUpdatedSignal)
 	sse.RegisterOnSSE("ChatMessageDeleted", ChatMessageDeletedSignal)
+	sse.RegisterOnSSE("ChatMessageArchivedSignal", ChatMessageArchivedSignal)
 	sse.RegisterOnSSE("ChatParticipantAdded", ChatParticipantAddedSignal)
 	sse.RegisterOnSSE("ChatParticipantRemoved", ChatParticipantRemovedSignal)
 }
