@@ -10,6 +10,12 @@
     {{end}}
   {{end}}
 </Characters>
+{{if .Persona}}
+  <UserPersona>
+    <!-- This information describes the user, it is not a character in the chat -->
+    <Name>{{.Persona.CharacterName}}</Name>
+  </UserPersona>
+{{end}}
 ```
 
 (Do not recite the information in the rag.xml block, use it to enrich your understanding of the world and the individual character(s))
