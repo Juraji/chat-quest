@@ -2,7 +2,14 @@
   <div class="card bg-secondary"
        [class.me-5]="!isUser()"
        [class.ms-5]="isUser()">
-    <div class="card-header d-flex align-items-center gap-2">
+    @if (editMessage()) {
+      <textarea class="form-control rounded-top-0" formControlName="content" rows="10"></textarea>
+    } @else {
+      <div class="card-body">
+        <app-rendered-message [message]="content()" [renderOptions]="{enableVariables: false}"/>
+      </div>
+    }
+    <div class="card-footer d-flex align-items-center gap-2">
       @if (characterAvatar(); as url) {
         <img class="character-avatar" [src]="url" alt="Character avatar"/>
       }
@@ -66,12 +73,5 @@
         }
       </div>
     </div>
-    @if (editMessage()) {
-      <textarea class="form-control rounded-top-0" formControlName="content" rows="10"></textarea>
-    } @else {
-      <div class="card-body">
-        <app-rendered-message [message]="content()" [renderOptions]="{enableVariables: false}"/>
-      </div>
-    }
   </div>
 </form>
