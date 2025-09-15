@@ -9,6 +9,7 @@ import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Memories} from '@api/memories';
 import {mergeMap} from 'rxjs';
 import {ActivatedRoute, Router} from '@angular/router';
+import {System} from '@api/system';
 
 type MessageFormGroup = Pick<ChatMessage, 'content'>
 
@@ -31,6 +32,7 @@ export class ChatSessionMessage {
   private readonly chatSessions = inject(ChatSessions)
   private readonly memories = inject(Memories)
   private readonly notifications = inject(Notifications)
+  private readonly system = inject(System)
 
   readonly worldId: Signal<number> = this.sessionData.worldId
 
@@ -134,5 +136,11 @@ Note that this and all subsequent messages will be deleted and this action can n
           {relativeTo: this.activatedRoute}
         );
       });
+  }
+
+  onCancelGeneration() {
+    this.system
+      .stopCurrentGeneration()
+      .subscribe(() => this.notifications.toast('Generation cancelled!'));
   }
 }

@@ -33,6 +33,11 @@ func Routes(router *gin.RouterGroup) {
 		}
 	})
 
+	systemRouter.POST("/stop-current-generation", func(c *gin.Context) {
+		StopCurrentGeneration.EmitBG(nil)
+		controllers.RespondEmpty(c, nil)
+	})
+
 	systemRouter.POST("/migrations/goto/:version", func(c *gin.Context) {
 		version, _ := controllers.GetParamAsID(c, "version")
 		log.Get().Info("Migrating to version", zap.Int("version", version))

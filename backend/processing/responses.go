@@ -23,7 +23,12 @@ func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.Ch
 	sessionId := triggerMessage.ChatSessionID
 	logger := log.Get().With(
 		zap.String("source", "MessageCreated"),
-		zap.Int("chatSessionId", sessionId))
+		zap.Int("chatSessionId", sessionId),
+		zap.Int("triggerMsgId", triggerMessage.ID))
+
+	// Cancellation
+	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateResponse")
+	defer cleanup()
 
 	// Fetch Session
 	session, err := cs.GetById(sessionId)
@@ -82,6 +87,10 @@ func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.C
 		zap.String("source", "ParticipantTrigger"),
 		zap.Int("chatSessionId", sessionId),
 		zap.Int("responderId", responderId))
+
+	// Cancellation
+	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateResponse")
+	defer cleanup()
 
 	if contextCheckPoint(ctx, logger) {
 		return

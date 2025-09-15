@@ -29,6 +29,10 @@ func GenerateMemoriesForMessageID(
 	logger := log.Get().With(
 		zap.Int("sourceMessageId", messageId))
 
+	// Cancellation
+	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateMemories")
+	defer cleanup()
+
 	if contextCheckPoint(ctx, logger) {
 		return
 	}
@@ -99,6 +103,10 @@ func GenerateMemories(
 
 	sessionID := message.ChatSessionID
 	logger := log.Get().With(zap.Int("chatSessionId", sessionID))
+
+	// Cancellation
+	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateMemories")
+	defer cleanup()
 
 	if contextCheckPoint(ctx, logger) {
 		return

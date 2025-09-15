@@ -14,6 +14,10 @@ export class System {
       .pipe(map(res => res.count))
   }
 
+  stopCurrentGeneration() {
+    return this.http.post<void>('/system/stop-current-generation', null)
+  }
+
   shutdown() {
     return this.http.post<void>('/system/shutdown', null)
   }

@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	p "juraji.nl/chat-quest/core/providers"
+	"juraji.nl/chat-quest/core/system"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	inst "juraji.nl/chat-quest/model/instructions"
 )
@@ -51,4 +53,20 @@ func createChatRequestMessages(
 	// Add user instruction message
 	messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.Instruction})
 	return messages
+}
+
+// setupCancelBySystem returns a new context that will be cancelled upon emit of system.StopCurrentGeneration.
+// It returns the new context and a cleanup function, to be called when the cancellation is not longer needed.
+func setupCancelBySystem(ctx context.Context, logger *zap.Logger, name string) (context.Context, func()) {
+	newCtx, ctxCancelFunc := context.WithCancel(ctx)
+	ctxCancelKey := fmt.Sprintf("%s::%s", name, uuid.New())
+	system.StopCurrentGeneration.AddListener(ctxCancelKey, func(_ context.Context, _ any) {
+		logger.Info("Canceled by system", zap.String("cancelKey", ctxCancelKey))
+		ctxCancelFunc()
+	})
+	cleanup := func() {
+		system.StopCurrentGeneration.RemoveListener(ctxCancelKey)
+	}
+
+	return newCtx, cleanup
 }
