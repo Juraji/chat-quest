@@ -123,8 +123,16 @@ func GenerateChatResponse(
 
 		res := provider.generateChatResponse(ctx, messages, llm.ModelId, params)
 
-		for msg := range res {
-			responseChan <- msg
+		for {
+			select {
+			case msg, ok := <-res:
+				if !ok {
+					return
+				}
+				responseChan <- msg
+			case <-ctx.Done():
+				return
+			}
 		}
 	}()
 

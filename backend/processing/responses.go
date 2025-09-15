@@ -224,8 +224,8 @@ func generateResponse(
 					// When we reach the prefix length, check whether this tag sequence is actually a char id tag.
 					// If not, we write the current buffer to the content and continue as InContent,
 					// as this tag was not meant for us.
-					if len(currentPrefix) >= len(CharIdTagPrefix) &&
-						!strings.HasPrefix(currentPrefix, CharIdTagPrefix) {
+					if token == "\n" || (len(currentPrefix) >= len(CharIdTagPrefix) &&
+						!strings.HasPrefix(currentPrefix, CharIdTagPrefix)) {
 						contentBuffer.WriteString(currentPrefix)
 						prefixBuffer.Reset()
 						currentState = Initial
