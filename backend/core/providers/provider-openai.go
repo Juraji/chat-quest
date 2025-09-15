@@ -12,7 +12,6 @@ import (
 
 type openAIProvider struct {
 	client *openai.Client
-	ctx    context.Context
 }
 
 func newOpenAiProvider(baseUrl string, apiKey string) *openAIProvider {
@@ -21,12 +20,11 @@ func newOpenAiProvider(baseUrl string, apiKey string) *openAIProvider {
 
 	return &openAIProvider{
 		client: openai.NewClientWithConfig(config),
-		ctx:    context.Background(),
 	}
 }
 
-func (o *openAIProvider) getAvailableModelIds() ([]*LlmModel, error) {
-	models, err := o.client.ListModels(o.ctx)
+func (o *openAIProvider) getAvailableModelIds(ctx context.Context) ([]*LlmModel, error) {
+	models, err := o.client.ListModels(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("openAIProvider failed to list models: %w", err)
 	}
@@ -51,13 +49,13 @@ func (o *openAIProvider) getAvailableModelIds() ([]*LlmModel, error) {
 	return modelIds, nil
 }
 
-func (o *openAIProvider) generateEmbeddings(input, modelID string) (Embedding, error) {
+func (o *openAIProvider) generateEmbeddings(ctx context.Context, input, modelID string) (Embedding, error) {
 	request := openai.EmbeddingRequest{
 		Input: input,
 		Model: openai.EmbeddingModel(modelID),
 	}
 
-	embeddings, err := o.client.CreateEmbeddings(o.ctx, request)
+	embeddings, err := o.client.CreateEmbeddings(ctx, request)
 	if err != nil {
 		return nil, fmt.Errorf("openAIProvider failed to create embeddings: %w", err)
 	}
@@ -68,11 +66,7 @@ func (o *openAIProvider) generateEmbeddings(input, modelID string) (Embedding, e
 	return embeddings.Data[0].Embedding, nil
 }
 
-func (o *openAIProvider) generateChatResponse(
-	messages []ChatRequestMessage,
-	modelId string,
-	params LlmParameters,
-) <-chan ChatGenerateResponse {
+func (o *openAIProvider) generateChatResponse(ctx context.Context, messages []ChatRequestMessage, modelId string, params LlmParameters) <-chan ChatGenerateResponse {
 	oMessages := make([]openai.ChatCompletionMessage, len(messages))
 	for i, msg := range messages {
 		var openAiRole string
@@ -113,9 +107,9 @@ func (o *openAIProvider) generateChatResponse(
 	}
 
 	if params.Stream {
-		return generateChatResponseStream(o.ctx, o.client, completionRequest)
+		return generateChatResponseStream(ctx, o.client, completionRequest)
 	} else {
-		return generateChatResponseSingle(o.ctx, o.client, completionRequest)
+		return generateChatResponseSingle(ctx, o.client, completionRequest)
 	}
 }
 
@@ -169,6 +163,11 @@ func generateChatResponseStream(
 		defer stream.Close()
 
 		for {
+			if ctx.Err() != nil {
+				// Context in error or canceled.
+				return
+			}
+
 			response, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
 				return

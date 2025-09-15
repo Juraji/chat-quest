@@ -192,11 +192,7 @@ func generateResponse(
 	// Create initial response message
 	addMessageToStack()
 
-	chatResponseChan := prov.GenerateChatResponse(
-		chatModelInst,
-		requestMessages,
-		instruction.AsLlmParameters(),
-	)
+	chatResponseChan := prov.GenerateChatResponse(ctx, chatModelInst, requestMessages, instruction.AsLlmParameters())
 
 	for {
 		select {

@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
@@ -21,21 +22,17 @@ type Provider interface {
 	// getAvailableModelIds returns a list of available model IDs that can be used with this provider.
 	// The returned models are provider-specific identifiers for different AI models.
 	// Returns an empty slice if no models are available or an error occurred.
-	getAvailableModelIds() ([]*LlmModel, error)
+	getAvailableModelIds(ctx context.Context) ([]*LlmModel, error)
 
 	// generateEmbeddings creates vector embeddings from the given input text using the specified model.
 	// The function should be thread-safe and handle its own locking internally if needed.
 	// Returns the generated embeddings as a slice of floats or an error if generation failed.
-	generateEmbeddings(input string, modelId string) (Embedding, error)
+	generateEmbeddings(ctx context.Context, input string, modelId string) (Embedding, error)
 
 	// generateChatResponse creates a channel that will stream chat responses based on the provided request.
 	// The function should be thread-safe and handle its own locking internally if needed.
 	// Returns a receive-only channel (<-chan) that will yield ChatGenerateResponse objects as they become available.
-	generateChatResponse(
-		messages []ChatRequestMessage,
-		modelId string,
-		params LlmParameters,
-	) <-chan ChatGenerateResponse
+	generateChatResponse(ctx context.Context, messages []ChatRequestMessage, modelId string, params LlmParameters) <-chan ChatGenerateResponse
 }
 
 // newProvider creates a new instance of the specified provider type.
@@ -65,8 +62,9 @@ func getProviderLock(providerId int) *sync.Mutex {
 
 // GetAvailableModels retrieves the list of available models for a given connection profile.
 func GetAvailableModels(profile *ConnectionProfile) ([]*LlmModel, error) {
+	ctx := context.Background()
 	provider := newProvider(profile.ProviderType, profile.BaseUrl, profile.ApiKey)
-	models, err := provider.getAvailableModelIds()
+	models, err := provider.getAvailableModelIds(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get models for profile %s (id %d): %w", profile.Name, profile.ID, err)
 	}
@@ -75,11 +73,12 @@ func GetAvailableModels(profile *ConnectionProfile) ([]*LlmModel, error) {
 }
 
 // GenerateEmbeddings creates vector embeddings from the given input text using a specified LLM model.
-// This function uses a provider-specific lock to ensure thread-safe access during embedding generation.
+// This function uses a provider-specific lock to ensure singular and thread-safe access during embedding generation.
 func GenerateEmbeddings(llm *LlmModelInstance, input string, cleanInput bool) (Embedding, error) {
 	providerLock := getProviderLock(llm.ProviderId)
 	providerLock.Lock()
 	defer providerLock.Unlock()
+	ctx := context.Background()
 
 	if cleanInput {
 		var builder strings.Builder
@@ -95,7 +94,7 @@ func GenerateEmbeddings(llm *LlmModelInstance, input string, cleanInput bool) (E
 	}
 
 	provider := newProvider(llm.ProviderType, llm.BaseUrl, llm.ApiKey)
-	embedding, err := provider.generateEmbeddings(input, llm.ModelId)
+	embedding, err := provider.generateEmbeddings(ctx, input, llm.ModelId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate embeddings for %s (%s): %w", llm.ModelId, llm.ProviderType, err)
 	}
@@ -104,17 +103,30 @@ func GenerateEmbeddings(llm *LlmModelInstance, input string, cleanInput bool) (E
 }
 
 // GenerateChatResponse creates a channel that will stream chat responses based on the provided messages and model configuration.
-// This function uses a provider-specific lock to ensure thread-safe access during response generation.
+// This function uses a provider-specific lock to ensure singular and thread-safe access during response generation.
 func GenerateChatResponse(
+	ctx context.Context,
 	llm *LlmModelInstance,
 	messages []ChatRequestMessage,
 	params LlmParameters,
 ) <-chan ChatGenerateResponse {
 	providerLock := getProviderLock(llm.ProviderId)
 	providerLock.Lock()
-	defer providerLock.Unlock()
+	//defer providerLock.Unlock()
 
 	provider := newProvider(llm.ProviderType, llm.BaseUrl, llm.ApiKey)
+	responseChan := make(chan ChatGenerateResponse)
 
-	return provider.generateChatResponse(messages, llm.ModelId, params)
+	go func() {
+		defer close(responseChan)
+		defer providerLock.Unlock()
+
+		res := provider.generateChatResponse(ctx, messages, llm.ModelId, params)
+
+		for msg := range res {
+			responseChan <- msg
+		}
+	}()
+
+	return responseChan
 }

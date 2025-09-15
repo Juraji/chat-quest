@@ -194,7 +194,7 @@ func generateMemories(
 
 	// Generate memories
 	requestMessages := createChatRequestMessages(messageWindow, instruction)
-	chatResponseChan := p.GenerateChatResponse(modelInstance, requestMessages, instruction.AsLlmParameters())
+	chatResponseChan := p.GenerateChatResponse(ctx, modelInstance, requestMessages, instruction.AsLlmParameters())
 	var memoryGenResponse string
 
 responseLoop:
