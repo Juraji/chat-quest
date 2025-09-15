@@ -195,90 +195,84 @@ func generateResponse(
 	chatResponseChan := prov.GenerateChatResponse(ctx, chatModelInst, requestMessages, instruction.AsLlmParameters())
 
 	for {
-		select {
-		case response, hasNext := <-chatResponseChan:
-			if !hasNext {
-				return
-			}
-			if response.Error != nil {
-				logger.Error("Error generating response", zap.Error(response.Error))
-				return
-			}
+		response, hasNext := <-chatResponseChan
+		if !hasNext {
+			return
+		}
+		if response.Error != nil {
+			logger.Error("Error generating response", zap.Error(response.Error))
+			return
+		}
 
-			for _, token := range strings.Split(response.Content, "") {
-				switch currentState {
-				case Initial:
-					if token == CharIdTagPrefixInit {
-						currentState = InPrefix
-						prefixBuffer.WriteString(token)
-					} else {
-						// Output the token directly as it's not part of a prefix
-						contentBuffer.WriteString(token)
-					}
-
-				case InPrefix:
-					// Accumulate tokens until we complete the prefix
+		for _, token := range strings.Split(response.Content, "") {
+			switch currentState {
+			case Initial:
+				if token == CharIdTagPrefixInit {
+					currentState = InPrefix
 					prefixBuffer.WriteString(token)
-					currentPrefix := strings.TrimSpace(prefixBuffer.String())
+				} else {
+					// Output the token directly as it's not part of a prefix
+					contentBuffer.WriteString(token)
+				}
 
-					// When we reach the prefix length, check whether this tag sequence is actually a char id tag.
-					// If not, we write the current buffer to the content and continue as InContent,
-					// as this tag was not meant for us.
-					if len(currentPrefix) >= len(CharIdTagPrefix) &&
-						!strings.HasPrefix(currentPrefix, CharIdTagPrefix) {
-						contentBuffer.WriteString(currentPrefix)
-						prefixBuffer.Reset()
-						currentState = Initial
-					}
+			case InPrefix:
+				// Accumulate tokens until we complete the prefix
+				prefixBuffer.WriteString(token)
+				currentPrefix := strings.TrimSpace(prefixBuffer.String())
 
-					// Check if this completes a character ID prefix
-					if strings.HasSuffix(currentPrefix, CharIdTagSuffix) {
-						// We have the complete char id tag. Extract the ID within
-						// and set it as the current message's character id.
-						if number := extractCharIdRegex.FindStringSubmatch(currentPrefix); number != nil && len(number) > 1 {
-							charId, err := strconv.Atoi(number[1])
-							if err != nil {
-								logger.Warn("Invalid character prefix found in LLM response stream",
-									zap.String("prefix", currentPrefix))
-								return
-							}
-							currentMessage.CharacterID = &charId
-						} else {
+				// When we reach the prefix length, check whether this tag sequence is actually a char id tag.
+				// If not, we write the current buffer to the content and continue as InContent,
+				// as this tag was not meant for us.
+				if len(currentPrefix) >= len(CharIdTagPrefix) &&
+					!strings.HasPrefix(currentPrefix, CharIdTagPrefix) {
+					contentBuffer.WriteString(currentPrefix)
+					prefixBuffer.Reset()
+					currentState = Initial
+				}
+
+				// Check if this completes a character ID prefix
+				if strings.HasSuffix(currentPrefix, CharIdTagSuffix) {
+					// We have the complete char id tag. Extract the ID within
+					// and set it as the current message's character id.
+					if number := extractCharIdRegex.FindStringSubmatch(currentPrefix); number != nil && len(number) > 1 {
+						charId, err := strconv.Atoi(number[1])
+						if err != nil {
 							logger.Warn("Invalid character prefix found in LLM response stream",
 								zap.String("prefix", currentPrefix))
+							return
 						}
-
-						currentState = InContent
-						prefixBuffer.Reset()
-					}
-				case InContent:
-					// Check if this token starts a new prefix
-					if token == CharIdTagPrefixInit {
-						currentState = InPrefix
-						prefixBuffer.WriteString(token)
-
-						addMessageToStack()
+						currentMessage.CharacterID = &charId
 					} else {
-						// Output the token directly as it's not part of a prefix
-						contentBuffer.WriteString(token)
+						logger.Warn("Invalid character prefix found in LLM response stream",
+							zap.String("prefix", currentPrefix))
 					}
+
+					currentState = InContent
+					prefixBuffer.Reset()
+				}
+			case InContent:
+				// Check if this token starts a new prefix
+				if token == CharIdTagPrefixInit {
+					currentState = InPrefix
+					prefixBuffer.WriteString(token)
+
+					addMessageToStack()
+				} else {
+					// Output the token directly as it's not part of a prefix
+					contentBuffer.WriteString(token)
 				}
 			}
+		}
 
-			if contentBuffer.Len() > 0 {
-				currentMessage.Content += contentBuffer.String()
-				if err := cs.UpdateChatMessage(session.ID, currentMessage.ID, currentMessage); err != nil {
-					logger.Error("Failed to update response chat message",
-						zap.Int("messageId", currentMessage.ID), zap.Error(err))
-					return
-				}
-
-				contentBuffer.Reset()
+		if contentBuffer.Len() > 0 {
+			currentMessage.Content += contentBuffer.String()
+			if err := cs.UpdateChatMessage(session.ID, currentMessage.ID, currentMessage); err != nil {
+				logger.Error("Failed to update response chat message",
+					zap.Int("messageId", currentMessage.ID), zap.Error(err))
+				return
 			}
 
-		case <-ctx.Done():
-			logger.Debug("Cancelled by context")
-			return
+			contentBuffer.Reset()
 		}
 	}
 }

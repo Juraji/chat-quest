@@ -197,27 +197,21 @@ func generateMemories(
 	chatResponseChan := p.GenerateChatResponse(ctx, modelInstance, requestMessages, instruction.AsLlmParameters())
 	var memoryGenResponse string
 
-responseLoop:
 	for {
-		select {
-		case r, hasNext := <-chatResponseChan:
-			if !hasNext {
-				// Done
-				break responseLoop
-			}
+		r, hasNext := <-chatResponseChan
+		if !hasNext {
+			// Done
+			break
+		}
 
-			if r.Error != nil {
-				logger.Error("Error generating memories",
-					zap.String("generated", memoryGenResponse),
-					zap.Error(r.Error))
-				return nil, false
-			}
-
-			memoryGenResponse = memoryGenResponse + r.Content
-		case <-ctx.Done():
-			logger.Debug("Cancelled by context")
+		if r.Error != nil {
+			logger.Error("Error generating memories",
+				zap.String("generated", memoryGenResponse),
+				zap.Error(r.Error))
 			return nil, false
 		}
+
+		memoryGenResponse = memoryGenResponse + r.Content
 	}
 
 	// We expect a JSON markdown block, extract it
