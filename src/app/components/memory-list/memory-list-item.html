@@ -1,6 +1,6 @@
 @if (editMode()) {
   <form [formGroup]="formGroup" (submit)="onFormSubmit()">
-    <div class="d-flex align-items-center gap-3 mb-3">
+    <div class="d-flex align-items-center gap-3 mb-1">
       @if (!characterId()) {
         <div>
           <label for="characterIdSelect">Character</label>
@@ -13,9 +13,9 @@
               <option [ngValue]="c.id">{{ c.name }}</option>
             }
           </select>
-          <div class="form-text" id="characterIdSelectHelp">
-            You can set this memory to be for a specific character
-            or "All" for a general memory applicable to everyone.
+          <div class="form-text" id="characterIdSelectHelp" title="You can set this memory to be for a specific character
+or &quot;All&quot; for a general memory applicable to everyone.">
+            Target Character. <span class="bi bi-question-circle"></span>
           </div>
         </div>
       }
@@ -30,10 +30,11 @@
 
     <div class="mb-3">
       <label for="contentInput">Content</label>
-      <input type="text" class="form-control"
-             id="contentInput"
-             aria-describedby="contentInputHelp"
-             formControlName="content"/>
+      <textarea type="text" class="form-control"
+                rows="3"
+                id="contentInput"
+                aria-describedby="contentInputHelp"
+                formControlName="content"></textarea>
       <div class="form-text" id="contentInputHelp">
         Memories should be a short and descriptive.
       </div>
