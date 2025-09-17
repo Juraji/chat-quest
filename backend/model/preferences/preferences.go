@@ -14,7 +14,7 @@ type Preferences struct {
 	// Memories
 	MemoriesModelId       *int    `json:"memoriesModelId"`
 	MemoriesInstructionId *int    `json:"memoriesInstructionId"`
-	MemoryMinP            float32 `json:"memoryMinP"`
+	MemoryMinP            float64 `json:"memoryMinP"`
 	MemoryTriggerAfter    int     `json:"memoryTriggerAfter"`
 	MemoryWindowSize      int     `json:"memoryWindowSize"`
 }

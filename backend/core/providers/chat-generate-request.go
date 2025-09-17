@@ -10,6 +10,9 @@ type LlmParameters struct {
 	FrequencyPenalty float32
 	Stream           bool
 	StopSequences    *string
+
+	// An optional response format (JSON Schema)
+	ResponseFormat *string
 }
 
 func (params *LlmParameters) StopSequencesAsSlice() []string {
@@ -45,6 +48,7 @@ type ChatRequestMessage struct {
 }
 
 type ChatGenerateResponse struct {
-	Content string
-	Error   error
+	Content     string
+	Error       error
+	TotalTokens int
 }

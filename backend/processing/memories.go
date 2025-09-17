@@ -3,7 +3,6 @@ package processing
 import (
 	"context"
 	"encoding/json"
-	"strings"
 	"sync"
 
 	"go.uber.org/zap"
@@ -14,6 +13,27 @@ import (
 	m "juraji.nl/chat-quest/model/memories"
 	"juraji.nl/chat-quest/model/preferences"
 )
+
+var MemoriesResponseFormat = `{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Memories",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "characterId",
+      "content"
+    ],
+    "properties": {
+      "characterId": {
+        "type": "number"
+      },
+      "content": {
+        "type": "string"
+      }
+    }
+  }
+}`
 
 var generationMutex sync.Mutex
 
@@ -194,7 +214,10 @@ func generateMemories(
 
 	// Generate memories
 	requestMessages := createChatRequestMessages(messageWindow, instruction)
-	chatResponseChan := p.GenerateChatResponse(ctx, modelInstance, requestMessages, instruction.AsLlmParameters())
+	llmParameters := instruction.AsLlmParameters()
+	llmParameters.ResponseFormat = &MemoriesResponseFormat
+
+	chatResponseChan := p.GenerateChatResponse(ctx, modelInstance, requestMessages, llmParameters)
 	var memoryGenResponse string
 
 responseLoop:
@@ -219,22 +242,6 @@ responseLoop:
 			return nil, false
 		}
 	}
-
-	// We expect a JSON markdown block, extract it
-	markDownStartSeq := "```json"
-	markDownEndSeq := "```"
-	markdownStart := strings.Index(memoryGenResponse, markDownStartSeq)
-	if markdownStart == -1 {
-		logger.Error("Could not find markdown start in response")
-		return nil, false
-	}
-	memoryGenResponse = memoryGenResponse[markdownStart+len(markDownStartSeq):]
-	markdownEnd := strings.Index(memoryGenResponse, markDownEndSeq)
-	if markdownEnd == -1 {
-		logger.Error("Could not find markdown end in response")
-		return nil, false
-	}
-	memoryGenResponse = memoryGenResponse[:markdownEnd]
 
 	// Unmarshal memories
 	var memories []*m.Memory

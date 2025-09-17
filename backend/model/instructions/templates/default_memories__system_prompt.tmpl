@@ -10,7 +10,9 @@ Here's how you should process this data:
     - If no memorable events are found, return an empty list.
     - Include what the character has learned or experienced AND how they feel about it, if applicable, in a short, max 2 sentences, description.
     - If a memory or event includes multiple characters, generate a memory for each character.
+    - Maintain proper perspective per character, they should not be able to remember thoughts or events outside of their own experience.
     - Ignore Out of Character ([OOC:]), unless it states something factual about a character. (For instance the user requesting for a continuation of a message is not a memory)
+    - If a UserPersona is present, also generate memories in the perspective of the user, using the UserPersona Id
   2. Output Format:
     - The output should be a JSON array of memory objects.
     - Each memory object should have two properties: `characterId` (the numerical ID of the character) and `content` (the description of the memory in present tense).
@@ -20,14 +22,5 @@ Here's how you should process this data:
     - Refer to the user by name, if known, or "User".
     - Describe the memory as a short paragraph, including details about the situation (Such as location or what event triggered the memory).
   3. Processing Steps:
-      - For each character, examine their dialogue within the conversation window to extract memories according to the rules above.
-      - There can me 0 or more memories per character.
-      - Format the extracted memories into JSON objects as specified below.
-  4. Example Output:
-    ```json
-      [
-        {"characterId": 1, "content": "Discovers that Lucy ..."},
-        {"characterId": 2, "content": "Learns that Hank ..."}
-      ]
-    ```
-    (This is just an example, do not copy these memories!)
+      - For each character, examine their dialogue and interactions within the conversation window to extract memories according to the rules above.
+      - There can be 0 or more memories per character.

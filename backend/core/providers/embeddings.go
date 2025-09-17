@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Embedding []float32
+type Embedding []float64
 
 // Scan implements the sql.Scanner interface for Embedding type.
 // It converts a database value to an Embedding object.
@@ -25,16 +25,16 @@ func (e *Embedding) Scan(value any) error {
 	if !ok {
 		return fmt.Errorf("unsupported type: %T", value)
 	}
-	if len(b)%4 != 0 {
-		return errors.New("invalid byte length for float32 array")
+	if len(b)%8 != 0 {
+		return errors.New("invalid byte length for float64 array")
 	}
 
-	n := len(b) / 4
+	n := len(b) / 8
 	embedding := make(Embedding, n)
 	for i := 0; i < n; i++ {
-		start := i * 4
-		bits := binary.LittleEndian.Uint32(b[start : start+4])
-		embedding[i] = math.Float32frombits(bits)
+		start := i * 8
+		bits := binary.LittleEndian.Uint64(b[start : start+8])
+		embedding[i] = math.Float64frombits(bits)
 	}
 	*e = embedding
 	return nil
@@ -49,10 +49,10 @@ func (e Embedding) Value() (driver.Value, error) {
 		return nil, nil
 	}
 
-	b := make([]byte, len(e)*4)
+	b := make([]byte, len(e)*8)
 	for i, v := range e {
-		bits := math.Float32bits(v)
-		binary.LittleEndian.PutUint32(b[i*4:], bits)
+		bits := math.Float64bits(v)
+		binary.LittleEndian.PutUint64(b[i*8:], bits)
 	}
 
 	return b, nil
@@ -62,7 +62,7 @@ func (e Embedding) Value() (driver.Value, error) {
 // It returns a float32 value representing the cosine of the angle between the vectors.
 //
 //goland:noinspection GoMixedReceiverTypes See Scan and Value methods
-func (e *Embedding) CosineSimilarity(other Embedding) float32 {
+func (e *Embedding) CosineSimilarity(other Embedding) float64 {
 	if e == nil {
 		panic("nil Embedding")
 	}
@@ -71,7 +71,7 @@ func (e *Embedding) CosineSimilarity(other Embedding) float32 {
 	}
 
 	this := *e
-	dotProduct := float32(0)
+	dotProduct := float64(0)
 
 	for i := range this {
 		v1, v2 := this[i], other[i]
@@ -93,7 +93,7 @@ func (e *Embedding) Normalize() Embedding {
 	this := *e
 	magnitude := float64(0)
 	for _, v := range this {
-		magnitude += float64(v * v)
+		magnitude += v * v
 	}
 	magnitude = math.Sqrt(magnitude)
 
@@ -102,9 +102,9 @@ func (e *Embedding) Normalize() Embedding {
 		return this
 	}
 
-	normalized := make([]float32, len(this))
+	normalized := make(Embedding, len(this))
 	for i, v := range this {
-		normalized[i] = float32(float64(v) / magnitude)
+		normalized[i] = v / magnitude
 	}
 	return normalized
 }
