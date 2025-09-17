@@ -122,7 +122,7 @@ export class EditInstruction {
         .delete(t!.id)
         .subscribe(() => {
           this.notifications.toast("Instruction Template deleted!")
-          this.router.navigate(['..'], {
+          this.router.navigate(['../..'], {
             relativeTo: this.activatedRoute,
             replaceUrl: true
           })
