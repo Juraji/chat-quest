@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	prov "juraji.nl/chat-quest/core/providers"
+	"juraji.nl/chat-quest/core/util"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	inst "juraji.nl/chat-quest/model/instructions"
 	p "juraji.nl/chat-quest/model/preferences"
@@ -222,17 +223,17 @@ func generateResponse(
 					currentPrefix := strings.TrimSpace(prefixBuffer.String())
 
 					// When we reach the prefix length, check whether this tag sequence is actually a char id tag.
-					// If not, we write the current buffer to the content and continue as InContent,
+					// If not, we write the current buffer to the content and continue as Initial,
 					// as this tag was not meant for us.
 					if token == "\n" || (len(currentPrefix) >= len(CharIdTagPrefix) &&
-						!strings.HasPrefix(currentPrefix, CharIdTagPrefix)) {
+						!util.HasPrefixCaseInsensitive(currentPrefix, CharIdTagPrefix)) {
 						contentBuffer.WriteString(currentPrefix)
 						prefixBuffer.Reset()
 						currentState = Initial
 					}
 
 					// Check if this completes a character ID prefix
-					if strings.HasSuffix(currentPrefix, CharIdTagSuffix) {
+					if util.HasSuffixCaseInsensitive(currentPrefix, CharIdTagSuffix) {
 						// We have the complete char id tag. Extract the ID within
 						// and set it as the current message's character id.
 						if number := extractCharIdRegex.FindStringSubmatch(currentPrefix); number != nil && len(number) > 1 {
