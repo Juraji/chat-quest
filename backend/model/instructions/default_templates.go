@@ -15,7 +15,7 @@ func newDefaultChatInstruction() (*Instruction, error) {
 	instruction := &Instruction{
 		Name:             "Default Chat",
 		Type:             ChatInstruction,
-		Temperature:      1.3,
+		Temperature:      1.1,
 		MaxTokens:        300,
 		TopP:             0.95,
 		PresencePenalty:  1.1,
@@ -35,7 +35,7 @@ func newMultiCharResponseChatInstruction() (*Instruction, error) {
 	instruction := &Instruction{
 		Name:             "Multi-Character Response (experimental)",
 		Type:             ChatInstruction,
-		Temperature:      1.3,
+		Temperature:      1.1,
 		MaxTokens:        300,
 		TopP:             0.95,
 		PresencePenalty:  1.1,
@@ -51,11 +51,31 @@ func newMultiCharResponseChatInstruction() (*Instruction, error) {
 	return reifyInstructionTemplates(instruction)
 }
 
+func newNPCResponseChatInstruction() (*Instruction, error) {
+	instruction := &Instruction{
+		Name:             "NPC Response (experimental)",
+		Type:             ChatInstruction,
+		Temperature:      1.1,
+		MaxTokens:        300,
+		TopP:             0.95,
+		PresencePenalty:  1.1,
+		FrequencyPenalty: 1.1,
+		Stream:           true,
+		StopSequences:    nil,
+
+		SystemPrompt: "templates/npc_chat__system_prompt.tmpl",
+		WorldSetup:   "templates/npc_chat__world_setup.tmpl",
+		Instruction:  "templates/npc_chat__instruction.tmpl",
+	}
+
+	return reifyInstructionTemplates(instruction)
+}
+
 func newDefaultMemoryInstruction() (*Instruction, error) {
 	instruction := &Instruction{
 		Name:             "Default Memories",
 		Type:             MemoriesInstruction,
-		Temperature:      0.9,
+		Temperature:      0.7,
 		MaxTokens:        300,
 		TopP:             0.95,
 		PresencePenalty:  1.1,

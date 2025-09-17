@@ -17,6 +17,7 @@ func init() {
 				newDefaultChatInstruction,
 				newDefaultMemoryInstruction,
 				newMultiCharResponseChatInstruction,
+				newNPCResponseChatInstruction,
 			}
 
 			for _, creator := range creators {
