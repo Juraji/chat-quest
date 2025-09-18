@@ -158,7 +158,7 @@ func generateResponse(
 	// Create message stack
 	const (
 		InContent = iota
-		InPrefix
+		PrefixDetected
 		InReasoning
 		InCharTransition
 		CancelPrefix
@@ -211,13 +211,13 @@ func generateResponse(
 				switch currentState {
 				case InContent:
 					if token == PrefixInit {
-						currentState = InPrefix
+						currentState = PrefixDetected
 						prefixBuffer.WriteString(token)
 					} else {
 						// Output the token directly as it's not part of a prefix
 						contentBuffer.WriteString(token)
 					}
-				case InPrefix:
+				case PrefixDetected:
 					// Accumulate prefix tokens.
 					if token == "\n" {
 						currentState = CancelPrefix
@@ -230,8 +230,6 @@ func generateResponse(
 					// Figure out if we are in a known prefix (reasoning or Char transition)
 					if len(currentPrefix) == len(ReasoningPrefix) && strings.EqualFold(currentPrefix, ReasoningPrefix) {
 						currentState = InReasoning
-						reasoningBuffer.WriteString(currentPrefix)
-						prefixBuffer.Reset()
 						continue
 					}
 					if len(currentPrefix) == len(CharTransitionPrefix) && strings.EqualFold(currentPrefix, CharTransitionPrefix) {
@@ -241,9 +239,14 @@ func generateResponse(
 
 				case InReasoning:
 					reasoningBuffer.WriteString(token)
-					reasoning := reasoningBuffer.String()
+					currentReasoning := reasoningBuffer.String()
 
-					if util.HasSuffixCaseInsensitive(reasoning, ReasoningSuffix) {
+					if util.HasSuffixCaseInsensitive(currentReasoning, ReasoningSuffix) {
+						currentReasoning = strings.TrimPrefix(currentReasoning, ReasoningPrefix)
+						currentReasoning = strings.TrimSuffix(currentReasoning, ReasoningSuffix)
+						currentReasoning = strings.TrimSpace(currentReasoning)
+						reasoningBuffer.Reset()
+						reasoningBuffer.WriteString(currentReasoning)
 						currentState = InContent
 						continue
 					}
