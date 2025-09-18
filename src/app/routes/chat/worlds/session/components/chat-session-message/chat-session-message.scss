@@ -8,6 +8,13 @@
     }
   }
 
+  &.is-generating {
+    ::ng-deep .rendered-message .thought {
+      height: unset !important;
+      opacity: 1 !important;
+    }
+  }
+
   .character-avatar {
     width: 2rem;
     border-radius: var(--bs-border-radius);

@@ -22,7 +22,8 @@ type MessageFormGroup = Pick<ChatMessage, 'content'>
   templateUrl: './chat-session-message.html',
   styleUrl: './chat-session-message.scss',
   host: {
-    '[class.is-archived]': 'isArchived()'
+    '[class.is-archived]': 'isArchived()',
+    '[class.is-generating]': 'isGenerating()'
   }
 })
 export class ChatSessionMessage {
