@@ -45,33 +45,6 @@
         padding: 0.5rem;
         border-radius: var(--bs-border-radius-sm);
       }
-
-      .thought {
-        display: block;
-        height: 2rem;
-        overflow: hidden;
-        border: var(--bs-card-border-width) solid var(--bs-card-border-color);
-        border-radius: var(--bs-card-border-radius);
-        padding: 0.15rem 0.25rem;
-        opacity: 0.5;
-
-        &::before {
-          content: "Thoughts (Hover to view)";
-          font-style: italic;
-          margin-bottom: 0.5rem;
-          display: block;
-        }
-
-        &:hover {
-          height: unset;
-          opacity: 1;
-
-          &::before {
-            content: "Thoughts";
-            opacity: 0.5;
-          }
-        }
-      }
     }
   }
 

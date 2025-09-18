@@ -6,6 +6,26 @@
       <textarea class="form-control rounded-top-0" formControlName="content" rows="10"></textarea>
     } @else {
       <div class="card-body">
+        @if (reasoning(); as s) {
+          @if (showReasoning()) {
+            <div class="thought-block open mb-3 position-relative">
+              <button type="button" class="btn btn-sm position-absolute end-0" (click)="showReasoning.toggle()">
+                <span class="bi bi-x"></span>
+              </button>
+              <span>{{ s }}</span>
+            </div>
+          } @else {
+            <div class="thought-block mb-3 text-muted small cursor-pointer"
+                 (click)="showReasoning.toggle()">
+              @if (isGenerating()) {
+                <span>Thinking...</span>
+              } @else {
+                <span>Thoughts</span>
+              }
+              <i class="ms-2 small">(Click to view)</i>
+            </div>
+          }
+        }
         <app-rendered-message [message]="content()" [renderOptions]="{enableVariables: false}"/>
       </div>
     }

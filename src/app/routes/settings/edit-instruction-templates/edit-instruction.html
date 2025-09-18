@@ -185,7 +185,7 @@ Example: '###,word' stops at '###' and 'word'.">
                 } @else if (!!systemPromptValue()) {
                   @let systemPrompt = systemPromptValue();
                   <app-rendered-message [message]="systemPrompt"
-                                        [renderOptions]="{enableMD: true,enableThink: false}"></app-rendered-message>
+                                        [renderOptions]="{enableMD: true}"></app-rendered-message>
                 } @else {
                   <p class="form-text mb-0">
                     No system prompt defined.
@@ -221,7 +221,7 @@ Example: '###,word' stops at '###' and 'word'.">
                 } @else if (!!worldSetupValue()) {
                   @let worldSetup = worldSetupValue();
                   <app-rendered-message [message]="worldSetup"
-                                        [renderOptions]="{enableMD: true,enableThink: false}"></app-rendered-message>
+                                        [renderOptions]="{enableMD: true}"></app-rendered-message>
                 } @else {
                   <p class="form-text mb-0">
                     No world setup defined.
@@ -258,7 +258,7 @@ Example: '###,word' stops at '###' and 'word'.">
                 } @else if (!!instructionValue()) {
                   @let systemPrompt = instructionValue();
                   <app-rendered-message [message]="systemPrompt"
-                                        [renderOptions]="{enableMD: true,enableThink: false}"></app-rendered-message>
+                                        [renderOptions]="{enableMD: true}"></app-rendered-message>
                 } @else {
                   <p class="form-text mb-0">
                     No instruction defined.

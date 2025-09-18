@@ -8,16 +8,28 @@
     }
   }
 
-  &.is-generating {
-    ::ng-deep .rendered-message .thought {
-      height: unset !important;
-      opacity: 1 !important;
-    }
-  }
-
   .character-avatar {
     width: 2rem;
     border-radius: var(--bs-border-radius);
+  }
+
+  .thought-block {
+    display: block;
+    color: unset;
+    font-family: var(--bs-font-monospace), monospace;
+    font-style: normal;
+    font-size: 0.875rem;
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    border-radius: var(--bs-border-radius-sm);
+    white-space: pre-wrap;
+    box-sizing: border-box;
+    border: transparent var(--bs-border-width) solid;
+    transition: border-color 0.3s ease-in-out;
+
+    &:hover, &.open {
+      border-color: var(--bs-card-border-color);
+    }
   }
 
   .dots-of-generation {

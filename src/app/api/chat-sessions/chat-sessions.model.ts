@@ -22,6 +22,7 @@ export interface ChatMessage extends ChatQuestModel {
   isArchived: boolean
   characterId: Nullable<number>
   content: string
+  reasoning: string
 }
 
 export interface ChatParticipant {

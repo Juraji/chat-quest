@@ -45,6 +45,9 @@ export class ChatSessionMessage {
   readonly isArchived: Signal<boolean> = computed(() => this.message().isArchived)
   readonly createdAt: Signal<string> = computed(() => this.message().createdAt!)
 
+  readonly reasoning: Signal<string> = computed(() => this.message().reasoning)
+  readonly showReasoning = booleanSignal(() => this.reasoning().length > 0)
+
   readonly character: Signal<Nullable<BaseCharacter>> = computed(() => {
     const characterId = this.message().characterId
     const characters = this.sessionData.characters()

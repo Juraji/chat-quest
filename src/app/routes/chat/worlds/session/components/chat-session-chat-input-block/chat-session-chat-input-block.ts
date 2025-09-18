@@ -48,6 +48,7 @@ export class ChatSessionChatInputBlock {
       isArchived: false,
       characterId: null,
       content,
+      reasoning: ''
     }
 
     this.chatSessions

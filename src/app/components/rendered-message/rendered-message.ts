@@ -4,7 +4,6 @@ type RendererOptions = {
   enableActions: boolean
   enableQuoted: boolean
   enableVariables: boolean
-  enableThink: boolean
   enableOOC: boolean
   enableMD: boolean
 }
@@ -13,7 +12,6 @@ const DEFAULT_OPTIONS: RendererOptions = {
   enableActions: true,
   enableQuoted: true,
   enableVariables: true,
-  enableThink: true,
   enableOOC: true,
   enableMD: false,
 }
@@ -54,9 +52,6 @@ export class RenderedMessage {
       result = this.wrap(result, 'variable-block', '{{e', '}}');
       result = this.wrap(result, 'variable', '{{$', '}}');
       result = this.wrap(result, 'variable', '{{.', '}}');
-    }
-    if (opts.enableThink) {
-      result = this.wrap(result, 'thought', '&lt;think&gt;', '&lt;/think&gt;\n', true, true);
     }
     if (opts.enableOOC) {
       result = this.wrap(result, 'out-of-character ', '[OOC:', ']');
