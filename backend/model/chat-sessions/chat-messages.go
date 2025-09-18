@@ -15,6 +15,7 @@ type ChatMessage struct {
 	IsArchived    bool       `json:"isArchived"`
 	CharacterID   *int       `json:"characterId"`
 	Content       string     `json:"content"`
+	Reasoning     string     `json:"reasoning"`
 }
 
 func ChatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
@@ -27,19 +28,16 @@ func ChatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
 		&dest.IsArchived,
 		&dest.CharacterID,
 		&dest.Content,
+		&dest.Reasoning,
 	)
 }
 
 func NewChatMessage(isUser bool, isGenerating bool, characterId *int, content string) *ChatMessage {
 	return &ChatMessage{
-		ID:            0,
-		ChatSessionID: 0,
-		CreatedAt:     nil,
-		IsUser:        isUser,
-		IsGenerating:  isGenerating,
-		IsArchived:    false,
-		CharacterID:   characterId,
-		Content:       content,
+		IsUser:       isUser,
+		IsGenerating: isGenerating,
+		CharacterID:  characterId,
+		Content:      content,
 	}
 }
 
@@ -65,14 +63,15 @@ func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 	chatMessage.ChatSessionID = sessionId
 	chatMessage.CreatedAt = nil
 
-	query := `INSERT INTO chat_messages (chat_session_id, is_user, is_generating, character_id, content)
-            VALUES (?, ?, ?, ?, ?) RETURNING id, created_at`
+	query := `INSERT INTO chat_messages (chat_session_id, is_user, is_generating, character_id, content, reasoning)
+            VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at`
 	args := []any{
 		chatMessage.ChatSessionID,
 		chatMessage.IsUser,
 		chatMessage.IsGenerating,
 		chatMessage.CharacterID,
 		chatMessage.Content,
+		chatMessage.Reasoning,
 	}
 
 	err := database.InsertRecord(query, args, &chatMessage.ID, &chatMessage.CreatedAt)
@@ -87,10 +86,11 @@ func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
 	query := `UPDATE chat_messages
             SET content = ?,
+                reasoning = ?,
                 is_generating = ?
             WHERE chat_session_id = ?
               AND id = ?`
-	args := []any{chatMessage.Content, chatMessage.IsGenerating, sessionId, id}
+	args := []any{chatMessage.Content, chatMessage.Reasoning, chatMessage.IsGenerating, sessionId, id}
 
 	err := database.UpdateRecord(query, args)
 

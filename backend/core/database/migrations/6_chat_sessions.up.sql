@@ -30,7 +30,8 @@ CREATE TABLE chat_messages
   is_generating BIT(1) NOT NULL,
   is_archived   BIT(1) NOT NULL DEFAULT FALSE,
   character_id    INTEGER   REFERENCES characters (id) ON DELETE SET NULL,
-  content         TEXT      NOT NULL
+  content       TEXT   NOT NULL,
+  reasoning     TEXT   NOT NULL
 );
 
 CREATE INDEX idx_chat_messages__is_archived ON chat_messages (is_archived);

@@ -13,9 +13,11 @@ import (
 )
 
 const (
-	CharIdTagPrefix     = "<ByCharacterId>"
-	CharIdTagPrefixInit = "<"
-	CharIdTagSuffix     = "</ByCharacterId>"
+	PrefixInit           = "<"
+	CharTransitionPrefix = "<ByCharacterId>"
+	CharTransitionSuffix = "</ByCharacterId>"
+	ReasoningPrefix      = "<think>"
+	ReasoningSuffix      = "</think>"
 )
 
 func contextCheckPoint(ctx context.Context, logger *zap.Logger) bool {
@@ -45,7 +47,7 @@ func createChatRequestMessages(
 		if msg.IsUser {
 			messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: msg.Content})
 		} else {
-			content := fmt.Sprintf("%s%v%s\n\n%s", CharIdTagPrefix, *msg.CharacterID, CharIdTagSuffix, msg.Content)
+			content := fmt.Sprintf("%s%v%s\n\n%s", CharTransitionPrefix, *msg.CharacterID, CharTransitionSuffix, msg.Content)
 			messages = append(messages, p.ChatRequestMessage{Role: p.RoleAssistant, Content: content})
 		}
 	}

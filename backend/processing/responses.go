@@ -2,9 +2,9 @@ package processing
 
 import (
 	"context"
-	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
@@ -157,18 +157,20 @@ func generateResponse(
 
 	// Create message stack
 	const (
-		Initial = iota
+		InContent = iota
 		InPrefix
-		InContent
+		InReasoning
+		InCharTransition
+		CancelPrefix
 	)
 
-	var currentState = Initial
+	var currentState = InContent
+	var charTransitionSeen = false
 	var prefixBuffer strings.Builder
 	var contentBuffer strings.Builder
+	var reasoningBuffer strings.Builder
 	var messageStack []*cs.ChatMessage
 	var currentMessage *cs.ChatMessage
-	var extractCharIdRegex = regexp.MustCompile(
-		regexp.QuoteMeta(CharIdTagPrefix) + "(\\d+)" + regexp.QuoteMeta(CharIdTagSuffix))
 
 	addMessageToStack := func() {
 		currentMessage = cs.NewChatMessage(false, true, &responderId, "")
@@ -182,7 +184,6 @@ func generateResponse(
 	defer func() {
 		for _, message := range messageStack {
 			message.IsGenerating = false
-			message.Content = strings.TrimSpace(message.Content)
 			if err := cs.UpdateChatMessage(session.ID, message.ID, message); err != nil {
 				logger.Error("Failed to update response chat message upon finalization",
 					zap.Int("messageId", message.ID), zap.Error(err))
@@ -208,73 +209,106 @@ func generateResponse(
 
 			for _, token := range strings.Split(response.Content, "") {
 				switch currentState {
-				case Initial:
-					if token == CharIdTagPrefixInit {
+				case InContent:
+					if token == PrefixInit {
 						currentState = InPrefix
 						prefixBuffer.WriteString(token)
 					} else {
 						// Output the token directly as it's not part of a prefix
 						contentBuffer.WriteString(token)
 					}
-
 				case InPrefix:
-					// Accumulate tokens until we complete the prefix
-					prefixBuffer.WriteString(token)
-					currentPrefix := strings.TrimSpace(prefixBuffer.String())
-
-					// When we reach the prefix length, check whether this tag sequence is actually a char id tag.
-					// If not, we write the current buffer to the content and continue as Initial,
-					// as this tag was not meant for us.
-					if token == "\n" || (len(currentPrefix) >= len(CharIdTagPrefix) &&
-						!util.HasPrefixCaseInsensitive(currentPrefix, CharIdTagPrefix)) {
-						contentBuffer.WriteString(currentPrefix)
-						prefixBuffer.Reset()
-						currentState = Initial
+					// Accumulate prefix tokens.
+					if token == "\n" {
+						currentState = CancelPrefix
+						continue
 					}
 
-					// Check if this completes a character ID prefix
-					if util.HasSuffixCaseInsensitive(currentPrefix, CharIdTagSuffix) {
-						// We have the complete char id tag. Extract the ID within
-						// and set it as the current message's character id.
-						if number := extractCharIdRegex.FindStringSubmatch(currentPrefix); number != nil && len(number) > 1 {
-							charId, err := strconv.Atoi(number[1])
-							if err != nil {
-								logger.Warn("Invalid character prefix found in LLM response stream",
-									zap.String("prefix", currentPrefix))
-								return
-							}
-							currentMessage.CharacterID = &charId
-						} else {
+					prefixBuffer.WriteString(token)
+					currentPrefix := prefixBuffer.String()
+
+					// Figure out if we are in a known prefix (reasoning or Char transition)
+					if len(currentPrefix) == len(ReasoningPrefix) && strings.EqualFold(currentPrefix, ReasoningPrefix) {
+						currentState = InReasoning
+						reasoningBuffer.WriteString(currentPrefix)
+						prefixBuffer.Reset()
+						continue
+					}
+					if len(currentPrefix) == len(CharTransitionPrefix) && strings.EqualFold(currentPrefix, CharTransitionPrefix) {
+						currentState = InCharTransition
+						continue
+					}
+
+				case InReasoning:
+					reasoningBuffer.WriteString(token)
+					reasoning := reasoningBuffer.String()
+
+					if util.HasSuffixCaseInsensitive(reasoning, ReasoningSuffix) {
+						currentState = InContent
+						continue
+					}
+
+				case InCharTransition:
+					if token == "\n" {
+						currentState = CancelPrefix
+						continue
+					}
+
+					prefixBuffer.WriteString(token)
+					currentPrefix := prefixBuffer.String()
+
+					if util.HasSuffixCaseInsensitive(currentPrefix, CharTransitionSuffix) {
+						characterIdStr := currentPrefix[len(CharTransitionPrefix) : len(currentPrefix)-len(CharTransitionSuffix)]
+						characterId, err := strconv.Atoi(characterIdStr)
+						if err != nil {
 							logger.Warn("Invalid character prefix found in LLM response stream",
 								zap.String("prefix", currentPrefix))
+							return
 						}
 
+						if charTransitionSeen {
+							// We have seen a transition before, this one should be a new message on the stack.
+							addMessageToStack()
+						} else {
+							charTransitionSeen = true
+						}
+
+						currentMessage.CharacterID = &characterId
 						currentState = InContent
 						prefixBuffer.Reset()
 					}
-				case InContent:
-					// Check if this token starts a new prefix
-					if token == CharIdTagPrefixInit {
-						currentState = InPrefix
-						prefixBuffer.WriteString(token)
 
-						addMessageToStack()
-					} else {
-						// Output the token directly as it's not part of a prefix
-						contentBuffer.WriteString(token)
-					}
+				case CancelPrefix:
+					contentBuffer.WriteString(prefixBuffer.String() + token)
+					prefixBuffer.Reset()
+					currentState = InContent
 				}
 			}
 
+			hasReasoning := reasoningBuffer.Len() > 0
+			hasContent := contentBuffer.Len() > 0
+
+			if hasReasoning {
+				currentMessage.Reasoning += reasoningBuffer.String()
+				reasoningBuffer.Reset()
+			}
+
 			if contentBuffer.Len() > 0 {
-				currentMessage.Content += contentBuffer.String()
+				if len(currentMessage.Content) == 0 {
+					currentMessage.Content = strings.TrimLeftFunc(contentBuffer.String(), unicode.IsSpace)
+				} else {
+					currentMessage.Content += contentBuffer.String()
+				}
+
+				contentBuffer.Reset()
+			}
+
+			if hasReasoning || hasContent {
 				if err := cs.UpdateChatMessage(session.ID, currentMessage.ID, currentMessage); err != nil {
 					logger.Error("Failed to update response chat message",
 						zap.Int("messageId", currentMessage.ID), zap.Error(err))
 					return
 				}
-
-				contentBuffer.Reset()
 			}
 
 		case <-ctx.Done():
