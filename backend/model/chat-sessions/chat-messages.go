@@ -62,6 +62,7 @@ func GetMessageById(messageId int) (*ChatMessage, error) {
 func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 	chatMessage.ChatSessionID = sessionId
 	chatMessage.CreatedAt = nil
+	chatMessage.IsUser = chatMessage.CharacterID != nil
 
 	query := `INSERT INTO chat_messages (chat_session_id, is_user, is_generating, character_id, content, reasoning)
             VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at`
@@ -84,13 +85,25 @@ func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 }
 
 func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
+	chatMessage.ChatSessionID = sessionId
+	chatMessage.IsUser = chatMessage.CharacterID != nil
+
 	query := `UPDATE chat_messages
-            SET content = ?,
-                reasoning = ?,
-                is_generating = ?
+            SET is_user = ?,
+                is_generating = ?,
+                character_id = ?,
+                content = ?,
+                reasoning = ?
             WHERE chat_session_id = ?
               AND id = ?`
-	args := []any{chatMessage.Content, chatMessage.Reasoning, chatMessage.IsGenerating, sessionId, id}
+	args := []any{
+		chatMessage.IsUser,
+		chatMessage.IsGenerating,
+		chatMessage.CharacterID,
+		chatMessage.Content,
+		chatMessage.Reasoning,
+		sessionId,
+		id}
 
 	err := database.UpdateRecord(query, args)
 
