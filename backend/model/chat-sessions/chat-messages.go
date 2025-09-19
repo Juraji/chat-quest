@@ -86,7 +86,7 @@ func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 
 func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
 	chatMessage.ChatSessionID = sessionId
-	chatMessage.IsUser = chatMessage.CharacterID != nil
+	chatMessage.IsUser = chatMessage.CharacterID == nil
 
 	query := `UPDATE chat_messages
             SET is_user = ?,
