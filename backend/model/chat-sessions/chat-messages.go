@@ -62,7 +62,7 @@ func GetMessageById(messageId int) (*ChatMessage, error) {
 func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 	chatMessage.ChatSessionID = sessionId
 	chatMessage.CreatedAt = nil
-	chatMessage.IsUser = chatMessage.CharacterID != nil
+	chatMessage.IsUser = chatMessage.CharacterID == nil
 
 	query := `INSERT INTO chat_messages (chat_session_id, is_user, is_generating, character_id, content, reasoning)
             VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at`
