@@ -66,7 +66,7 @@ func runUsingMigrations(db *sql.DB, action func(m *migrate.Migrate) error) {
 	m.PrefetchMigrations = 0
 
 	fromVersion, _, err := m.Version()
-	if err != nil {
+	if err != nil && !errors.Is(err, migrate.ErrNilVersion) {
 		logger.Fatal("Failed to get old version from migrations", zap.Error(err))
 	}
 

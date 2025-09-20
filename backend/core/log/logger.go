@@ -3,6 +3,8 @@ package log
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -18,7 +20,7 @@ func Get() *zap.Logger {
 	return loggerInstance
 }
 
-func InitLogger(enableFileLogging bool) {
+func InitLogger(enableDebugLevel bool, dataDirectory string) {
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "time",
 		LevelKey:       "level",
@@ -26,40 +28,50 @@ func InitLogger(enableFileLogging bool) {
 		CallerKey:      "caller",
 		StacktraceKey:  "stacktrace",
 		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.CapitalColorLevelEncoder,
+		EncodeLevel:    zapcore.CapitalLevelEncoder,
 		EncodeTime:     zapcore.ISO8601TimeEncoder,
 		EncodeDuration: zapcore.SecondsDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 
-	encoder := zapcore.NewConsoleEncoder(encoderConfig)
-	consoleWriter := zapcore.AddSync(os.Stdout)
+	level := zap.InfoLevel
+	if enableDebugLevel {
+		level = zap.DebugLevel
+	}
 
-	var core zapcore.Core
-	if enableFileLogging {
-		file, err := os.OpenFile("chat-quest.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	var consoleCore zapcore.Core
+	{
+		consoleEncoderConfig := encoderConfig
+		consoleEncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		encoder := zapcore.NewConsoleEncoder(consoleEncoderConfig)
+		writer := zapcore.AddSync(os.Stdout)
+		consoleCore = zapcore.NewCore(encoder, writer, level)
+	}
+
+	var fileCore zapcore.Core
+	{
+		logDir := filepath.Join(dataDirectory, "log")
+		err := os.MkdirAll(logDir, os.ModePerm)
+		if err != nil {
+			panic(fmt.Errorf("error creating log directory: %w", err))
+		}
+
+		currentTime := time.Now()
+		currentFileName := fmt.Sprintf("chat-quest_%s.log", currentTime.Format("2006-01-02_15-04-05"))
+		currentFilePath := filepath.Join(logDir, currentFileName)
+
+		file, err := os.OpenFile(currentFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			panic(fmt.Errorf("error opening log file: %w", err))
 		}
 
-		fileWriter := zapcore.AddSync(file)
-		multiWriter := zapcore.NewMultiWriteSyncer(consoleWriter, fileWriter)
-
-		core = zapcore.NewCore(
-			encoder,
-			multiWriter,
-			zap.DebugLevel,
-		)
-	} else {
-		core = zapcore.NewCore(
-			encoder,
-			consoleWriter,
-			zap.DebugLevel,
-		)
+		encoder := zapcore.NewConsoleEncoder(encoderConfig)
+		writer := zapcore.AddSync(file)
+		fileCore = zapcore.NewCore(encoder, writer, level)
 	}
 
 	loggerInstance = zap.New(
-		core,
+		zapcore.NewTee(consoleCore, fileCore),
 		zap.AddCaller(),
 		zap.AddStacktrace(zap.ErrorLevel), // Add stack trace for error logs
 	)

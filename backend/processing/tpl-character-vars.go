@@ -152,6 +152,9 @@ func NewTemplateCharacter(
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to get memories for character ID %d", char.ID)
 			}
+			if len(memories) == 0 {
+				return nil, nil
+			}
 
 			// Short circuit: No chat history, just get "AlwaysInclude" memories and return.
 			if len(chatHistory) == 0 {
@@ -169,7 +172,7 @@ func NewTemplateCharacter(
 			var subject string
 			if len(chatHistory) > 0 {
 				end := len(chatHistory)
-				start := end - prefs.MemoryWindowSize
+				start := end - (prefs.MemoryWindowSize / 2)
 				if start < 0 {
 					start = 0
 				}

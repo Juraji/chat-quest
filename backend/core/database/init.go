@@ -19,10 +19,10 @@ func GetDB() *sql.DB {
 }
 
 // InitDB sets up the database, populates dbInstance and runs any migrations.
-func InitDB() func() {
+func InitDB(dataDir string) func() {
 	// DB Setup
 	dbLogger := log.Get()
-	db, err := sql.Open("sqlite3", "./chat-quest.db?_foreign_keys=true")
+	db, err := sql.Open("sqlite3", dataDir+"/chat-quest.db?_foreign_keys=true")
 	if err != nil {
 		dbLogger.Fatal("Failed to connect to database", zap.Error(err))
 	}
