@@ -219,6 +219,7 @@ func NewTemplateCharacter(
 					for _, memory := range memories[start:end] {
 						if memory.AlwaysInclude {
 							relevantMemoriesChan <- memory.Content
+							continue
 						}
 
 						similarity := subjectEmbeddings.CosineSimilarity(memory.Embedding)
