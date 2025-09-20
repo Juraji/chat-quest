@@ -141,6 +141,9 @@ func generateResponse(
 		return
 	}
 
+	// Log instruction contents
+	logInstructionsToFile(logger, instruction)
+
 	// Build request messages
 	requestMessages := createChatRequestMessages(chatHistory, instruction)
 

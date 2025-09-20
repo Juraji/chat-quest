@@ -3,9 +3,11 @@ package processing
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"juraji.nl/chat-quest/core"
 	p "juraji.nl/chat-quest/core/providers"
 	"juraji.nl/chat-quest/core/system"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
@@ -71,4 +73,36 @@ func setupCancelBySystem(ctx context.Context, logger *zap.Logger, name string) (
 	}
 
 	return newCtx, cleanup
+}
+
+// logInstructionsToFile writes instruction details to a text file (per type) in the data directory.
+// It formats the instruction information including ID, name, parameters, and content sections.
+// If the log file already exists, it will be overwritten.
+func logInstructionsToFile(logger *zap.Logger, instruction *inst.Instruction) {
+	path := core.Env().MkDataDir("instructions", fmt.Sprintf("last_%s_instruction.txt", instruction.Type))
+	tpl := "ID: %v\nName: %v\nType: %v\nTemperature: %v\nMaxTokens: %v\nTopP: %v\nPresencePenalty: %v\n" +
+		"FrequencyPenalty: %v\nStream: %v\nStopSequences: %v\n\n" +
+		"--- SystemPrompt ---\n%s\n\n--- WorldSetup ---\n%s\n\n--- Instruction ---\n%s\n"
+	contents := fmt.Sprintf(
+		tpl,
+		instruction.ID,
+		instruction.Name,
+		instruction.Type,
+		instruction.Temperature,
+		instruction.MaxTokens,
+		instruction.TopP,
+		instruction.PresencePenalty,
+		instruction.FrequencyPenalty,
+		instruction.Stream,
+		instruction.StopSequences,
+		instruction.SystemPrompt,
+		instruction.WorldSetup,
+		instruction.Instruction)
+
+	err := os.WriteFile(path, []byte(contents), 0644)
+	if err != nil {
+		logger.Error("Failed to write instructions to file",
+			zap.String("path", path), zap.Error(err))
+		return
+	}
 }

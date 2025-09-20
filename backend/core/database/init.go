@@ -5,6 +5,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
+	"juraji.nl/chat-quest/core"
 	"juraji.nl/chat-quest/core/log"
 )
 
@@ -19,10 +20,12 @@ func GetDB() *sql.DB {
 }
 
 // InitDB sets up the database, populates dbInstance and runs any migrations.
-func InitDB(dataDir string) func() {
+func InitDB(env core.Environment) func() {
 	// DB Setup
 	dbLogger := log.Get()
-	db, err := sql.Open("sqlite3", dataDir+"/chat-quest.db?_foreign_keys=true")
+
+	dbPath := env.MkDataDir("chat-quest.db") + "?_foreign_keys=true"
+	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		dbLogger.Fatal("Failed to connect to database", zap.Error(err))
 	}

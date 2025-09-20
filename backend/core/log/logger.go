@@ -8,6 +8,7 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"juraji.nl/chat-quest/core"
 )
 
 var loggerInstance *zap.Logger
@@ -20,7 +21,7 @@ func Get() *zap.Logger {
 	return loggerInstance
 }
 
-func InitLogger(enableDebugLevel bool, dataDirectory string) {
+func InitLogger(env core.Environment) {
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "time",
 		LevelKey:       "level",
@@ -35,7 +36,7 @@ func InitLogger(enableDebugLevel bool, dataDirectory string) {
 	}
 
 	level := zap.InfoLevel
-	if enableDebugLevel {
+	if env.DebugEnabled {
 		level = zap.DebugLevel
 	}
 
@@ -50,11 +51,7 @@ func InitLogger(enableDebugLevel bool, dataDirectory string) {
 
 	var fileCore zapcore.Core
 	{
-		logDir := filepath.Join(dataDirectory, "log")
-		err := os.MkdirAll(logDir, os.ModePerm)
-		if err != nil {
-			panic(fmt.Errorf("error creating log directory: %w", err))
-		}
+		logDir := env.MkDataDir("log")
 
 		currentTime := time.Now()
 		currentFileName := fmt.Sprintf("chat-quest_%s.log", currentTime.Format("2006-01-02_15-04-05"))

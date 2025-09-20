@@ -212,6 +212,9 @@ func generateMemories(
 		return nil, false
 	}
 
+	// Log instruction contents
+	logInstructionsToFile(logger, instruction)
+
 	// Generate memories
 	requestMessages := createChatRequestMessages(messageWindow, instruction)
 	llmParameters := instruction.AsLlmParameters()
