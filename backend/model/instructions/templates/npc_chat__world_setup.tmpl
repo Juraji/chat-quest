@@ -21,53 +21,49 @@
         {{.Appearance}}
       </Appearance>
       {{end}}
-      {{if .Personality}}
-        <Personality>
-          {{.Personality}}
-        </Personality>
-        {{end}}
     </Character>
   {{end}}
   {{if .OtherParticipants}}
     {{range $c := .OtherParticipants}}
-      <Character>
-        <!-- This is a participant in the chat, but you should not impersonate this character. -->
-        <Id>{{$c.ID}}</Id>
-        <Name>{{$c.Name}}</Name>
-        {{if $c.Appearance}}
-        <Appearance>
-          {{$c.Appearance}}
-        </Appearance>
-        {{end}}
-        {{if $c.Personality}}
-        <Personality>
-          {{$c.Personality}}
-        </Personality>
-        {{end}}
-      </Character>
+    <Character>
+      <!-- This is a participant in the chat, but you should not impersonate this character. -->
+      <Id>{{$c.ID}}</Id>
+      <Name>{{$c.Name}}</Name>
+      {{if $c.Appearance}}
+      <Appearance>
+        {{$c.Appearance}}
+      </Appearance>
+      {{end}}
+    </Character>
     {{end}}
   {{end}}
 </Characters>
 {{if .Persona}}
-  <UserPersona>
-    <!-- This information describes the user, it is not a character in the chat -->
-    <Name>{{.Persona.Name}}</Name>
-    {{if .Persona.Appearance}}
-    <Appearance>
-      {{.Persona.Appearance}}
-    </Appearance>
-    {{end}}
-    {{if .Persona.Personality}}
-    <Personality>
-      {{.Persona.Personality}}
-    </Personality>
-    {{end}}
-    {{if .Persona.History}}
-    <History>
-      {{.Persona.History}}
-    </History>
-    {{end}}
-  </UserPersona>
+<UserPersona>
+  <!-- This information describes the user, it is not a character in the chat -->
+  <Name>{{.Persona.Name}}</Name>
+  {{if .Persona.Appearance}}
+  <Appearance>
+    {{.Persona.Appearance}}
+  </Appearance>
+  {{end}}
+  {{if .Persona.Personality}}
+  <Personality>
+    {{.Persona.Personality}}
+  </Personality>
+  {{end}}
+  {{if .Persona.History}}
+  <History>
+    {{.Persona.History}}
+  </History>
+  {{end}}
+</UserPersona>
+{{end}}
+{{if .ChatNotes}}
+<ChatNotes>
+  <!-- These are important notes for this chat session. Regard them as extra rules and knowledge for the NPC's responses -->
+  {{.ChatNotes}}
+</ChatNotes>
 {{end}}
 ```
 

@@ -17,8 +17,12 @@ var templateFuncMap = gt.FuncMap{
 	"fmtEnum":         tplFormatEnum,
 }
 
+func ContainsTemplateVars(template string) bool {
+	return len(template) > 0 && strings.Contains(template, "{{")
+}
+
 func ParseAndApplyTextTemplate(template string, variables any, compact bool) (string, error) {
-	if len(template) == 0 || !strings.Contains(template, "{{") {
+	if !ContainsTemplateVars(template) {
 		// Shortcut: Template has no variables
 		return template, nil
 	}

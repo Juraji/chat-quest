@@ -84,6 +84,12 @@
   {{end}}
 </UserPersona>
 {{end}}
+{{if .ChatNotes}}
+<ChatNotes>
+  <!-- These are important notes for this chat session. Regard them as extra rules or knowledge for {{.Character.Name}} -->
+  {{.ChatNotes}}
+</ChatNotes>
+{{end}}
 ```
 
 (Do not recite the information in the rag.xml block, use it to enrich your understanding of the world and the individual character(s))

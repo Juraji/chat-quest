@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
+	"juraji.nl/chat-quest/core/util"
 )
 
 type TimeOfDay string
@@ -42,6 +43,7 @@ type ChatSession struct {
 	AutoArchiveMessages     bool       `json:"autoArchiveMessages"`
 	PauseAutomaticResponses bool       `json:"pauseAutomaticResponses"`
 	CurrentTimeOfDay        *TimeOfDay `json:"currentTimeOfDay"`
+	ChatNotes               *string    `json:"chatNotes"`
 }
 
 func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
@@ -56,6 +58,7 @@ func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
 		&dest.AutoArchiveMessages,
 		&dest.PauseAutomaticResponses,
 		&dest.CurrentTimeOfDay,
+		&dest.ChatNotes,
 	)
 }
 
@@ -81,12 +84,13 @@ func GetById(id int) (*ChatSession, error) {
 func Create(worldId int, session *ChatSession, characterIds []int) error {
 	session.WorldID = worldId
 	session.CreatedAt = nil
+	session.ChatNotes = util.EmptyStrToNil(session.ChatNotes)
 
 	var addedParticipants []*ChatParticipant
 	err := database.Transactional(func(ctx *database.TxContext) error {
 		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, generate_memories, use_memories,
-                           auto_archive_messages, pause_automatic_responses, current_time_of_day)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at`
+                           auto_archive_messages, pause_automatic_responses, current_time_of_day, chat_notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at`
 		args := []any{
 			session.WorldID,
 			session.Name,
@@ -96,6 +100,7 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 			session.AutoArchiveMessages,
 			session.PauseAutomaticResponses,
 			session.CurrentTimeOfDay,
+			session.ChatNotes,
 		}
 
 		err := ctx.InsertRecord(query, args, &session.ID, &session.CreatedAt)
@@ -147,6 +152,8 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 }
 
 func Update(worldId int, id int, session *ChatSession) error {
+	session.ChatNotes = util.EmptyStrToNil(session.ChatNotes)
+
 	query := `UPDATE chat_sessions
             SET name = ?,
                 scenario_id = ?,
@@ -154,7 +161,8 @@ func Update(worldId int, id int, session *ChatSession) error {
                 use_memories = ?,
                 auto_archive_messages = ?,
                 pause_automatic_responses = ?,
-                current_time_of_day = ?
+                current_time_of_day = ?,
+                chat_notes = ?
             WHERE world_id = ?
               AND id = ?`
 	args := []any{
@@ -165,6 +173,7 @@ func Update(worldId int, id int, session *ChatSession) error {
 		session.AutoArchiveMessages,
 		session.PauseAutomaticResponses,
 		session.CurrentTimeOfDay,
+		session.ChatNotes,
 		worldId,
 		id,
 	}
@@ -198,7 +207,7 @@ func ForkChatSession(sessionId int, messageId int) (*ChatSession, error) {
 		// Copy chat session
 		var err error
 		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, generate_memories, use_memories,
-                           auto_archive_messages, pause_automatic_responses, current_time_of_day)
+                           auto_archive_messages, pause_automatic_responses, current_time_of_day, chat_notes)
 				  SELECT world_id,
 				         name || ' (forked)',
 				         scenario_id,
@@ -206,11 +215,12 @@ func ForkChatSession(sessionId int, messageId int) (*ChatSession, error) {
 				         use_memories,
 				         auto_archive_messages,
 				         pause_automatic_responses,
-				         current_time_of_day
+				         current_time_of_day,
+				         chat_notes
 				  FROM chat_sessions
 				  WHERE id = ?
 				  RETURNING id, world_id, created_at, name, scenario_id, generate_memories, use_memories,
-				      auto_archive_messages, pause_automatic_responses, current_time_of_day;`
+				      auto_archive_messages, pause_automatic_responses, current_time_of_day, chat_notes;`
 		args := []any{sessionId}
 		if newSession, err = database.QueryForRecord(query, args, chatSessionScanner); err != nil {
 			return err

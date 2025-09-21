@@ -9,7 +9,8 @@ CREATE TABLE chat_sessions
   use_memories              BIT(1) NOT NULL,
   auto_archive_messages     BIT(1) NOT NULL,
   pause_automatic_responses BIT(1) NOT NULL,
-  current_time_of_day       VARCHAR(50)
+  current_time_of_day       VARCHAR(50),
+  chat_notes                TEXT
 );
 
 create table chat_participants

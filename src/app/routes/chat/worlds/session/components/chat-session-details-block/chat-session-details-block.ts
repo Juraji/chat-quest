@@ -49,6 +49,7 @@ export class ChatSessionDetailsBlock {
   readonly chatModelControl: TypedFormControl<Nullable<number>> = formControl(null, [Validators.required])
   readonly chatInstructionControl: TypedFormControl<Nullable<number>> = formControl(null, [Validators.required])
   readonly timeOfDayControl: TypedFormControl<Nullable<TimeOfDay>> = formControl(null, [Validators.required])
+  readonly chatNotesControl: TypedFormControl<Nullable<string>> = formControl(null, [Validators.required])
 
   readonly selectedModel: Signal<LlmModelView> = computed(() => {
     const {chatModelId} = this.sessionData.preferences()
@@ -69,6 +70,7 @@ export class ChatSessionDetailsBlock {
       this.pauseAutomaticResponsesControl.reset(session.pauseAutomaticResponses, {emitEvent: false})
       this.scenarioControl.reset(session.scenarioId, {emitEvent: false})
       this.timeOfDayControl.reset(session.currentTimeOfDay, {emitEvent: false})
+      this.chatNotesControl.reset(session.chatNotes, {emitEvent: false})
 
       if (session.generateMemories) {
         this.autoArchiveMessagesControl.disable({emitEvent: false})
@@ -112,6 +114,9 @@ export class ChatSessionDetailsBlock {
     this.timeOfDayControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(currentTimeOfDay => this.updateSession({currentTimeOfDay}))
+    this.chatNotesControl.valueChanges
+      .pipe(takeUntilDestroyed(), debounceTime(1000))
+      .subscribe(chatNotes => this.updateSession({chatNotes}))
   }
 
   private updateWorld(w: Partial<World>) {

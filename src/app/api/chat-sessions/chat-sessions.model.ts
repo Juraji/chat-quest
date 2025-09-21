@@ -21,7 +21,8 @@ export interface ChatSession extends ChatQuestModel {
   useMemories: boolean
   autoArchiveMessages: boolean
   pauseAutomaticResponses: boolean
-  currentTimeOfDay: TimeOfDay | null
+  currentTimeOfDay: Nullable<TimeOfDay>
+  chatNotes: Nullable<string>
 }
 
 export interface ChatMessage extends ChatQuestModel {

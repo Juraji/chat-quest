@@ -12,11 +12,12 @@
                       (click)="onRemoveParticipant(p)">
                 <span class="bi bi-x"></span>
               </button>
-              <button type="button" class="btn btn-outline-secondary"
-                      title="Go to character edit"
-                      [routerLink]="['/chat/characters', p.characterId]">
+              <a type="button" class="btn btn-outline-secondary"
+                 title="Open character edit in a new tab/window."
+                 [routerLink]="['/chat/characters', p.characterId]"
+                 target="_blank">
                 <span class="bi bi-pencil"></span>
-              </button>
+              </a>
               <button type="button" class="btn"
                       [class.btn-outline-warning]="!p.muted"
                       [class.btn-warning]="p.muted"

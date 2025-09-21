@@ -100,21 +100,19 @@
         <label for="timeOfDayInput">Time of Day</label>
       </div>
       <div class="g-col-9">
-        <div class="input-group input-group-sm">
-          <select class="form-select"
-                  id="timeOfDayInput"
-                  [formControl]="timeOfDayControl">
-            <option [ngValue]="null">Not Set</option>
-            <option disabled>──────────</option>
-            <option value="EARLY_MORNING">Early Morning</option>
-            <option value="LATE_MORNING">Late Morning</option>
-            <option value="EARLY_AFTERNOON">Early Afternoon</option>
-            <option value="LATE_AFTERNOON">Late Afternoon</option>
-            <option value="EARLY_EVENING">Early Evening</option>
-            <option value="LATE_EVENING">Late Evening</option>
-            <option value="NIGHT_TIME">Night Time</option>
-          </select>
-        </div>
+        <select class="form-select form-select-sm"
+                id="timeOfDayInput"
+                [formControl]="timeOfDayControl">
+          <option [ngValue]="null">Not Set</option>
+          <option disabled>──────────</option>
+          <option value="EARLY_MORNING">Early Morning</option>
+          <option value="LATE_MORNING">Late Morning</option>
+          <option value="EARLY_AFTERNOON">Early Afternoon</option>
+          <option value="LATE_AFTERNOON">Late Afternoon</option>
+          <option value="EARLY_EVENING">Early Evening</option>
+          <option value="LATE_EVENING">Late Evening</option>
+          <option value="NIGHT_TIME">Night Time</option>
+        </select>
       </div>
     </div>
     <div class="grid gap-1 align-items-center mb-1">
@@ -139,7 +137,7 @@
         </div>
       </div>
     </div>
-    <div class="grid gap-1 align-items-center">
+    <div class="grid gap-1 align-items-center mb-1">
       <div class="g-col-3">
         <label for="chatInstructionInput">Instructions</label>
       </div>
@@ -159,6 +157,18 @@
             <span class="bi bi-box-arrow-up-right"></span>
           </a>
         </div>
+      </div>
+    </div>
+    <div class="grid gap-1 align-items-center">
+      <div class="g-col-3">
+        <label for="chatNotesInput">Chat Notes</label>
+      </div>
+      <div class="g-col-9">
+        <textarea
+          class="form-control form-control-sm"
+          id="chatNotesInput"
+          [formControl]="chatNotesControl"
+        ></textarea>
       </div>
     </div>
   </div>
