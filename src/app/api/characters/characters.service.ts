@@ -17,7 +17,11 @@ export class Characters {
   private readonly sse = inject(SSE)
 
   private readonly lvCache: WritableSignal<CharacterListView[]> = signal([]);
-  readonly all: Signal<CharacterListView[]> = this.lvCache
+  readonly all: Signal<CharacterListView[]> = computed(() => this
+    .lvCache().slice().sort((a, b) =>
+      a.favorite === b.favorite
+        ? a.name.localeCompare(b.name)
+        : a.favorite ? -1 : 1))
 
   constructor() {
     this.setupLVCache()
