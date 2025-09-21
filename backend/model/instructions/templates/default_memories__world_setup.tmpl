@@ -1,21 +1,21 @@
 {{- /*gotype: juraji.nl/chat-quest/processing.MemoryInstructionVars*/ -}}
 ```rag.xml
 <Characters>
-  {{if .Participants}}
-    {{range $c := .Participants}}
-      <Character>
-        <Id>{{$c.ID}}</Id>
-        <Name>{{$c.Name}}</Name>
-      </Character>
-    {{end}}
+{{if .Participants}}
+  {{range $c := .Participants}}
+  <Character>
+    <Id>{{$c.ID}}</Id>
+    <Name>{{$c.Name}}</Name>
+  </Character>
   {{end}}
+{{end}}
 </Characters>
 {{if .Persona}}
-  <UserPersona>
-    <!-- This information describes the user, it is not a character in the chat -->
-    <Id>{{.Persona.ID}}</Id>
-    <Name>{{.Persona.CharacterName}}</Name>
-  </UserPersona>
+<UserPersona>
+  <!-- This information describes the user, it is not a character in the chat -->
+  <Id>{{.Persona.ID}}</Id>
+  <Name>{{.Persona.CharacterName}}</Name>
+</UserPersona>
 {{end}}
 ```
 

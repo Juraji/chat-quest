@@ -1,6 +1,8 @@
 package util
 
-import "strings"
+import (
+	"strings"
+)
 
 func HasPrefixCaseInsensitive(s, prefix string) bool {
 	return len(s) >= len(prefix) &&

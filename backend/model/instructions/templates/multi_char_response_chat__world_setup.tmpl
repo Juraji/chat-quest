@@ -33,16 +33,16 @@
       {{end}}
       {{if .DialogueExamples}}
       <DialogExamples>
-        {{range $ex := .DialogueExamples}}
-          <DialogExample>{{$ex}}<DialogExample>
+        {{range sliceTakeStrRnd .DialogueExamples 1}}
+          <DialogExample>{{.}}<DialogExample>
         {{end}}
       </DialogExamples>
       {{end}}
       {{if .Memories}}
       <Memories>
-        <!-- These memories are character notes about earlier events this character remembers and are specifically for {{.Name}}, only they remember this. -->
-        {{range $m := .Memories}}
-          <Memory>{{$m}}<Memory>
+        <!-- These are relevant memories specifically for {{.Name}}, only they remember this. -->
+        {{range sliceTakeStrRnd .Memories 3}}
+          <Memory>{{.}}<Memory>
         {{end}}
       </Memories>
       {{end}}
@@ -50,44 +50,59 @@
   {{end}}
   {{if .OtherParticipants}}
     {{range $c := .OtherParticipants}}
-      <Character>
-        <!-- This is another participant in the chat. -->
-        <Id>{{$c.ID}}</Id>
-        <Name>{{$c.Name}}</Name>
-        {{if $c.Appearance}}
-        <Appearance>
-          {{$c.Appearance}}
-        </Appearance>
+    <Character>
+      <!-- This is another participant in the chat. -->
+      <Id>{{$c.ID}}</Id>
+      <Name>{{$c.Name}}</Name>
+      {{if $c.Appearance}}
+      <Appearance>
+        {{$c.Appearance}}
+      </Appearance>
+      {{end}}
+      {{if $c.Personality}}
+      <Personality>
+        {{$c.Personality}}
+      </Personality>
+      {{end}}
+      {{if $c.DialogueExamples}}
+      <DialogExamples>
+        {{range sliceTakeStrRnd .DialogueExamples 1}}
+          <DialogExample>{{.}}<DialogExample>
         {{end}}
-        {{if $c.Personality}}
-        <Personality>
-          {{$c.Personality}}
-        </Personality>
+      </DialogExamples>
+      {{end}}
+      {{if .Memories}}
+      <Memories>
+        <!-- These are relevant memories specifically for {{$c.Name}}, only they remember this. -->
+        {{range sliceTakeStrRnd $c.Memories 3}}
+          <Memory>{{.}}<Memory>
         {{end}}
-      </Character>
+      </Memories>
+      {{end}}
+    </Character>
     {{end}}
   {{end}}
 </Characters>
 {{if .Persona}}
-  <UserPersona>
-    <!-- This information describes the user, it is not a character in the chat -->
-    <Name>{{.Persona.Name}}</Name>
-    {{if .Persona.Appearance}}
-    <Appearance>
-      {{.Persona.Appearance}}
-    </Appearance>
-    {{end}}
-    {{if .Persona.Personality}}
-    <Personality>
-      {{.Persona.Personality}}
-    </Personality>
-    {{end}}
-    {{if .Persona.History}}
-    <History>
-      {{.Persona.History}}
-    </History>
-    {{end}}
-  </UserPersona>
+<UserPersona>
+  <!-- This information describes the user, it is not a character in the chat -->
+  <Name>{{.Persona.Name}}</Name>
+  {{if .Persona.Appearance}}
+  <Appearance>
+    {{.Persona.Appearance}}
+  </Appearance>
+  {{end}}
+  {{if .Persona.Personality}}
+  <Personality>
+    {{.Persona.Personality}}
+  </Personality>
+  {{end}}
+  {{if .Persona.History}}
+  <History>
+    {{.Persona.History}}
+  </History>
+  {{end}}
+</UserPersona>
 {{end}}
 ```
 

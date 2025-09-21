@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"strings"
 	gt "text/template"
+	"unicode"
 
 	"github.com/pkg/errors"
 )
@@ -14,7 +15,7 @@ var templateFuncMap = gt.FuncMap{
 	"sliceTakeStrRnd": tplSliceTakeStrRnd,
 }
 
-func ParseAndApplyTextTemplate(template string, variables any) (string, error) {
+func ParseAndApplyTextTemplate(template string, variables any, compact bool) (string, error) {
 	if len(template) == 0 || !strings.Contains(template, "{{") {
 		// Shortcut: Template has no variables
 		return template, nil
@@ -32,7 +33,27 @@ func ParseAndApplyTextTemplate(template string, variables any) (string, error) {
 		return "", errors.Wrap(err, "Failed to execute template")
 	}
 
-	return buffer.String(), nil
+	rendered := buffer.String()
+	if compact {
+		var result strings.Builder
+		inWhitespace := false
+
+		for _, r := range rendered {
+			if unicode.IsSpace(r) {
+				if !inWhitespace {
+					result.WriteRune(r)
+					inWhitespace = true
+				}
+			} else {
+				result.WriteRune(r)
+				inWhitespace = false
+			}
+		}
+
+		rendered = result.String()
+	}
+
+	return rendered, nil
 }
 
 func tplSliceTakeStr(slice []string, limit int) []string {

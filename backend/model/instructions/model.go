@@ -61,7 +61,7 @@ func (i *Instruction) ApplyTemplates(variables any) error {
 	}
 
 	for _, fieldPtr := range fields {
-		result, err := util.ParseAndApplyTextTemplate(*fieldPtr, variables)
+		result, err := util.ParseAndApplyTextTemplate(*fieldPtr, variables, true)
 		if err != nil {
 			return errors.Wrap(err, "Error creating template for instruction template")
 		}

@@ -21,6 +21,11 @@
         {{.Appearance}}
       </Appearance>
       {{end}}
+      {{if .Personality}}
+        <Personality>
+          {{.Personality}}
+        </Personality>
+        {{end}}
     </Character>
   {{end}}
   {{if .OtherParticipants}}
@@ -33,6 +38,11 @@
         <Appearance>
           {{$c.Appearance}}
         </Appearance>
+        {{end}}
+        {{if $c.Personality}}
+        <Personality>
+          {{$c.Personality}}
+        </Personality>
         {{end}}
       </Character>
     {{end}}
