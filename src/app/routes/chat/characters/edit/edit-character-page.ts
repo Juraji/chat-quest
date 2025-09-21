@@ -27,6 +27,7 @@ import {Character, Characters, Tag} from '@api/characters';
   providers: [
     CharacterEditFormService
   ],
+  styleUrls: ['./edit-character-page.scss'],
   templateUrl: './edit-character-page.html',
 })
 export class EditCharacterPage {
@@ -51,6 +52,7 @@ export class EditCharacterPage {
   readonly isNew = computed(() => isNew(this.character()))
   readonly name = computed(() => this.character().name)
   readonly favorite = computed(() => this.character().favorite)
+  readonly avatar = computed(() => this.character().avatarUrl)
 
   readonly formGroup = this.formService.formGroup
 
