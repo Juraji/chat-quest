@@ -6,16 +6,12 @@ import {
   characterResolverFactory,
   characterTagsResolverFactory
 } from '@api/characters';
-import {worldsResolver} from '@api/worlds';
 import {EditCharacterPage} from './edit/edit-character-page';
 
 const routes: Routes = [
   {
     path: '',
     component: ManageCharactersPage,
-    resolve: {
-      worlds: worldsResolver
-    }
   },
   {
     path: ':characterId',
