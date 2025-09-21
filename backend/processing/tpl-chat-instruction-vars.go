@@ -23,11 +23,13 @@ type ChatInstructionVars interface {
 
 	World() (string, error)
 	Scenario() (string, error)
+	CurrentTimeOfDay() (cs.TimeOfDay, error)
 }
 
 type chatInstructionVarsImpl struct {
 	triggerMessage      *cs.ChatMessage
 	currentMessageIndex int
+	timeOfDay           *cs.TimeOfDay
 	character           func() (TemplateCharacter, error)
 	persona             func() (TemplateCharacter, error)
 	otherParticipants   func() ([]TemplateCharacter, error)
@@ -65,6 +67,12 @@ func (c *chatInstructionVarsImpl) World() (string, error) {
 func (c *chatInstructionVarsImpl) Scenario() (string, error) {
 	return c.scenario()
 }
+func (c *chatInstructionVarsImpl) CurrentTimeOfDay() (cs.TimeOfDay, error) {
+	if c.timeOfDay == nil {
+		return "", nil
+	}
+	return *c.timeOfDay, nil
+}
 
 func NewChatInstructionVars(
 	chatHistory []cs.ChatMessage,
@@ -81,6 +89,7 @@ func NewChatInstructionVars(
 	return &chatInstructionVarsImpl{
 		triggerMessage:      triggerMessage,
 		currentMessageIndex: len(fullHistory),
+		timeOfDay:           session.CurrentTimeOfDay,
 		character: sync.OnceValues(func() (TemplateCharacter, error) {
 			character, err := c.CharacterById(characterId)
 			if err != nil {

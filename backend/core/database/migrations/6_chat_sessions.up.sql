@@ -5,10 +5,11 @@ CREATE TABLE chat_sessions
   created_at                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   name                      VARCHAR(100) NOT NULL,
   scenario_id               INTEGER REFERENCES scenarios (id) ON DELETE CASCADE,
-  generate_memories     BIT(1) NOT NULL,
-  use_memories          BIT(1) NOT NULL,
-  auto_archive_messages BIT(1) NOT NULL,
-  pause_automatic_responses BIT(1)       NOT NULL
+  generate_memories         BIT(1) NOT NULL,
+  use_memories              BIT(1) NOT NULL,
+  auto_archive_messages     BIT(1) NOT NULL,
+  pause_automatic_responses BIT(1) NOT NULL,
+  current_time_of_day       VARCHAR(50)
 );
 
 create table chat_participants

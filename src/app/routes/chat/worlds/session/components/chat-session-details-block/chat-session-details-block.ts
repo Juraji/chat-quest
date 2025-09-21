@@ -1,5 +1,5 @@
 import {Component, computed, effect, inject, Signal} from '@angular/core';
-import {ChatSession, ChatSessions} from '@api/chat-sessions';
+import {ChatSession, ChatSessions, TimeOfDay} from '@api/chat-sessions';
 import {DatePipe} from '@angular/common';
 import {formControl, TypedFormControl} from '@util/ng';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
@@ -48,6 +48,7 @@ export class ChatSessionDetailsBlock {
   readonly scenarioControl: TypedFormControl<Nullable<number>> = formControl(null)
   readonly chatModelControl: TypedFormControl<Nullable<number>> = formControl(null, [Validators.required])
   readonly chatInstructionControl: TypedFormControl<Nullable<number>> = formControl(null, [Validators.required])
+  readonly timeOfDayControl: TypedFormControl<Nullable<TimeOfDay>> = formControl(null, [Validators.required])
 
   readonly selectedModel: Signal<LlmModelView> = computed(() => {
     const {chatModelId} = this.sessionData.preferences()
@@ -67,6 +68,7 @@ export class ChatSessionDetailsBlock {
       this.autoArchiveMessagesControl.reset(session.autoArchiveMessages, {emitEvent: false})
       this.pauseAutomaticResponsesControl.reset(session.pauseAutomaticResponses, {emitEvent: false})
       this.scenarioControl.reset(session.scenarioId, {emitEvent: false})
+      this.timeOfDayControl.reset(session.currentTimeOfDay, {emitEvent: false})
 
       if (session.generateMemories) {
         this.autoArchiveMessagesControl.disable({emitEvent: false})
@@ -107,6 +109,9 @@ export class ChatSessionDetailsBlock {
     this.chatInstructionControl.valueChanges
       .pipe(takeUntilDestroyed())
       .subscribe(chatInstructionId => this.updateChatPrefs({chatInstructionId}))
+    this.timeOfDayControl.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(currentTimeOfDay => this.updateSession({currentTimeOfDay}))
   }
 
   private updateWorld(w: Partial<World>) {

@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"fmt"
 	"math/rand"
 	"strings"
 	gt "text/template"
@@ -13,6 +14,7 @@ import (
 var templateFuncMap = gt.FuncMap{
 	"sliceTakeStr":    tplSliceTakeStr,
 	"sliceTakeStrRnd": tplSliceTakeStrRnd,
+	"fmtEnum":         tplFormatEnum,
 }
 
 func ParseAndApplyTextTemplate(template string, variables any, compact bool) (string, error) {
@@ -78,4 +80,8 @@ func tplSliceTakeStrRnd(slice []string, limit int) []string {
 	}
 
 	return shuffled[:limit]
+}
+
+func tplFormatEnum(v interface{}) string {
+	return strings.ToLower(strings.ReplaceAll(fmt.Sprintf("%v", v), "_", " "))
 }

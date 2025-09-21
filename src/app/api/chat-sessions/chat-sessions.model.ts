@@ -3,6 +3,15 @@
 import {ChatQuestModel} from "@api/common"
 import {SseEvent} from '@api/sse';
 
+export type TimeOfDay =
+  "EARLY_MORNING" |
+  "LATE_MORNING" |
+  "EARLY_AFTER_NOON" |
+  "LATE_AFTER_NOON" |
+  "EARLY_EVENING" |
+  "LATE_EVENING" |
+  "NIGHT_TIME"
+
 export interface ChatSession extends ChatQuestModel {
   worldId: number
   createdAt: Nullable<string>
@@ -12,6 +21,7 @@ export interface ChatSession extends ChatQuestModel {
   useMemories: boolean
   autoArchiveMessages: boolean
   pauseAutomaticResponses: boolean
+  currentTimeOfDay: TimeOfDay | null
 }
 
 export interface ChatMessage extends ChatQuestModel {

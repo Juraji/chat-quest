@@ -47,7 +47,7 @@ func Routes(router *gin.RouterGroup) {
 		characterIds, _ := controllers.GetQueryParamsAsIDs(c, "characterId")
 
 		var session ChatSession
-		if err := c.ShouldBindJSON(&session); err != nil {
+		if err := c.ShouldBindJSON(&session); err != nil || !session.CurrentTimeOfDay.IsValid() {
 			controllers.RespondBadRequest(c, "Invalid session data", nil)
 			return
 		}
