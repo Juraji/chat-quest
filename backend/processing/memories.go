@@ -62,6 +62,12 @@ func GenerateMemoriesForMessageID(
 	message, err := cs.GetMessageById(messageId)
 	if err != nil {
 		logger.Error("Error fetching message", zap.Error(err))
+		return
+	}
+	prevMessage, err := cs.GetMessageInSessionBeforeId(message.ChatSessionID, messageId)
+	if err != nil {
+		logger.Error("Error fetching previous message", zap.Error(err))
+		return
 	}
 
 	sessionID := message.ChatSessionID
@@ -84,7 +90,12 @@ func GenerateMemoriesForMessageID(
 		return
 	}
 
-	messageWindow := []cs.ChatMessage{*message}
+	var messageWindow []cs.ChatMessage
+	if prevMessage != nil {
+		messageWindow = []cs.ChatMessage{*prevMessage, *message}
+	} else {
+		messageWindow = []cs.ChatMessage{*message}
+	}
 
 	memories, ok := generateMemories(logger, ctx, session, prefs, messageWindow)
 	if !ok {
