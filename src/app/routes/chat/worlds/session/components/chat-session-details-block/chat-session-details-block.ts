@@ -32,12 +32,17 @@ export class ChatSessionDetailsBlock {
   private readonly preferences = inject(Preferences)
   private readonly notifications = inject(Notifications)
 
+  private readonly llmModels: Signal<LlmModelView[]> = this.sessionData.llmModels
+  private readonly instructions: Signal<Instruction[]> = this.sessionData.instructions
   readonly worldName: Signal<string> = computed(() => this.sessionData.world().name)
   readonly createdAt: Signal<Nullable<string>> = computed(() => this.sessionData.chatSession().createdAt)
   readonly scenarios: Signal<Scenario[]> = this.sessionData.scenarios
-  readonly llModels: Signal<LlmModelView[]> = this.sessionData.llmModels
-  readonly instructions: Signal<Instruction[]> = this.sessionData.instructions
   readonly characters = this.sessionData.characters
+
+  readonly chatInstructions: Signal<Instruction[]> =
+    computed(() => this.instructions().filter(i => i.type === 'CHAT'));
+  readonly chatModels: Signal<LlmModelView[]> =
+    computed(() => this.llmModels().filter(i => i.modelType === 'CHAT_MODEL'))
 
   readonly nameControl: TypedFormControl<string> = formControl('', [Validators.required])
   readonly generateMemoriesControl: TypedFormControl<boolean> = formControl(false)
@@ -53,7 +58,7 @@ export class ChatSessionDetailsBlock {
 
   readonly selectedModel: Signal<LlmModelView> = computed(() => {
     const {chatModelId} = this.sessionData.preferences()
-    return this.llModels().find(l => l.id === chatModelId)!
+    return this.llmModels().find(l => l.id === chatModelId)!
   })
 
   constructor() {

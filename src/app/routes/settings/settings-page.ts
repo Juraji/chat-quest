@@ -29,8 +29,8 @@ export class SettingsPage {
   private readonly notifications = inject(Notifications)
   private readonly sse = inject(SSE)
 
-  readonly instructions: Signal<Instruction[]> = routeDataSignal(this.activatedRoute, 'instructions');
-  readonly llmModelViews: Signal<LlmModelView[]> = routeDataSignal(this.activatedRoute, 'llmModelViews');
+  private readonly instructions: Signal<Instruction[]> = routeDataSignal(this.activatedRoute, 'instructions');
+  private readonly llmModelViews: Signal<LlmModelView[]> = routeDataSignal(this.activatedRoute, 'llmModelViews');
 
   private readonly _prefs: Signal<CQPreferences> = routeDataSignal(this.activatedRoute, 'preferences');
   readonly prefs: WritableSignal<CQPreferences> = linkedSignal(() => this._prefs());
@@ -41,6 +41,10 @@ export class SettingsPage {
     computed(() => this.instructions().filter(i => i.type === 'CHAT'));
   readonly memoryInstructionTemplates: Signal<Instruction[]> =
     computed(() => this.instructions().filter(i => i.type === 'MEMORIES'));
+  readonly chatModels: Signal<LlmModelView[]> =
+    computed(() => this.llmModelViews().filter(i => i.modelType === 'CHAT_MODEL'))
+  readonly embeddingModels: Signal<LlmModelView[]> =
+    computed(() => this.llmModelViews().filter(i => i.modelType === 'EMBEDDING_MODEL'))
 
   readonly formGroup = formGroup<CQPreferences>({
     chatModelId: formControl<Nullable<number>>(null, [Validators.required]),
@@ -51,6 +55,8 @@ export class SettingsPage {
     memoryMinP: formControl(0, [Validators.required, Validators.min(0.01), Validators.max(1.0)]),
     memoryTriggerAfter: formControl(0, [Validators.required, Validators.min(1)]),
     memoryWindowSize: formControl(0, [Validators.required, Validators.min(1)]),
+    memoryIncludeChatSize: formControl(0, [Validators.required, Validators.min(1)]),
+    memoryIncludeChatNotes: formControl(false)
   })
 
   constructor() {

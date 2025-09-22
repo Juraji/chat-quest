@@ -97,6 +97,7 @@ func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
 	query := `UPDATE chat_messages
             SET is_user = ?,
                 is_generating = ?,
+                is_archived = ?,
                 character_id = ?,
                 content = ?,
                 reasoning = ?
@@ -105,6 +106,7 @@ func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
 	args := []any{
 		chatMessage.IsUser,
 		chatMessage.IsGenerating,
+		chatMessage.IsArchived,
 		chatMessage.CharacterID,
 		chatMessage.Content,
 		chatMessage.Reasoning,

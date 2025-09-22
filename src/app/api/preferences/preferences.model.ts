@@ -9,6 +9,8 @@ export interface CQPreferences {
   memoryMinP: number
   memoryTriggerAfter: number
   memoryWindowSize: number
+  memoryIncludeChatSize: number
+  memoryIncludeChatNotes: boolean
 }
 
 export const PreferencesUpdated: SseEvent<CQPreferences> = 'PreferencesUpdated'

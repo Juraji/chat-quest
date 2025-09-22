@@ -124,7 +124,7 @@
           <select class="form-select"
                   [formControl]="chatModelControl"
                   id="chatModelIdInput">
-            @for (llm of llModels(); track llm.id) {
+            @for (llm of chatModels(); track llm.id) {
               <option [ngValue]="llm.id">{{ llm | llmLabel }}</option>
             }
           </select>
@@ -146,7 +146,7 @@
           <select class="form-select"
                   [formControl]="chatInstructionControl"
                   id="chatInstructionInput">
-            @for (inst of instructions(); track inst.id) {
+            @for (inst of chatInstructions(); track inst.id) {
               <option [ngValue]="inst.id">{{ inst.name }}</option>
             }
           </select>

@@ -1,22 +1,25 @@
 CREATE TABLE preferences
 (
-  id                      INTEGER PRIMARY KEY,
+  id                        INTEGER PRIMARY KEY,
   -- Chat
-  chat_model_id           INTEGER REFERENCES llm_models (id) ON DELETE SET NULL,
-  chat_instruction_id     INTEGER REFERENCES instructions (id) ON DELETE SET NULL,
+  chat_model_id             INTEGER REFERENCES llm_models (id) ON DELETE SET NULL,
+  chat_instruction_id       INTEGER REFERENCES instructions (id) ON DELETE SET NULL,
   -- Embedding
-  embedding_model_id      INTEGER REFERENCES llm_models (id) ON DELETE SET NULL,
+  embedding_model_id        INTEGER REFERENCES llm_models (id) ON DELETE SET NULL,
   -- Memories
-  memories_model_id       INTEGER REFERENCES llm_models (id) ON DELETE SET NULL,
-  memories_instruction_id INTEGER REFERENCES instructions (id) ON DELETE SET NULL,
-  memory_min_p            FLOAT   NOT NULL,
-  memory_trigger_after    INTEGER NOT NULL,
-  memory_window_size      INTEGER NOT NULL
+  memories_model_id         INTEGER REFERENCES llm_models (id) ON DELETE SET NULL,
+  memories_instruction_id   INTEGER REFERENCES instructions (id) ON DELETE SET NULL,
+  memory_min_p              FLOAT   NOT NULL,
+  memory_trigger_after      INTEGER NOT NULL,
+  memory_window_size        INTEGER NOT NULL,
+  memory_include_chat_size  INTEGER NOT NULL,
+  memory_include_chat_notes BIT(1)  NOT NULL
 );
 
 -- Insert default record
 INSERT INTO preferences (id, chat_model_id, memories_model_id, embedding_model_id, chat_instruction_id,
-                         memories_instruction_id, memory_min_p, memory_trigger_after, memory_window_size)
+                         memories_instruction_id, memory_min_p, memory_trigger_after, memory_window_size,
+                         memory_include_chat_size, memory_include_chat_notes)
 VALUES (0,
         NULL,
         (SELECT id FROM instructions WHERE type = 'CHAT' LIMIT 1),
@@ -25,4 +28,6 @@ VALUES (0,
         (SELECT id FROM instructions WHERE type = 'MEMORIES' LIMIT 1),
         0.7,
         15,
-        10);
+        10,
+        5,
+        true);

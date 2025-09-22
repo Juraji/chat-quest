@@ -12,11 +12,13 @@ type Preferences struct {
 	// Embedding
 	EmbeddingModelId *int `json:"embeddingModelId"`
 	// Memories
-	MemoriesModelId       *int    `json:"memoriesModelId"`
-	MemoriesInstructionId *int    `json:"memoriesInstructionId"`
-	MemoryMinP            float64 `json:"memoryMinP"`
-	MemoryTriggerAfter    int     `json:"memoryTriggerAfter"`
-	MemoryWindowSize      int     `json:"memoryWindowSize"`
+	MemoriesModelId        *int    `json:"memoriesModelId"`
+	MemoriesInstructionId  *int    `json:"memoriesInstructionId"`
+	MemoryMinP             float64 `json:"memoryMinP"`
+	MemoryTriggerAfter     int     `json:"memoryTriggerAfter"`
+	MemoryWindowSize       int     `json:"memoryWindowSize"`
+	MemoryIncludeChatSize  int     `json:"memoryIncludeChatSize"`
+	MemoryIncludeChatNotes bool    `json:"memoryIncludeChatNotes"`
 }
 
 func (p *Preferences) Validate() []string {
@@ -66,6 +68,8 @@ func preferencesScanner(scanner database.RowScanner, dest *Preferences) error {
 		&dest.MemoryMinP,
 		&dest.MemoryTriggerAfter,
 		&dest.MemoryWindowSize,
+		&dest.MemoryIncludeChatSize,
+		&dest.MemoryIncludeChatNotes,
 	)
 }
 
@@ -98,7 +102,9 @@ func UpdatePreferences(prefs *Preferences) error {
                  memories_instruction_id = ?,
                  memory_min_p = ?,
                  memory_trigger_after = ?,
-                 memory_window_size = ?
+                 memory_window_size = ?,
+                 memory_include_chat_size = ?,
+                 memory_include_chat_notes = ?
              WHERE id = 0`
 	args := []any{
 		prefs.ChatModelId,
@@ -109,6 +115,8 @@ func UpdatePreferences(prefs *Preferences) error {
 		prefs.MemoryMinP,
 		prefs.MemoryTriggerAfter,
 		prefs.MemoryWindowSize,
+		prefs.MemoryIncludeChatSize,
+		prefs.MemoryIncludeChatNotes,
 	}
 
 	if err := database.UpdateRecord(query, args); err != nil {

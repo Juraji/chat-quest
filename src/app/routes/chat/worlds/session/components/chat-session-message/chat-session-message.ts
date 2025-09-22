@@ -147,4 +147,22 @@ Note that this and all subsequent messages will be deleted and this action can n
       .stopCurrentGeneration()
       .subscribe(() => this.notifications.toast('Generation cancelled!'));
   }
+
+  onToggleArchived() {
+    const worldId = this.worldId();
+    const sessionId = this.sessionData.chatSessionId()
+    const msg = this.message()
+    const isArchived = !msg.isArchived
+
+    const update: ChatMessage = {
+      ...msg, isArchived
+    }
+
+    this.chatSessions
+      .saveMessage(worldId, sessionId, update)
+      .subscribe(() => {
+        this.editMessage.set(false)
+        this.notifications.toast(isArchived ? 'Message archived!' : 'Message restored!');
+      })
+  }
 }

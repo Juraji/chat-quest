@@ -58,10 +58,13 @@
               <span class="bi bi-stop"></span>
             </button>
           } @else {
-            @if (isArchived()) {
-              <span class="bi bi-archive p-1"
-                    title="This message is archived and will not be used in the context"></span>
-            }
+            <button type="button" class="btn btn-sm btn-secondary"
+                    title="Toggle archival state for this message"
+                    (click)="onToggleArchived()">
+              <span class="bi"
+                    [class.bi-archive]="!isArchived()"
+                    [class.bi-folder2-open]="isArchived()"></span>
+            </button>
             @if (!isUser()) {
               <button type="button" class="btn btn-sm btn-secondary"
                       title="Regenerate this message"

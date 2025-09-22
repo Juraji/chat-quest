@@ -170,9 +170,13 @@ func NewTemplateCharacter(
 
 			// Determine subject, based on the last n message and the trigger message.
 			var subject string
+			if prefs.MemoryIncludeChatNotes && session.ChatNotes != nil {
+				subject = *session.ChatNotes
+			}
+
 			if len(chatHistory) > 0 {
 				end := len(chatHistory)
-				start := end - (prefs.MemoryWindowSize / 2)
+				start := end - prefs.MemoryIncludeChatSize
 				if start < 0 {
 					start = 0
 				}
