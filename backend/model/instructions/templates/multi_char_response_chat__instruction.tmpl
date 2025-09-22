@@ -1,8 +1,9 @@
 {{- /*gotype: juraji.nl/chat-quest/processing.ChatInstructionVars*/ -}}
 {{.MessageText}}
 
-{{if .IsFirstMessage}}
+{{if .CurrentTimeOfDay}}[OOC: The current time of day is {{.CurrentTimeOfDay | fmtEnum}}.]{{end -}}
+{{if .IsFirstMessage -}}
 [OOC: Respond to this message initially as {{.Character.Name}}, after that you are allowed to append responses from other characters if the situation requires it]
-{{else}}
+{{else -}}
 [OOC: Respond to the previous message initially as as {{.Character.Name}}, after that you are allowed to append responses from other characters if the situation requires it]
-{{end}}
+{{end -}}

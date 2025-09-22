@@ -38,10 +38,7 @@ export class ChatSessionPage {
   readonly worldId: Signal<number> = this.sessionData.worldId
   readonly chatSessionName: Signal<string> = computed(() => this.sessionData.chatSession().name)
 
-  readonly messageLimitPageSize = computed(() => {
-    const p = this.sessionData.preferences();
-    return p.memoryTriggerAfter + p.memoryWindowSize;
-  })
+  readonly messageLimitPageSize = computed(() => this.sessionData.preferences().memoryTriggerAfter)
   readonly messageLimit: WritableSignal<number> = linkedSignal(() => this.messageLimitPageSize())
   readonly olderMessagesAvailable = computed(() => this.messageLimit() < this.sessionData.messages().length)
   readonly olderMessagesShown = computed(() => this.messageLimit() > this.messageLimitPageSize())

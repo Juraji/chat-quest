@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"strings"
 	gt "text/template"
-	"unicode"
 
 	"github.com/pkg/errors"
 )
@@ -21,7 +20,7 @@ func ContainsTemplateVars(template string) bool {
 	return len(template) > 0 && strings.Contains(template, "{{")
 }
 
-func ParseAndApplyTextTemplate(template string, variables any, compact bool) (string, error) {
+func ParseAndApplyTextTemplate(template string, variables any) (string, error) {
 	if !ContainsTemplateVars(template) {
 		// Shortcut: Template has no variables
 		return template, nil
@@ -39,27 +38,7 @@ func ParseAndApplyTextTemplate(template string, variables any, compact bool) (st
 		return "", errors.Wrap(err, "Failed to execute template")
 	}
 
-	rendered := buffer.String()
-	if compact {
-		var result strings.Builder
-		inWhitespace := false
-
-		for _, r := range rendered {
-			if unicode.IsSpace(r) {
-				if !inWhitespace {
-					result.WriteRune(r)
-					inWhitespace = true
-				}
-			} else {
-				result.WriteRune(r)
-				inWhitespace = false
-			}
-		}
-
-		rendered = result.String()
-	}
-
-	return rendered, nil
+	return buffer.String(), nil
 }
 
 func tplSliceTakeStr(slice []string, limit int) []string {

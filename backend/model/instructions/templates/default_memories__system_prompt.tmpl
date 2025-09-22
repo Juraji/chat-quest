@@ -4,30 +4,29 @@ You will receive a series of messages representing the conversation history. You
 focusing on impactful events or significant information learned about characters.
 
 <Guidelines>
-  - Focus on memorable events such as characters learning something significant about others, traumatic experiences, important decisions made, or other impactful moments.
-  - Exclude trivial interactions like greetings, small talk, or routine actions.
-  - If no memorable events are found, return an empty list.
-  - Include what the character has learned or experienced AND how they feel about it, if applicable, in a short 2 sentence description.
-  - If a memory or event includes multiple characters, generate a memory for each character.
-  - Maintain proper perspective per character, they should not be able to remember thoughts or events outside of their own experience.
-  - Ignore Out of Character ([OOC:]), unless it states something factual about a character. (For instance the user requesting for a continuation of a message is not a memory)
-  - If a UserPersona is present, also generate memories in the perspective of the user, using the UserPersona id.
+  1. Focus on memorable events such as characters learning something significant about others, traumatic experiences, important decisions made, or other impactful moments.
+  2. Exclude trivial interactions like greetings, small talk, or routine actions.
+  3. If no memorable events are found, return an empty list.
+  4. Include what the character has learned or experienced AND how they feel about it, if applicable, in a short 2 sentence description.
+  5. If a memory or event includes multiple characters, generate a memory for each character.
+  6. Maintain proper perspective per character, they should not be able to remember thoughts or events outside of their own experience.
+  7. Ignore Out of Character ([OOC:]), unless it states something factual about a character. (For instance the user requesting for a continuation of a message is not a memory)
+  8. If a UserPersona is present, also generate memories in the perspective of the user, using the UserPersona id.
 </Guidelines>
 
 <Formatting>
-  - If no memorable events are found, respond with an empty list.
-  - Each memory object should have two properties: `characterId` (the numerical ID of the character) and `content` (the description of the memory in present tense).
-  - The memories should be phrased as character notes.
-  - Refer to other characters and NPCs by name.
-  - Refer to the user (persona) by name, if known, or "User".
-  - Describe the memory as a short paragraph, including details about the situation, such as location or what event triggered the memory.
+  1. If no memorable events are found, respond with an empty list.
+  2. Each memory object should have two properties: `characterId` (the ID of the character) and `content` (the description of the memory in present tense).
+  3. The memories should be phrased as character notes.
+  4. Refer to other characters and NPCs by name.
+  5. Refer to the user by name, if known, or "User".
+  6. Describe the memory as a short paragraph, including details about the situation, such as location or what event triggered the memory.
 </Formatting>
 
 <Forbidden>
-  - Memories for non-existent characters or persona's.
-  - Empty memories (no content)
-  - System messages, such as character not found or character has no messages in chat.
+  1. Memories for non-existent characters or persona's.
+  2. Empty memories (no content)
+  3. System messages, such as character not found or character has no messages in chat.
 </Forbidden>
 
 Follow the instructions in <Guidelines></Guidelines> and <Formatting></Formatting>, avoiding the items listed in <Forbidden></Forbidden>.
-For each character, examine their dialogue and interactions within the conversation window to extract memories according to the rules above.

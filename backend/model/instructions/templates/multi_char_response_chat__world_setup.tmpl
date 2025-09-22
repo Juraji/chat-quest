@@ -1,115 +1,113 @@
 {{- /*gotype: juraji.nl/chat-quest/processing.ChatInstructionVars*/ -}}
 ```rag.xml
-{{if .World}}
+{{if .World -}}
 <WorldDescription>
   {{.World}}
 </WorldDescription>
-{{end}}
-{{if .Scenario}}
+{{end -}}
+{{if .Scenario -}}
 <Scenario>
   {{.Scenario}}
 </Scenario>
-{{end}}
+{{end -}}
 <Characters>
-  {{with .Character}}
-    <Character>
-      <!-- This is the character you are currently impersonating. -->
-      <Id>{{.ID}}</Id>
-      <Name>{{.Name}}</Name>
-      {{if .Appearance}}
-      <Appearance>
-        {{.Appearance}}
-      </Appearance>
-      {{end}}
-      {{if .Personality}}
-      <Personality>
-        {{.Personality}}
-      </Personality>
-      {{end}}
-      {{if .History}}
-      <History>
-        {{.History}}
-      </History>
-      {{end}}
-      {{if .DialogueExamples}}
-      <DialogExamples>
-        {{range sliceTakeStrRnd .DialogueExamples 1}}
-          <DialogExample>{{.}}<DialogExample>
-        {{end}}
-      </DialogExamples>
-      {{end}}
-      {{if .Memories}}
-      <Memories>
-        <!-- These are relevant memories specifically for {{.Name}}, only they remember this. -->
-        {{range sliceTakeStrRnd .Memories 3}}
-          <Memory>{{.}}<Memory>
-        {{end}}
-      </Memories>
-      {{end}}
-    </Character>
-  {{end}}
-  {{if .OtherParticipants}}
-    {{range $c := .OtherParticipants}}
-    <Character>
-      <!-- This is another participant in the chat. -->
-      <Id>{{$c.ID}}</Id>
-      <Name>{{$c.Name}}</Name>
-      {{if $c.Appearance}}
-      <Appearance>
-        {{$c.Appearance}}
-      </Appearance>
-      {{end}}
-      {{if $c.Personality}}
-      <Personality>
-        {{$c.Personality}}
-      </Personality>
-      {{end}}
-      {{if $c.DialogueExamples}}
-      <DialogExamples>
-        {{range sliceTakeStrRnd .DialogueExamples 1}}
-          <DialogExample>{{.}}<DialogExample>
-        {{end}}
-      </DialogExamples>
-      {{end}}
-      {{if .Memories}}
-      <Memories>
-        <!-- These are relevant memories specifically for {{$c.Name}}, only they remember this. -->
-        {{range sliceTakeStrRnd $c.Memories 3}}
-          <Memory>{{.}}<Memory>
-        {{end}}
-      </Memories>
-      {{end}}
-    </Character>
-    {{end}}
-  {{end}}
+  {{with .Character -}}
+  <Character>
+    <!-- This is the character you are currently impersonating. -->
+    <Id>{{.ID}}</Id>
+    <Name>{{.Name}}</Name>
+    {{if .Appearance -}}
+    <Appearance>
+      {{.Appearance}}
+    </Appearance>
+    {{end -}}
+    {{if .Personality -}}
+    <Personality>
+      {{.Personality}}
+    </Personality>
+    {{end -}}
+    {{if .History -}}
+    <History>
+      {{.History}}
+    </History>
+    {{end -}}
+    {{if .DialogueExamples -}}
+    <DialogExamples>
+      {{range sliceTakeStrRnd .DialogueExamples 1 -}}
+        <DialogExample>{{.}}<DialogExample>
+      {{end -}}
+    </DialogExamples>
+    {{end -}}
+    {{if .Memories -}}
+    <Memories>
+      <!-- These are relevant memories specifically for {{.Name}}, only they remember this. -->
+      {{range sliceTakeStrRnd .Memories 3 -}}
+        <Memory>{{.}}<Memory>
+      {{end -}}
+    </Memories>
+    {{end -}}
+  </Character>
+  {{end -}}
+  {{range $c := .OtherParticipants -}}
+  <Character>
+    <!-- This is another participant in the chat. -->
+    <Id>{{$c.ID}}</Id>
+    <Name>{{$c.Name}}</Name>
+    {{if $c.Appearance -}}
+    <Appearance>
+      {{$c.Appearance -}}
+    </Appearance>
+    {{end -}}
+    {{if $c.Personality -}}
+    <Personality>
+      {{$c.Personality -}}
+    </Personality>
+    {{end -}}
+    {{if $c.DialogueExamples -}}
+    <DialogExamples>
+      {{range sliceTakeStrRnd .DialogueExamples 1 -}}
+        <DialogExample>{{.}}<DialogExample>
+      {{end -}}
+    </DialogExamples>
+    {{end -}}
+    {{if .Memories -}}
+    <Memories>
+      <!-- These are relevant memories specifically for {{$c.Name}}, only they remember this. -->
+      {{range sliceTakeStrRnd $c.Memories 3 -}}
+        <Memory>{{.}}<Memory>
+      {{end -}}
+    </Memories>
+    {{end -}}
+  </Character>
+  {{end -}}
 </Characters>
-{{if .Persona}}
+{{if .Persona -}}
 <UserPersona>
   <!-- This information describes the user, it is not a character in the chat -->
   <Name>{{.Persona.Name}}</Name>
-  {{if .Persona.Appearance}}
+  {{if .Persona.Appearance -}}
   <Appearance>
-    {{.Persona.Appearance}}
+    {{.Persona.Appearance -}}
   </Appearance>
-  {{end}}
-  {{if .Persona.Personality}}
+  {{end -}}
+  {{if .Persona.Personality -}}
   <Personality>
-    {{.Persona.Personality}}
+    {{.Persona.Personality -}}
   </Personality>
-  {{end}}
-  {{if .Persona.History}}
+  {{end -}}
+  {{if .Persona.History -}}
   <History>
-    {{.Persona.History}}
+    {{.Persona.History -}}
   </History>
-  {{end}}
+  {{end -}}
 </UserPersona>
-{{end}}
-{{if .ChatNotes}}
+{{end -}}
+{{if .ChatNotes -}}
 <ChatNotes>
   <!-- These are important notes for this chat session. Regard them as extra rules and knowledge for responses. -->
-  {{.ChatNotes}}
+  {{.ChatNotes -}}
 </ChatNotes>
-{{end}}
+{{end -}}
 ```
 
 (Do not recite the information in the rag.xml block, use it to enrich your understanding of the world and the individual character(s))

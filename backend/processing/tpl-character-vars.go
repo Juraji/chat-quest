@@ -99,7 +99,7 @@ func NewTemplateCharacter(
 				return "", nil
 			}
 			charTpl := NewSparseTemplateCharacter(char)
-			template, err := util.ParseAndApplyTextTemplate(*char.Appearance, charTpl, false)
+			template, err := util.ParseAndApplyTextTemplate(*char.Appearance, charTpl)
 			return template, errors.Wrapf(err, "failed to parse char appearance template for character ID %d", char.ID)
 		}),
 		personality: sync.OnceValues(func() (string, error) {
@@ -107,7 +107,7 @@ func NewTemplateCharacter(
 				return "", nil
 			}
 			charTpl := NewSparseTemplateCharacter(char)
-			template, err := util.ParseAndApplyTextTemplate(*char.Personality, charTpl, false)
+			template, err := util.ParseAndApplyTextTemplate(*char.Personality, charTpl)
 			return template, errors.Wrapf(err, "failed to parse char personality template for character ID %d", char.ID)
 		}),
 		history: sync.OnceValues(func() (string, error) {
@@ -115,7 +115,7 @@ func NewTemplateCharacter(
 				return "", nil
 			}
 			charTpl := NewSparseTemplateCharacter(char)
-			template, err := util.ParseAndApplyTextTemplate(*char.History, charTpl, false)
+			template, err := util.ParseAndApplyTextTemplate(*char.History, charTpl)
 			return template, errors.Wrapf(err, "failed to parse char history template for character ID %d", char.ID)
 		}),
 		dialogueExamples: sync.OnceValues(func() ([]string, error) {
@@ -129,7 +129,7 @@ func NewTemplateCharacter(
 
 			charTpl := NewSparseTemplateCharacter(char)
 			for i, example := range examples {
-				template, err := util.ParseAndApplyTextTemplate(example, charTpl, false)
+				template, err := util.ParseAndApplyTextTemplate(example, charTpl)
 				if err != nil {
 					return nil, errors.Wrapf(err, "failed to parse char dialogue example template for character ID %d: %s", char.ID, example)
 				}

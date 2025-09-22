@@ -44,7 +44,7 @@ func GreetOnParticipantAdded(ctx context.Context, participant *chat_sessions.Cha
 		}
 
 		vars := NewSparseTemplateCharacter(char)
-		result, err := util.ParseAndApplyTextTemplate(message.Content, vars, false)
+		result, err := util.ParseAndApplyTextTemplate(message.Content, vars)
 		if err != nil {
 			logger.Error("Failed to parse and apply text template", zap.Error(err))
 			return
