@@ -1,0 +1,16 @@
+:host {
+  .avatar-vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    height: 100vh;
+    mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 50%, transparent 100%);
+    filter: blur(1px);
+  }
+
+  ::ng-deep.card {
+    background-color: color-mix(in srgb, var(--bs-card-bg) 85%, transparent);
+    backdrop-filter: blur(5px);
+  }
+}

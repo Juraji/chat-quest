@@ -95,8 +95,8 @@ func logInstructionsToFile(logger *zap.Logger, instruction *inst.Instruction, in
 		}
 
 		rolePrefix := "User:"
-		if !msg.IsUser {
-			rolePrefix = fmt.Sprintf("Character (%d):", msg.CharacterID)
+		if msg.CharacterID != nil {
+			rolePrefix = fmt.Sprintf("Character (%d):", *msg.CharacterID)
 		}
 		timestamp := msg.CreatedAt.Format("2006-01-02 15:04:05")
 
@@ -105,7 +105,7 @@ func logInstructionsToFile(logger *zap.Logger, instruction *inst.Instruction, in
 
 	tpl := "Current Time: %s\n\nID: %v\nName: %v\nType: %v\nTemperature: %v\nMaxTokens: %v\nTopP: %v\nPresencePenalty: %v\n" +
 		"FrequencyPenalty: %v\nStream: %v\nStopSequences: %v\n\n" +
-		"--- SystemPrompt ---\n%s\n\n--- WorldSetup ---\n%s\n\n--- Messages (Preview) ---\n%s\n--- Instruction ---\n%s\n"
+		"--- SystemPrompt ---\n%s\n\n--- WorldSetup ---\n%s\n\n--- %d Messages (Preview) ---\n%s\n--- Instruction ---\n%s\n"
 	contents := fmt.Sprintf(
 		tpl,
 		nowStr,
@@ -121,6 +121,7 @@ func logInstructionsToFile(logger *zap.Logger, instruction *inst.Instruction, in
 		instruction.StopSequences,
 		instruction.SystemPrompt,
 		instruction.WorldSetup,
+		len(includedMessages),
 		msgPreviewBuffer.String(),
 		instruction.Instruction)
 

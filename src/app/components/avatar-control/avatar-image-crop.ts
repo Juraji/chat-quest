@@ -13,7 +13,7 @@ export class AvatarImageCrop {
     maintainAspectRatio: true,
     format: 'jpeg',
     aspectRatio: 1,
-    resizeToWidth: 500,
+    resizeToWidth: 768,
     onlyScaleDown: true,
     output: 'base64',
   };

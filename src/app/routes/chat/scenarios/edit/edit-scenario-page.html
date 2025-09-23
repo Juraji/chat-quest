@@ -87,3 +87,6 @@
     </div>
   </div>
 </form>
+@if (avatar(); as u) {
+  <img class="avatar-vignette" [src]="u" alt="Avatar"/>
+}

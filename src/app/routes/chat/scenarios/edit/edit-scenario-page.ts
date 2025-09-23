@@ -28,7 +28,8 @@ import {isNew} from '@api/common';
     RenderedMessage,
     TokenCount
   ],
-  templateUrl: './edit-scenario-page.html'
+  templateUrl: './edit-scenario-page.html',
+  styleUrls: ["./edit-scenario-page.scss"]
 })
 export class EditScenarioPage {
   private readonly activatedRoute = inject(ActivatedRoute);
@@ -39,6 +40,7 @@ export class EditScenarioPage {
   readonly scenario: Signal<Scenario> = routeDataSignal(this.activatedRoute, 'scenario');
   readonly isNew: Signal<boolean> = computed(() => isNew(this.scenario()))
   readonly name: Signal<string> = computed(() => this.scenario().name)
+  readonly avatar = computed(() => this.scenario().avatarUrl)
 
   readonly formGroup = formGroup<Scenario>({
     id: readOnlyControl(),
