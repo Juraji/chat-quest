@@ -2,6 +2,15 @@
   <app-page-header backUrl="../">
     <span class="page-title">{{ chatSessionName() }}</span>
     <button type="button" class="btn btn-outline-secondary"
+            title="Toggle backdrop"
+            (click)="enableBackdrop.toggle()">
+      @if (enableBackdrop()) {
+        <span class="bi bi-image"></span>
+      } @else {
+        <span class="bi bi-slash-circle"></span>
+      }
+    </button>
+    <button type="button" class="btn btn-outline-secondary"
             title="Toggle focus-mode"
             (click)="focusMode.toggle()">
       @if (focusMode()) {
@@ -51,3 +60,6 @@
     }
   </div>
 </div>
+@for (u of avatars(); track u) {
+  <img class="avatar-vignette" [attr.data-index]="$index" [src]="u" alt="Avatar"/>
+}

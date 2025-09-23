@@ -30,7 +30,10 @@ import {booleanSignal} from '@util/ng';
     ChatSessionData
   ],
   templateUrl: './chat-session-page.html',
-  styleUrls: ["./chat-session-page.scss"]
+  styleUrls: ["./chat-session-page.scss"],
+  host: {
+    '[class.focus-mode]': 'focusMode()'
+  }
 })
 export class ChatSessionPage {
   private readonly sessionData = inject(ChatSessionData)
@@ -53,6 +56,48 @@ export class ChatSessionPage {
   })
 
   readonly focusMode = booleanSignal(false)
+  readonly enableBackdrop = booleanSignal(true)
+  readonly avatars: Signal<string[]> = computed(() => {
+    if (!this.enableBackdrop()) return [];
+
+    const result: string[] = [];
+    const messages = this.sessionData.messages();
+    const characters = this.sessionData.characters();
+    const avatarUris = new Map<number, string>();
+
+    for (const character of characters) {
+      if (character.avatarUrl) {
+        avatarUris.set(character.id, character.avatarUrl);
+      }
+    }
+
+    // Scene Avatar
+    const s = this.sessionData.chatSession();
+    const sceneId = s.scenarioId;
+    if (sceneId) {
+      const sceneAvatarUri = this.sessionData
+        .scenarios()
+        .find(sc => sc.id === sceneId)
+        ?.avatarUrl;
+
+      if (sceneAvatarUri) {
+        result.push(sceneAvatarUri);
+      }
+    }
+
+    // Character Avatar - find from end of messages array
+    if (messages.length > 0 && avatarUris.size > 0) {
+      for (let i = messages.length - 1; i >= 0; i--) {
+        const message = messages[i];
+        if (message.characterId && avatarUris.has(message.characterId)) {
+          result.push(avatarUris.get(message.characterId)!);
+          break;
+        }
+      }
+    }
+
+    return result;
+  })
 
   protected readonly chatMessagesContainerRef: Signal<ElementRef<HTMLDivElement> | undefined> =
     viewChild('chatMessagesContainer', {read: ElementRef})

@@ -5,8 +5,16 @@
     left: 0;
     z-index: -1;
     height: 100vh;
-    mask-image: linear-gradient(to right, rgba(0, 0, 0, 1) 50%, transparent 100%);
+    mask-image: linear-gradient(to right, #000 50%, transparent 100%);
     filter: blur(1px);
+    transition: left 300ms ease-out;
+
+    @media screen and (min-height: 600px) {
+      left: -10%;
+    }
+    @media screen and (min-height: 850px) {
+      left: -15%;
+    }
   }
 
   ::ng-deep.card {

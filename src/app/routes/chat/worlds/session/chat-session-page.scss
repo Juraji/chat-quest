@@ -1,8 +1,57 @@
 :host {
   $navbar-height: 4.5rem;
+  $backdrop-offset: 0;
+  $backdrop-offset-focus: -15%;
+  $backdrop-brightness: 50%;
+  $backdrop-brightness-focus: 70%;
 
   .chat-session-container {
     height: calc(100vh - $navbar-height);
+  }
+
+  .avatar-vignette {
+    position: fixed;
+    top: 0;
+    z-index: -1;
+    height: 100vh;
+    filter: blur(1px) brightness($backdrop-brightness);
+
+    &[data-index="0"] {
+      left: $backdrop-offset;
+      transition: left 300ms ease-out;
+      mask-image: linear-gradient(to right, #000 75%, transparent 100%);
+    }
+
+    &[data-index="1"] {
+      right: $backdrop-offset;
+      transition: right 300ms ease-out;
+      mask-image: linear-gradient(to left, #000 75%, transparent 100%);
+    }
+  }
+
+  &.focus-mode {
+    .avatar-vignette {
+      filter: blur(1px) brightness($backdrop-brightness-focus);
+
+      @media screen and (min-height: 850px) {
+        &[data-index="0"] {
+          left: $backdrop-offset-focus;
+        }
+
+        &[data-index="1"] {
+          right: $backdrop-offset-focus;
+        }
+      }
+    }
+  }
+
+  ::ng-deep.card {
+    background-color: color-mix(in srgb, var(--bs-card-bg) 85%, transparent);
+    backdrop-filter: blur(5px);
+
+    &.bg-secondary {
+      --bs-bg-opacity: 0.85 !important;
+    }
   }
 }
 
