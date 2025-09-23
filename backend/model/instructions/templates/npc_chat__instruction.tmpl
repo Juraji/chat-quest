@@ -1,7 +1,7 @@
 {{- /*gotype: juraji.nl/chat-quest/processing.ChatInstructionVars*/ -}}
 {{.MessageText}}
 
-{{if .CurrentTimeOfDay}}[OOC: The current time of day is {{.CurrentTimeOfDay | fmtEnum}}.]{{end -}}
+{{if .CurrentTimeOfDay}}[OOC: The current time of day is {{.CurrentTimeOfDayFmtEN}}.]{{end -}}
 {{if .IsFirstMessage -}}
 [OOC: Respond as a random NPC]
 {{else -}}

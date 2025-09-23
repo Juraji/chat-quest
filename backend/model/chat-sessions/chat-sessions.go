@@ -13,13 +13,15 @@ import (
 type TimeOfDay string
 
 const (
-	EarlyMorning   TimeOfDay = "EARLY_MORNING"
-	LateMorning    TimeOfDay = "LATE_MORNING"
-	EarlyAfternoon TimeOfDay = "EARLY_AFTERNOON"
-	LateAfternoon  TimeOfDay = "LATE_AFTERNOON"
-	EarlyEvening   TimeOfDay = "EARLY_EVENING"
-	LateEvening    TimeOfDay = "LATE_EVENING"
-	NightTime      TimeOfDay = "NIGHT_TIME"
+	Midnight     TimeOfDay = "MIDNIGHT"      // (00:00–01:00)
+	Night        TimeOfDay = "NIGHT"         // (00:10–05:59)
+	EarlyMorning TimeOfDay = "EARLY_MORNING" // (06:00–08:59)
+	Morning      TimeOfDay = "MORNING"       // (09:00–11:59)
+	Noon         TimeOfDay = "NOON"          // (12:00–13:00)
+	Afternoon    TimeOfDay = "AFTERNOON"     // (13:00–18:00)
+	Evening      TimeOfDay = "EVENING"       // (18:00–22:00)
+	LateNight    TimeOfDay = "LATE_NIGHT"    // (22:00–23:59)
+	RealTime     TimeOfDay = "REAL_TIME"
 )
 
 func (t *TimeOfDay) IsValid() bool {
@@ -27,7 +29,7 @@ func (t *TimeOfDay) IsValid() bool {
 		return true
 	}
 
-	validToD := []TimeOfDay{EarlyMorning, LateMorning, EarlyAfternoon, LateAfternoon, EarlyEvening, LateEvening, NightTime}
+	validToD := []TimeOfDay{EarlyMorning, Night, EarlyMorning, Morning, Afternoon, Evening, LateNight}
 
 	return slices.Contains(validToD, *t)
 }

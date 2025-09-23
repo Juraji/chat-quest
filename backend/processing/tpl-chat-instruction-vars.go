@@ -2,6 +2,7 @@ package processing
 
 import (
 	"sync"
+	"time"
 
 	c "juraji.nl/chat-quest/model/characters"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
@@ -23,8 +24,9 @@ type ChatInstructionVars interface {
 
 	World() (string, error)
 	Scenario() (string, error)
-	CurrentTimeOfDay() (cs.TimeOfDay, error)
-	ChatNotes() (string, error)
+	CurrentTimeOfDay() *cs.TimeOfDay
+	CurrentTimeOfDayFmtEN() string
+	ChatNotes() string
 }
 
 type chatInstructionVarsImpl struct {
@@ -69,17 +71,41 @@ func (c *chatInstructionVarsImpl) World() (string, error) {
 func (c *chatInstructionVarsImpl) Scenario() (string, error) {
 	return c.scenario()
 }
-func (c *chatInstructionVarsImpl) CurrentTimeOfDay() (cs.TimeOfDay, error) {
-	if c.timeOfDay == nil {
-		return "", nil
-	}
-	return *c.timeOfDay, nil
+func (c *chatInstructionVarsImpl) CurrentTimeOfDay() *cs.TimeOfDay {
+	return c.timeOfDay
 }
-func (c *chatInstructionVarsImpl) ChatNotes() (string, error) {
-	if c.chatNotes == nil {
-		return "", nil
+func (c *chatInstructionVarsImpl) CurrentTimeOfDayFmtEN() string {
+	if c.timeOfDay == nil {
+		return ""
 	}
-	return *c.chatNotes, nil
+	switch *c.timeOfDay {
+	case cs.Midnight:
+		return "Midnight (00:00–01:00)"
+	case cs.Night:
+		return "Night time (01:00–06:00)"
+	case cs.EarlyMorning:
+		return "Early morning (06:00–09:00)"
+	case cs.Morning:
+		return "Morning (09:00–11:59)"
+	case cs.Noon:
+		return "Noon (12:00-13:00)"
+	case cs.Afternoon:
+		return "Afternoon (13:00–18:00)"
+	case cs.Evening:
+		return "Evening (18:00–22:00)"
+	case cs.LateNight:
+		return "Late night (22:00–23:59)"
+	case cs.RealTime:
+		return time.Now().Format("15:04")
+	default:
+		panic("invalid timeOfDay")
+	}
+}
+func (c *chatInstructionVarsImpl) ChatNotes() string {
+	if c.chatNotes == nil {
+		return ""
+	}
+	return *c.chatNotes
 }
 
 func NewChatInstructionVars(

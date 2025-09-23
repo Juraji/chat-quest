@@ -105,13 +105,15 @@
                 [formControl]="timeOfDayControl">
           <option [ngValue]="null">Not Set</option>
           <option disabled>──────────</option>
-          <option value="EARLY_MORNING">Early Morning</option>
-          <option value="LATE_MORNING">Late Morning</option>
-          <option value="EARLY_AFTERNOON">Early Afternoon</option>
-          <option value="LATE_AFTERNOON">Late Afternoon</option>
-          <option value="EARLY_EVENING">Early Evening</option>
-          <option value="LATE_EVENING">Late Evening</option>
-          <option value="NIGHT_TIME">Night Time</option>
+          <option value="MIDNIGHT">Midnight (00:00–01:00)</option>
+          <option value="NIGHT">Night (00:10–05:59)</option>
+          <option value="EARLY_MORNING">Early Morning (06:00–08:59)</option>
+          <option value="MORNING">Morning (09:00–11:59)</option>
+          <option value="NOON">Noon (12:00–13:00)</option>
+          <option value="AFTERNOON">Afternoon (13:00–18:00)</option>
+          <option value="EVENING">Evening (18:00–22:00)</option>
+          <option value="LATE_NIGHT">Late Night (22:00–23:59)</option>
+          <option value="REAL_TIME">Real Time</option>
         </select>
       </div>
     </div>
