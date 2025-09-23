@@ -34,6 +34,4 @@ func SetupProcessing() {
 	// Auto archival
 	cs.ChatMessageCreatedSignal.AddListener(
 		"AutoArchiveMessages", AutoArchiveMessages)
-	cs.ChatMessageUpdatedSignal.AddListener(
-		"AutoArchiveMessages", AutoArchiveMessages)
 }

@@ -64,7 +64,7 @@ func GenerateMemoriesForMessageID(
 		logger.Error("Error fetching message", zap.Error(err))
 		return
 	}
-	prevMessage, err := cs.GetMessageInSessionBeforeId(message.ChatSessionID, messageId)
+	prevMessage, err := cs.GetMessagesInSessionBeforeId(message.ChatSessionID, messageId, 1)
 	if err != nil {
 		logger.Error("Error fetching previous message", zap.Error(err))
 		return
@@ -148,6 +148,7 @@ func GenerateMemories(
 		logger.Error("Error getting session", zap.Error(err))
 		return
 	}
+
 	if !session.GenerateMemories {
 		// Memories are disabled for this session
 		return
@@ -167,6 +168,7 @@ func GenerateMemories(
 		return
 	}
 	if messageWindow == nil {
+		logger.Info("Message window is empty, skipping...")
 		return
 	}
 
@@ -224,7 +226,7 @@ func generateMemories(
 	}
 
 	// Log instruction contents
-	logInstructionsToFile(logger, instruction)
+	logInstructionsToFile(logger, instruction, messageWindow)
 
 	// Generate memories
 	requestMessages := createChatRequestMessages(messageWindow, instruction)

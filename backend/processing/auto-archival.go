@@ -31,6 +31,7 @@ func AutoArchiveMessages(
 		return
 	}
 
+	// If memory gen is on, it will already archive messages, else we check the switch
 	if session.GenerateMemories || !session.AutoArchiveMessages {
 		// Auto archival is turned of or handled by memory gen.
 		return
@@ -67,21 +68,25 @@ func AutoArchiveMessages(
 	logger.Info("Auto archival completed", zap.Int("archivedMessages", len(messageWindow)))
 }
 
+// getArchivalMessageWindow will get the messages to archive.
+// It will return a slice of messages to archive or nil if the archive window is not yet full.
 func getArchivalMessageWindow(
 	logger *zap.Logger,
 	prefs *p.Preferences,
 	sessionID int,
 ) ([]cs.ChatMessage, error) {
+	const minWindowSize = 5
+
 	messages, err := cs.GetUnarchivedChatMessages(sessionID)
 	if err != nil {
 		return nil, err
 	}
 
-	triggerAfter := prefs.MemoryTriggerAfter
+	triggerAfter := prefs.MaxMessagesInContext
 	windowSize := len(messages) - triggerAfter
 
 	// Only proceed if we have enough messages to create a valid window
-	if windowSize < 1 {
+	if windowSize < minWindowSize {
 		logger.Info("Message window not yet full, skipping archival",
 			zap.Int("windowSize", windowSize))
 		return nil, nil

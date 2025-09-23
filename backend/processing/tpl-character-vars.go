@@ -198,7 +198,7 @@ func NewTemplateCharacter(
 			}
 
 			// Process memories in batches using goroutines
-			const workerCount = 16
+			const workerCount = 8
 			const minChunkSize = 10
 			minP := prefs.MemoryMinP
 

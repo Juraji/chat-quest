@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -78,13 +80,35 @@ func setupCancelBySystem(ctx context.Context, logger *zap.Logger, name string) (
 // logInstructionsToFile writes instruction details to a text file (per type) in the data directory.
 // It formats the instruction information including ID, name, parameters, and content sections.
 // If the log file already exists, it will be overwritten.
-func logInstructionsToFile(logger *zap.Logger, instruction *inst.Instruction) {
+func logInstructionsToFile(logger *zap.Logger, instruction *inst.Instruction, includedMessages []cs.ChatMessage) {
+	const msgPreviewLen = 100
+
 	path := core.Env().MkDataDir("instructions", fmt.Sprintf("last_%s_instruction.txt", instruction.Type))
-	tpl := "ID: %v\nName: %v\nType: %v\nTemperature: %v\nMaxTokens: %v\nTopP: %v\nPresencePenalty: %v\n" +
+
+	nowStr := time.Now().Format("2006-01-02 15:04:05")
+
+	var msgPreviewBuffer strings.Builder
+	for _, msg := range includedMessages {
+		contentPreview := strings.ReplaceAll(msg.Content, "\n", " ")
+		if len(contentPreview) > msgPreviewLen {
+			contentPreview = contentPreview[:msgPreviewLen] + "..."
+		}
+
+		rolePrefix := "User:"
+		if !msg.IsUser {
+			rolePrefix = fmt.Sprintf("Character (%d):", msg.CharacterID)
+		}
+		timestamp := msg.CreatedAt.Format("2006-01-02 15:04:05")
+
+		msgPreviewBuffer.WriteString(fmt.Sprintf("%s %s %s\n", timestamp, rolePrefix, contentPreview))
+	}
+
+	tpl := "Current Time: %s\n\nID: %v\nName: %v\nType: %v\nTemperature: %v\nMaxTokens: %v\nTopP: %v\nPresencePenalty: %v\n" +
 		"FrequencyPenalty: %v\nStream: %v\nStopSequences: %v\n\n" +
-		"--- SystemPrompt ---\n%s\n\n--- WorldSetup ---\n%s\n\n--- Instruction ---\n%s\n"
+		"--- SystemPrompt ---\n%s\n\n--- WorldSetup ---\n%s\n\n--- Messages (Preview) ---\n%s\n--- Instruction ---\n%s\n"
 	contents := fmt.Sprintf(
 		tpl,
+		nowStr,
 		instruction.ID,
 		instruction.Name,
 		instruction.Type,
@@ -97,6 +121,7 @@ func logInstructionsToFile(logger *zap.Logger, instruction *inst.Instruction) {
 		instruction.StopSequences,
 		instruction.SystemPrompt,
 		instruction.WorldSetup,
+		msgPreviewBuffer.String(),
 		instruction.Instruction)
 
 	err := os.WriteFile(path, []byte(contents), 0644)

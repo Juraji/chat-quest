@@ -49,6 +49,7 @@ export class SettingsPage {
   readonly formGroup = formGroup<CQPreferences>({
     chatModelId: formControl<Nullable<number>>(null, [Validators.required]),
     chatInstructionId: formControl<Nullable<number>>(null, [Validators.required]),
+    maxMessagesInContext: formControl(0, [Validators.required, Validators.min(1)]),
     embeddingModelId: formControl<Nullable<number>>(null, [Validators.required]),
     memoriesModelId: formControl<Nullable<number>>(null, [Validators.required]),
     memoriesInstructionId: formControl<Nullable<number>>(null, [Validators.required]),

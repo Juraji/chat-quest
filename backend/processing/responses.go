@@ -129,8 +129,14 @@ func generateResponse(
 		return
 	}
 
+	sessionMessageCount, err := cs.GetChatSessionMessageCount(session.ID)
+	if err != nil {
+		logger.Error("Error fetching chat session messages count", zap.Error(err))
+		return
+	}
+
 	// Create instructions
-	instructionVars := NewChatInstructionVars(chatHistory, session, prefs, triggerMessage, responderId)
+	instructionVars := NewChatInstructionVars(session, prefs, chatHistory, triggerMessage, sessionMessageCount, responderId)
 	instruction, err := inst.InstructionById(*prefs.ChatInstructionId)
 	if err != nil {
 		logger.Error("Error fetching chat instruction", zap.Error(err))
@@ -141,11 +147,13 @@ func generateResponse(
 		return
 	}
 
+	includedHistory := util.SliceLastNElements(chatHistory, prefs.MaxMessagesInContext)
+
 	// Log instruction contents
-	logInstructionsToFile(logger, instruction)
+	logInstructionsToFile(logger, instruction, includedHistory)
 
 	// Build request messages
-	requestMessages := createChatRequestMessages(chatHistory, instruction)
+	requestMessages := createChatRequestMessages(includedHistory, instruction)
 
 	if contextCheckPoint(ctx, logger) {
 		return
@@ -187,6 +195,7 @@ func generateResponse(
 	defer func() {
 		for _, message := range messageStack {
 			message.IsGenerating = false
+			message.Content = strings.TrimSpace(message.Content)
 			if err := cs.UpdateChatMessage(session.ID, message.ID, message); err != nil {
 				logger.Error("Failed to update response chat message upon finalization",
 					zap.Int("messageId", message.ID), zap.Error(err))

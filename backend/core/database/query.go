@@ -223,3 +223,7 @@ func StringScanner(scanner RowScanner, dest *string) error {
 func BoolScanner(scanner RowScanner, dest *bool) error {
 	return scanner.Scan(dest)
 }
+
+func IntScanner(scanner RowScanner, dest *int) error {
+	return scanner.Scan(dest)
+}

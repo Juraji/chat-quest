@@ -53,15 +53,25 @@ func GetUnarchivedChatMessages(sessionId int) ([]ChatMessage, error) {
 	return database.QueryForList(query, args, ChatMessageScanner)
 }
 
+func GetChatSessionMessageCount(sessionId int) (int, error) {
+	query := "SELECT COUNT(*) FROM chat_messages WHERE chat_session_id=?"
+	args := []any{sessionId}
+	res, err := database.QueryForRecord(query, args, database.IntScanner)
+	if err != nil {
+		return 0, err
+	}
+	return *res, nil
+}
+
 func GetMessageById(messageId int) (*ChatMessage, error) {
 	query := "SELECT * FROM chat_messages WHERE id=?"
 	args := []any{messageId}
 	return database.QueryForRecord(query, args, ChatMessageScanner)
 }
 
-func GetMessageInSessionBeforeId(sessionId int, messageId int) (*ChatMessage, error) {
-	query := "SELECT * FROM chat_messages WHERE chat_session_id=? AND id<? ORDER BY id DESC LIMIT 1"
-	args := []any{sessionId, messageId}
+func GetMessagesInSessionBeforeId(sessionId int, messageId int, limit int) (*ChatMessage, error) {
+	query := "SELECT * FROM chat_messages WHERE chat_session_id=? AND id<? ORDER BY id DESC LIMIT ?"
+	args := []any{sessionId, messageId, limit}
 	return database.QueryForRecord(query, args, ChatMessageScanner)
 }
 

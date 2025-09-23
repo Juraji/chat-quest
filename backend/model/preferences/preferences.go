@@ -7,8 +7,9 @@ import (
 
 type Preferences struct {
 	// Chat
-	ChatModelId       *int `json:"chatModelId"`
-	ChatInstructionId *int `json:"chatInstructionId"`
+	ChatModelId          *int `json:"chatModelId"`
+	ChatInstructionId    *int `json:"chatInstructionId"`
+	MaxMessagesInContext int  `json:"maxMessagesInContext"`
 	// Embedding
 	EmbeddingModelId *int `json:"embeddingModelId"`
 	// Memories
@@ -62,6 +63,7 @@ func preferencesScanner(scanner database.RowScanner, dest *Preferences) error {
 		&idSink,
 		&dest.ChatModelId,
 		&dest.ChatInstructionId,
+		&dest.MaxMessagesInContext,
 		&dest.EmbeddingModelId,
 		&dest.MemoriesModelId,
 		&dest.MemoriesInstructionId,
@@ -97,6 +99,7 @@ func UpdatePreferences(prefs *Preferences) error {
 	query := `UPDATE preferences
              SET chat_model_id = ?,
                  chat_instruction_id = ?,
+                 max_messages_in_context = ?,
                  embedding_model_id = ?,
                  memories_model_id = ?,
                  memories_instruction_id = ?,
@@ -109,6 +112,7 @@ func UpdatePreferences(prefs *Preferences) error {
 	args := []any{
 		prefs.ChatModelId,
 		prefs.ChatInstructionId,
+		prefs.MaxMessagesInContext,
 		prefs.EmbeddingModelId,
 		prefs.MemoriesModelId,
 		prefs.MemoriesInstructionId,

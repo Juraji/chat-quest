@@ -49,14 +49,14 @@
             </div>
 
             <div>
-              <label for="memoryTriggerAfterInput">Max Messages in Context</label>
+              <label for="maxMessagesInContextInput">Max Messages in Context</label>
               <input type="number" class="form-control"
                      step="1"
-                     id="memoryTriggerAfterInput"
-                     aria-describedby="memoryTriggerAfterInputHelp"
-                     formControlName="memoryTriggerAfter"/>
-              <div id="memoryTriggerAfterInputHelp" class="form-text">
-                After how many messages should chat archival or memory generation kick in.
+                     id="maxMessagesInContextInput"
+                     aria-describedby="maxMessagesInContextInputHelp"
+                     formControlName="maxMessagesInContext"/>
+              <div id="maxMessagesInContextInputHelp" class="form-text">
+                The max message count included in the chat history, sent to chat completion.
               </div>
             </div>
           </div>
@@ -98,6 +98,17 @@
               </div>
             </div>
             <div class="mb-3">
+              <label for="memoryTriggerAfterInput">Trigger after</label>
+              <input type="number" class="form-control"
+                     step="1"
+                     id="memoryTriggerAfterInput"
+                     aria-describedby="memoryTriggerAfterInputHelp"
+                     formControlName="memoryTriggerAfter"/>
+              <div id="memoryTriggerAfterInputHelp" class="form-text">
+                After how many messages should memory generation start collecting messages.
+              </div>
+            </div>
+            <div>
               <label for="memoryWindowSizeInput">Generation Window Size</label>
               <input type="number" class="form-control"
                      step="1"
