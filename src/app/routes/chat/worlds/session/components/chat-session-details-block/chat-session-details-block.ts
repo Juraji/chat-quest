@@ -8,7 +8,7 @@ import {ChatSessionData} from '../../chat-session-data';
 import {Scenario} from '@api/scenarios';
 import {LlmModelView} from '@api/providers';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {debounceTime, filter, map, MonoTypeOperatorFunction, pairwise, pipe} from 'rxjs';
+import {debounceTime, filter, map, pairwise} from 'rxjs';
 import {LlmLabelPipe} from '@components/llm-label.pipe';
 import {Instruction} from '@api/instructions';
 import {RouterLink} from '@angular/router';
@@ -69,55 +69,49 @@ export class ChatSessionDetailsBlock {
   constructor() {
     effect(() => {
       const session = this.session();
-      this.sessionForm.reset(session)
+      this.sessionForm.reset(session);
 
-      if (session.generateMemories) {
-        this.sessionForm.get("autoArchiveMessages")!.disable()
-      } else {
-        this.sessionForm.get("autoArchiveMessages")!.enable()
-      }
+      const autoArchiveMessagesField = this.sessionForm.get("autoArchiveMessages")!;
+      session.generateMemories ? autoArchiveMessagesField.disable() : autoArchiveMessagesField.enable();
     });
 
-    const valueListenerOp: <T>() => MonoTypeOperatorFunction<T> = () => pipe(
-      takeUntilDestroyed(),
-      pairwise(),
-      filter(([p, n]) => p !== undefined && p !== n),
-      map(n => n[1])
-    )
+    // Common fields with standard debounce
+    const standardFields = [
+      'generateMemories',
+      'useMemories',
+      'autoArchiveMessages',
+      'pauseAutomaticResponses',
+      'personaId',
+      'scenarioId',
+      'chatModelId',
+      'chatInstructionId',
+      'currentTimeOfDay'
+    ];
 
-    this.sessionForm.get("name")!.valueChanges
-      .pipe(valueListenerOp(), debounceTime(TEXT_FIELD_DEBOUNCE_TIME))
-      .subscribe(name => this.updateSession({name}))
-    this.sessionForm.get("generateMemories")!.valueChanges
-      .pipe(valueListenerOp())
-      .subscribe(generateMemories => this.updateSession({generateMemories}))
-    this.sessionForm.get("useMemories")!.valueChanges
-      .pipe(valueListenerOp())
-      .subscribe(useMemories => this.updateSession({useMemories}))
-    this.sessionForm.get("autoArchiveMessages")!.valueChanges
-      .pipe(valueListenerOp())
-      .subscribe(autoArchiveMessages => this.updateSession({autoArchiveMessages}))
-    this.sessionForm.get("pauseAutomaticResponses")!.valueChanges
-      .pipe(valueListenerOp())
-      .subscribe(pauseAutomaticResponses => this.updateSession({pauseAutomaticResponses}))
-    this.sessionForm.get("personaId")!.valueChanges
-      .pipe(valueListenerOp())
-      .subscribe(personaId => this.updateSession({personaId}))
-    this.sessionForm.get("scenarioId")!.valueChanges
-      .pipe(valueListenerOp())
-      .subscribe(scenarioId => this.updateSession({scenarioId}))
-    this.sessionForm.get("chatModelId")!.valueChanges
-      .pipe(valueListenerOp())
-      .subscribe(chatModelId => this.updateSession({chatModelId}))
-    this.sessionForm.get("chatInstructionId")!.valueChanges
-      .pipe(valueListenerOp())
-      .subscribe(chatInstructionId => this.updateSession({chatInstructionId}))
-    this.sessionForm.get("currentTimeOfDay")!.valueChanges
-      .pipe(valueListenerOp())
-      .subscribe(currentTimeOfDay => this.updateSession({currentTimeOfDay}))
-    this.sessionForm.get("chatNotes")!.valueChanges
-      .pipe(valueListenerOp(), debounceTime(TEXT_FIELD_DEBOUNCE_TIME))
-      .subscribe(chatNotes => this.updateSession({chatNotes}))
+    // Fields with debounce time
+    const debouncedFields = [
+      'name',
+      'chatNotes',
+    ];
+
+    standardFields.forEach(field => {
+      this.sessionForm.get(field)!.valueChanges
+        .pipe(
+          takeUntilDestroyed(),
+          pairwise(), filter(([p, n]) => p !== undefined && p !== n), map(n => n[1])
+        )
+        .subscribe(value => this.updateSession({[field]: value}));
+    });
+
+    debouncedFields.forEach(field => {
+      this.sessionForm.get(field)!.valueChanges
+        .pipe(
+          takeUntilDestroyed(),
+          pairwise(), filter(([p, n]) => p !== undefined && p !== n), map(n => n[1]),
+          debounceTime(TEXT_FIELD_DEBOUNCE_TIME)
+        )
+        .subscribe(value => this.updateSession({[field]: value}));
+    });
   }
 
   private updateSession(d: Partial<ChatSession>) {
