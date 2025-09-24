@@ -134,14 +134,10 @@ func NewChatInstructionVars(
 			return NewTemplateCharacter(character, prefs, session, fullHistory), nil
 		}),
 		persona: sync.OnceValues(func() (TemplateCharacter, error) {
-			world, err := w.WorldById(session.WorldID)
-			if err != nil {
-				return nil, err
-			}
-			if world.PersonaID == nil {
+			if session.PersonaID == nil {
 				return nil, nil
 			}
-			character, err := c.CharacterById(*world.PersonaID)
+			character, err := c.CharacterById(*session.PersonaID)
 			if err != nil {
 				return nil, err
 			}

@@ -25,6 +25,9 @@ export interface ChatSession extends ChatQuestModel {
   pauseAutomaticResponses: boolean
   currentTimeOfDay: Nullable<TimeOfDay>
   chatNotes: Nullable<string>
+  personaId: Nullable<number>
+  chatModelId: Nullable<number>
+  chatInstructionId: Nullable<number>
 }
 
 export interface ChatMessage extends ChatQuestModel {

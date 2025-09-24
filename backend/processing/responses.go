@@ -122,6 +122,15 @@ func generateResponse(
 	triggerMessage *cs.ChatMessage,
 	responderId int,
 ) {
+	if session.ChatModelId == nil {
+		logger.Warn("Chat model id is required on session")
+		return
+	}
+	if session.ChatInstructionId == nil {
+		logger.Warn("Chat instruction id is required on session")
+		return
+	}
+
 	// Fetch preferences
 	prefs, err := p.GetPreferences(true)
 	if err != nil {
@@ -137,7 +146,7 @@ func generateResponse(
 
 	// Create instructions
 	instructionVars := NewChatInstructionVars(session, prefs, chatHistory, triggerMessage, sessionMessageCount, responderId)
-	instruction, err := inst.InstructionById(*prefs.ChatInstructionId)
+	instruction, err := inst.InstructionById(*session.ChatInstructionId)
 	if err != nil {
 		logger.Error("Error fetching chat instruction", zap.Error(err))
 		return
@@ -160,7 +169,7 @@ func generateResponse(
 	}
 
 	// Get chat model instance
-	chatModelInst, err := prov.GetLlmModelInstanceById(*prefs.ChatModelId)
+	chatModelInst, err := prov.GetLlmModelInstanceById(*session.ChatModelId)
 	if err != nil {
 		logger.Error("Error fetching chat model instance", zap.Error(err))
 		return

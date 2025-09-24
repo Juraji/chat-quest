@@ -46,6 +46,10 @@ type ChatSession struct {
 	PauseAutomaticResponses bool       `json:"pauseAutomaticResponses"`
 	CurrentTimeOfDay        *TimeOfDay `json:"currentTimeOfDay"`
 	ChatNotes               *string    `json:"chatNotes"`
+
+	PersonaID         *int `json:"personaId"`
+	ChatModelId       *int `json:"chatModelId"`
+	ChatInstructionId *int `json:"chatInstructionId"`
 }
 
 func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
@@ -61,6 +65,9 @@ func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
 		&dest.PauseAutomaticResponses,
 		&dest.CurrentTimeOfDay,
 		&dest.ChatNotes,
+		&dest.PersonaID,
+		&dest.ChatModelId,
+		&dest.ChatInstructionId,
 	)
 }
 
@@ -87,12 +94,30 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 	session.WorldID = worldId
 	session.CreatedAt = nil
 	session.ChatNotes = util.EmptyStrToNil(session.ChatNotes)
+	if session.GenerateMemories {
+		session.AutoArchiveMessages = true
+	}
 
 	var addedParticipants []*ChatParticipant
 	err := database.Transactional(func(ctx *database.TxContext) error {
 		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, generate_memories, use_memories,
-                           auto_archive_messages, pause_automatic_responses, current_time_of_day, chat_notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at`
+                           auto_archive_messages, pause_automatic_responses, current_time_of_day, chat_notes,
+                           persona_id, chat_model_id, chat_instruction_id)
+				  VALUES (
+					  ?, -- world_id
+					  ?, -- name
+					  ?, -- scenario_id
+					  ?, -- generate_memories
+					  ?, -- use_memories
+					  ?, -- auto_archive_messages
+					  ?, -- pause_automatic_responses
+					  ?, -- current_time_of_day
+					  ?, -- chat_notes
+					  COALESCE(?, (SELECT w.persona_id FROM worlds w WHERE w.id = ?)), -- persona_id with fallback to default
+					  COALESCE(?, (SELECT p.chat_model_id FROM preferences p WHERE p.id = 0)), -- chat_model_id with fallback to default
+					  COALESCE(?, (SELECT p.chat_instruction_id FROM preferences p WHERE p.id = 0)) -- chat_instruction_id with fallback to default
+				  )
+				  RETURNING id, created_at;`
 		args := []any{
 			session.WorldID,
 			session.Name,
@@ -103,6 +128,10 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 			session.PauseAutomaticResponses,
 			session.CurrentTimeOfDay,
 			session.ChatNotes,
+			session.PersonaID,
+			session.WorldID, // Matches to world sub-select
+			session.ChatModelId,
+			session.ChatInstructionId,
 		}
 
 		err := ctx.InsertRecord(query, args, &session.ID, &session.CreatedAt)
@@ -155,6 +184,9 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 
 func Update(worldId int, id int, session *ChatSession) error {
 	session.ChatNotes = util.EmptyStrToNil(session.ChatNotes)
+	if session.GenerateMemories {
+		session.AutoArchiveMessages = true
+	}
 
 	query := `UPDATE chat_sessions
             SET name = ?,
@@ -164,7 +196,10 @@ func Update(worldId int, id int, session *ChatSession) error {
                 auto_archive_messages = ?,
                 pause_automatic_responses = ?,
                 current_time_of_day = ?,
-                chat_notes = ?
+                chat_notes = ?,
+                persona_id = ?,
+                chat_model_id = ?,
+                chat_instruction_id = ?
             WHERE world_id = ?
               AND id = ?`
 	args := []any{
@@ -176,6 +211,9 @@ func Update(worldId int, id int, session *ChatSession) error {
 		session.PauseAutomaticResponses,
 		session.CurrentTimeOfDay,
 		session.ChatNotes,
+		session.PersonaID,
+		session.ChatModelId,
+		session.ChatInstructionId,
 		worldId,
 		id,
 	}
@@ -209,7 +247,8 @@ func ForkChatSession(sessionId int, messageId int) (*ChatSession, error) {
 		// Copy chat session
 		var err error
 		query := `INSERT INTO chat_sessions (world_id, name, scenario_id, generate_memories, use_memories,
-                           auto_archive_messages, pause_automatic_responses, current_time_of_day, chat_notes)
+                           auto_archive_messages, pause_automatic_responses, current_time_of_day, chat_notes,
+                           persona_id, chat_model_id, chat_instruction_id)
 				  SELECT world_id,
 				         name || ' (forked)',
 				         scenario_id,
@@ -218,11 +257,15 @@ func ForkChatSession(sessionId int, messageId int) (*ChatSession, error) {
 				         auto_archive_messages,
 				         pause_automatic_responses,
 				         current_time_of_day,
-				         chat_notes
+				         chat_notes,
+				         persona_id,
+				         chat_model_id,
+				         chat_instruction_id
 				  FROM chat_sessions
 				  WHERE id = ?
 				  RETURNING id, world_id, created_at, name, scenario_id, generate_memories, use_memories,
-				      auto_archive_messages, pause_automatic_responses, current_time_of_day, chat_notes;`
+				      auto_archive_messages, pause_automatic_responses, current_time_of_day, chat_notes,
+				      persona_id, chat_model_id, chat_instruction_id;`
 		args := []any{sessionId}
 		if newSession, err = database.QueryForRecord(query, args, chatSessionScanner); err != nil {
 			return err

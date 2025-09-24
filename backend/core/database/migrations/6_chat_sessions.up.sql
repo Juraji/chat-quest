@@ -5,12 +5,15 @@ CREATE TABLE chat_sessions
   created_at                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   name                      VARCHAR(100) NOT NULL,
   scenario_id               INTEGER REFERENCES scenarios (id) ON DELETE CASCADE,
-  generate_memories         BIT(1) NOT NULL,
-  use_memories              BIT(1) NOT NULL,
-  auto_archive_messages     BIT(1) NOT NULL,
-  pause_automatic_responses BIT(1) NOT NULL,
+  generate_memories         BIT(1)  NOT NULL,
+  use_memories              BIT(1)  NOT NULL,
+  auto_archive_messages     BIT(1)  NOT NULL,
+  pause_automatic_responses BIT(1)  NOT NULL,
   current_time_of_day       VARCHAR(50),
-  chat_notes                TEXT
+  chat_notes                TEXT,
+  persona_id                INTEGER DEFAULT NULL REFERENCES characters (id) ON DELETE SET DEFAULT,
+  chat_model_id             INTEGER REFERENCES llm_models (id) ON DELETE SET NULL,
+  chat_instruction_id       INTEGER REFERENCES instructions (id) ON DELETE SET NULL
 );
 
 create table chat_participants

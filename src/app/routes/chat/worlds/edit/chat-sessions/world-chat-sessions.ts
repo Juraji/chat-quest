@@ -38,7 +38,10 @@ export class WorldChatSessions {
       autoArchiveMessages: true,
       pauseAutomaticResponses: false,
       currentTimeOfDay: null,
-      chatNotes: null
+      chatNotes: null,
+      personaId: null,
+      chatModelId: null,
+      chatInstructionId: null
     }
 
     this.chatSessionsService

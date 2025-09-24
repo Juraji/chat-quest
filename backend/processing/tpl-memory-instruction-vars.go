@@ -6,7 +6,6 @@ import (
 
 	c "juraji.nl/chat-quest/model/characters"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
-	w "juraji.nl/chat-quest/model/worlds"
 )
 
 type MemoryInstructionVars interface {
@@ -40,14 +39,10 @@ func NewMemoryInstructionVars(session *cs.ChatSession, before time.Time) MemoryI
 			return templateVars, nil
 		}),
 		persona: sync.OnceValues(func() (SparseTemplateCharacter, error) {
-			world, err := w.WorldById(session.WorldID)
-			if err != nil {
-				return nil, err
-			}
-			if world.PersonaID == nil {
+			if session.PersonaID == nil {
 				return nil, nil
 			}
-			character, err := c.CharacterById(*world.PersonaID)
+			character, err := c.CharacterById(*session.PersonaID)
 			if err != nil {
 				return nil, err
 			}
