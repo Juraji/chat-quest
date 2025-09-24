@@ -8,10 +8,12 @@ import {ChatSessionData} from '../../chat-session-data';
 import {Scenario} from '@api/scenarios';
 import {LlmModelView} from '@api/providers';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {debounceTime} from 'rxjs';
+import {debounceTime, filter, map, MonoTypeOperatorFunction, pairwise, pipe} from 'rxjs';
 import {LlmLabelPipe} from '@components/llm-label.pipe';
 import {Instruction} from '@api/instructions';
 import {RouterLink} from '@angular/router';
+
+const TEXT_FIELD_DEBOUNCE_TIME = 2500 // ms
 
 @Component({
   selector: 'chat-session-details-block',
@@ -52,8 +54,8 @@ export class ChatSessionDetailsBlock {
     useMemories: formControl(false),
     autoArchiveMessages: formControl(false),
     pauseAutomaticResponses: formControl(false),
-    currentTimeOfDay: formControl(null, [Validators.required]),
-    chatNotes: formControl(null, [Validators.required]),
+    currentTimeOfDay: formControl(null),
+    chatNotes: formControl(null),
     personaId: formControl(null),
     chatModelId: formControl(null, [Validators.required]),
     chatInstructionId: formControl(null, [Validators.required]),
@@ -67,41 +69,54 @@ export class ChatSessionDetailsBlock {
   constructor() {
     effect(() => {
       const session = this.session();
-      this.sessionForm.reset(session, {emitEvent: false})
+      this.sessionForm.reset(session)
+
+      if (session.generateMemories) {
+        this.sessionForm.get("autoArchiveMessages")!.disable()
+      } else {
+        this.sessionForm.get("autoArchiveMessages")!.enable()
+      }
     });
 
+    const valueListenerOp: <T>() => MonoTypeOperatorFunction<T> = () => pipe(
+      takeUntilDestroyed(),
+      pairwise(),
+      filter(([p, n]) => p !== undefined && p !== n),
+      map(n => n[1])
+    )
+
     this.sessionForm.get("name")!.valueChanges
-      .pipe(takeUntilDestroyed(), debounceTime(1000))
+      .pipe(valueListenerOp(), debounceTime(TEXT_FIELD_DEBOUNCE_TIME))
       .subscribe(name => this.updateSession({name}))
     this.sessionForm.get("generateMemories")!.valueChanges
-      .pipe(takeUntilDestroyed())
+      .pipe(valueListenerOp())
       .subscribe(generateMemories => this.updateSession({generateMemories}))
     this.sessionForm.get("useMemories")!.valueChanges
-      .pipe(takeUntilDestroyed())
+      .pipe(valueListenerOp())
       .subscribe(useMemories => this.updateSession({useMemories}))
     this.sessionForm.get("autoArchiveMessages")!.valueChanges
-      .pipe(takeUntilDestroyed())
+      .pipe(valueListenerOp())
       .subscribe(autoArchiveMessages => this.updateSession({autoArchiveMessages}))
     this.sessionForm.get("pauseAutomaticResponses")!.valueChanges
-      .pipe(takeUntilDestroyed())
+      .pipe(valueListenerOp())
       .subscribe(pauseAutomaticResponses => this.updateSession({pauseAutomaticResponses}))
     this.sessionForm.get("personaId")!.valueChanges
-      .pipe(takeUntilDestroyed())
+      .pipe(valueListenerOp())
       .subscribe(personaId => this.updateSession({personaId}))
     this.sessionForm.get("scenarioId")!.valueChanges
-      .pipe(takeUntilDestroyed())
+      .pipe(valueListenerOp())
       .subscribe(scenarioId => this.updateSession({scenarioId}))
     this.sessionForm.get("chatModelId")!.valueChanges
-      .pipe(takeUntilDestroyed())
+      .pipe(valueListenerOp())
       .subscribe(chatModelId => this.updateSession({chatModelId}))
     this.sessionForm.get("chatInstructionId")!.valueChanges
-      .pipe(takeUntilDestroyed())
+      .pipe(valueListenerOp())
       .subscribe(chatInstructionId => this.updateSession({chatInstructionId}))
     this.sessionForm.get("currentTimeOfDay")!.valueChanges
-      .pipe(takeUntilDestroyed())
+      .pipe(valueListenerOp())
       .subscribe(currentTimeOfDay => this.updateSession({currentTimeOfDay}))
     this.sessionForm.get("chatNotes")!.valueChanges
-      .pipe(takeUntilDestroyed(), debounceTime(1000))
+      .pipe(valueListenerOp(), debounceTime(TEXT_FIELD_DEBOUNCE_TIME))
       .subscribe(chatNotes => this.updateSession({chatNotes}))
   }
 
