@@ -17,14 +17,11 @@ import {NEW_ID} from '@api/common';
 import {defer, map} from 'rxjs';
 import {booleanSignal, controlValueSignal, formControl} from '@util/ng';
 import {SSE} from '@api/sse';
-import {Characters} from '@api/characters';
 import {ReactiveFormsModule} from '@angular/forms';
+import {Characters} from '@api/characters';
 
-interface PerCharacterCount {
-  characterName: string
-  total: number
-  always: number
-}
+type SearchType = "CHARACTER" | "CONTENT"
+const PAGE_SIZE = 10
 
 @Component({
   selector: 'memory-list',
@@ -43,9 +40,7 @@ export class MemoryList {
   readonly worldId: InputSignal<number> = input.required()
   readonly characterId: InputSignal<Nullable<number>> = input()
   readonly disabled = input(false, {transform: booleanAttribute})
-  readonly collapsed = input(true, {transform: booleanAttribute})
 
-  protected readonly isCollapsed = booleanSignal(this.collapsed)
   protected readonly addMemoryActive = booleanSignal(false)
   protected readonly newMemoryTpl = computed(() => ({
     id: NEW_ID,
@@ -58,33 +53,34 @@ export class MemoryList {
 
   protected readonly memories: WritableSignal<Memory[]> = signal([])
 
+  // Stage 1: Text search
   protected readonly searchControl = formControl('')
   protected readonly searchControlValue = controlValueSignal(this.searchControl)
-  protected readonly filteredMemories: Signal<Memory[]> = computed(() => {
+  protected readonly searchType: WritableSignal<SearchType> = signal("CONTENT")
+  protected readonly searchResult: Signal<Memory[]> = computed(() => {
     const val = this.searchControlValue().toLowerCase()
     const memories = this.memories()
 
     if (val.length === 0) return memories
-    return memories.filter(m => m.content.toLowerCase().includes(val))
+
+    if (this.searchType() === "CHARACTER") {
+      const characterIds = this.charactersService.all()
+        .filter(c => c.name.toLowerCase().includes(val))
+        .map(c => c.id)
+      return memories.filter(m => !!m.characterId && characterIds.includes(m.characterId))
+    } else {
+      return memories.filter(m => m.content.toLowerCase().includes(val))
+    }
   })
 
-  protected readonly showCounts = booleanSignal(false)
-  protected readonly counts: Signal<PerCharacterCount[]> = computed(() => {
-    const characters = this.charactersService.all()
-    const memories = this.memories()
+  // Stage 2: Pagination
+  protected readonly offsetCount = computed(() => Math.floor(this.searchResult().length / PAGE_SIZE))
+  protected readonly currentOffset = signal(0)
+  protected readonly paginated = computed(() => {
+    const searchResult = this.searchResult()
+    const offset = PAGE_SIZE * this.currentOffset()
 
-    const counts: PerCharacterCount[] = []
-    for (const char of characters) {
-      const charMemories = memories.filter(m => m.characterId === char.id)
-      if (charMemories.length === 0) continue
-      counts.push({
-        characterName: char.name,
-        total: charMemories.length,
-        always: charMemories.filter(m => m.alwaysInclude).length
-      })
-    }
-
-    return counts
+    return searchResult.slice(offset, offset + PAGE_SIZE)
   })
 
   constructor() {
@@ -128,6 +124,25 @@ export class MemoryList {
       .on(MemoryDeleted)
       .subscribe(id => this.memories.update(memories =>
         arrayRemove(memories, m => m.id === id)))
+  }
+
+  onToggleSearchType() {
+    this.searchType.update(current => {
+      switch (current) {
+        case "CHARACTER":
+          return "CONTENT"
+        case "CONTENT":
+          return "CHARACTER"
+      }
+    })
+  }
+
+  onPreviousPage() {
+    this.currentOffset.update(c => c - 1 || 0)
+  }
+
+  onNextPage() {
+    this.currentOffset.update(c => c + 1)
   }
 
   onSaveMemory(memory: Memory) {

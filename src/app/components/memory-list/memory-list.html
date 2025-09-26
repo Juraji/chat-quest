@@ -8,24 +8,6 @@
 
       @if (!disabled()) {
         <div class="btn-toolbar justify-content-end gap-1">
-          <button type="button" class="collapse-btn btn btn-sm btn-secondary"
-                  title="Show/hide counts"
-                  (click)="showCounts.toggle()">
-            @if (showCounts()) {
-              <span class="bi bi-person-slash"></span>
-            } @else {
-              <span class="bi bi-person"></span>
-            }
-          </button>
-          <button type="button" class="collapse-btn btn btn-sm btn-secondary"
-                  title="Expand/Collapse memories"
-                  (click)="isCollapsed.toggle()">
-            @if (isCollapsed()) {
-              <span class="bi bi-chevron-double-down"></span>
-            } @else {
-              <span class="bi bi-chevron-double-up"></span>
-            }
-          </button>
           @if (addMemoryActive()) {
             <button type="button" class="btn btn-sm btn-outline-danger"
                     (click)="addMemoryActive.setFalse()">Cancel
@@ -49,38 +31,36 @@
       <hr/>
     }
 
-    @if (showCounts()) {
-      <table class="table table-sm table-striped table-borderless small">
-        <thead>
-        <tr>
-          <th></th>
-          <th>Total</th>
-          <th title="Static/Always Included memories will be included to the world data regardless of content.">
-            <span>Static</span><span class="bi bi-question-circle ms-2"></span>
-          </th>
-        </tr>
-        </thead>
-        <tbody>
-          @for (cnt of counts(); track cnt.characterName) {
-            <tr>
-              <th>{{ cnt.characterName }}</th>
-              <td>{{ cnt.total }}</td>
-              <td>{{ cnt.always }}</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-      <hr/>
-    }
-
-    <div class="mb-3">
-      <input type="text" class="form-control form-control-sm"
+    <div class="input-group input-group-sm mb-3">
+      <input type="text" class="form-control"
              placeholder="Search contents"
              [formControl]="searchControl"/>
+      <button type="button" class="btn btn-secondary" (click)="onToggleSearchType()">
+        @switch (searchType()) {
+          @case ("CHARACTER") {
+            <span class="bi bi-person"></span>
+          }
+          @case ("CONTENT") {
+            <span class="bi bi-text-paragraph"></span>
+          }
+        }
+      </button>
     </div>
 
-    <div class="memory-list d-flex flex-column" [class.collapsed]="isCollapsed()">
-      @for (m of filteredMemories(); track m.id) {
+    <div class="btn-toolbar justify-content-between align-items-center my-2">
+      <button type="button" class="btn btn-sm btn-secondary"
+              [disabled]="currentOffset() == 0"
+              (click)="onPreviousPage()">Previous
+      </button>
+      <div class="small">Page {{ currentOffset() + 1 }} of {{ offsetCount() + 1 }}</div>
+      <button type="button" class="btn btn-sm btn-secondary"
+              [disabled]="currentOffset() >= offsetCount()"
+              (click)="onNextPage()">Next
+      </button>
+    </div>
+
+    <div class="memory-list d-flex flex-column">
+      @for (m of paginated(); track m.id) {
         <memory-list-item
           [memory]="m"
           [characterId]="characterId()"

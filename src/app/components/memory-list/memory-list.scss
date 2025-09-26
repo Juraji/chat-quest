@@ -1,13 +1,5 @@
-@import "../../../styles/colors";
-
 :host {
   .memory-list {
     position: relative;
-
-    &.collapsed {
-      overflow: hidden;
-      overflow-y: auto;
-      max-height: 25rem;
-    }
   }
 }

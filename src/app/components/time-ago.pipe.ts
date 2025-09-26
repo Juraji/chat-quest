@@ -19,6 +19,11 @@ export class TimeAgoPipe implements PipeTransform {
     const baseDate = new Date(date)
 
     if (interactive) {
+      const now = new Date()
+      if (baseDate.getTime() < (new Date().getTime() - 86400)) {
+        return of(this.format(baseDate, now))
+      }
+
       return this.updateInterval.pipe(map(() => {
         const now = new Date();
         return this.format(baseDate, now);
