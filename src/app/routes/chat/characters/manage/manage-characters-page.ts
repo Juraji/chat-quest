@@ -16,7 +16,6 @@ import {Scalable} from '@components/scalable/scalable';
     Scalable
   ],
   templateUrl: './manage-characters-page.html',
-  styleUrls: ['./manage-characters-page.scss'],
 })
 export class ManageCharactersPage {
   private readonly charactersService = inject(Characters)
