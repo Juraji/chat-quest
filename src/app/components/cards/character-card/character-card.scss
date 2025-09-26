@@ -1,6 +1,11 @@
 @import "../../../../styles/colors";
 
 :host {
+  .card {
+    --bs-card-border-color: #272727;
+    box-sizing: border-box;
+  }
+
   &.favorite .card {
     border-color: $special;
     color: $special;

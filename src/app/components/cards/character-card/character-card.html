@@ -5,9 +5,7 @@
           [class.bi-star-fill]="favorite()"></span>
     <h5 class="card-title mb-0 text-center flex-grow-1 text-truncate">{{ name() }}</h5>
   </div>
-  <div class="card-body">
-    <app-tags-control class="tags" [tags]="tags()" [disabled]="true"></app-tags-control>
-  </div>
+  <div class="card-body"></div>
   <div class="card-footer">
     <div class="btn-toolbar justify-content-center gap-2">
       <ng-content select=".btn,.action"></ng-content>

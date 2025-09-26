@@ -21,15 +21,6 @@ type Character struct {
 	GroupTalkativeness float32    `json:"groupTalkativeness"`
 }
 
-type CharacterListView struct {
-	ID        int        `json:"id"`
-	CreatedAt *time.Time `json:"createdAt"`
-	Name      string     `json:"name"`
-	Favorite  bool       `json:"favorite"`
-	AvatarUrl *string    `json:"avatarUrl"`
-	Tags      []Tag      `json:"tags"`
-}
-
 func CharacterScanner(scanner database.RowScanner, dest *Character) error {
 	return scanner.Scan(
 		&dest.ID,
@@ -44,31 +35,9 @@ func CharacterScanner(scanner database.RowScanner, dest *Character) error {
 	)
 }
 
-func characterListViewScanner(scanner database.RowScanner, dest *CharacterListView) error {
-	return scanner.Scan(
-		&dest.ID,
-		&dest.CreatedAt,
-		&dest.Name,
-		&dest.Favorite,
-		&dest.AvatarUrl,
-	)
-}
-
-func AllCharacterListViews() ([]CharacterListView, error) {
-	query := "SELECT id, created_at, name, favorite, avatar_url FROM characters"
-
-	characters, err := database.QueryForList(query, nil, characterListViewScanner)
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range characters {
-		char := &characters[i]
-		tags, _ := TagsByCharacterId(char.ID)
-		char.Tags = tags
-	}
-
-	return characters, nil
+func AllCharacters() ([]Character, error) {
+	query := "SELECT * FROM characters"
+	return database.QueryForList(query, nil, CharacterScanner)
 }
 
 func CharacterById(id int) (*Character, error) {
@@ -252,15 +221,6 @@ func DuplicateCharacter(characterId int) (*Character, error) {
 		}
 
 		newCharId := newCharacter.ID
-
-		query = `INSERT INTO character_tags (character_id, tag_id)
-				 SELECT ?, tag_id
-				 FROM character_tags
-				 WHERE character_id = ?`
-		args = []any{newCharId, characterId}
-		if err = database.UpdateRecord(query, args); err != nil {
-			return err
-		}
 
 		query = `INSERT INTO character_dialogue_examples (character_id, text)
 				 SELECT ?, text

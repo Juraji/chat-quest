@@ -1,17 +1,9 @@
 import {Injectable} from '@angular/core';
 import {CharacterFormData} from './character-form-data';
-import {
-  formArray,
-  formControl,
-  formGroup,
-  readOnlyControl,
-  TypedFormArray,
-  TypedFormControl,
-  TypedFormGroup
-} from '@util/ng';
+import {formArray, formControl, formGroup, readOnlyControl, TypedFormArray, TypedFormGroup} from '@util/ng';
 import {FormArray, Validators} from '@angular/forms';
 import {Observable, Subject} from 'rxjs';
-import {Character, Tag} from '@api/characters';
+import {Character} from '@api/characters';
 
 @Injectable()
 export class CharacterEditFormService {
@@ -28,15 +20,12 @@ export class CharacterEditFormService {
       history: formControl<Nullable<string>>(null),
       groupTalkativeness: formControl(0)
     }),
-    tags: formControl([]),
     dialogueExamples: formArray([]),
     greetings: formArray([]),
   })
 
   readonly characterFG: TypedFormGroup<Character> =
     this.formGroup.get('character') as TypedFormGroup<Character>
-  readonly tagsCtrl: TypedFormControl<Tag[]> =
-    this.formGroup.get('tags') as TypedFormControl<Tag[]>
   readonly dialogueExamplesFA: TypedFormArray<string> =
     this.formGroup.get('dialogueExamples') as FormArray
   readonly greetingsFA: TypedFormArray<string> =

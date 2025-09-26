@@ -1,5 +1,5 @@
 import {Component, computed, inject, Signal} from '@angular/core';
-import {BaseCharacter} from '@api/characters';
+import {Character} from '@api/characters';
 import {ChatParticipant, ChatSessions} from '@api/chat-sessions';
 import {CharacterCard} from '@components/cards/character-card';
 import {Scalable} from '@components/scalable/scalable';
@@ -23,13 +23,13 @@ export class ChatSessionParticipantsBlock {
   private readonly chatSessionId: Signal<number> = this.sessionData.chatSessionId
   readonly participants: Signal<ChatParticipant[]> = this.sessionData.participants
 
-  readonly available: Signal<BaseCharacter[]> = computed(() => {
+  readonly available: Signal<Character[]> = computed(() => {
     const all = this.sessionData.characters()
     const pIds = this.sessionData.participants().map(x => x.characterId)
     return all.filter(c => !pIds.includes(c.id));
   })
 
-  onAddParticipant(char: BaseCharacter) {
+  onAddParticipant(char: Character) {
     this.chatSessions
       .addParticipant(this.worldId(), this.chatSessionId(), char.id, false)
       .subscribe()

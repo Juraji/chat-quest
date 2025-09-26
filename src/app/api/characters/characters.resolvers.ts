@@ -2,7 +2,6 @@ import {ResolveFn} from '@angular/router';
 import {inject} from '@angular/core';
 import {Characters} from './characters.service';
 import {NEW_ID} from '@api/common';
-import {Tag} from './tags.model';
 import {resolveNewOrExisting} from '@util/ng';
 import {Character} from '@api/characters/characters.model';
 
@@ -48,18 +47,6 @@ export function characterGreetingsResolverFactory(idParam: string): ResolveFn<st
       idParam,
       () => [],
       id => service.getGreetings(id)
-    );
-  }
-}
-
-export function characterTagsResolverFactory(idParam: string): ResolveFn<Tag[]> {
-  return route => {
-    const service = inject(Characters)
-    return resolveNewOrExisting(
-      route,
-      idParam,
-      () => [],
-      id => service.getTags(id)
     );
   }
 }

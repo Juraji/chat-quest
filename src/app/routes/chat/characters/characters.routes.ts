@@ -4,7 +4,6 @@ import {
   characterDialogExamplesResolverFactory,
   characterGreetingsResolverFactory,
   characterResolverFactory,
-  characterTagsResolverFactory
 } from '@api/characters';
 import {EditCharacterPage} from './edit/edit-character-page';
 
@@ -20,7 +19,6 @@ const routes: Routes = [
     loadChildren: () => import("./edit/character-edit.routes"),
     resolve: {
       character: characterResolverFactory('characterId'),
-      tags: characterTagsResolverFactory('characterId'),
       dialogueExamples: characterDialogExamplesResolverFactory('characterId'),
       greetings: characterGreetingsResolverFactory('characterId'),
     }

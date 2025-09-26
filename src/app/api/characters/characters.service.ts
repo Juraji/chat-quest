@@ -1,23 +1,20 @@
 import {computed, inject, Injectable, Signal, signal, WritableSignal} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {map, mergeMap, Observable} from 'rxjs';
-import {Character, CharacterCreated, CharacterDeleted, CharacterListView, CharacterUpdated} from './characters.model';
+import {Observable} from 'rxjs';
+import {Character, CharacterCreated, CharacterDeleted, CharacterUpdated} from './characters.model';
 import {isNew} from '@api/common';
-import {CharacterTagAdded, CharacterTagRemoved, Tag, TagDeleted, TagUpdated} from './tags.model';
 import {SSE} from '@api/sse';
-import {arrayAdd, arrayRemove, arrayReplace, arrayUpdate} from '@util/array';
-import {Tags} from '@api/characters/tags.service';
+import {arrayAdd, arrayRemove, arrayUpdate} from '@util/array';
 
 @Injectable({
   providedIn: 'root'
 })
 export class Characters {
   private http: HttpClient = inject(HttpClient)
-  private readonly tags = inject(Tags)
   private readonly sse = inject(SSE)
 
-  private readonly lvCache: WritableSignal<CharacterListView[]> = signal([]);
-  readonly all: Signal<CharacterListView[]> = computed(() => this
+  private readonly lvCache: WritableSignal<Character[]> = signal([]);
+  readonly all: Signal<Character[]> = computed(() => this
     .lvCache().slice().sort((a, b) =>
       a.favorite === b.favorite
         ? a.name.localeCompare(b.name)
@@ -27,7 +24,7 @@ export class Characters {
     this.setupLVCache()
   }
 
-  listViewBy(idFn: () => Nullable<number>): Signal<Nullable<CharacterListView>> {
+  listViewBy(idFn: () => Nullable<number>): Signal<Nullable<Character>> {
     return computed(() => {
       const id = idFn()
       if (!!id) {
@@ -59,14 +56,6 @@ export class Characters {
     return this.http.delete<void>(`/characters/${characterId}`)
   }
 
-  getTags(characterId: number): Observable<Tag[]> {
-    return this.http.get<Tag[]>(`/characters/${characterId}/tags`)
-  }
-
-  saveTags(characterId: number, tagIds: number[]): Observable<void> {
-    return this.http.post<void>(`/characters/${characterId}/tags`, tagIds)
-  }
-
   getDialogueExamples(characterId: number): Observable<string[]> {
     return this.http.get<string[]>(`/characters/${characterId}/dialogue-examples`)
   }
@@ -86,50 +75,21 @@ export class Characters {
   private setupLVCache() {
     // Hydrate
     this.http
-      .get<CharacterListView[]>('/characters')
+      .get<Character[]>('/characters')
       .subscribe(chars => this.lvCache.set(chars))
 
     // Listen for changes
     this.sse
       .on(CharacterCreated)
-      .subscribe(char => {
-        const lv: CharacterListView = {...char, tags: []}
-        this.lvCache.update(cache =>
-          arrayAdd(cache, lv))
-      })
+      .subscribe(char => this.lvCache.update(cache =>
+        arrayAdd(cache, char)))
     this.sse
       .on(CharacterUpdated)
-      .subscribe(char => {
-        this.lvCache.update(cache =>
-          arrayUpdate(cache, c => ({...c, ...char}), c => c.id === char.id))
-      })
+      .subscribe(char => this.lvCache.update(cache =>
+        arrayUpdate(cache, c => ({...c, ...char}), c => c.id === char.id)))
     this.sse
       .on(CharacterDeleted)
       .subscribe(id => this.lvCache.update(cache =>
         arrayRemove(cache, id)))
-
-    this.sse
-      .on(CharacterTagAdded)
-      .pipe(mergeMap(([charId, tagId]) => this.tags
-        .get(tagId)
-        .pipe(map(t => ([charId, t]) as [number, Tag]))
-      ))
-      .subscribe(([charId, tag]) => this.lvCache.update(cache =>
-        arrayUpdate(cache, c => ({...c, tags: arrayAdd(c.tags, tag)}), c => c.id === charId)))
-    this.sse
-      .on(CharacterTagRemoved)
-      .subscribe(([charId, tagId]) => this.lvCache.update(cache =>
-        arrayUpdate(cache, c => ({...c, tags: arrayRemove(c.tags, t => t.id === tagId)}), c => c.id === charId)))
-
-    this.sse
-      .on(TagUpdated)
-      .subscribe(tag =>
-        this.lvCache.update(cache => cache
-          .map(c => ({...c, tags: arrayReplace(c.tags, tag, t => t.id === tag.id)}),)))
-    this.sse
-      .on(TagDeleted)
-      .subscribe(tagId =>
-        this.lvCache.update(cache => cache
-          .map(c => ({...c, tags: arrayRemove(c.tags, t => t.id === tagId)}),)))
   }
 }
