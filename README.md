@@ -1,6 +1,7 @@
 # ChatQuest
 
 Very caution and patience, much alpha!
+There might be breaking changes between alpha versions.
 
 ![Chat View](images/chat-view.jpg "Chat View")
 
