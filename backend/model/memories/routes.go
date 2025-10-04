@@ -95,9 +95,14 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		MemoryGenerationForMessageRequestedSignal.
-			Emit(c, messageId).
-			Wait()
+		includeNPreceding := controllers.GetQueryParamAsIntOr(c, "includeNPreceding", 0)
+
+		request := GenerationRequest{
+			BaseMessageId:     messageId,
+			IncludeNPreceding: includeNPreceding,
+		}
+
+		MemoryGenerationForMessageRequestedSignal.Emit(c, request).Wait()
 		controllers.RespondEmpty(c, nil)
 	})
 }

@@ -72,11 +72,41 @@
                 <span class="bi bi-arrow-repeat"></span>
               </button>
             }
-            <button type="button" class="btn btn-sm btn-secondary"
-                    title="Generate a memory from this message"
-                    (click)="onGenerateMemory()">
-              <span class="bi bi-bookmark-heart"></span>
-            </button>
+            <div dropdown>
+              <ul class="mt-1 message-dropdown" dropdownMenu>
+                <li><h5 class="dropdown-header">Generate memory for this message</h5></li>
+                <li>
+                  <button type="button" class="dropdown-item" (click)="onGenerateMemory(null)">
+                    <span>Just this message</span>
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="dropdown-item" (click)="onGenerateMemory(1)">
+                    <span>Include previous message</span>
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="dropdown-item" (click)="onGenerateMemory(2)">
+                    <span>Include previous 2 messages</span>
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="dropdown-item" (click)="onGenerateMemory(5)">
+                    <span>Include previous 5 messages</span>
+                  </button>
+                </li>
+                <li>
+                  <button type="button" class="dropdown-item" (click)="onGenerateMemory(10)">
+                    <span>Include previous 10 messages</span>
+                  </button>
+                </li>
+              </ul>
+              <button type="button" class="btn btn-sm btn-secondary"
+                      title="Generate a memory from this message"
+                      dropdownToggle>
+                <span class="bi bi-bookmark-heart"></span>
+              </button>
+            </div>
             <button type="button" class="btn btn-sm btn-secondary"
                     title="Branch into a new chat"
                     (click)="onForkChat()">

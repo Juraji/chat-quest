@@ -39,15 +39,23 @@ var generationMutex sync.Mutex
 
 func GenerateMemoriesForMessageID(
 	ctx context.Context,
-	messageId int,
+	request m.GenerationRequest,
 ) {
 	// Lock while processing to avoid multiple messages invoking simultaneous generation
 	// for the same message window.
-	generationMutex.Lock()
+	// If the lock is already active we cancel this invocation.
+	lock := generationMutex.TryLock()
+	if !lock {
+		return
+	}
 	defer generationMutex.Unlock()
 
+	messageId := request.BaseMessageId
+	nPreceding := request.IncludeNPreceding
+
 	logger := log.Get().With(
-		zap.Int("sourceMessageId", messageId))
+		zap.Int("sourceMessageId", messageId),
+		zap.Int("includeNPreceding", nPreceding))
 
 	// Cancellation
 	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateMemories")
@@ -62,11 +70,6 @@ func GenerateMemoriesForMessageID(
 	message, err := cs.GetMessageById(messageId)
 	if err != nil {
 		logger.Error("Error fetching message", zap.Error(err))
-		return
-	}
-	prevMessage, err := cs.GetMessagesInSessionBeforeId(message.ChatSessionID, messageId, 1)
-	if err != nil {
-		logger.Error("Error fetching previous message", zap.Error(err))
 		return
 	}
 
@@ -90,12 +93,14 @@ func GenerateMemoriesForMessageID(
 		return
 	}
 
-	var messageWindow []cs.ChatMessage
-	if prevMessage != nil {
-		messageWindow = []cs.ChatMessage{*prevMessage, *message}
-	} else {
-		messageWindow = []cs.ChatMessage{*message}
+	precedingMessages, err := cs.GetMessagesInSessionBeforeId(message.ChatSessionID, messageId, nPreceding)
+	if err != nil {
+		logger.Error("Error fetching previous message", zap.Error(err))
+		return
 	}
+
+	// Create message window (preceding messages + current message)
+	messageWindow := append(precedingMessages, *message)
 
 	memories, ok := generateMemories(logger, ctx, session, prefs, messageWindow)
 	if !ok {
@@ -129,7 +134,11 @@ func GenerateMemories(
 
 	// Lock while processing to avoid multiple messages invoking simultaneous generation
 	// for the same message window.
-	generationMutex.Lock()
+	// If the lock is already active we cancel this invocation.
+	lock := generationMutex.TryLock()
+	if !lock {
+		return
+	}
 	defer generationMutex.Unlock()
 
 	sessionID := message.ChatSessionID

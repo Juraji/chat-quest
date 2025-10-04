@@ -18,6 +18,11 @@ type Memory struct {
 	EmbeddingModelId *int                `json:"-"`
 }
 
+type GenerationRequest struct {
+	BaseMessageId     int
+	IncludeNPreceding int
+}
+
 func memoryScanner(scanner database.RowScanner, dest *Memory) error {
 	return scanner.Scan(
 		&dest.ID,

@@ -15,22 +15,35 @@ func GetParamAsID(c *gin.Context, key string) (int, bool) {
 	return int(id), err == nil
 }
 
-func GetQueryParamsAsIDs(c *gin.Context, key string) ([]int, bool) {
+func GetQueryParamAsIntOr(c *gin.Context, key string, defaultValue int) int {
+	str, present := c.GetQuery(key)
+	if !present || str == "" {
+		return defaultValue
+	}
+
+	i, err := strconv.ParseInt(str, 10, 32)
+	if err != nil {
+		return defaultValue
+	}
+	return int(i)
+}
+
+func GetQueryParamsAsInts(c *gin.Context, key string) ([]int, bool) {
 	values, ok := c.GetQueryArray(key)
 	if !ok {
 		return nil, false
 	}
 
-	ids := make([]int, len(values))
+	ints := make([]int, len(values))
 	for i, idStr := range values {
 		id, err := strconv.ParseInt(idStr, 10, 32)
 		if err != nil {
 			return nil, false
 		}
-		ids[i] = int(id)
+		ints[i] = int(id)
 	}
 
-	return ids, true
+	return ints, true
 }
 
 func RespondList[T any](c *gin.Context, list []T, err error) {

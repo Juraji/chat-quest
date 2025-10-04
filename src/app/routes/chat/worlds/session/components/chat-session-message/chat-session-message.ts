@@ -10,6 +10,7 @@ import {Memories} from '@api/memories';
 import {mergeMap} from 'rxjs';
 import {ActivatedRoute, Router} from '@angular/router';
 import {System} from '@api/system';
+import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
 
 type MessageFormGroup = Pick<ChatMessage, 'content'>
 
@@ -17,7 +18,10 @@ type MessageFormGroup = Pick<ChatMessage, 'content'>
   selector: 'chat-session-message',
   imports: [
     RenderedMessage,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    DropdownContainer,
+    DropdownToggle,
+    DropdownMenu
   ],
   templateUrl: './chat-session-message.html',
   styleUrl: './chat-session-message.scss',
@@ -103,14 +107,14 @@ Note that this and all subsequent messages will be deleted and this action can n
       })
   }
 
-  onGenerateMemory() {
+  onGenerateMemory(includeNPreceding: number | null) {
     const worldId = this.worldId();
     const {id, content} = this.message();
     const contentPreview = content.substring(0, 50)
 
     this.notifications.toast(`Requesting memory generation for "<span class="text-info">${contentPreview}</span>"...`);
     this.memories
-      .generateMemoriesForMessage(worldId, id)
+      .generateMemoriesForMessage(worldId, id, includeNPreceding)
       .subscribe(() => this.notifications.toast('Memory generation completed!'))
   }
 

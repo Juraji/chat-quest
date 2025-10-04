@@ -44,7 +44,7 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		characterIds, _ := controllers.GetQueryParamsAsIDs(c, "characterId")
+		characterIds, _ := controllers.GetQueryParamsAsInts(c, "characterId")
 
 		var session ChatSession
 		if err := c.ShouldBindJSON(&session); err != nil || !session.CurrentTimeOfDay.IsValid() {
