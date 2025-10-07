@@ -11,8 +11,8 @@ import (
 //go:embed templates/*.tmpl
 var templatesFs embed.FS
 
-func newDefaultChatInstruction() (*Instruction, error) {
-	instruction := &Instruction{
+var defaultInstructionTemplates = []*Instruction{
+	{
 		Name:             "Default Chat",
 		Type:             ChatInstruction,
 		Temperature:      1.1,
@@ -23,16 +23,16 @@ func newDefaultChatInstruction() (*Instruction, error) {
 		Stream:           true,
 		StopSequences:    nil,
 
+		ReasoningPrefix:   "<think>",
+		ReasoningSuffix:   "</think>",
+		CharacterIdPrefix: "<characterid>",
+		CharacterIdSuffix: "</characterid>",
+
 		SystemPrompt: "templates/default_chat__system_prompt.tmpl",
 		WorldSetup:   "templates/default_chat__world_setup.tmpl",
 		Instruction:  "templates/default_chat__instruction.tmpl",
-	}
-
-	return reifyInstructionTemplates(instruction)
-}
-
-func newMultiCharResponseChatInstruction() (*Instruction, error) {
-	instruction := &Instruction{
+	},
+	{
 		Name:             "Multi-Character Response (experimental)",
 		Type:             ChatInstruction,
 		Temperature:      1.1,
@@ -43,16 +43,16 @@ func newMultiCharResponseChatInstruction() (*Instruction, error) {
 		Stream:           true,
 		StopSequences:    nil,
 
+		ReasoningPrefix:   "<think>",
+		ReasoningSuffix:   "</think>",
+		CharacterIdPrefix: "<characterid>",
+		CharacterIdSuffix: "</characterid>",
+
 		SystemPrompt: "templates/multi_char_response_chat__system_prompt.tmpl",
 		WorldSetup:   "templates/multi_char_response_chat__world_setup.tmpl",
 		Instruction:  "templates/multi_char_response_chat__instruction.tmpl",
-	}
-
-	return reifyInstructionTemplates(instruction)
-}
-
-func newNPCResponseChatInstruction() (*Instruction, error) {
-	instruction := &Instruction{
+	},
+	{
 		Name:             "NPC Response (experimental)",
 		Type:             ChatInstruction,
 		Temperature:      1.1,
@@ -63,16 +63,16 @@ func newNPCResponseChatInstruction() (*Instruction, error) {
 		Stream:           true,
 		StopSequences:    nil,
 
+		ReasoningPrefix:   "<think>",
+		ReasoningSuffix:   "</think>",
+		CharacterIdPrefix: "<characterid>",
+		CharacterIdSuffix: "</characterid>",
+
 		SystemPrompt: "templates/npc_chat__system_prompt.tmpl",
 		WorldSetup:   "templates/npc_chat__world_setup.tmpl",
 		Instruction:  "templates/npc_chat__instruction.tmpl",
-	}
-
-	return reifyInstructionTemplates(instruction)
-}
-
-func newDefaultMemoryInstruction() (*Instruction, error) {
-	instruction := &Instruction{
+	},
+	{
 		Name:             "Default Memories",
 		Type:             MemoriesInstruction,
 		Temperature:      0.7,
@@ -83,15 +83,18 @@ func newDefaultMemoryInstruction() (*Instruction, error) {
 		Stream:           false,
 		StopSequences:    nil,
 
+		ReasoningPrefix:   "<think>",
+		ReasoningSuffix:   "</think>",
+		CharacterIdPrefix: "<characterid>",
+		CharacterIdSuffix: "</characterid>",
+
 		SystemPrompt: "templates/default_memories__system_prompt.tmpl",
 		WorldSetup:   "templates/default_memories__world_setup.tmpl",
 		Instruction:  "templates/default_memories__instruction.tmpl",
-	}
-
-	return reifyInstructionTemplates(instruction)
+	},
 }
 
-func reifyInstructionTemplates(instruction *Instruction) (*Instruction, error) {
+func reifyInstructionTemplate(instruction *Instruction) (*Instruction, error) {
 	props := []*string{
 		&instruction.SystemPrompt,
 		&instruction.WorldSetup,

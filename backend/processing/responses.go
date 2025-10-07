@@ -191,6 +191,12 @@ func generateResponse(
 	var reasoningBuffer strings.Builder
 	var messageStack []*cs.ChatMessage
 	var currentMessage *cs.ChatMessage
+	characterIdPrefixInitial := string(instruction.CharacterIdPrefix[0])
+	characterIdPrefix := instruction.CharacterIdPrefix
+	characterIdSuffix := instruction.CharacterIdSuffix
+	reasoningPrefixInitial := string(instruction.ReasoningPrefix[0])
+	reasoningPrefix := instruction.ReasoningPrefix
+	reasoningSuffix := instruction.ReasoningSuffix
 
 	addMessageToStack := func() {
 		currentMessage = cs.NewChatMessage(false, true, &responderId, "")
@@ -231,7 +237,7 @@ func generateResponse(
 			for _, token := range strings.Split(response.Content, "") {
 				switch currentState {
 				case InContent:
-					if token == PrefixInit {
+					if token == characterIdPrefixInitial || token == reasoningPrefixInitial {
 						currentState = PrefixDetected
 						prefixBuffer.WriteString(token)
 					} else {
@@ -249,22 +255,23 @@ func generateResponse(
 					currentPrefix := prefixBuffer.String()
 
 					// Figure out if we are in a known prefix (reasoning or Char transition)
-					if len(currentPrefix) == len(ReasoningPrefix) && strings.EqualFold(currentPrefix, ReasoningPrefix) {
+					if len(currentPrefix) == len(reasoningPrefix) && strings.EqualFold(currentPrefix, reasoningPrefix) {
 						currentState = InReasoning
 						continue
 					}
-					if len(currentPrefix) == len(CharTransitionPrefix) && strings.EqualFold(currentPrefix, CharTransitionPrefix) {
+					if len(currentPrefix) == len(characterIdPrefix) && strings.EqualFold(currentPrefix, characterIdPrefix) {
 						currentState = InCharTransition
 						continue
 					}
 
 				case InReasoning:
+					prefixBuffer.Reset()
 					reasoningBuffer.WriteString(token)
 					currentReasoning := reasoningBuffer.String()
 
-					if util.HasSuffixCaseInsensitive(currentReasoning, ReasoningSuffix) {
-						currentReasoning = strings.TrimPrefix(currentReasoning, ReasoningPrefix)
-						currentReasoning = strings.TrimSuffix(currentReasoning, ReasoningSuffix)
+					if util.HasSuffixCaseInsensitive(currentReasoning, reasoningSuffix) {
+						currentReasoning = strings.TrimPrefix(currentReasoning, reasoningPrefix)
+						currentReasoning = strings.TrimSuffix(currentReasoning, reasoningSuffix)
 						currentReasoning = strings.TrimSpace(currentReasoning)
 						reasoningBuffer.Reset()
 						reasoningBuffer.WriteString(currentReasoning)
@@ -281,8 +288,8 @@ func generateResponse(
 					prefixBuffer.WriteString(token)
 					currentPrefix := prefixBuffer.String()
 
-					if util.HasSuffixCaseInsensitive(currentPrefix, CharTransitionSuffix) {
-						characterIdStr := currentPrefix[len(CharTransitionPrefix) : len(currentPrefix)-len(CharTransitionSuffix)]
+					if util.HasSuffixCaseInsensitive(currentPrefix, characterIdSuffix) {
+						characterIdStr := currentPrefix[len(characterIdPrefix) : len(currentPrefix)-len(characterIdSuffix)]
 						characterId, err := strconv.Atoi(characterIdStr)
 						if err != nil {
 							logger.Warn("Invalid character prefix found in LLM response stream",
@@ -317,7 +324,7 @@ func generateResponse(
 				reasoningBuffer.Reset()
 			}
 
-			if contentBuffer.Len() > 0 {
+			if hasContent {
 				if len(currentMessage.Content) == 0 {
 					currentMessage.Content = strings.TrimLeftFunc(contentBuffer.String(), unicode.IsSpace)
 				} else {

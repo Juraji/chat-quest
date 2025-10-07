@@ -27,6 +27,10 @@ export function instructionResolverFactory(idParam: string): ResolveFn<Instructi
         frequencyPenalty: 1.1,
         stream: true,
         stopSequences: null,
+        reasoningPrefix: '<think>',
+        reasoningSuffix: '</think>',
+        characterIdPrefix: '<character>',
+        characterIdSuffix: '</character>',
         systemPrompt: '',
         worldSetup: '',
         instruction: ''

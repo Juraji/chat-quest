@@ -26,19 +26,29 @@ func (i InstructionType) IsValid() bool {
 }
 
 type Instruction struct {
-	ID               int             `json:"id"`
-	Name             string          `json:"name"`
-	Type             InstructionType `json:"type"`
-	Temperature      float32         `json:"temperature"`
-	MaxTokens        int             `json:"maxTokens"`
-	TopP             float32         `json:"topP"`
-	PresencePenalty  float32         `json:"presencePenalty"`
-	FrequencyPenalty float32         `json:"frequencyPenalty"`
-	Stream           bool            `json:"stream"`
-	StopSequences    *string         `json:"stopSequences"`
-	SystemPrompt     string          `json:"systemPrompt"`
-	WorldSetup       string          `json:"worldSetup"`
-	Instruction      string          `json:"instruction"`
+	ID   int             `json:"id"`
+	Name string          `json:"name"`
+	Type InstructionType `json:"type"`
+
+	// Model Settings
+	Temperature      float32 `json:"temperature"`
+	MaxTokens        int     `json:"maxTokens"`
+	TopP             float32 `json:"topP"`
+	PresencePenalty  float32 `json:"presencePenalty"`
+	FrequencyPenalty float32 `json:"frequencyPenalty"`
+	Stream           bool    `json:"stream"`
+	StopSequences    *string `json:"stopSequences"`
+
+	// Parsing
+	ReasoningPrefix   string `json:"reasoningPrefix"`
+	ReasoningSuffix   string `json:"reasoningSuffix"`
+	CharacterIdPrefix string `json:"characterIdPrefix"`
+	CharacterIdSuffix string `json:"characterIdSuffix"`
+
+	// Prompt Templates
+	SystemPrompt string `json:"systemPrompt"`
+	WorldSetup   string `json:"worldSetup"`
+	Instruction  string `json:"instruction"`
 }
 
 func (i *Instruction) AsLlmParameters() p.LlmParameters {
@@ -84,6 +94,10 @@ func instructionPromptScanner(scanner database.RowScanner, dest *Instruction) er
 		&dest.FrequencyPenalty,
 		&dest.Stream,
 		&dest.StopSequences,
+		&dest.ReasoningPrefix,
+		&dest.ReasoningSuffix,
+		&dest.CharacterIdPrefix,
+		&dest.CharacterIdSuffix,
 		&dest.SystemPrompt,
 		&dest.WorldSetup,
 		&dest.Instruction,
@@ -106,18 +120,41 @@ func CreateInstruction(inst *Instruction) error {
 	zf := util.ZeroFloat32ToNil
 	zi := util.ZeroIntToNil
 
-	query := `INSERT INTO instructions (name, type,
-                          temperature, max_tokens, top_p,
-                          presence_penalty, frequency_penalty,
-                          stream, stop_sequences,
-                          system_prompt, world_setup, instruction)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id`
+	query := `INSERT INTO instructions (
+                          name,
+                          type,
+                          temperature,
+                          max_tokens,
+                          top_p,
+                          presence_penalty,
+                          frequency_penalty,
+                          stream,
+                          stop_sequences,
+                          reasoning_prefix,
+                          reasoning_suffix,
+                          character_id_prefix,
+                          character_id_suffix,
+                          system_prompt,
+                          world_setup,
+                          instruction)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id`
 	args := []any{
-		inst.Name, inst.Type,
-		zf(inst.Temperature), zi(inst.MaxTokens), zf(inst.TopP),
-		zf(inst.PresencePenalty), zf(inst.FrequencyPenalty),
-		inst.Stream, es(inst.StopSequences),
-		inst.SystemPrompt, inst.WorldSetup, inst.Instruction,
+		inst.Name,
+		inst.Type,
+		zf(inst.Temperature),
+		zi(inst.MaxTokens),
+		zf(inst.TopP),
+		zf(inst.PresencePenalty),
+		zf(inst.FrequencyPenalty),
+		inst.Stream,
+		es(inst.StopSequences),
+		inst.ReasoningPrefix,
+		inst.ReasoningSuffix,
+		inst.CharacterIdPrefix,
+		inst.CharacterIdSuffix,
+		inst.SystemPrompt,
+		inst.WorldSetup,
+		inst.Instruction,
 	}
 
 	err := database.InsertRecord(query, args, &inst.ID)
@@ -135,18 +172,40 @@ func UpdateInstruction(id int, inst *Instruction) error {
 	zi := util.ZeroIntToNil
 
 	query := `UPDATE instructions
-            SET name = ?, type = ?,
-                temperature = ?, max_tokens = ?, top_p = ?,
-                presence_penalty = ?, frequency_penalty = ?,
-                stream = ?, stop_sequences = ?,
-                system_prompt = ?, world_setup = ?, instruction = ?
+            SET name = ?,
+                type = ?,
+                temperature = ?,
+                max_tokens = ?,
+                top_p = ?,
+                presence_penalty = ?,
+                frequency_penalty = ?,
+                stream = ?,
+                stop_sequences = ?,
+                reasoning_prefix = ?,
+                reasoning_suffix = ?,
+                character_id_prefix = ?,
+                character_id_suffix = ?,
+                system_prompt = ?,
+                world_setup = ?,
+                instruction = ?
             WHERE id = ?`
 	args := []any{
-		inst.Name, inst.Type,
-		zf(inst.Temperature), zi(inst.MaxTokens), zf(inst.TopP),
-		zf(inst.PresencePenalty), zf(inst.FrequencyPenalty),
-		inst.Stream, es(inst.StopSequences),
-		inst.SystemPrompt, inst.WorldSetup, inst.Instruction,
+		inst.Name,
+		inst.Type,
+		zf(inst.Temperature),
+		zi(inst.MaxTokens),
+		zf(inst.TopP),
+		zf(inst.PresencePenalty),
+		zf(inst.FrequencyPenalty),
+		inst.Stream,
+		es(inst.StopSequences),
+		inst.ReasoningPrefix,
+		inst.ReasoningSuffix,
+		inst.CharacterIdPrefix,
+		inst.CharacterIdSuffix,
+		inst.SystemPrompt,
+		inst.WorldSetup,
+		inst.Instruction,
 		id,
 	}
 

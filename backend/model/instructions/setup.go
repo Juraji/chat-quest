@@ -13,15 +13,8 @@ func init() {
 
 	database.MigrationsCompletedSignal.AddListener(key, func(ctx context.Context, event database.MigratedEvent) {
 		if event.IsUpIncludingVersion(execAtVersion) {
-			creators := []func() (*Instruction, error){
-				newDefaultChatInstruction,
-				newDefaultMemoryInstruction,
-				newMultiCharResponseChatInstruction,
-				newNPCResponseChatInstruction,
-			}
-
-			for _, creator := range creators {
-				template, err := creator()
+			for _, tpl := range defaultInstructionTemplates {
+				template, err := reifyInstructionTemplate(tpl)
 				if err != nil {
 					panic(err)
 				}

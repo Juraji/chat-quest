@@ -40,6 +40,12 @@ export class EditInstruction {
     frequencyPenalty: formControl<number>(1.1, [Validators.required, Validators.min(0)]),
     stream: formControl<boolean>(true),
     stopSequences: formControl<Nullable<string>>(null),
+
+    reasoningPrefix: formControl('', [Validators.required, Validators.maxLength(50)]),
+    reasoningSuffix: formControl('', [Validators.required, Validators.maxLength(50)]),
+    characterIdPrefix: formControl('', [Validators.required, Validators.maxLength(50)]),
+    characterIdSuffix: formControl('', [Validators.required, Validators.maxLength(50)]),
+
     systemPrompt: formControl('', [Validators.required]),
     worldSetup: formControl('', [Validators.required]),
     instruction: formControl('', [Validators.required]),

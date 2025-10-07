@@ -1,6 +1,8 @@
 package instructions
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"juraji.nl/chat-quest/core/util/controllers"
 )
@@ -65,5 +67,32 @@ func Routes(router *gin.RouterGroup) {
 
 		err := DeleteInstruction(templateId)
 		controllers.RespondEmpty(c, err)
+	})
+
+	instructionsRouter.GET("/default-templates", func(c *gin.Context) {
+		var tplMap map[int]*Instruction
+		for idx, tpl := range defaultInstructionTemplates {
+			tplMap[idx] = tpl
+		}
+
+		c.JSON(http.StatusOK, tplMap)
+	})
+
+	instructionsRouter.POST("/default-templates/use/:templateIndex", func(c *gin.Context) {
+		templateIndex, ok := controllers.GetParamAsID(c, "templateIndex")
+		if !ok || templateIndex < 0 || templateIndex >= len(defaultInstructionTemplates) {
+			controllers.RespondBadRequest(c, "Invalid template index", nil)
+			return
+		}
+
+		tpl := defaultInstructionTemplates[templateIndex]
+		instruction, err := reifyInstructionTemplate(tpl)
+		if err != nil {
+			controllers.RespondInternalError(c, err)
+			return
+		}
+
+		err = CreateInstruction(instruction)
+		controllers.RespondSingle(c, &instruction, err)
 	})
 }

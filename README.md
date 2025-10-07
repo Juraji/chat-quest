@@ -137,7 +137,7 @@ Structure sent to the LLM:
 Notes:
 
 - I have done no effort whatsoever to retain "system -> user/assistant" ordering.
-- Each assistant message is prefixed with `<ByCharacterId>[id]</ByCharacterId>`, in order for the LLM to be able to discern who said what.
+- Each assistant message is prefixed with `<characterid>[id]</characterid>`, in order for the LLM to be able to discern who said what.
   The default system prompt instructs the LLM about this and the parser will try to remove it if the LLM mimics it.
   Some models "understand" better than others, regardless of size or system prompt. You'll have to experiment.
 - If the model wants to respond as someone else and sets up the character marker correctly, ChatQuest will understand and follow.
