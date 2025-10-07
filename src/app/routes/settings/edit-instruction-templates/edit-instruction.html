@@ -109,18 +109,6 @@ options that add up to a probability of 'P', making the output more diverse yet 
               </div>
             </div>
             <div class="mb-3">
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="streamInput"
-                       formControlName="stream"/>
-                <label class="form-check-label" for="streamInput"
-                       title="Enable streaming responses; Instead of generating the response and displaying it,
-the response will appear in chunks, like you see on popular chat platforms.">
-                  <span>Stream</span>
-                  <span class="bi bi-question-circle ms-1 form-text"></span>
-                </label>
-              </div>
-            </div>
-            <div>
               <label for="stopTokensInput">Stop Sequences</label>
               <input type="number" class="form-control"
                      step="0.01"
@@ -134,6 +122,30 @@ Example: '###,word' stops at '###' and 'word'.">
                 <span class="bi bi-question-circle ms-1"></span>
               </div>
             </div>
+            <div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="streamInput"
+                       formControlName="stream"/>
+                <label class="form-check-label" for="streamInput"
+                       title="Enable streaming responses; Instead of generating the response and displaying it,
+the response will appear in chunks, like you see on popular chat platforms.">
+                  <span>Stream</span>
+                  <span class="bi bi-question-circle ms-1 form-text"></span>
+                </label>
+              </div>
+
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox"
+                       id="includeReasoningInput"
+                       formControlName="includeReasoning"/>
+                <label class="form-check-label" for="includeReasoningInput"
+                       title="Reasoning is stripped from the message upon parsing.
+When this option is checked, any reasoning from the chat history is readded using the prefix/suffix from below, before the history is sent to the model.">
+                  <span>Include Reasoning in history</span>
+                  <span class="bi bi-question-circle ms-1 form-text"></span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -143,14 +155,14 @@ Example: '###,word' stops at '###' and 'word'.">
 
             <div class="grid gap-1">
               <div class="g-col-12 g-col-lg-6">
-                <label for="reasoningPrefixInput">Reasoning Start</label>
+                <label for="reasoningPrefixInput">Reasoning Prefix</label>
                 <input class="form-control"
                        id="reasoningPrefixInput"
                        aria-describedby="reasoningPrefixSuffixInputHelp"
                        formControlName="reasoningPrefix"/>
               </div>
               <div class="g-col-12 g-col-lg-6">
-                <label for="reasoningSuffixInput">Reasoning End</label>
+                <label for="reasoningSuffixInput">Reasoning Suffix</label>
                 <input class="form-control"
                        id="reasoningSuffixInput"
                        aria-describedby="reasoningPrefixSuffixInputHelp"
@@ -165,14 +177,14 @@ Example: '###,word' stops at '###' and 'word'.">
 
             <div class="grid gap-1">
               <div class="g-col-12 g-col-lg-6">
-                <label for="characterIdPrefixInput">Character Marker Start</label>
+                <label for="characterIdPrefixInput">Character Marker Prefix</label>
                 <input class="form-control"
                        id="characterIdPrefixInput"
                        aria-describedby="characterIdPrefixSuffixInputHelp"
                        formControlName="characterIdPrefix"/>
               </div>
               <div class="g-col-12 g-col-lg-6">
-                <label for="characterIdSuffixInput">Character Marker End</label>
+                <label for="characterIdSuffixInput">Character Marker Suffix</label>
                 <input class="form-control"
                        id="characterIdSuffixInput"
                        aria-describedby="characterIdPrefixSuffixInputHelp"

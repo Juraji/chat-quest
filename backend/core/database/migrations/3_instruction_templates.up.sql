@@ -12,6 +12,7 @@ CREATE TABLE instructions
   frequency_penalty   FLOAT        NOT NULL,
   stream              BIT(1)       NOT NULL,
   stop_sequences      VARCHAR(1024),
+  include_reasoning BIT(1) NOT NULL,
 
   -- Parsing
   reasoning_prefix    VARCHAR(50)  NOT NULL,

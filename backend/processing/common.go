@@ -43,11 +43,21 @@ func createChatRequestMessages(
 		if msg.IsUser {
 			messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: msg.Content})
 		} else {
-			content := fmt.Sprintf("%s%v%s\n\n%s",
+			var content string
+
+			if instruction.IncludeReasoning && len(msg.Reasoning) > 0 {
+				content = fmt.Sprintf("%s\n%s\n%s\n\n",
+					instruction.ReasoningPrefix,
+					msg.Reasoning,
+					instruction.ReasoningSuffix)
+			}
+
+			content = content + fmt.Sprintf("%s%v%s\n\n%s",
 				instruction.CharacterIdPrefix,
 				*msg.CharacterID,
 				instruction.CharacterIdSuffix,
 				msg.Content)
+
 			messages = append(messages, p.ChatRequestMessage{Role: p.RoleAssistant, Content: content})
 		}
 	}

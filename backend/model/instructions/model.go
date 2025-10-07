@@ -38,6 +38,7 @@ type Instruction struct {
 	FrequencyPenalty float32 `json:"frequencyPenalty"`
 	Stream           bool    `json:"stream"`
 	StopSequences    *string `json:"stopSequences"`
+	IncludeReasoning bool    `json:"includeReasoning"`
 
 	// Parsing
 	ReasoningPrefix   string `json:"reasoningPrefix"`
@@ -94,6 +95,7 @@ func instructionPromptScanner(scanner database.RowScanner, dest *Instruction) er
 		&dest.FrequencyPenalty,
 		&dest.Stream,
 		&dest.StopSequences,
+		&dest.IncludeReasoning,
 		&dest.ReasoningPrefix,
 		&dest.ReasoningSuffix,
 		&dest.CharacterIdPrefix,
@@ -130,6 +132,7 @@ func CreateInstruction(inst *Instruction) error {
                           frequency_penalty,
                           stream,
                           stop_sequences,
+                          include_reasoning,
                           reasoning_prefix,
                           reasoning_suffix,
                           character_id_prefix,
@@ -137,7 +140,7 @@ func CreateInstruction(inst *Instruction) error {
                           system_prompt,
                           world_setup,
                           instruction)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id`
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?.?,?) RETURNING id`
 	args := []any{
 		inst.Name,
 		inst.Type,
@@ -148,6 +151,7 @@ func CreateInstruction(inst *Instruction) error {
 		zf(inst.FrequencyPenalty),
 		inst.Stream,
 		es(inst.StopSequences),
+		inst.IncludeReasoning,
 		inst.ReasoningPrefix,
 		inst.ReasoningSuffix,
 		inst.CharacterIdPrefix,
@@ -181,6 +185,7 @@ func UpdateInstruction(id int, inst *Instruction) error {
                 frequency_penalty = ?,
                 stream = ?,
                 stop_sequences = ?,
+                include_reasoning = ?,
                 reasoning_prefix = ?,
                 reasoning_suffix = ?,
                 character_id_prefix = ?,
@@ -199,6 +204,7 @@ func UpdateInstruction(id int, inst *Instruction) error {
 		zf(inst.FrequencyPenalty),
 		inst.Stream,
 		es(inst.StopSequences),
+		inst.IncludeReasoning,
 		inst.ReasoningPrefix,
 		inst.ReasoningSuffix,
 		inst.CharacterIdPrefix,

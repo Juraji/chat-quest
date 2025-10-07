@@ -14,6 +14,7 @@ export interface Instruction extends ChatQuestModel {
   frequencyPenalty: number
   stream: boolean
   stopSequences: Nullable<string>
+  includeReasoning: boolean
 
   // Parsing
   reasoningPrefix: string
