@@ -26,7 +26,7 @@ _Note that I have not yet written a proper wiki. As I am testing the waters, see
 
 ### Getting it running
 
-1. Download the version for your OS.
+1. Download the version for your OS [here](https://github.com/Juraji/chat-quest/releases).
 2. Run the ChatQuest executable.
 3. Open your browser at [http://localhost:8080](http://localhost:8080).
 
