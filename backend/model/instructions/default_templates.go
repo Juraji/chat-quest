@@ -28,8 +28,8 @@ var defaultInstructionTemplates = []*Instruction{
 		CharacterIdPrefix: "<characterid>",
 		CharacterIdSuffix: "</characterid>",
 
-		SystemPrompt: "templates/default_chat__system_prompt.tmpl",
-		WorldSetup:   "templates/default_chat__world_setup.tmpl",
+		SystemPrompt: util.StrAsPointer("templates/default_chat__system_prompt.tmpl"),
+		WorldSetup:   util.StrAsPointer("templates/default_chat__world_setup.tmpl"),
 		Instruction:  "templates/default_chat__instruction.tmpl",
 	},
 	{
@@ -48,8 +48,8 @@ var defaultInstructionTemplates = []*Instruction{
 		CharacterIdPrefix: "<characterid>",
 		CharacterIdSuffix: "</characterid>",
 
-		SystemPrompt: "templates/multi_char_response_chat__system_prompt.tmpl",
-		WorldSetup:   "templates/multi_char_response_chat__world_setup.tmpl",
+		SystemPrompt: util.StrAsPointer("templates/multi_char_response_chat__system_prompt.tmpl"),
+		WorldSetup:   util.StrAsPointer("templates/multi_char_response_chat__world_setup.tmpl"),
 		Instruction:  "templates/multi_char_response_chat__instruction.tmpl",
 	},
 	{
@@ -68,8 +68,8 @@ var defaultInstructionTemplates = []*Instruction{
 		CharacterIdPrefix: "<characterid>",
 		CharacterIdSuffix: "</characterid>",
 
-		SystemPrompt: "templates/npc_chat__system_prompt.tmpl",
-		WorldSetup:   "templates/npc_chat__world_setup.tmpl",
+		SystemPrompt: util.StrAsPointer("templates/npc_chat__system_prompt.tmpl"),
+		WorldSetup:   util.StrAsPointer("templates/npc_chat__world_setup.tmpl"),
 		Instruction:  "templates/npc_chat__instruction.tmpl",
 	},
 	{
@@ -88,16 +88,16 @@ var defaultInstructionTemplates = []*Instruction{
 		CharacterIdPrefix: "<characterid>",
 		CharacterIdSuffix: "</characterid>",
 
-		SystemPrompt: "templates/default_memories__system_prompt.tmpl",
-		WorldSetup:   "templates/default_memories__world_setup.tmpl",
+		SystemPrompt: util.StrAsPointer("templates/default_memories__system_prompt.tmpl"),
+		WorldSetup:   util.StrAsPointer("templates/default_memories__world_setup.tmpl"),
 		Instruction:  "templates/default_memories__instruction.tmpl",
 	},
 }
 
 func reifyInstructionTemplate(instruction *Instruction) (*Instruction, error) {
 	props := []*string{
-		&instruction.SystemPrompt,
-		&instruction.WorldSetup,
+		instruction.SystemPrompt,
+		instruction.WorldSetup,
 		&instruction.Instruction,
 	}
 

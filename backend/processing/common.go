@@ -12,6 +12,7 @@ import (
 	"juraji.nl/chat-quest/core"
 	p "juraji.nl/chat-quest/core/providers"
 	"juraji.nl/chat-quest/core/system"
+	"juraji.nl/chat-quest/core/util"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	inst "juraji.nl/chat-quest/model/instructions"
 )
@@ -29,41 +30,67 @@ func createChatRequestMessages(
 	chatHistory []cs.ChatMessage,
 	instruction *inst.Instruction,
 ) []p.ChatRequestMessage {
-	// Pre-allocate messages with history len + max number of messages added here
+	if instruction == nil {
+		return make([]p.ChatRequestMessage, 0)
+	}
+
+	// Pre-allocate with capacity for history + possible system/world messages + user instruction
 	messages := make([]p.ChatRequestMessage, 0, len(chatHistory)+3)
 
 	// Add system and world setup messages
-	messages = append(messages,
-		p.ChatRequestMessage{Role: p.RoleSystem, Content: instruction.SystemPrompt},
-		p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.WorldSetup},
-	)
+	if instruction.SystemPrompt != nil {
+		messages = append(messages, p.ChatRequestMessage{
+			Role:    p.RoleSystem,
+			Content: *instruction.SystemPrompt,
+		})
+	}
+	if instruction.WorldSetup != nil {
+		messages = append(messages, p.ChatRequestMessage{
+			Role:    p.RoleUser,
+			Content: *instruction.WorldSetup,
+		})
+	}
 
 	// Add chat history
 	for _, msg := range chatHistory {
 		if msg.IsUser {
-			messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: msg.Content})
+			messages = append(messages, p.ChatRequestMessage{
+				Role:    p.RoleUser,
+				Content: msg.Content,
+			})
 		} else {
-			var content string
+			var msgBuffer strings.Builder
 
+			// Add reasoning if enabled and available
 			if instruction.IncludeReasoning && len(msg.Reasoning) > 0 {
-				content = fmt.Sprintf("%s\n%s\n%s\n\n",
-					instruction.ReasoningPrefix,
-					msg.Reasoning,
-					instruction.ReasoningSuffix)
+				msgBuffer.WriteString(instruction.ReasoningPrefix)
+				msgBuffer.WriteString(msg.Reasoning)
+				msgBuffer.WriteString(instruction.ReasoningSuffix)
+				msgBuffer.WriteString("\n\n")
 			}
 
-			content = content + fmt.Sprintf("%s%v%s\n\n%s",
-				instruction.CharacterIdPrefix,
-				*msg.CharacterID,
-				instruction.CharacterIdSuffix,
-				msg.Content)
+			// Add character ID
+			msgBuffer.WriteString(instruction.CharacterIdPrefix)
+			msgBuffer.WriteString(fmt.Sprint(*msg.CharacterID))
+			msgBuffer.WriteString(instruction.CharacterIdSuffix)
+			msgBuffer.WriteString("\n\n")
 
-			messages = append(messages, p.ChatRequestMessage{Role: p.RoleAssistant, Content: content})
+			// Add the main content
+			msgBuffer.WriteString(msg.Content)
+
+			messages = append(messages, p.ChatRequestMessage{
+				Role:    p.RoleAssistant,
+				Content: msgBuffer.String(),
+			})
 		}
 	}
 
 	// Add user instruction message
-	messages = append(messages, p.ChatRequestMessage{Role: p.RoleUser, Content: instruction.Instruction})
+	messages = append(messages, p.ChatRequestMessage{
+		Role:    p.RoleUser,
+		Content: instruction.Instruction,
+	})
+
 	return messages
 }
 
@@ -87,11 +114,11 @@ func setupCancelBySystem(ctx context.Context, logger *zap.Logger, name string) (
 // It formats the instruction information including ID, name, parameters, and content sections.
 // If the log file already exists, it will be overwritten.
 func logInstructionsToFile(logger *zap.Logger, instruction *inst.Instruction, includedMessages []cs.ChatMessage) {
-	const msgPreviewLen = 100
-
-	path := core.Env().MkDataDir("instructions", fmt.Sprintf("last_%s_instruction.txt", instruction.Type))
-
-	nowStr := time.Now().Format("2006-01-02 15:04:05")
+	const (
+		msgPreviewLen = 100
+		timeFormat    = "2006-01-02 15:04:05"
+	)
+	nowStr := time.Now().Format(timeFormat)
 
 	var msgPreviewBuffer strings.Builder
 	for _, msg := range includedMessages {
@@ -104,14 +131,39 @@ func logInstructionsToFile(logger *zap.Logger, instruction *inst.Instruction, in
 		if msg.CharacterID != nil {
 			rolePrefix = fmt.Sprintf("Character (%d):", *msg.CharacterID)
 		}
-		timestamp := msg.CreatedAt.Format("2006-01-02 15:04:05")
+		timestamp := msg.CreatedAt.Format(timeFormat)
 
 		msgPreviewBuffer.WriteString(fmt.Sprintf("%s %s %s\n", timestamp, rolePrefix, contentPreview))
 	}
 
-	tpl := "Current Time: %s\n\nID: %v\nName: %v\nType: %v\nTemperature: %v\nMaxTokens: %v\nTopP: %v\nPresencePenalty: %v\n" +
-		"FrequencyPenalty: %v\nStream: %v\nStopSequences: %v\n\n" +
-		"--- SystemPrompt ---\n%s\n\n--- WorldSetup ---\n%s\n\n--- %d Messages (Preview) ---\n%s\n--- Instruction ---\n%s\n"
+	tpl := strings.TrimSpace(`
+Current Time: %s
+
+Instruction ID: %d
+Name: %s
+Type: %s
+Temperature: %f
+Max Tokens: %d
+TopP: %f
+Presence Penalty: %f
+Frequency Penalty: %f
+Stream: %v
+Stop Sequences: %s
+Include Reasoning: %v
+Reasoning Delimiters: %s%s
+Character Delimiters: %s%s
+
+## ——— System Prompt ————————————————————————————————————————— ##
+%s
+
+## ——— World Setup ——————————————————————————————————————————— ##
+%s
+
+## ——— %d Messages (Preview) ————————————————————————————————— ##
+%s
+
+## ——— Instruction ——————————————————————————————————————————— ##
+%s`)
 	contents := fmt.Sprintf(
 		tpl,
 		nowStr,
@@ -124,13 +176,20 @@ func logInstructionsToFile(logger *zap.Logger, instruction *inst.Instruction, in
 		instruction.PresencePenalty,
 		instruction.FrequencyPenalty,
 		instruction.Stream,
-		instruction.StopSequences,
-		instruction.SystemPrompt,
-		instruction.WorldSetup,
+		util.StrPtrOrDefault(instruction.StopSequences, "<Not Set>"),
+		instruction.IncludeReasoning,
+		instruction.ReasoningPrefix,
+		instruction.ReasoningSuffix,
+		instruction.CharacterIdPrefix,
+		instruction.CharacterIdSuffix,
+		util.StrPtrOrDefault(instruction.SystemPrompt, "<Not Set>"),
+		util.StrPtrOrDefault(instruction.WorldSetup, "<Not Set>"),
 		len(includedMessages),
 		msgPreviewBuffer.String(),
 		instruction.Instruction)
 
+	// Write contents to file
+	path := core.Env().MkDataDir("instructions", fmt.Sprintf("last_%s_instruction.txt", instruction.Type))
 	err := os.WriteFile(path, []byte(contents), 0644)
 	if err != nil {
 		logger.Error("Failed to write instructions to file",

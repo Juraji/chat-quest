@@ -47,9 +47,9 @@ type Instruction struct {
 	CharacterIdSuffix string `json:"characterIdSuffix"`
 
 	// Prompt Templates
-	SystemPrompt string `json:"systemPrompt"`
-	WorldSetup   string `json:"worldSetup"`
-	Instruction  string `json:"instruction"`
+	SystemPrompt *string `json:"systemPrompt"`
+	WorldSetup   *string `json:"worldSetup"`
+	Instruction  string  `json:"instruction"`
 }
 
 func (i *Instruction) AsLlmParameters() p.LlmParameters {
@@ -66,12 +66,16 @@ func (i *Instruction) AsLlmParameters() p.LlmParameters {
 
 func (i *Instruction) ApplyTemplates(variables any) error {
 	fields := []*string{
-		&i.SystemPrompt,
-		&i.WorldSetup,
+		i.SystemPrompt,
+		i.WorldSetup,
 		&i.Instruction,
 	}
 
 	for _, fieldPtr := range fields {
+		if fieldPtr == nil {
+			continue
+		}
+
 		result, err := util.ParseAndApplyTextTemplate(*fieldPtr, variables)
 		if err != nil {
 			return errors.Wrap(err, "Error creating template for instruction template")
@@ -156,8 +160,8 @@ func CreateInstruction(inst *Instruction) error {
 		inst.ReasoningSuffix,
 		inst.CharacterIdPrefix,
 		inst.CharacterIdSuffix,
-		inst.SystemPrompt,
-		inst.WorldSetup,
+		es(inst.SystemPrompt),
+		es(inst.WorldSetup),
 		inst.Instruction,
 	}
 
@@ -209,8 +213,8 @@ func UpdateInstruction(id int, inst *Instruction) error {
 		inst.ReasoningSuffix,
 		inst.CharacterIdPrefix,
 		inst.CharacterIdSuffix,
-		inst.SystemPrompt,
-		inst.WorldSetup,
+		es(inst.SystemPrompt),
+		es(inst.WorldSetup),
 		inst.Instruction,
 		id,
 	}

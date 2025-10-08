@@ -21,7 +21,7 @@ CREATE TABLE instructions
   character_id_suffix VARCHAR(50)  NOT NULL,
 
   -- Prompt Templates
-  system_prompt       TEXT         NOT NULL,
-  world_setup         TEXT         NOT NULL,
+  system_prompt     TEXT,
+  world_setup       TEXT,
   instruction         TEXT         NOT NULL
 );

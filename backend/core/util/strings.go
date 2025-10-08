@@ -13,3 +13,14 @@ func HasSuffixCaseInsensitive(s, suffix string) bool {
 	return len(s) >= len(suffix) &&
 		strings.EqualFold(s[len(s)-len(suffix):], suffix)
 }
+
+func StrAsPointer(s string) *string {
+	return &s
+}
+
+func StrPtrOrDefault(s *string, def string) string {
+	if s != nil {
+		return *s
+	}
+	return def
+}

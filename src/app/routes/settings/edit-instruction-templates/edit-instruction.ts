@@ -47,8 +47,8 @@ export class EditInstruction {
     characterIdPrefix: formControl('', [Validators.required, Validators.maxLength(50)]),
     characterIdSuffix: formControl('', [Validators.required, Validators.maxLength(50)]),
 
-    systemPrompt: formControl('', [Validators.required]),
-    worldSetup: formControl('', [Validators.required]),
+    systemPrompt: formControl(null),
+    worldSetup: formControl(null),
     instruction: formControl('', [Validators.required]),
   })
 

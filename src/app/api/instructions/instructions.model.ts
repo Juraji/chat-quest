@@ -23,7 +23,7 @@ export interface Instruction extends ChatQuestModel {
   characterIdSuffix: string
 
   // Prompt Templates
-  systemPrompt: string
-  worldSetup: string
+  systemPrompt: Nullable<string>
+  worldSetup: Nullable<string>
   instruction: string
 }
