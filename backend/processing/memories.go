@@ -11,29 +11,33 @@ import (
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	i "juraji.nl/chat-quest/model/instructions"
 	m "juraji.nl/chat-quest/model/memories"
-	"juraji.nl/chat-quest/model/preferences"
+	pf "juraji.nl/chat-quest/model/preferences"
 )
 
 var MemoriesResponseFormat = `{
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Memories",
-  "type": "array",
-  "items": {
-    "type": "object",
-    "required": [
-      "characterId",
-      "content"
-    ],
-    "properties": {
-      "characterId": {
-        "type": "number"
-      },
-      "content": {
-        "type": "string"
+  "type": "object",
+  "required": ["memories"],
+  "properties": {
+    "memories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["characterId","content"],
+        "properties": {
+          "characterId": {"type": "number"},
+          "content": {"type": "string"}
+        }
       }
     }
   }
 }`
+
+// OpenAI requires an object type root.
+type memoriesContainer struct {
+	Memories []*m.Memory
+}
 
 var generationMutex sync.Mutex
 
@@ -83,7 +87,7 @@ func GenerateMemoriesForMessageID(
 		return
 	}
 
-	prefs, err := preferences.GetPreferences(true)
+	prefs, err := pf.GetPreferences(true)
 	if err != nil {
 		logger.Error("Error getting preferences", zap.Error(err))
 		return
@@ -165,7 +169,7 @@ func GenerateMemories(
 
 	logger.Info("Generating memories...")
 
-	prefs, err := preferences.GetPreferences(true)
+	prefs, err := pf.GetPreferences(true)
 	if err != nil {
 		logger.Error("Error getting preferences", zap.Error(err))
 		return
@@ -213,7 +217,7 @@ func generateMemories(
 	logger *zap.Logger,
 	ctx context.Context,
 	session *cs.ChatSession,
-	prefs *preferences.Preferences,
+	prefs *pf.Preferences,
 	messageWindow []cs.ChatMessage,
 ) ([]*m.Memory, bool) {
 	instruction, err := i.InstructionById(*prefs.MemoriesInstructionId)
@@ -269,18 +273,19 @@ responseLoop:
 	}
 
 	// Unmarshal memories
-	var memories []*m.Memory
-	err = json.Unmarshal([]byte(memoryGenResponse), &memories)
+	var container memoriesContainer
+	err = json.Unmarshal([]byte(memoryGenResponse), &container)
 	if err != nil {
 		logger.Error("Could not unmarshal memory response", zap.Error(err))
 		return nil, false
 	}
 
+	memories := container.Memories
 	logger.Debug("Memories generated successfully", zap.Int("memoryCount", len(memories)))
 	return memories, true
 }
 
-func getMemoryMessageWindow(logger *zap.Logger, prefs *preferences.Preferences, sessionID int) ([]cs.ChatMessage, error) {
+func getMemoryMessageWindow(logger *zap.Logger, prefs *pf.Preferences, sessionID int) ([]cs.ChatMessage, error) {
 	messages, err := cs.GetUnarchivedChatMessages(sessionID)
 	if err != nil {
 		return nil, err
