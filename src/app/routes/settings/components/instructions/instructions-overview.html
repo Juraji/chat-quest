@@ -2,9 +2,23 @@
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Instructions</h5>
-      <button type="button" class="btn btn-outline-primary"
-              routerLink="/settings/instruction-templates/new">Add template
-      </button>
+      <div dropdown>
+        <button type="button" class="btn btn-outline-primary" dropdownToggle>Add instruction</button>
+        <ul class="mt-1" dropdownMenu>
+          <li>
+            <button type="button" class="dropdown-item"
+                    routerLink="/settings/instruction-templates/new">New empty instruction
+            </button>
+          </li>
+          <li><h5 class="dropdown-header">From a template:</h5></li>
+          @for (it of instructionTemplates() | keyvalue; track it.key) {
+            <button type="button" class="dropdown-item"
+                    routerLink="/settings/instruction-templates/new"
+                    [queryParams]="{defaultTemplateOption: it.key}">{{ it.value }}
+            </button>
+          }
+        </ul>
+      </div>
     </div>
 
     <table class="table">

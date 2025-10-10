@@ -8,7 +8,7 @@ import {
   llmModelViewsResolver
 } from '@api/providers/providers.resolvers';
 import {EditConnectionProfile,} from "./connection-profiles"
-import {instructionResolverFactory, instructionsResolver} from '@api/instructions';
+import {defaultInstructionTemplates, instructionResolverFactory, instructionsResolver} from '@api/instructions';
 import {EditInstruction} from './edit-instruction-templates';
 import {preferencesResolver} from '@api/preferences';
 
@@ -20,6 +20,7 @@ const routes: Routes = [
     resolve: {
       profiles: connectionProfilesResolver,
       instructions: instructionsResolver,
+      instructionTemplates: defaultInstructionTemplates,
       preferences: preferencesResolver,
       llmModelViews: llmModelViewsResolver
     }

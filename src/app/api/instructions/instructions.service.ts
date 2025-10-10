@@ -29,4 +29,12 @@ export class Instructions {
   delete(promptId: number): Observable<void> {
     return this.http.delete<void>(`/instruction/${promptId}`)
   }
+
+  defaultTemplates(): Observable<Record<string, string>> {
+    return this.http.get<Record<string, string>>("/instruction/default-templates")
+  }
+
+  newOfDefaultTemplate(templateId: string): Observable<Instruction> {
+    return this.http.get<Instruction>(`/instruction/default-templates/${templateId}`)
+  }
 }

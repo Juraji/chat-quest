@@ -144,7 +144,7 @@ func CreateInstruction(inst *Instruction) error {
                           system_prompt,
                           world_setup,
                           instruction)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?.?,?) RETURNING id`
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id`
 	args := []any{
 		inst.Name,
 		inst.Type,

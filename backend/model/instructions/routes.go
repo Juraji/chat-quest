@@ -70,15 +70,15 @@ func Routes(router *gin.RouterGroup) {
 	})
 
 	instructionsRouter.GET("/default-templates", func(c *gin.Context) {
-		var tplMap map[int]*Instruction
+		var tplMap = make(map[int]string, len(defaultInstructionTemplates))
 		for idx, tpl := range defaultInstructionTemplates {
-			tplMap[idx] = tpl
+			tplMap[idx] = tpl.Name
 		}
 
 		c.JSON(http.StatusOK, tplMap)
 	})
 
-	instructionsRouter.POST("/default-templates/use/:templateIndex", func(c *gin.Context) {
+	instructionsRouter.GET("/default-templates/:templateIndex", func(c *gin.Context) {
 		templateIndex, ok := controllers.GetParamAsID(c, "templateIndex")
 		if !ok || templateIndex < 0 || templateIndex >= len(defaultInstructionTemplates) {
 			controllers.RespondBadRequest(c, "Invalid template index", nil)
@@ -92,7 +92,6 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		err = CreateInstruction(instruction)
 		controllers.RespondSingle(c, &instruction, err)
 	})
 }

@@ -11,7 +11,7 @@ import (
 //go:embed templates/*.tmpl
 var templatesFs embed.FS
 
-var defaultInstructionTemplates = []*Instruction{
+var defaultInstructionTemplates = []Instruction{
 	{
 		Name:             "Default Chat",
 		Type:             ChatInstruction,
@@ -36,7 +36,7 @@ var defaultInstructionTemplates = []*Instruction{
 		Name:             "Multi-Character Response (experimental)",
 		Type:             ChatInstruction,
 		Temperature:      1.1,
-		MaxTokens:        300,
+		MaxTokens:        1024,
 		TopP:             0.95,
 		PresencePenalty:  1.1,
 		FrequencyPenalty: 1.1,
@@ -94,7 +94,7 @@ var defaultInstructionTemplates = []*Instruction{
 	},
 }
 
-func reifyInstructionTemplate(instruction *Instruction) (*Instruction, error) {
+func reifyInstructionTemplate(instruction Instruction) (*Instruction, error) {
 	props := []*string{
 		instruction.SystemPrompt,
 		instruction.WorldSetup,
@@ -115,5 +115,5 @@ func reifyInstructionTemplate(instruction *Instruction) (*Instruction, error) {
 		*prop = tpl
 	}
 
-	return instruction, nil
+	return &instruction, nil
 }
