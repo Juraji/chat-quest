@@ -2,118 +2,58 @@ package instructions
 
 import (
 	"embed"
-	"strings"
+	"encoding/json"
 
 	"github.com/pkg/errors"
-	"juraji.nl/chat-quest/core/util"
 )
 
-//go:embed templates/*.tmpl
+//go:embed templates/*
 var templatesFs embed.FS
 
-var defaultInstructionTemplates = []Instruction{
-	{
-		Name:             "Default Chat",
-		Type:             ChatInstruction,
-		Temperature:      1.1,
-		MaxTokens:        300,
-		TopP:             0.95,
-		PresencePenalty:  1.1,
-		FrequencyPenalty: 1.1,
-		Stream:           true,
-		StopSequences:    nil,
-
-		ReasoningPrefix:   "<think>",
-		ReasoningSuffix:   "</think>",
-		CharacterIdPrefix: "<characterid>",
-		CharacterIdSuffix: "</characterid>",
-
-		SystemPrompt: util.StrAsPointer("templates/default_chat__system_prompt.tmpl"),
-		WorldSetup:   util.StrAsPointer("templates/default_chat__world_setup.tmpl"),
-		Instruction:  "templates/default_chat__instruction.tmpl",
-	},
-	{
-		Name:             "Multi-Character Response (experimental)",
-		Type:             ChatInstruction,
-		Temperature:      1.1,
-		MaxTokens:        1024,
-		TopP:             0.95,
-		PresencePenalty:  1.1,
-		FrequencyPenalty: 1.1,
-		Stream:           true,
-		StopSequences:    nil,
-
-		ReasoningPrefix:   "<think>",
-		ReasoningSuffix:   "</think>",
-		CharacterIdPrefix: "<characterid>",
-		CharacterIdSuffix: "</characterid>",
-
-		SystemPrompt: util.StrAsPointer("templates/multi_char_response_chat__system_prompt.tmpl"),
-		WorldSetup:   util.StrAsPointer("templates/multi_char_response_chat__world_setup.tmpl"),
-		Instruction:  "templates/multi_char_response_chat__instruction.tmpl",
-	},
-	{
-		Name:             "NPC Response (experimental)",
-		Type:             ChatInstruction,
-		Temperature:      1.1,
-		MaxTokens:        300,
-		TopP:             0.95,
-		PresencePenalty:  1.1,
-		FrequencyPenalty: 1.1,
-		Stream:           true,
-		StopSequences:    nil,
-
-		ReasoningPrefix:   "<think>",
-		ReasoningSuffix:   "</think>",
-		CharacterIdPrefix: "<characterid>",
-		CharacterIdSuffix: "</characterid>",
-
-		SystemPrompt: util.StrAsPointer("templates/npc_chat__system_prompt.tmpl"),
-		WorldSetup:   util.StrAsPointer("templates/npc_chat__world_setup.tmpl"),
-		Instruction:  "templates/npc_chat__instruction.tmpl",
-	},
-	{
-		Name:             "Default Memories",
-		Type:             MemoriesInstruction,
-		Temperature:      0.7,
-		MaxTokens:        300,
-		TopP:             0.95,
-		PresencePenalty:  1.1,
-		FrequencyPenalty: 1.1,
-		Stream:           false,
-		StopSequences:    nil,
-
-		ReasoningPrefix:   "<think>",
-		ReasoningSuffix:   "</think>",
-		CharacterIdPrefix: "<characterid>",
-		CharacterIdSuffix: "</characterid>",
-
-		SystemPrompt: util.StrAsPointer("templates/default_memories__system_prompt.tmpl"),
-		WorldSetup:   util.StrAsPointer("templates/default_memories__world_setup.tmpl"),
-		Instruction:  "templates/default_memories__instruction.tmpl",
-	},
+var defaultTemplates = map[string]string{
+	"default_chat":             "Default Chat",
+	"default_memories":         "Default Memories",
+	"multi_char_response_chat": "Multi-Character Response (experimental)",
+	"npc_chat":                 "NPC Response (experimental)",
 }
 
-func reifyInstructionTemplate(instruction Instruction) (*Instruction, error) {
-	props := []*string{
-		instruction.SystemPrompt,
-		instruction.WorldSetup,
-		&instruction.Instruction,
+func reifyInstructionTemplate(templateName string) (*Instruction, error) {
+	// Load instruction data
+	instructionJsonData, err := templatesFs.ReadFile("templates/" + templateName + ".json")
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read instruction data '%s'", templateName)
+	}
+	var instruction Instruction
+	err = json.Unmarshal(instructionJsonData, &instruction)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to unmarshal instruction data for '%s'", templateName)
 	}
 
-	for _, prop := range props {
-		tpl, err := util.ReadFileAsString(templatesFs, *prop)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to load template from '%v'", prop)
-		}
-
-		if strings.HasPrefix("{{- /*gotype:", tpl) {
-			// Remove IDE tpl vars declaration (first line of file)
-			tpl = strings.SplitN(tpl, "\n", 2)[1]
-		}
-
-		*prop = tpl
+	// Reify system prompt
+	systemPromptPath := *instruction.SystemPrompt
+	systemPromptData, err := templatesFs.ReadFile(systemPromptPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load system prompt template from '%s'", systemPromptPath)
 	}
+	systemPrompt := string(systemPromptData)
+	instruction.SystemPrompt = &systemPrompt
+
+	// Reify world setup
+	worldSetupPath := *instruction.WorldSetup
+	worldSetupData, err := templatesFs.ReadFile(worldSetupPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load world setup template from '%s'", worldSetupPath)
+	}
+	worldSetup := string(worldSetupData)
+	instruction.WorldSetup = &worldSetup
+
+	// Reify instruction
+	instructionPath := instruction.Instruction
+	instructionData, err := templatesFs.ReadFile(instructionPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to load instruction template from '%s'", instructionPath)
+	}
+	instruction.Instruction = string(instructionData)
 
 	return &instruction, nil
 }

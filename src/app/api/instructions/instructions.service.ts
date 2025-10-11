@@ -34,7 +34,7 @@ export class Instructions {
     return this.http.get<Record<string, string>>("/instruction/default-templates")
   }
 
-  newOfDefaultTemplate(templateId: string): Observable<Instruction> {
-    return this.http.get<Instruction>(`/instruction/default-templates/${templateId}`)
+  newOfDefaultTemplate(templateKey: string): Observable<Instruction> {
+    return this.http.get<Instruction>(`/instruction/default-templates/${templateKey}`)
   }
 }

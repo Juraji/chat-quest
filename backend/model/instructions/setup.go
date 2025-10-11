@@ -13,7 +13,7 @@ func init() {
 
 	database.MigrationsCompletedSignal.AddListener(key, func(ctx context.Context, event database.MigratedEvent) {
 		if event.IsUpIncludingVersion(execAtVersion) {
-			for _, tpl := range defaultInstructionTemplates {
+			for tpl := range defaultTemplates {
 				template, err := reifyInstructionTemplate(tpl)
 				if err != nil {
 					panic(err)

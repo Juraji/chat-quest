@@ -14,7 +14,7 @@
           @for (it of instructionTemplates() | keyvalue; track it.key) {
             <button type="button" class="dropdown-item"
                     routerLink="/settings/instruction-templates/new"
-                    [queryParams]="{defaultTemplateOption: it.key}">{{ it.value }}
+                    [queryParams]="{templateKey: it.key}">{{ it.value }}
             </button>
           }
         </ul>

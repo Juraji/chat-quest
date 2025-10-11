@@ -1,0 +1,19 @@
+{
+  "name": "NPC Response (experimental)",
+  "type": "CHAT",
+  "temperature": 1.1,
+  "maxTokens": 300,
+  "topP": 0.95,
+  "presencePenalty": 1.1,
+  "frequencyPenalty": 1.1,
+  "stream": true,
+  "stopSequences": null,
+  "includeReasoning": false,
+  "reasoningPrefix": "<think>",
+  "reasoningSuffix": "</think>",
+  "characterIdPrefix": "<characterid>",
+  "characterIdSuffix": "</characterid>",
+  "systemPrompt": "templates/npc_chat__system_prompt.tmpl",
+  "worldSetup": "templates/npc_chat__world_setup.tmpl",
+  "instruction": "templates/npc_chat__instruction.tmpl"
+}

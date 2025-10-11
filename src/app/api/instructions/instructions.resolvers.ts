@@ -21,10 +21,10 @@ export function instructionResolverFactory(idParam: string): ResolveFn<Instructi
     const idStr = route.paramMap.get(idParam);
 
     if (idStr === "new") {
-      const defaultTemplateOption = route.queryParamMap.get("defaultTemplateOption")
+      const templateKey = route.queryParamMap.get("templateKey")
 
-      if (!!defaultTemplateOption) {
-        return service.newOfDefaultTemplate(defaultTemplateOption)
+      if (!!templateKey) {
+        return service.newOfDefaultTemplate(templateKey)
       } else {
         return {
           id: NEW_ID,

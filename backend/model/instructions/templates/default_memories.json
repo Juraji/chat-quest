@@ -1,0 +1,19 @@
+{
+  "name": "Default Memories",
+  "type": "MEMORIES",
+  "temperature": 0.7,
+  "maxTokens": 300,
+  "topP": 0.95,
+  "presencePenalty": 1.1,
+  "frequencyPenalty": 1.1,
+  "stream": false,
+  "stopSequences": null,
+  "includeReasoning": false,
+  "reasoningPrefix": "<think>",
+  "reasoningSuffix": "</think>",
+  "characterIdPrefix": "<characterid>",
+  "characterIdSuffix": "</characterid>",
+  "systemPrompt": "templates/default_memories__system_prompt.tmpl",
+  "worldSetup": "templates/default_memories__world_setup.tmpl",
+  "instruction": "templates/default_memories__instruction.tmpl"
+}
