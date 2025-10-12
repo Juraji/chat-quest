@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/openai/openai-go/v2"
 	"github.com/openai/openai-go/v2/option"
@@ -13,6 +14,7 @@ import (
 
 type openAIProvider struct {
 	client openai.Client
+	lock   *sync.Mutex
 }
 
 func newOpenAiProvider(baseUrl string, apiKey string) *openAIProvider {
@@ -21,6 +23,7 @@ func newOpenAiProvider(baseUrl string, apiKey string) *openAIProvider {
 			option.WithBaseURL(baseUrl),
 			option.WithAPIKey(apiKey),
 		),
+		lock: &sync.Mutex{},
 	}
 }
 
@@ -57,6 +60,9 @@ func (o *openAIProvider) getAvailableModelIds(ctx context.Context) ([]*LlmModel,
 }
 
 func (o *openAIProvider) generateEmbeddings(ctx context.Context, input, modelID string) (Embedding, error) {
+	o.lock.Lock()
+	defer o.lock.Unlock()
+
 	response, err := o.client.Embeddings.New(ctx, openai.EmbeddingNewParams{
 		Input: openai.EmbeddingNewParamsInputUnion{
 			OfString: openai.String(input),
@@ -124,22 +130,23 @@ func (o *openAIProvider) generateChatResponse(ctx context.Context, messages []Ch
 	}
 
 	if params.Stream {
-		return generateChatResponseStream(ctx, &o.client, completionParams)
+		return o.generateChatResponseStream(ctx, completionParams)
 	} else {
-		return generateChatResponseSingle(ctx, &o.client, completionParams)
+		return o.generateChatResponseSingle(ctx, completionParams)
 	}
 }
 
-func generateChatResponseSingle(
+func (o *openAIProvider) generateChatResponseSingle(
 	ctx context.Context,
-	client *openai.Client,
 	params openai.ChatCompletionNewParams,
 ) <-chan ChatGenerateResponse {
 	responseChannel := make(chan ChatGenerateResponse, 1)
 	go func() {
+		o.lock.Lock()
+		defer o.lock.Unlock()
 		defer close(responseChannel)
 
-		completion, err := client.Chat.Completions.New(ctx, params)
+		completion, err := o.client.Chat.Completions.New(ctx, params)
 		if err != nil {
 			responseChannel <- ChatGenerateResponse{
 				Error: fmt.Errorf("openAIProvider failed to create completion: %w", err),
@@ -162,17 +169,18 @@ func generateChatResponseSingle(
 	return responseChannel
 }
 
-func generateChatResponseStream(
+func (o *openAIProvider) generateChatResponseStream(
 	ctx context.Context,
-	client *openai.Client,
 	params openai.ChatCompletionNewParams,
 ) <-chan ChatGenerateResponse {
 	responseChannel := make(chan ChatGenerateResponse)
 
 	go func() {
+		o.lock.Lock()
+		defer o.lock.Unlock()
 		defer close(responseChannel)
 
-		stream := client.Chat.Completions.NewStreaming(ctx, params)
+		stream := o.client.Chat.Completions.NewStreaming(ctx, params)
 
 		for stream.Next() {
 			if err := stream.Err(); err != nil {
