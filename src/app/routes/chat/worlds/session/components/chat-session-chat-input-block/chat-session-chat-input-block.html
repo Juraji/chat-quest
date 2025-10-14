@@ -15,6 +15,13 @@
     <div id="messageInputHelp" class="form-text flex-grow-1">
       Press <kbd>Ctrl + Enter</kbd> to send.
     </div>
+    @if (lastTotalTokens(); as t) {
+      <div class="badge text-bg-success mt-1"
+           title="The amount of real tokens used in total to produce the the latest response.">
+        <span>Used {{ t }} tokens</span>
+        <span class="bi bi-question-circle ms-1"></span>
+      </div>
+    }
     <div class="badge text-bg-success mt-1">
       <span>{{ totalMessageCount() }} messages</span>
     </div>

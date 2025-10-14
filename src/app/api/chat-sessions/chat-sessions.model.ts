@@ -28,6 +28,8 @@ export interface ChatSession extends ChatQuestModel {
   personaId: Nullable<number>
   chatModelId: Nullable<number>
   chatInstructionId: Nullable<number>
+  readonly lastTotalTokens: number
+  readonly lastCompletionTokens: number
 }
 
 export interface ChatMessage extends ChatQuestModel {

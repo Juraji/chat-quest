@@ -25,6 +25,7 @@ export class ChatSessionChatInputBlock {
   readonly worldId: Signal<number> = this.sessionData.worldId
   readonly chatSessionId: Signal<number> = this.sessionData.chatSessionId
   readonly totalMessageCount = computed(() => this.sessionData.messages().length)
+  readonly lastTotalTokens = computed(() => this.sessionData.chatSession().lastTotalTokens)
 
   readonly formGroup = formGroup<ChatInputForm>({
     message: formControl('', [Validators.required])

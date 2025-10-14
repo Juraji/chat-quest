@@ -41,7 +41,9 @@ export class WorldChatSessions {
       chatNotes: null,
       personaId: null,
       chatModelId: null,
-      chatInstructionId: null
+      chatInstructionId: null,
+      lastTotalTokens: 0,
+      lastCompletionTokens: 0,
     }
 
     this.chatSessionsService

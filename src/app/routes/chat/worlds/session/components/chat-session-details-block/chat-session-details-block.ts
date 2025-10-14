@@ -59,6 +59,8 @@ export class ChatSessionDetailsBlock {
     personaId: formControl(null),
     chatModelId: formControl(null, [Validators.required]),
     chatInstructionId: formControl(null, [Validators.required]),
+    lastTotalTokens: readOnlyControl(),
+    lastCompletionTokens: readOnlyControl(),
   })
 
   readonly selectedModel: Signal<LlmModelView> = computed(() => {
