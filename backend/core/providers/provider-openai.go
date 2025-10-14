@@ -130,6 +130,11 @@ func (o *openAIProvider) generateChatResponse(ctx context.Context, messages []Ch
 	}
 
 	if params.Stream {
+		// Include usage options in final chunk
+		completionParams.StreamOptions = openai.ChatCompletionStreamOptionsParam{
+			IncludeUsage: openai.Bool(true),
+		}
+
 		return o.generateChatResponseStream(ctx, completionParams)
 	} else {
 		return o.generateChatResponseSingle(ctx, completionParams)
@@ -202,20 +207,27 @@ func (o *openAIProvider) generateChatResponseStream(
 			chunk := stream.Current()
 
 			if len(chunk.Choices) == 0 {
+				if chunk.Usage.TotalTokens == 0 {
+					responseChannel <- ChatGenerateResponse{
+						Error: errors.New("openAIProvider returned empty chat completions chunk"),
+					}
+
+					err := stream.Close()
+					if err != nil {
+						panic("openAIProvider failed to close chat completion stream")
+					}
+					return
+				} else {
+					responseChannel <- ChatGenerateResponse{
+						TotalTokens:      int(chunk.Usage.TotalTokens),
+						CompletionTokens: int(chunk.Usage.CompletionTokens),
+					}
+				}
+
+			} else {
 				responseChannel <- ChatGenerateResponse{
-					Error: errors.New("openAIProvider returned empty chat completions chunk"),
+					Content: chunk.Choices[0].Delta.Content,
 				}
-
-				err := stream.Close()
-				if err != nil {
-					panic("openAIProvider failed to close chat completion stream")
-				}
-				return
-			}
-
-			responseChannel <- ChatGenerateResponse{
-				Content:     chunk.Choices[0].Delta.Content,
-				TotalTokens: int(chunk.Usage.TotalTokens),
 			}
 		}
 	}()

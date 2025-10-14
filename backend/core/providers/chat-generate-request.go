@@ -48,7 +48,8 @@ type ChatRequestMessage struct {
 }
 
 type ChatGenerateResponse struct {
-	Content     string
-	Error       error
-	TotalTokens int
+	Content          string
+	Error            error
+	TotalTokens      int
+	CompletionTokens int
 }

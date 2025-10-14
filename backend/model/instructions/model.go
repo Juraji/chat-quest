@@ -123,8 +123,6 @@ func InstructionById(id int) (*Instruction, error) {
 
 func CreateInstruction(inst *Instruction) error {
 	es := util.EmptyStrToNil
-	zf := util.ZeroFloat32ToNil
-	zi := util.ZeroIntToNil
 
 	query := `INSERT INTO instructions (
                           name,
@@ -148,11 +146,11 @@ func CreateInstruction(inst *Instruction) error {
 	args := []any{
 		inst.Name,
 		inst.Type,
-		zf(inst.Temperature),
-		zi(inst.MaxTokens),
-		zf(inst.TopP),
-		zf(inst.PresencePenalty),
-		zf(inst.FrequencyPenalty),
+		inst.Temperature,
+		inst.MaxTokens,
+		inst.TopP,
+		inst.PresencePenalty,
+		inst.FrequencyPenalty,
 		inst.Stream,
 		es(inst.StopSequences),
 		inst.IncludeReasoning,
@@ -176,8 +174,6 @@ func CreateInstruction(inst *Instruction) error {
 
 func UpdateInstruction(id int, inst *Instruction) error {
 	es := util.EmptyStrToNil
-	zf := util.ZeroFloat32ToNil
-	zi := util.ZeroIntToNil
 
 	query := `UPDATE instructions
             SET name = ?,
@@ -201,11 +197,11 @@ func UpdateInstruction(id int, inst *Instruction) error {
 	args := []any{
 		inst.Name,
 		inst.Type,
-		zf(inst.Temperature),
-		zi(inst.MaxTokens),
-		zf(inst.TopP),
-		zf(inst.PresencePenalty),
-		zf(inst.FrequencyPenalty),
+		inst.Temperature,
+		inst.MaxTokens,
+		inst.TopP,
+		inst.PresencePenalty,
+		inst.FrequencyPenalty,
 		inst.Stream,
 		es(inst.StopSequences),
 		inst.IncludeReasoning,

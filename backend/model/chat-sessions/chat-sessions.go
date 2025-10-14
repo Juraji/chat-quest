@@ -50,6 +50,9 @@ type ChatSession struct {
 	PersonaID         *int `json:"personaId"`
 	ChatModelId       *int `json:"chatModelId"`
 	ChatInstructionId *int `json:"chatInstructionId"`
+
+	LastTotalTokens      int `json:"lastTotalTokens"`
+	LastCompletionTokens int `json:"lastCompletionTokens"`
 }
 
 func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
@@ -68,6 +71,8 @@ func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
 		&dest.PersonaID,
 		&dest.ChatModelId,
 		&dest.ChatInstructionId,
+		&dest.LastTotalTokens,
+		&dest.LastCompletionTokens,
 	)
 }
 
@@ -225,6 +230,40 @@ func Update(worldId int, id int, session *ChatSession) error {
 	}
 
 	return err
+}
+
+func UpdateSessionStatistics(id int, lastTotalTokens int, lastCompletionTokens int) error {
+	txErr := database.Transactional(func(ctx *database.TxContext) error {
+		if lastTotalTokens > 0 {
+			query := "UPDATE chat_sessions SET last_total_tokens = ? WHERE id = ?"
+			args := []any{lastTotalTokens, id}
+			if err := ctx.UpdateRecord(query, args); err != nil {
+				return err
+			}
+		}
+		if lastCompletionTokens > 0 {
+			query := "UPDATE chat_sessions SET last_completion_tokens = ? WHERE id = ?"
+			args := []any{lastCompletionTokens, id}
+			if err := ctx.UpdateRecord(query, args); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if txErr != nil {
+		return txErr
+	}
+
+	// Simplest option is to just re-get the session from DB for update signal
+	if session, err := GetById(id); err == nil {
+		ChatSessionUpdatedSignal.EmitBG(session)
+	} else {
+		return err
+	}
+
+	return nil
 }
 
 func Delete(worldId int, id int) error {

@@ -35,7 +35,7 @@ export class EditInstruction {
     type: formControl<InstructionType>('CHAT', [Validators.required]),
     temperature: formControl<number>(1.1, [Validators.required, Validators.min(0)]),
     maxTokens: formControl<number>(300, [Validators.required, Validators.min(1)]),
-    topP: formControl<number>(0.95, [Validators.required, Validators.min(0.01), Validators.max(1.0)]),
+    topP: formControl<number>(0.95, [Validators.required, Validators.min(0), Validators.max(1.0)]),
     presencePenalty: formControl<number>(1.1, [Validators.required, Validators.min(0)]),
     frequencyPenalty: formControl<number>(1.1, [Validators.required, Validators.min(0)]),
     stream: formControl<boolean>(true),

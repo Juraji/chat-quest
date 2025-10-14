@@ -342,6 +342,12 @@ func generateResponse(
 				}
 			}
 
+			if response.TotalTokens != 0 || response.CompletionTokens != 0 {
+				if err := cs.UpdateSessionStatistics(session.ID, response.TotalTokens, response.CompletionTokens); err != nil {
+					logger.Error("Failed to update response session statistics. (Does not break response processing!)", zap.Error(err))
+				}
+			}
+
 		case <-ctx.Done():
 			logger.Debug("Cancelled by context")
 			return

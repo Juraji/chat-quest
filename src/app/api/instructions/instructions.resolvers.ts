@@ -32,7 +32,7 @@ export function instructionResolverFactory(idParam: string): ResolveFn<Instructi
           type: 'CHAT',
           temperature: 1.3,
           maxTokens: 300,
-          topP: 0.95,
+          topP: 0.0,
           presencePenalty: 1.1,
           frequencyPenalty: 1.1,
           stream: true,
