@@ -90,6 +90,15 @@ ID: int
 CharacterName: string
 ```
 
+The WorldVars type (Uses in the scenario and world descriptions)
+
+```yaml
+# The name of the currently "speaking" character (changes in multicharacter chats!!!)
+CharacterName: string
+# The name of the currently selected persona character or "User", if no persona was selected.
+PersonaName: string
+```
+
 ### Character Descriptions (Appearance, Personality, Greetings, etc.)
 
 Yes these are go templates, fully capable of all the logic, but the data is very sparse, as you only have access to the SparseCharacter.
@@ -114,9 +123,9 @@ Character: Character
 Persona: Character
 # The other participants in the chat. See Character (yes everything is available, even memories!)
 OtherParticipants: Character[]
-# The world description (not templated!)
+# The world description (see WorldVars)
 World: string
-# The scenario description (not templated!)
+# The scenario description (see WorldVars)
 Scenario: string
 # The current time of day (set within the session.)
 CurrentTimeOfDay: MIDNIGHT | NIGHT | EARLY_MORNING | MORNING | NOON | AFTERNOON | EVENING | LATE_NIGHT | REAL_TIME

@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"juraji.nl/chat-quest/core/util"
 	c "juraji.nl/chat-quest/model/characters"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	p "juraji.nl/chat-quest/model/preferences"
@@ -27,6 +28,11 @@ type ChatInstructionVars interface {
 	CurrentTimeOfDay() *cs.TimeOfDay
 	CurrentTimeOfDayFmtEN() string
 	ChatNotes() string
+}
+
+type WorldVars interface {
+	CharacterName() (string, error)
+	PersonaName() (string, error)
 }
 
 type chatInstructionVarsImpl struct {
@@ -108,6 +114,18 @@ func (c *chatInstructionVarsImpl) ChatNotes() string {
 	return *c.chatNotes
 }
 
+type worldVarsImpl struct {
+	characterName func() (string, error)
+	personaName   func() (string, error)
+}
+
+func (w *worldVarsImpl) CharacterName() (string, error) {
+	return w.characterName()
+}
+func (w *worldVarsImpl) PersonaName() (string, error) {
+	return w.personaName()
+}
+
 func NewChatInstructionVars(
 	session *cs.ChatSession,
 	prefs *p.Preferences,
@@ -121,28 +139,53 @@ func NewChatInstructionVars(
 		fullHistory = append(chatHistory, *triggerMessage)
 	}
 
+	characterFunc := sync.OnceValues(func() (TemplateCharacter, error) {
+		character, err := c.CharacterById(currentCharacterId)
+		if err != nil {
+			return nil, err
+		}
+		return NewTemplateCharacter(character, prefs, session, fullHistory), nil
+	})
+
+	personaFunc := sync.OnceValues(func() (TemplateCharacter, error) {
+		if session.PersonaID == nil {
+			return nil, nil
+		}
+		character, err := c.CharacterById(*session.PersonaID)
+		if err != nil {
+			return nil, err
+		}
+		return NewTemplateCharacter(character, prefs, session, fullHistory), nil
+	})
+
+	worldVarsFunc := sync.OnceValue(func() WorldVars {
+		return &worldVarsImpl{
+			characterName: func() (string, error) {
+				if character, err := characterFunc(); err != nil {
+					return "", err
+				} else {
+					return character.Name(), nil
+				}
+			},
+			personaName: func() (string, error) {
+				if character, err := characterFunc(); err != nil {
+					return "", err
+				} else if character != nil {
+					return character.Name(), nil
+				} else {
+					return "User", nil
+				}
+			},
+		}
+	})
+
 	return &chatInstructionVarsImpl{
 		triggerMessage:      triggerMessage,
 		currentMessageIndex: sessionMessageCount,
 		timeOfDay:           session.CurrentTimeOfDay,
 		chatNotes:           session.ChatNotes,
-		character: sync.OnceValues(func() (TemplateCharacter, error) {
-			character, err := c.CharacterById(currentCharacterId)
-			if err != nil {
-				return nil, err
-			}
-			return NewTemplateCharacter(character, prefs, session, fullHistory), nil
-		}),
-		persona: sync.OnceValues(func() (TemplateCharacter, error) {
-			if session.PersonaID == nil {
-				return nil, nil
-			}
-			character, err := c.CharacterById(*session.PersonaID)
-			if err != nil {
-				return nil, err
-			}
-			return NewTemplateCharacter(character, prefs, session, fullHistory), nil
-		}),
+		character:           characterFunc,
+		persona:             personaFunc,
 		otherParticipants: sync.OnceValues(func() ([]TemplateCharacter, error) {
 			allParticipants, err := cs.GetAllParticipantsAsCharacters(session.ID)
 			if err != nil {
@@ -164,7 +207,14 @@ func NewChatInstructionVars(
 			if world.Description == nil {
 				return "", nil
 			}
-			return *world.Description, nil
+
+			worldVars := worldVarsFunc()
+			template, err := util.ParseAndApplyTextTemplate(*world.Description, worldVars)
+			if err != nil {
+				return "", err
+			}
+
+			return template, nil
 		}),
 		scenario: sync.OnceValues(func() (string, error) {
 			if session.ScenarioID == nil {
@@ -174,7 +224,14 @@ func NewChatInstructionVars(
 			if err != nil {
 				return "", err
 			}
-			return scenario.Description, nil
+
+			worldVars := worldVarsFunc()
+			template, err := util.ParseAndApplyTextTemplate(scenario.Description, worldVars)
+			if err != nil {
+				return "", err
+			}
+
+			return template, nil
 		}),
 	}
 }
