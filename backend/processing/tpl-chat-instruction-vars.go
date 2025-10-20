@@ -126,6 +126,31 @@ func (w *worldVarsImpl) PersonaName() (string, error) {
 	return w.personaName()
 }
 
+func NewWorldVarsForCharacter(sessionId int, char *c.Character) WorldVars {
+	return &worldVarsImpl{
+		characterName: func() (string, error) {
+			return char.Name, nil
+		},
+		personaName: sync.OnceValues(func() (string, error) {
+			session, err := cs.GetById(sessionId)
+			if err != nil {
+				return "", err
+			}
+
+			if session.PersonaID == nil {
+				return "User", nil
+			}
+
+			character, err := c.CharacterById(*session.PersonaID)
+			if err != nil {
+				return "", err
+			}
+
+			return character.Name, nil
+		}),
+	}
+}
+
 func NewChatInstructionVars(
 	session *cs.ChatSession,
 	prefs *p.Preferences,
