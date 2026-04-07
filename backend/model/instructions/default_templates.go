@@ -3,6 +3,8 @@ package instructions
 import (
 	"embed"
 	"encoding/json"
+	"strings"
+	"sync"
 
 	"github.com/pkg/errors"
 )
@@ -10,12 +12,33 @@ import (
 //go:embed templates/*
 var templatesFs embed.FS
 
-var defaultTemplates = map[string]string{
-	"default_chat":             "Default Chat",
-	"default_memories":         "Default Memories",
-	"multi_char_response_chat": "Multi-Character Response (experimental)",
-	"npc_chat":                 "NPC Response (experimental)",
-}
+var defaultTemplates = sync.OnceValue(func() map[string]string {
+	dirEntries, err := templatesFs.ReadDir("templates")
+	if err != nil {
+		panic(errors.Wrap(err, "failed to read default templates"))
+	}
+
+	tpls := make(map[string]string)
+	for _, e := range dirEntries {
+		if strings.HasSuffix(e.Name(), ".json") {
+			key := strings.TrimSuffix(e.Name(), ".json")
+			var sparseInstruction struct{ Name string }
+
+			jsondata, err := templatesFs.ReadFile("templates/" + e.Name())
+			if err != nil {
+				panic(errors.Wrapf(err, "failed to read raw data for instruction '%s'", e.Name()))
+			}
+			err = json.Unmarshal(jsondata, &sparseInstruction)
+			if err != nil {
+				panic(errors.Wrapf(err, "failed to unmarshal JSON data for instruction '%s'", e.Name()))
+			}
+
+			tpls[key] = sparseInstruction.Name
+		}
+	}
+
+	return tpls
+})
 
 func reifyInstructionTemplate(templateName string) (*Instruction, error) {
 	// Load instruction data

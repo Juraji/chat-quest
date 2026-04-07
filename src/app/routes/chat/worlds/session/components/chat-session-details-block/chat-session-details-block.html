@@ -8,10 +8,17 @@
       </div>
 
       <div class="mb-3">
-        <input type="text" class="form-control"
-               id="chatNameInput"
-               placeholder="Name"
-               formControlName="name"/>
+        <div class="input-group">
+          <input type="text" class="form-control"
+                 id="chatNameInput"
+                 placeholder="Name"
+                 formControlName="name"/>
+          <button type="button" class="btn btn-secondary"
+                  title="Generate Title"
+                  (click)="onGenerateTitle()">
+            <span class="bi bi-robot"></span>
+          </button>
+        </div>
       </div>
       <div class="mb-3">
         <div class="form-check">

@@ -20,6 +20,10 @@ type Preferences struct {
 	MemoryWindowSize       int     `json:"memoryWindowSize"`
 	MemoryIncludeChatSize  int     `json:"memoryIncludeChatSize"`
 	MemoryIncludeChatNotes bool    `json:"memoryIncludeChatNotes"`
+	// Title Generation
+	TitleGenerationModelId       *int `json:"titleGenerationModelId"`
+	TitleGenerationInstructionId *int `json:"titleGenerationInstructionId"`
+	TitleGenerationMessageWindow int  `json:"titleGenerationMessageWindow"`
 }
 
 func (p *Preferences) Validate() []string {
@@ -44,6 +48,13 @@ func (p *Preferences) Validate() []string {
 	}
 	if p.MemoriesInstructionId == nil {
 		errs = append(errs, "memories instruction not set")
+	}
+
+	if p.TitleGenerationModelId == nil {
+		errs = append(errs, "title generation model not set")
+	}
+	if p.TitleGenerationInstructionId == nil {
+		errs = append(errs, "title generation instruction not set")
 	}
 
 	return errs
@@ -72,6 +83,9 @@ func preferencesScanner(scanner database.RowScanner, dest *Preferences) error {
 		&dest.MemoryWindowSize,
 		&dest.MemoryIncludeChatSize,
 		&dest.MemoryIncludeChatNotes,
+		&dest.TitleGenerationModelId,
+		&dest.TitleGenerationInstructionId,
+		&dest.TitleGenerationMessageWindow,
 	)
 }
 
@@ -107,7 +121,10 @@ func UpdatePreferences(prefs *Preferences) error {
                  memory_trigger_after = ?,
                  memory_window_size = ?,
                  memory_include_chat_size = ?,
-                 memory_include_chat_notes = ?
+                 memory_include_chat_notes = ?,
+                 title_generation_model_id = ?,
+                 title_generation_instruction_id = ?,
+                 title_generation_message_window = ?
              WHERE id = 0`
 	args := []any{
 		prefs.ChatModelId,
@@ -121,6 +138,9 @@ func UpdatePreferences(prefs *Preferences) error {
 		prefs.MemoryWindowSize,
 		prefs.MemoryIncludeChatSize,
 		prefs.MemoryIncludeChatNotes,
+		prefs.TitleGenerationModelId,
+		prefs.TitleGenerationInstructionId,
+		prefs.TitleGenerationMessageWindow,
 	}
 
 	if err := database.UpdateRecord(query, args); err != nil {

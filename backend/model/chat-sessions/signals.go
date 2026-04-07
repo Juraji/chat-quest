@@ -18,6 +18,8 @@ var ChatParticipantAddedSignal = signals.New[*ChatParticipant]()
 var ChatParticipantRemovedSignal = signals.New[*ChatParticipant]()
 var ChatParticipantResponseRequestedSignal = signals.New[*ChatParticipant]()
 
+var ChatSessionTitleGenerationRequested = signals.New[*ChatSessionTitleGenerateRequest]()
+
 func init() {
 	sse.RegisterOnSSE("ChatSessionCreated", ChatSessionCreatedSignal)
 	sse.RegisterOnSSE("ChatSessionUpdated", ChatSessionUpdatedSignal)

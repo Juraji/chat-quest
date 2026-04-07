@@ -12,13 +12,14 @@ type InstructionType string
 const (
 	ChatInstruction     InstructionType = "CHAT"
 	MemoriesInstruction InstructionType = "MEMORIES"
+	TitleGeneration     InstructionType = "TITLE_GENERATION"
 )
 
 func (i InstructionType) IsValid() bool {
 	switch i {
-	case ChatInstruction:
-		return true
-	case MemoriesInstruction:
+	case ChatInstruction,
+		MemoriesInstruction,
+		TitleGeneration:
 		return true
 	default:
 		return false

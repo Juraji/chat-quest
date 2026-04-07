@@ -1,7 +1,6 @@
 package database
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 
@@ -17,30 +16,14 @@ import "embed"
 //go:embed migrations/*.sql
 var migrationsFs embed.FS
 
-func init() {
-	MigrationsCompletedSignal.AddListener("MigrationInfoLogging", func(ctx context.Context, event MigratedEvent) {
-		logger := log.Get()
-		switch {
-		case event.FromVersion < event.ToVersion:
-			logger.Sugar().Infof("Database migrated up from v%d to v%d",
-				event.FromVersion, event.ToVersion)
-		case event.ToVersion < event.FromVersion:
-			logger.Sugar().Infof("Database migrated down from v%d to v%d",
-				event.FromVersion, event.ToVersion)
-		default:
-			logger.Info("No database migrations necessary")
-		}
-	})
-}
-
 func runLatestMigrations(db *sql.DB) {
 	runUsingMigrations(db, func(m *migrate.Migrate) error {
 		return m.Up()
 	})
 }
 
-func GoToVersion(version uint) {
-	runUsingMigrations(GetDB(), func(m *migrate.Migrate) error {
+func GoToVersion(db *sql.DB, version uint) {
+	runUsingMigrations(db, func(m *migrate.Migrate) error {
 		return m.Migrate(version)
 	})
 }
@@ -81,7 +64,21 @@ func runUsingMigrations(db *sql.DB, action func(m *migrate.Migrate) error) {
 	}
 
 	// Emit migration event and wait for all listeners to complete
-	MigrationsCompletedSignal.
-		EmitBG(MigratedEvent{FromVersion: fromVersion, ToVersion: toVersion}).
-		Wait()
+	migratedEvent := MigratedEvent{FromVersion: fromVersion, ToVersion: toVersion}
+	MigrationsVersionUpgradeCompletedSignal.EmitBG(migratedEvent).Wait()
+
+	// Run "post_migration.sql" (Only when migrating up)
+	if fromVersion >= toVersion {
+		postMigrationSqlRaw, err := migrationsFs.ReadFile("migrations/post_migration.sql")
+		if err != nil {
+			logger.Fatal("Failed to read post migrations file", zap.Error(err))
+		}
+		postMigrationSql := string(postMigrationSqlRaw)
+		_, err = db.Exec(postMigrationSql)
+		if err != nil {
+			logger.Fatal("Failed to execute post migration", zap.Error(err))
+		}
+	}
+
+	MigrationsPostMigrationCompletedSignal.EmitBG(migratedEvent).Wait()
 }

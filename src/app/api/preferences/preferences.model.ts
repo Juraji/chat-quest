@@ -12,6 +12,9 @@ export interface CQPreferences {
   memoryWindowSize: number
   memoryIncludeChatSize: number
   memoryIncludeChatNotes: boolean
+  titleGenerationModelId: Nullable<number>
+  titleGenerationInstructionId: Nullable<number>
+  titleGenerationMessageWindow: number
 }
 
 export const PreferencesUpdated: SseEvent<CQPreferences> = 'PreferencesUpdated'

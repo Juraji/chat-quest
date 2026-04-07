@@ -1,6 +1,6 @@
 import {ChatQuestModel} from '@api/common';
 
-export type InstructionType = 'CHAT' | 'MEMORIES'
+export type InstructionType = 'CHAT' | 'MEMORIES' | 'TITLE_GENERATION';
 
 export interface Instruction extends ChatQuestModel {
   name: string

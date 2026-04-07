@@ -23,4 +23,5 @@ func (e *MigratedEvent) IsUpIncludingVersion(version uint) bool {
 	return e.IsUp() && version > e.FromVersion && version <= e.ToVersion
 }
 
-var MigrationsCompletedSignal = signals.New[MigratedEvent]()
+var MigrationsVersionUpgradeCompletedSignal = signals.New[MigratedEvent]()
+var MigrationsPostMigrationCompletedSignal = signals.New[MigratedEvent]()

@@ -1,6 +1,7 @@
 package chat_sessions
 
 import (
+	"slices"
 	"time"
 
 	"juraji.nl/chat-quest/core/database"
@@ -69,6 +70,21 @@ func GetMessageById(messageId int) (*ChatMessage, error) {
 	return database.QueryForRecord(query, args, ChatMessageScanner)
 }
 
+func GetMessagesInSession(sessionId int, limit int) ([]ChatMessage, error) {
+	query := "SELECT * FROM chat_messages WHERE chat_session_id=? ORDER BY id DESC LIMIT ?"
+	args := []any{sessionId, limit}
+	list, err := database.QueryForList(query, args, ChatMessageScanner)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Reverse the slice to be in ASC order
+	slices.Reverse(list)
+
+	return list, nil
+}
+
 func GetMessagesInSessionBeforeId(sessionId int, messageId int, limit int) ([]ChatMessage, error) {
 	query := "SELECT * FROM chat_messages WHERE chat_session_id=? AND id<? ORDER BY id DESC LIMIT ?"
 	args := []any{sessionId, messageId, limit}
@@ -79,9 +95,7 @@ func GetMessagesInSessionBeforeId(sessionId int, messageId int, limit int) ([]Ch
 	}
 
 	// Reverse the slice to be in ASC order
-	for i, j := 0, len(list)-1; i < j; i, j = i+1, j-1 {
-		list[i], list[j] = list[j], list[i]
-	}
+	slices.Reverse(list)
 
 	return list, nil
 }

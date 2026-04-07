@@ -1,5 +1,5 @@
 {
-  "name": "Multi-Character Response (experimental)",
+  "name": "Multi-Character Response",
   "type": "CHAT",
   "temperature": 1.1,
   "maxTokens": 1024,

@@ -226,9 +226,6 @@ func generateResponse(
 	for {
 		select {
 		case response, hasNext := <-chatResponseChan:
-			if !hasNext {
-				return
-			}
 			if response.Error != nil {
 				logger.Error("Error generating response", zap.Error(response.Error))
 				return
@@ -348,6 +345,9 @@ func generateResponse(
 				}
 			}
 
+			if !hasNext {
+				return
+			}
 		case <-ctx.Done():
 			logger.Debug("Cancelled by context")
 			return

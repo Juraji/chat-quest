@@ -1,0 +1,30 @@
+{{- /*gotype: juraji.nl/chat-quest/processing.ChatInstructionVars*/ -}}
+```rag.xml
+{{if .Scenario -}}
+<Scenario>
+  {{.Scenario}}
+</Scenario>
+{{end -}}
+<Characters>
+  {{range $c := .OtherParticipants -}}
+  <Character>
+    <Id>{{$c.ID}}</Id>
+    <Name>{{$c.Name}}</Name>
+  </Character>
+  {{end -}}
+</Characters>
+{{if .Persona -}}
+<UserPersona>
+  <!-- This information describes the user, it is not a character in the chat -->
+  <Name>{{.Persona.Name}}</Name>
+</UserPersona>
+{{end -}}
+{{if .ChatNotes -}}
+<ChatNotes>
+  <!-- These are important notes for this chat session. Regard them as extra rules and knowledge this chat -->
+  {{.ChatNotes}}
+</ChatNotes>
+{{end -}}
+```
+
+(Do not recite the information in the rag.xml block, use it to enrich your understanding of the world and the individual character(s))

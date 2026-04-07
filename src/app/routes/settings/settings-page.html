@@ -64,7 +64,65 @@
       </div>
 
       <div class="g-col-12 g-col-lg-4">
-        <div class="card">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Title Generation Settings</h5>
+
+            <div class="mb-3">
+              <label for="chatModelIdInput">Title Generation Model</label>
+              <select class="form-select"
+                      formControlName="titleGenerationModelId"
+                      id="titleGenerationModelIdInput"
+                      aria-describedby="titleGenerationModelIdInputHelp">
+                @for (llm of chatModels(); track llm.id) {
+                  <option [ngValue]="llm.id">{{ llm | llmLabel }}</option>
+                }
+              </select>
+              <div id="titleGenerationModelIdInputHelp" class="form-text">
+                Select the model you want to use for title generation.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="titleGenerationInstructionIdInput">Title Generation Instructions</label>
+              <select class="form-select"
+                      id="titleGenerationInstructionIdInput"
+                      formControlName="titleGenerationInstructionId"
+                      aria-describedby="titleGenerationInstructionIdInputHelp">
+                @for (template of titleGenerationInstructionTemplates(); track template.id) {
+                  <option [ngValue]="template.id">{{ template.name }}</option>
+                }
+              </select>
+              <div id="titleGenerationInstructionIdInputHelp" class="form-text">
+                Select the instruction you want to use for generating titles.
+              </div>
+            </div>
+
+            <div>
+              <label for="titleGenerationMessageWindowInput">Message Window</label>
+              <input type="number" class="form-control"
+                     step="1"
+                     id="titleGenerationMessageWindowInput"
+                     aria-describedby="titleGenerationMessageWindowInputHelp"
+                     formControlName="titleGenerationMessageWindow"/>
+              <div id="titleGenerationMessageWindowInputHelp" class="form-text">
+                The amount of messages scanned for the title, counting backwards from most recent.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Title Generation Settings</h5>
+
+            <p class="text-muted">Soon.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="g-col-12 g-col-lg-4">
+        <div class="card mb-3">
           <div class="card-body">
             <h5 class="card-title">Memory Generation</h5>
 
@@ -121,9 +179,7 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="g-col-12 g-col-lg-4">
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">Memory Selection</h5>

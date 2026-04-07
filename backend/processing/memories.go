@@ -14,9 +14,8 @@ import (
 	pf "juraji.nl/chat-quest/model/preferences"
 )
 
-var MemoriesResponseFormat = `{
+var memoriesResponseFormat = `{
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Memories",
   "type": "object",
   "required": ["memories"],
   "properties": {
@@ -39,7 +38,7 @@ type memoriesContainer struct {
 	Memories []*m.Memory
 }
 
-var generationMutex sync.Mutex
+var memoryGenerationMutex sync.Mutex
 
 func GenerateMemoriesForMessageID(
 	ctx context.Context,
@@ -48,11 +47,11 @@ func GenerateMemoriesForMessageID(
 	// Lock while processing to avoid multiple messages invoking simultaneous generation
 	// for the same message window.
 	// If the lock is already active we cancel this invocation.
-	lock := generationMutex.TryLock()
+	lock := memoryGenerationMutex.TryLock()
 	if !lock {
 		return
 	}
-	defer generationMutex.Unlock()
+	defer memoryGenerationMutex.Unlock()
 
 	messageId := request.BaseMessageId
 	nPreceding := request.IncludeNPreceding
@@ -139,11 +138,11 @@ func GenerateMemories(
 	// Lock while processing to avoid multiple messages invoking simultaneous generation
 	// for the same message window.
 	// If the lock is already active we cancel this invocation.
-	lock := generationMutex.TryLock()
+	lock := memoryGenerationMutex.TryLock()
 	if !lock {
 		return
 	}
-	defer generationMutex.Unlock()
+	defer memoryGenerationMutex.Unlock()
 
 	sessionID := message.ChatSessionID
 	logger := log.Get().With(zap.Int("chatSessionId", sessionID))
@@ -244,7 +243,7 @@ func generateMemories(
 	// Generate memories
 	requestMessages := createChatRequestMessages(messageWindow, instruction)
 	llmParameters := instruction.AsLlmParameters()
-	llmParameters.ResponseFormat = &MemoriesResponseFormat
+	llmParameters.ResponseFormat = &memoriesResponseFormat
 
 	chatResponseChan := p.GenerateChatResponse(ctx, modelInstance, requestMessages, llmParameters)
 	var memoryGenResponse string
@@ -253,11 +252,6 @@ responseLoop:
 	for {
 		select {
 		case r, hasNext := <-chatResponseChan:
-			if !hasNext {
-				// Done
-				break responseLoop
-			}
-
 			if r.Error != nil {
 				logger.Error("Error generating memories",
 					zap.String("generated", memoryGenResponse),
@@ -266,6 +260,10 @@ responseLoop:
 			}
 
 			memoryGenResponse = memoryGenResponse + r.Content
+			if !hasNext {
+				// Done
+				break responseLoop
+			}
 		case <-ctx.Done():
 			logger.Debug("Cancelled by context")
 			return nil, false

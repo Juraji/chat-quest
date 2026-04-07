@@ -42,7 +42,7 @@ func Routes(router *gin.RouterGroup) {
 		version, _ := controllers.GetParamAsID(c, "version")
 		log.Get().Info("Migrating to version", zap.Int("version", version))
 
-		database.GoToVersion(uint(version))
+		database.GoToVersion(database.GetDB(), uint(version))
 		controllers.RespondEmpty(c, nil)
 	})
 

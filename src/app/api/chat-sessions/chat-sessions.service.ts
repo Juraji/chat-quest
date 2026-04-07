@@ -68,4 +68,8 @@ export class ChatSessions {
   forkChatSession(worldId: number, sessionId: number, messageId: number): Observable<ChatSession> {
     return this.http.post<ChatSession>(`/worlds/${worldId}/chat-sessions/${sessionId}/chat-messages/${messageId}/fork`, null)
   }
+
+  generateTitle(worldId: number, sessionId: number): Observable<void> {
+    return this.http.post<void>(`/worlds/${worldId}/chat-sessions/${sessionId}/generate-title`, null)
+  }
 }

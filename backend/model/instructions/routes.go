@@ -70,12 +70,12 @@ func Routes(router *gin.RouterGroup) {
 	})
 
 	instructionsRouter.GET("/default-templates", func(c *gin.Context) {
-		c.JSON(http.StatusOK, defaultTemplates)
+		c.JSON(http.StatusOK, defaultTemplates())
 	})
 
 	instructionsRouter.GET("/default-templates/:templateKey", func(c *gin.Context) {
 		templateKey := c.Param("templateKey")
-		_, exists := defaultTemplates[templateKey]
+		_, exists := defaultTemplates()[templateKey]
 		if !exists {
 			controllers.RespondBadRequest(c, "Invalid template index", nil)
 			return

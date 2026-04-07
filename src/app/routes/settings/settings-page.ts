@@ -41,6 +41,8 @@ export class SettingsPage {
     computed(() => this.instructions().filter(i => i.type === 'CHAT'));
   readonly memoryInstructionTemplates: Signal<Instruction[]> =
     computed(() => this.instructions().filter(i => i.type === 'MEMORIES'));
+  readonly titleGenerationInstructionTemplates: Signal<Instruction[]> =
+    computed(() => this.instructions().filter(i => i.type === 'TITLE_GENERATION'));
   readonly chatModels: Signal<LlmModelView[]> =
     computed(() => this.llmModelViews().filter(i => i.modelType === 'CHAT_MODEL'))
   readonly embeddingModels: Signal<LlmModelView[]> =
@@ -57,7 +59,10 @@ export class SettingsPage {
     memoryTriggerAfter: formControl(0, [Validators.required, Validators.min(1)]),
     memoryWindowSize: formControl(0, [Validators.required, Validators.min(1)]),
     memoryIncludeChatSize: formControl(0, [Validators.required, Validators.min(1)]),
-    memoryIncludeChatNotes: formControl(false)
+    memoryIncludeChatNotes: formControl(false),
+    titleGenerationModelId: formControl<Nullable<number>>(null, [Validators.required]),
+    titleGenerationInstructionId: formControl<Nullable<number>>(null, [Validators.required]),
+    titleGenerationMessageWindow: formControl<number>(0, [Validators.required, Validators.min(1)]),
   })
 
   constructor() {

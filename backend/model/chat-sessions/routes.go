@@ -243,4 +243,19 @@ func Routes(router *gin.RouterGroup) {
 		ChatParticipantResponseRequestedSignal.EmitBG(participant)
 		controllers.RespondEmpty(c, nil)
 	})
+
+	sessionRouter.POST("/:sessionId/generate-title", func(c *gin.Context) {
+		sessionId, ok := controllers.GetParamAsID(c, "sessionId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid session ID", nil)
+			return
+		}
+
+		request := ChatSessionTitleGenerateRequest{
+			ChatSessionID: sessionId,
+		}
+
+		ChatSessionTitleGenerationRequested.EmitBG(&request)
+		controllers.RespondEmpty(c, nil)
+	})
 }

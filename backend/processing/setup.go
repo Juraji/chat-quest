@@ -34,4 +34,8 @@ func SetupProcessing() {
 	// Auto archival
 	cs.ChatMessageCreatedSignal.AddListener(
 		"AutoArchiveMessages", AutoArchiveMessages)
+
+	// Chat session title generation
+	cs.ChatSessionTitleGenerationRequested.AddListener(
+		"GenerateTitleForSession", GenerateTitleForSession)
 }

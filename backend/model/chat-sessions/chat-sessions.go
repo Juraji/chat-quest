@@ -55,6 +55,10 @@ type ChatSession struct {
 	LastCompletionTokens int `json:"lastCompletionTokens"`
 }
 
+type ChatSessionTitleGenerateRequest struct {
+	ChatSessionID int `json:"chatSessionId"`
+}
+
 func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
 	return scanner.Scan(
 		&dest.ID,

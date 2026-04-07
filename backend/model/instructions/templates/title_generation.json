@@ -1,0 +1,19 @@
+{
+  "name": "Title Generation",
+  "type": "TITLE_GENERATION",
+  "temperature": 0.1,
+  "maxTokens": 50,
+  "topP": 0.95,
+  "presencePenalty": 0.7,
+  "frequencyPenalty": 1.1,
+  "stream": false,
+  "stopSequences": null,
+  "includeReasoning": false,
+  "reasoningPrefix": "<think>",
+  "reasoningSuffix": "</think>",
+  "characterIdPrefix": "<characterid>",
+  "characterIdSuffix": "</characterid>",
+  "systemPrompt": "templates/title_generation__system_prompt.tmpl",
+  "worldSetup": "templates/title_generation__world_setup.tmpl",
+  "instruction": "templates/title_generation__instruction.tmpl"
+}

@@ -23,14 +23,7 @@ INSERT INTO preferences (id, chat_model_id, chat_instruction_id, max_messages_in
                          memories_model_id, memories_instruction_id, memory_min_p, memory_trigger_after,
                          memory_window_size, memory_include_chat_size, memory_include_chat_notes)
 VALUES (0,
+        NULL, NULL, 10,
         NULL,
-        (SELECT id FROM instructions WHERE type = 'CHAT' LIMIT 1),
-        10,
-        NULL,
-        NULL,
-        (SELECT id FROM instructions WHERE type = 'MEMORIES' LIMIT 1),
-        0.7,
-        15,
-        10,
-        5,
-        true)
+        NULL, NULL, 0.7, 15,
+        10, 5, true)

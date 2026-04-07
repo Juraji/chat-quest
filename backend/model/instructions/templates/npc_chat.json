@@ -1,5 +1,5 @@
 {
-  "name": "NPC Response (experimental)",
+  "name": "NPC Response",
   "type": "CHAT",
   "temperature": 1.1,
   "maxTokens": 300,

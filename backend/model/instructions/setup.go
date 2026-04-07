@@ -3,25 +3,47 @@ package instructions
 import (
 	"context"
 
-	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/database"
+	"juraji.nl/chat-quest/core/log"
 )
 
 func init() {
 	const key = "InstallDefaultInstructions"
-	const execAtVersion = 3
 
-	database.MigrationsCompletedSignal.AddListener(key, func(ctx context.Context, event database.MigratedEvent) {
-		if event.IsUpIncludingVersion(execAtVersion) {
-			for tpl := range defaultTemplates {
-				template, err := reifyInstructionTemplate(tpl)
+	database.MigrationsVersionUpgradeCompletedSignal.AddListener(key, func(ctx context.Context, event database.MigratedEvent) {
+		// Always execute, but only if our latest version is above 3 (instructions).
+		if event.ToVersion <= 3 {
+			return
+		}
+
+		logger := log.Get()
+
+		logger.Info("Checking default instructions...")
+		existing, err := AllInstructions()
+		if err != nil {
+			logger.Panic("failed to get existing instructions",
+				zap.Error(err))
+		}
+
+		existingNames := make(map[string]struct{}, len(existing))
+		for _, inst := range existing {
+			existingNames[inst.Name] = struct{}{}
+		}
+
+		for tplKey, tplName := range defaultTemplates() {
+			if _, exists := existingNames[tplName]; !exists {
+				template, err := reifyInstructionTemplate(tplKey)
 				if err != nil {
-					panic(err)
+					logger.Panic("failed to create default template",
+						zap.String("key", tplKey),
+						zap.Error(err))
 				}
-
 				err = CreateInstruction(template)
 				if err != nil {
-					panic(errors.Wrap(err, "failed to save instruction template "+template.Name))
+					logger.Panic("failed to save instruction template",
+						zap.String("key", tplKey),
+						zap.Error(err))
 				}
 			}
 		}
