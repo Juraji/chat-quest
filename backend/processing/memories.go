@@ -3,6 +3,7 @@ package processing
 import (
 	"context"
 	"encoding/json"
+	"slices"
 	"sync"
 
 	"go.uber.org/zap"
@@ -278,7 +279,8 @@ responseLoop:
 		return nil, false
 	}
 
-	memories := container.Memories
+	memoryFilter := func(memory *m.Memory) bool { return len(memory.Content) == 0 }
+	memories := slices.DeleteFunc(container.Memories, memoryFilter)
 	logger.Debug("Memories generated successfully", zap.Int("memoryCount", len(memories)))
 	return memories, true
 }
