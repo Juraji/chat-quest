@@ -20,6 +20,9 @@ export function characterResolverFactory(idParam: string): ResolveFn<Character> 
         appearance: null,
         personality: null,
         history: null,
+        age: null,
+        pronouns: null,
+        species: null,
         groupTalkativeness: 0.5
       }),
       id => service.get(id)

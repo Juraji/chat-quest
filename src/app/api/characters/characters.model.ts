@@ -9,6 +9,9 @@ export interface Character extends ChatQuestModel {
   appearance: Nullable<string>
   personality: Nullable<string>
   history: Nullable<string>
+  age: Nullable<number>
+  pronouns: Nullable<string>
+  species: Nullable<string>
   groupTalkativeness: number
 }
 

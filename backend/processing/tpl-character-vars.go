@@ -17,24 +17,32 @@ import (
 type SparseTemplateCharacter interface {
 	ID() int
 	CharacterName() string
+	Age() *int
+	Pronouns() *string
+	Species() *string
 }
 
 type sparseTemplateCharacterImpl struct {
-	id   int
-	name string
+	id       int
+	name     string
+	age      *int
+	pronouns *string
+	species  *string
 }
 
-func (t *sparseTemplateCharacterImpl) ID() int {
-	return t.id
-}
-func (t *sparseTemplateCharacterImpl) CharacterName() string {
-	return t.name
-}
+func (t *sparseTemplateCharacterImpl) ID() int               { return t.id }
+func (t *sparseTemplateCharacterImpl) CharacterName() string { return t.name }
+func (t *sparseTemplateCharacterImpl) Age() *int             { return t.age }
+func (t *sparseTemplateCharacterImpl) Pronouns() *string     { return t.pronouns }
+func (t *sparseTemplateCharacterImpl) Species() *string      { return t.species }
 
 func NewSparseTemplateCharacter(char *c.Character) SparseTemplateCharacter {
 	return &sparseTemplateCharacterImpl{
-		id:   char.ID,
-		name: char.Name,
+		id:       char.ID,
+		name:     char.Name,
+		age:      char.Age,
+		pronouns: char.Pronouns,
+		species:  char.Species,
 	}
 }
 
@@ -53,6 +61,9 @@ type TemplateCharacter interface {
 type templateCharacterImpl struct {
 	id               int
 	name             string
+	age              *int
+	pronouns         *string
+	species          *string
 	appearance       func() (string, error)
 	personality      func() (string, error)
 	history          func() (string, error)
@@ -60,27 +71,16 @@ type templateCharacterImpl struct {
 	memories         func() ([]string, error)
 }
 
-func (t *templateCharacterImpl) ID() int {
-	return t.id
-}
-func (t *templateCharacterImpl) Name() string {
-	return t.name
-}
-func (t *templateCharacterImpl) Appearance() (string, error) {
-	return t.appearance()
-}
-func (t *templateCharacterImpl) Personality() (string, error) {
-	return t.personality()
-}
-func (t *templateCharacterImpl) History() (string, error) {
-	return t.history()
-}
-func (t *templateCharacterImpl) DialogueExamples() ([]string, error) {
-	return t.dialogueExamples()
-}
-func (t *templateCharacterImpl) Memories() ([]string, error) {
-	return t.memories()
-}
+func (t *templateCharacterImpl) ID() int                             { return t.id }
+func (t *templateCharacterImpl) Name() string                        { return t.name }
+func (t *templateCharacterImpl) Appearance() (string, error)         { return t.appearance() }
+func (t *templateCharacterImpl) Personality() (string, error)        { return t.personality() }
+func (t *templateCharacterImpl) History() (string, error)            { return t.history() }
+func (t *templateCharacterImpl) DialogueExamples() ([]string, error) { return t.dialogueExamples() }
+func (t *templateCharacterImpl) Memories() ([]string, error)         { return t.memories() }
+func (t *templateCharacterImpl) Age() *int                           { return t.age }
+func (t *templateCharacterImpl) Pronouns() *string                   { return t.pronouns }
+func (t *templateCharacterImpl) Species() *string                    { return t.species }
 
 // NewTemplateCharacter creates a new character object for use in go templates.
 // Note that the chatHistory must contain the full history, including the latest user message if applicable.
@@ -91,8 +91,11 @@ func NewTemplateCharacter(
 	chatHistory []cs.ChatMessage,
 ) TemplateCharacter {
 	return &templateCharacterImpl{
-		id:   char.ID,
-		name: char.Name,
+		id:       char.ID,
+		name:     char.Name,
+		age:      char.Age,
+		pronouns: char.Pronouns,
+		species:  char.Species,
 
 		appearance: sync.OnceValues(func() (string, error) {
 			if char.Appearance == nil {

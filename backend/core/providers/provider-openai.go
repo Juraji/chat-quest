@@ -136,9 +136,9 @@ func (o *openAIProvider) generateChatResponse(ctx context.Context, messages []Ch
 		}
 
 		return o.generateChatResponseStream(ctx, completionParams)
-	} else {
-		return o.generateChatResponseSingle(ctx, completionParams)
 	}
+
+	return o.generateChatResponseSingle(ctx, completionParams)
 }
 
 func (o *openAIProvider) generateChatResponseSingle(
@@ -217,11 +217,11 @@ func (o *openAIProvider) generateChatResponseStream(
 						panic("openAIProvider failed to close chat completion stream")
 					}
 					return
-				} else {
-					responseChannel <- ChatGenerateResponse{
-						TotalTokens:      int(chunk.Usage.TotalTokens),
-						CompletionTokens: int(chunk.Usage.CompletionTokens),
-					}
+				}
+
+				responseChannel <- ChatGenerateResponse{
+					TotalTokens:      int(chunk.Usage.TotalTokens),
+					CompletionTokens: int(chunk.Usage.CompletionTokens),
 				}
 
 			} else {

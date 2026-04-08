@@ -73,6 +73,51 @@
             </div>
           </div>
         </div>
+
+        <div class="card mb-3">
+          <div class="card-body" formGroupName="character">
+            <h5 class="card-title">Optional Fields</h5>
+
+            <p class="form-text">
+              These are optional fields, included in instructions as fields, separate from the main descriptions.
+              They are included in both ful character and sparse character details.
+            </p>
+
+            <div class="mb-1">
+              <label for="characterAgeInput">Age</label>
+              <input type="number" class="form-control"
+                     id="characterAgeInput"
+                     aria-describedby="characterAgeInputHelp"
+                     formControlName="age"/>
+              <div id="characterAgeInputHelp" class="form-text">
+                An age. Whether this is in earth years or Goobles, is up to you and your template.
+              </div>
+            </div>
+
+            <div class="mb-1">
+              <label for="characterSpeciesInput">Species</label>
+              <input type="text" class="form-control"
+                     id="characterSpeciesInput"
+                     aria-describedby="characterSpeciesInputHelp"
+                     formControlName="species"/>
+              <div id="characterSpeciesInputHelp" class="form-text">
+                Centaur? Valerian? Is Valerian even a species?
+              </div>
+            </div>
+
+            <div class="mb-1">
+              <label for="characterPronounsInput">Pronouns</label>
+              <input type="text" class="form-control"
+                     id="characterPronounsInput"
+                     aria-describedby="characterPronounsInputHelp"
+                     formControlName="pronouns"/>
+              <div id="characterPronounsInputHelp" class="form-text">
+                It's Majesty/Royalness for you. Especially usefull in memory instructions,
+                so the LLM doesn't asume gender.
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="g-col-12 g-col-lg-6 g-col-xl-8">
         <ul class="nav nav-underline mb-3">

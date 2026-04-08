@@ -18,6 +18,9 @@ export class CharacterEditFormService {
       appearance: formControl<Nullable<string>>(null),
       personality: formControl<Nullable<string>>(null),
       history: formControl<Nullable<string>>(null),
+      age: formControl<Nullable<number>>(null),
+      pronouns: formControl<Nullable<string>>(null),
+      species: formControl<Nullable<string>>(null),
       groupTalkativeness: formControl(0)
     }),
     dialogueExamples: formArray([]),
