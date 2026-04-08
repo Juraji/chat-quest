@@ -4,10 +4,13 @@ import {Instructions} from './instructions.service';
 import {Instruction} from './instructions.model';
 import {NEW_ID} from '@api/common';
 import {paramAsId} from "@util/ng";
+import {map} from 'rxjs';
 
 export const instructionsResolver: ResolveFn<Instruction[]> = () => {
   const service = inject(Instructions)
-  return service.getAll();
+  return service
+    .getAll()
+    .pipe(map(a => a.sort((a, b) => a.name.localeCompare(b.name))))
 };
 
 export const defaultInstructionTemplates: ResolveFn<Record<string, string>> = () => {

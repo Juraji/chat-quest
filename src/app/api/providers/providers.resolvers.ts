@@ -4,6 +4,7 @@ import {AiProviders, ConnectionProfile, LlmModel, LlmModelView} from './provider
 import {Providers} from './providers.service';
 import {NEW_ID} from '@api/common';
 import {resolveNewOrExisting} from '@util/ng';
+import {map} from 'rxjs';
 
 export const connectionProfilesResolver: ResolveFn<ConnectionProfile[]> = () => {
   const service = inject(Providers)
@@ -47,5 +48,7 @@ export function llmModelsResolverFactory(profileIdParam: string): ResolveFn<LlmM
 
 export const llmModelViewsResolver: ResolveFn<LlmModelView[]> = () => {
   const service = inject(Providers)
-  return service.getAllLlmModelViews()
+  return service
+    .getAllLlmModelViews()
+    .pipe(map(a => a.sort((a, b) => a.modelId.localeCompare(b.modelId))))
 }

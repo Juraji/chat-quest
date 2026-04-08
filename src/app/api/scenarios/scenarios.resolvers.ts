@@ -4,10 +4,13 @@ import {Scenarios} from './scenarios.service';
 import {Scenario} from './scenarios.model';
 import {NEW_ID} from '@api/common';
 import {resolveNewOrExisting} from '@util/ng';
+import {map} from 'rxjs';
 
 export const scenariosResolver: ResolveFn<Scenario[]> = () => {
   const service = inject(Scenarios)
-  return service.getAll();
+  return service
+    .getAll()
+    .pipe(map(a => a.sort((a, b) => a.name.localeCompare(b.name))));
 };
 
 export function scenarioResolverFactory(idParam: string): ResolveFn<Scenario> {
