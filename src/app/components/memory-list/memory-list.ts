@@ -57,19 +57,25 @@ export class MemoryList {
   protected readonly searchControl = formControl('')
   protected readonly searchControlValue = controlValueSignal(this.searchControl)
   protected readonly searchType: WritableSignal<SearchType> = signal("CONTENT")
+  protected readonly alwaysIncludeOnly = booleanSignal(false)
   protected readonly searchResult: Signal<Memory[]> = computed(() => {
-    const val = this.searchControlValue().toLowerCase()
-    const memories = this.memories()
+    let memories = this.memories()
 
-    if (val.length === 0) return memories
+    if (this.alwaysIncludeOnly()) {
+      memories = memories.filter((memory: Memory) => memory.alwaysInclude)
+    }
 
-    if (this.searchType() === "CHARACTER") {
-      const characterIds = this.charactersService.all()
-        .filter(c => c.name.toLowerCase().includes(val))
-        .map(c => c.id)
-      return memories.filter(m => !!m.characterId && characterIds.includes(m.characterId))
-    } else {
-      return memories.filter(m => m.content.toLowerCase().includes(val))
+    const searchValue = this.searchControlValue().toLowerCase()
+    if (searchValue.length === 0) return memories
+
+    switch (this.searchType()) {
+      case "CHARACTER":
+        const characterIds = this.charactersService.all()
+          .filter(c => c.name.toLowerCase().includes(searchValue))
+          .map(c => c.id)
+        return memories.filter(m => !!m.characterId && characterIds.includes(m.characterId))
+      case "CONTENT":
+        return memories.filter(m => m.content.toLowerCase().includes(searchValue))
     }
   })
 
