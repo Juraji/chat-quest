@@ -240,7 +240,9 @@ func Routes(router *gin.RouterGroup) {
 			return
 		}
 
-		ChatParticipantResponseRequestedSignal.EmitBG(participant)
+		ChatParticipantResponseRequestedSignal.
+			EmitBG(participant).
+			Wait()
 		controllers.RespondEmpty(c, nil)
 	})
 
@@ -255,7 +257,9 @@ func Routes(router *gin.RouterGroup) {
 			ChatSessionID: sessionId,
 		}
 
-		ChatSessionTitleGenerationRequested.EmitBG(&request)
+		ChatSessionTitleGenerationRequested.
+			EmitBG(&request).
+			Wait()
 		controllers.RespondEmpty(c, nil)
 	})
 }

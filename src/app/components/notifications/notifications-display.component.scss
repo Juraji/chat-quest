@@ -3,4 +3,18 @@
   position: fixed;
   top: 1.5rem;
   right: 1.5rem;
+
+  .throbber {
+    animation: notification-rotate-throbber 2s infinite;
+    animation-timing-function: ease-in-out;
+  }
+}
+
+@keyframes notification-rotate-throbber {
+  from {
+    transform: rotate(0deg)
+  }
+  to {
+    transform: rotate(360deg)
+  }
 }

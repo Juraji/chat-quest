@@ -112,10 +112,13 @@ Note that this and all subsequent messages will be deleted and this action can n
     const {id, content} = this.message();
     const contentPreview = content.substring(0, 50)
 
-    this.notifications.toast(`Requesting memory generation for "<span class="text-info">${contentPreview}</span>"...`);
+    const tId = this.notifications.toast(`Requesting memory generation for "<span class="text-info">${contentPreview}</span>"...`, "INFO", -1);
     this.memories
       .generateMemoriesForMessage(worldId, id, includeNPreceding)
-      .subscribe(() => this.notifications.toast('Memory generation completed!'))
+      .subscribe(() => {
+        this.notifications.removeToast(tId)
+        this.notifications.toast('Memory generation completed!')
+      })
   }
 
   onRegenerateMessage() {

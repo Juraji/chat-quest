@@ -102,7 +102,9 @@ func Routes(router *gin.RouterGroup) {
 			IncludeNPreceding: includeNPreceding,
 		}
 
-		MemoryGenerationForMessageRequestedSignal.Emit(c, request).Wait()
+		MemoryGenerationForMessageRequestedSignal.
+			Emit(c, request).
+			Wait()
 		controllers.RespondEmpty(c, nil)
 	})
 }
