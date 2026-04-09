@@ -6,15 +6,9 @@
   <Character>
     <Id>{{$c.ID}}</Id>
     <Name>{{$c.Name}}</Name>
-    {{if $c.Age }}
-    <Age>{{$c.Age}}</Age>
-    {{end -}}
-    {{if $c.Pronouns }}
-    <Pronouns>{{$c.Pronouns}}</Pronouns>
-    {{end -}}
-    {{if $c.Species }}
-    <Species>{{$c.Species}}</Species>
-    {{end -}}
+{{if $c.Age }}    <Age>{{$c.Age}}</Age>{{end}}
+{{if $c.Pronouns }}    <Pronouns>{{$c.Pronouns}}</Pronouns>{{end}}
+{{if $c.Species }}    <Species>{{$c.Species}}</Species>{{end}}
   </Character>
   {{end -}}
 </Characters>
@@ -24,15 +18,9 @@
   <!-- This information describes the user, it is not a character in the chat -->
   <Id>{{.Persona.ID}}</Id>
   <Name>{{.Persona.CharacterName}}</Name>
-  {{if .Persona.Age }}
-    <Age>{{.Persona.Age}}</Age>
-    {{end -}}
-    {{if .Persona.Pronouns }}
-    <Pronouns>{{.Persona.Pronouns}}</Pronouns>
-    {{end -}}
-    {{if .Persona.Species }}
-    <Species>{{.Persona.Species}}</Species>
-    {{end -}}
+{{if .Persona.Age }}  <Age>{{.Persona.Age}}</Age>{{end}}
+{{if .Persona.Pronouns }}  <Pronouns>{{.Persona.Pronouns}}</Pronouns>{{end}}
+{{if .Persona.Species }}  <Species>{{.Persona.Species}}</Species>{{end}}
 </UserPersona>
 {{end -}}
 ```
