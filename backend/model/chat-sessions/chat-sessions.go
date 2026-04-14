@@ -288,7 +288,7 @@ func ForkChatSession(sessionId int, messageId int) (*ChatSession, error) {
 				  WHERE id = ?
 				  RETURNING id, world_id, created_at, name, scenario_id, generate_memories, use_memories,
 				      pause_automatic_responses, current_time_of_day, chat_notes,
-				      persona_id, chat_model_id, chat_instruction_id;`
+				      persona_id, chat_model_id, chat_instruction_id, last_total_tokens, last_completion_tokens;`
 		args := []any{sessionId}
 		if newSession, err = database.QueryForRecord(query, args, chatSessionScanner); err != nil {
 			return err

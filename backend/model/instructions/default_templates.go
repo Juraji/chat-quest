@@ -58,8 +58,7 @@ func reifyInstructionTemplate(templateName string) (*Instruction, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load system prompt template from '%s'", systemPromptPath)
 	}
-	systemPrompt := string(systemPromptData)
-	instruction.SystemPrompt = &systemPrompt
+	instruction.SystemPrompt = new(string(systemPromptData))
 
 	// Reify world setup
 	worldSetupPath := *instruction.WorldSetup
@@ -67,8 +66,7 @@ func reifyInstructionTemplate(templateName string) (*Instruction, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load world setup template from '%s'", worldSetupPath)
 	}
-	worldSetup := string(worldSetupData)
-	instruction.WorldSetup = &worldSetup
+	instruction.WorldSetup = new(string(worldSetupData))
 
 	// Reify instruction
 	instructionPath := instruction.Instruction
