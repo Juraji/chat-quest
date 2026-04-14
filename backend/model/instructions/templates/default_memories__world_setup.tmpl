@@ -1,5 +1,10 @@
 {{- /*gotype: juraji.nl/chat-quest/processing.MemoryInstructionVars*/ -}}
 ```rag.xml
+{{if .Scenario -}}
+<Scenario>
+  {{.Scenario}}
+</Scenario>
+{{end -}}
 {{if .Participants -}}
 <Characters>
   {{range $c := .Participants -}}

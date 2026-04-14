@@ -4,7 +4,6 @@ import (
 	"sync"
 	"time"
 
-	"juraji.nl/chat-quest/core/util"
 	c "juraji.nl/chat-quest/model/characters"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	p "juraji.nl/chat-quest/model/preferences"
@@ -183,27 +182,6 @@ func NewChatInstructionVars(
 		return NewTemplateCharacter(character, prefs, session, fullHistory), nil
 	})
 
-	worldVarsFunc := sync.OnceValue(func() WorldVars {
-		return &worldVarsImpl{
-			characterName: func() (string, error) {
-				if character, err := characterFunc(); err != nil {
-					return "", err
-				} else {
-					return character.Name(), nil
-				}
-			},
-			personaName: func() (string, error) {
-				if character, err := characterFunc(); err != nil {
-					return "", err
-				} else if character != nil {
-					return character.Name(), nil
-				} else {
-					return "User", nil
-				}
-			},
-		}
-	})
-
 	return &chatInstructionVarsImpl{
 		triggerMessage:      triggerMessage,
 		currentMessageIndex: sessionMessageCount,
@@ -233,13 +211,7 @@ func NewChatInstructionVars(
 				return "", nil
 			}
 
-			worldVars := worldVarsFunc()
-			template, err := util.ParseAndApplyTextTemplate(*world.Description, worldVars)
-			if err != nil {
-				return "", err
-			}
-
-			return template, nil
+			return *world.Description, nil
 		}),
 		scenario: sync.OnceValues(func() (string, error) {
 			if session.ScenarioID == nil {
@@ -250,13 +222,7 @@ func NewChatInstructionVars(
 				return "", err
 			}
 
-			worldVars := worldVarsFunc()
-			template, err := util.ParseAndApplyTextTemplate(scenario.Description, worldVars)
-			if err != nil {
-				return "", err
-			}
-
-			return template, nil
+			return scenario.Description, nil
 		}),
 	}
 }
