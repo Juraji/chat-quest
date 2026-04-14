@@ -11,6 +11,7 @@ import {mergeMap} from 'rxjs';
 import {ActivatedRoute, Router} from '@angular/router';
 import {System} from '@api/system';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
+import {DatePipe} from '@angular/common';
 
 type MessageFormGroup = Pick<ChatMessage, 'content'>
 
@@ -21,7 +22,8 @@ type MessageFormGroup = Pick<ChatMessage, 'content'>
     ReactiveFormsModule,
     DropdownContainer,
     DropdownToggle,
-    DropdownMenu
+    DropdownMenu,
+    DatePipe
   ],
   templateUrl: './chat-session-message.html',
   styleUrl: './chat-session-message.scss',
