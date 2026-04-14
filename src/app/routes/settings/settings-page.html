@@ -8,7 +8,8 @@
         </button>
       }
       <button class="btn btn-primary btn-magical"
-              [disabled]="formGroup.invalid || formGroup.pristine">Save Changes
+              [disabled]="formGroup.invalid || this.uiSettingsFormGroup.invalid || (this.formGroup.pristine && this.uiSettingsFormGroup.pristine)">
+        Save Changes
       </button>
     </app-page-header>
 
@@ -59,6 +60,71 @@
                 The max message count included in the chat history, sent to chat completion.
               </div>
             </div>
+          </div>
+        </div>
+
+        <div class="card mb-3" [formGroup]="this.uiSettingsFormGroup">
+          <div class="card-body">
+            <h5 class="card-title">UI Settings</h5>
+
+            <div class="mb-3">
+              <label for="maxMessagesInChatViewInput">Max Messages in View</label>
+              <input type="number" class="form-control"
+                     step="1"
+                     id="maxMessagesInChatViewInput"
+                     aria-describedby="maxMessagesInChatViewInputHelp"
+                     formControlName="maxMessagesInChatView"/>
+              <div id="maxMessagesInChatViewInputHelp" class="form-text">
+                After how many attempts should the UI stop reconnecting to the backend.
+              </div>
+            </div>
+
+            <button type="button" class="btn btn-sm"
+                    [class.btn-outline-secondary]="!uiSettingsAdvancedOpened()"
+                    [class.btn-secondary]="uiSettingsAdvancedOpened()"
+                    (click)="uiSettingsAdvancedOpened.toggle()">Advanced
+            </button>
+            @if (uiSettingsAdvancedOpened()) {
+              <div>
+                <div class="form-text text-muted">
+                  You probably don't need to ever touch the values below, unless you have the Chat Quest backend running
+                  on
+                  a home server or similar.
+                </div>
+                <div class="mb-3">
+                  <label for="apiBaseUrlInput">Api Base URL</label>
+                  <input type="text" class="form-control"
+                         id="apiBaseUrlInput"
+                         formControlName="apiBaseUrl"/>
+                </div>
+
+                <div class="mb-3">
+                  <label for="sseMaxReconnectAttemptsInput">Max reconnect attempts</label>
+                  <input type="number" class="form-control"
+                         step="1"
+                         id="sseMaxReconnectAttemptsInput"
+                         aria-describedby="sseMaxReconnectAttemptsInputHelp"
+                         formControlName="sseMaxReconnectAttempts"/>
+                  <div id="sseMaxReconnectAttemptsInputHelp" class="form-text">
+                    After how many attempts should the UI stop reconnecting to the backend.
+                  </div>
+                </div>
+
+                <div>
+                  <label for="sseMinReconnectDelayMillisInput">Min Reconnect delay</label>
+                  <input type="number" class="form-control"
+                         step="1"
+                         id="sseMinReconnectDelayMillisInput"
+                         aria-describedby="sseMinReconnectDelayMillisInputHelp"
+                         formControlName="sseMinReconnectDelayMillis"/>
+                  <div id="sseMinReconnectDelayMillisInputHelp" class="form-text">
+                    The UI uses an exponential back-off strategy for reconnecting to the backend. This value dictates
+                    the
+                    initial delay, in milliseconds, before a reconnect is issued.
+                  </div>
+                </div>
+              </div>
+            }
           </div>
         </div>
       </div>

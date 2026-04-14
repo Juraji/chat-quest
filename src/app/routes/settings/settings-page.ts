@@ -6,11 +6,12 @@ import {ActivatedRoute} from '@angular/router';
 import {CQPreferences, Preferences, PreferencesUpdated} from '@api/preferences';
 import {Notifications} from '@components/notifications';
 import {SSE} from '@api/sse';
-import {formControl, formGroup, routeDataSignal, routeQueryParamSignal} from '@util/ng';
+import {booleanSignal, BooleanSignal, formControl, formGroup, routeDataSignal, routeQueryParamSignal} from '@util/ng';
 import {LlmModelView} from '@api/providers';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Instruction} from '@api/instructions';
 import {LlmLabelPipe} from '@components/llm-label.pipe';
+import {ChatQuestUIConfig} from '@config/config';
 
 @Component({
   selector: 'app-settings-page',
@@ -28,6 +29,7 @@ export class SettingsPage {
   private readonly preferences = inject(Preferences)
   private readonly notifications = inject(Notifications)
   private readonly sse = inject(SSE)
+  private readonly config = inject(ChatQuestUIConfig)
 
   private readonly instructions: Signal<Instruction[]> = routeDataSignal(this.activatedRoute, 'instructions');
   private readonly llmModelViews: Signal<LlmModelView[]> = routeDataSignal(this.activatedRoute, 'llmModelViews');
@@ -36,6 +38,8 @@ export class SettingsPage {
   readonly prefs: WritableSignal<CQPreferences> = linkedSignal(() => this._prefs());
 
   private readonly validate: Signal<boolean> = routeQueryParamSignal(this.activatedRoute, 'validate', v => !!v);
+
+  readonly uiSettingsAdvancedOpened: BooleanSignal = booleanSignal(false)
 
   readonly chatInstructionTemplates: Signal<Instruction[]> =
     computed(() => this.instructions().filter(i => i.type === 'CHAT'));
@@ -65,6 +69,13 @@ export class SettingsPage {
     titleGenerationMessageWindow: formControl<number>(0, [Validators.required, Validators.min(1)]),
   })
 
+  readonly uiSettingsFormGroup = formGroup<ChatQuestUIConfig>({
+    apiBaseUrl: formControl('', [Validators.required]),
+    sseMaxReconnectAttempts: formControl(0, [Validators.required, Validators.min(1)]),
+    sseMinReconnectDelayMillis: formControl(0, [Validators.required, Validators.min(100)]),
+    maxMessagesInChatView: formControl(0, [Validators.required, Validators.min(1)]),
+  })
+
   constructor() {
     effect(() => this.onRevertChanges());
     effect(() => {
@@ -82,10 +93,15 @@ export class SettingsPage {
   onRevertChanges() {
     const prefs = this.prefs()
     this.formGroup.reset(prefs)
+    this.uiSettingsFormGroup.reset(this.config)
   }
 
   onFormSubmit() {
-    if (this.formGroup.invalid) return
+    if (this.formGroup.invalid || this.uiSettingsFormGroup.invalid) return
+
+    if (this.uiSettingsFormGroup.dirty) {
+      Object.assign(this.config, this.uiSettingsFormGroup.value)
+    }
 
     const update: CQPreferences = {
       ...this.prefs(),

@@ -3,17 +3,15 @@ import {map, Observable, Subject, timer} from 'rxjs';
 import {filter as filterOp, share} from 'rxjs/operators';
 import {SseEvent, SseMessageBody} from './sse.model';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
-import {ChatQuestConfig} from '@config/config';
+import {ChatQuestUIConfig} from '@config/config';
 
 @Injectable({providedIn: 'root'})
 export class SSE {
   private readonly destroyRef = inject(DestroyRef)
-  private readonly config = inject(ChatQuestConfig)
+  private readonly config = inject(ChatQuestUIConfig)
   private readonly events = new Subject<SseMessageBody>();
   private eventSource: EventSource | null = null;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = this.config.sse.maxReconnectAttempts;
-  private reconnectionDelay = this.config.sse.reconnectionDelay;
 
   private readonly _connectionState = signal<number>(EventSource.CLOSED);
   readonly connectionState: Signal<number> = this._connectionState;
@@ -40,7 +38,7 @@ export class SSE {
 
   disconnect() {
     // Prevent reconnect on destroy
-    this.reconnectAttempts = this.maxReconnectAttempts;
+    this.reconnectAttempts = this.config.sseMaxReconnectAttempts;
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;
@@ -77,9 +75,9 @@ export class SSE {
     })
 
     s.onerror = () => {
-      if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      if (this.reconnectAttempts < this.config.sseMaxReconnectAttempts) {
         this.reconnectAttempts++;
-        const delay = this.reconnectionDelay * (this.reconnectAttempts * this.reconnectAttempts);
+        const delay = this.config.sseMinReconnectDelayMillis * (this.reconnectAttempts * this.reconnectAttempts);
 
         console.log(`SSE connection error. Reconnecting in ${delay}ms...`);
         timer(delay).subscribe(() => this.reconnect());

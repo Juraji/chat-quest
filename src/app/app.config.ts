@@ -8,7 +8,7 @@ import {provideRouter, withRouterConfig} from '@angular/router';
 
 import {routes} from './app.routes';
 import {provideHttpClient, withFetch, withInterceptors} from '@angular/common/http';
-import {provideChatQuestConfig} from '@config/config';
+import {provideChatQuestUIConfig} from '@config/config';
 import {backendUriInterceptor} from '@config/backend-api-uri-interceptor';
 import {sseInitializer} from '@config/sse-initializer';
 import {provideLocaleConfig} from '@config/locale';
@@ -22,7 +22,7 @@ export const appConfig: ApplicationConfig = {
       onSameUrlNavigation: "reload"
     })),
     provideLocaleConfig(),
-    provideChatQuestConfig(null),
+    provideChatQuestUIConfig(localStorage),
     provideHttpClient(
       withFetch(),
       withInterceptors([

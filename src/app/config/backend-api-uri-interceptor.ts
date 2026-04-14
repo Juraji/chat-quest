@@ -1,9 +1,9 @@
 import {HttpInterceptorFn} from '@angular/common/http';
 import {inject} from '@angular/core';
-import {ChatQuestConfig} from './config';
+import {ChatQuestUIConfig} from '@config/config';
 
 export const backendUriInterceptor: HttpInterceptorFn = (req, next) => {
-  const baseUrl = inject(ChatQuestConfig).apiBaseUrl
+  const baseUrl = inject(ChatQuestUIConfig).apiBaseUrl
 
   if (!req.url.startsWith('http')) {
     const url = req.url.startsWith('/') ? req.url.substring(1) : req.url;

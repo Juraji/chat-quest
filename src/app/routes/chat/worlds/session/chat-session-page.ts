@@ -4,7 +4,7 @@ import {
   effect,
   ElementRef,
   inject,
-  linkedSignal,
+  signal,
   Signal,
   viewChild,
   WritableSignal
@@ -15,6 +15,7 @@ import {ChatSessionMessage} from './components/chat-session-message/chat-session
 import {ChatSessionData} from './chat-session-data';
 import {MemoryList} from '@components/memory-list';
 import {booleanSignal} from '@util/ng';
+import {ChatQuestUIConfig} from '@config/config';
 
 @Component({
   selector: 'chat-with-page',
@@ -37,14 +38,14 @@ import {booleanSignal} from '@util/ng';
 })
 export class ChatSessionPage {
   private readonly sessionData = inject(ChatSessionData)
+  private readonly config = inject(ChatQuestUIConfig)
 
   readonly worldId: Signal<number> = this.sessionData.worldId
   readonly chatSessionName: Signal<string> = computed(() => this.sessionData.chatSession().name)
 
-  readonly messageLimitPageSize = computed(() => this.sessionData.preferences().memoryTriggerAfter)
-  readonly messageLimit: WritableSignal<number> = linkedSignal(() => this.messageLimitPageSize())
+  readonly messageLimit: WritableSignal<number> = signal(this.config.maxMessagesInChatView)
   readonly olderMessagesAvailable = computed(() => this.messageLimit() < this.sessionData.messages().length)
-  readonly olderMessagesShown = computed(() => this.messageLimit() > this.messageLimitPageSize())
+  readonly olderMessagesShown = computed(() => this.messageLimit() > this.config.maxMessagesInChatView)
   readonly messages = computed(() => {
     const messages = this.sessionData.messages()
     const limit = this.messageLimit()
@@ -111,11 +112,11 @@ export class ChatSessionPage {
   }
 
   onLoadOlderMessages() {
-    const incrWith = this.messageLimitPageSize()
+    const incrWith = this.config.maxMessagesInChatView
     this.messageLimit.update(limit => limit + incrWith)
   }
 
   onResetMessageLimit() {
-    this.messageLimit.set(this.messageLimitPageSize())
+    this.messageLimit.set(this.config.maxMessagesInChatView)
   }
 }
