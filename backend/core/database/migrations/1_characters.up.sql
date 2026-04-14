@@ -8,7 +8,10 @@ CREATE TABLE characters
   appearance          TEXT                  DEFAULT NULL,
   personality         TEXT                  DEFAULT NULL,
   history             TEXT                  DEFAULT NULL,
-  group_talkativeness FLOAT        NOT NULL DEFAULT 0.5
+  group_talkativeness FLOAT NOT NULL DEFAULT 0.5,
+  age                 INTEGER,
+  pronouns            TEXT,
+  species             TEXT
 );
 
 CREATE TABLE character_dialogue_examples

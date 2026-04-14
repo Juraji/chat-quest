@@ -1,13 +1,4 @@
 :host {
-  &.is-archived {
-    opacity: 0.5;
-    transition: opacity 0.3s;
-
-    &:hover {
-      opacity: 1;
-    }
-  }
-
   .character-avatar {
     width: 2rem;
     border-radius: var(--bs-border-radius);

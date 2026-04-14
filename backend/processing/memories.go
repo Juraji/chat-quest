@@ -202,11 +202,11 @@ func GenerateMemories(
 		}
 	}
 
-	// Update message processed states
+	// Update message memorized states
 	for _, chatMessage := range messageWindow {
-		err = cs.SetMessageArchived(sessionID, chatMessage.ID)
+		err = cs.SetMessageMemorized(sessionID, chatMessage.ID)
 		if err != nil {
-			logger.Error("Error setting message archived bit", zap.Error(err))
+			logger.Error("Error setting message memorized bit", zap.Error(err))
 		}
 	}
 
@@ -286,7 +286,7 @@ responseLoop:
 }
 
 func getMemoryMessageWindow(logger *zap.Logger, prefs *pf.Preferences, sessionID int) ([]cs.ChatMessage, error) {
-	messages, err := cs.GetUnarchivedChatMessages(sessionID)
+	messages, err := cs.GetNotMemorizedChatMessages(sessionID)
 	if err != nil {
 		return nil, err
 	}

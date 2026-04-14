@@ -5,9 +5,9 @@ import {routeDataSignal} from '@util/ng';
 import {World} from '@api/worlds';
 import {
   ChatMessage,
-  ChatMessageArchivedSignal,
   ChatMessageCreated,
   ChatMessageDeleted,
+  ChatMessageMemorizedSignal,
   ChatMessageUpdated,
   ChatParticipant,
   ChatParticipantAdded,
@@ -103,9 +103,9 @@ export class ChatSessionData {
       .subscribe(messageId => this.messages
         .update(prev => arrayRemove(prev, ({id}) => id === messageId)))
     this.sse
-      .on(ChatMessageArchivedSignal)
+      .on(ChatMessageMemorizedSignal)
       .subscribe(messageId => this.messages
-        .update(prev => arrayUpdate(prev, m => ({...m, isArchived: true}), m => m.id === messageId)));
+        .update(prev => arrayUpdate(prev, m => ({...m, isMemorized: true}), m => m.id === messageId)));
 
     this.sse
       .on(PreferencesUpdated)

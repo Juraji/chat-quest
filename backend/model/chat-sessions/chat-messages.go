@@ -13,7 +13,7 @@ type ChatMessage struct {
 	CreatedAt     *time.Time `json:"createdAt"`
 	IsUser        bool       `json:"isUser"`
 	IsGenerating  bool       `json:"isGenerating"`
-	IsArchived    bool       `json:"isArchived"`
+	IsMemorized   bool       `json:"isMemorized"`
 	CharacterID   *int       `json:"characterId"`
 	Content       string     `json:"content"`
 	Reasoning     string     `json:"reasoning"`
@@ -26,7 +26,7 @@ func ChatMessageScanner(scanner database.RowScanner, dest *ChatMessage) error {
 		&dest.CreatedAt,
 		&dest.IsUser,
 		&dest.IsGenerating,
-		&dest.IsArchived,
+		&dest.IsMemorized,
 		&dest.CharacterID,
 		&dest.Content,
 		&dest.Reasoning,
@@ -43,15 +43,36 @@ func NewChatMessage(isUser bool, isGenerating bool, characterId *int, content st
 }
 
 func GetAllChatMessages(sessionId int) ([]ChatMessage, error) {
-	query := "SELECT * FROM chat_messages WHERE chat_session_id=?"
+	query := "SELECT * FROM chat_messages WHERE chat_session_id=? ORDER BY created_at"
 	args := []any{sessionId}
 	return database.QueryForList(query, args, ChatMessageScanner)
 }
 
-func GetUnarchivedChatMessages(sessionId int) ([]ChatMessage, error) {
-	query := "SELECT * FROM chat_messages WHERE chat_session_id=? AND is_archived=FALSE"
+func GetTailChatMessages(sessionId int, limit int) ([]ChatMessage, error) {
+	query := "SELECT * FROM chat_messages WHERE chat_session_id=? ORDER BY id DESC LIMIT ?"
+	args := []any{sessionId, limit}
+	list, err := database.QueryForList(query, args, ChatMessageScanner)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Reverse the slice to be in ASC order
+	slices.Reverse(list)
+
+	return list, nil
+}
+
+func GetNotMemorizedChatMessages(sessionId int) ([]ChatMessage, error) {
+	query := "SELECT * FROM chat_messages WHERE chat_session_id=? AND is_memorized=FALSE"
 	args := []any{sessionId}
-	return database.QueryForList(query, args, ChatMessageScanner)
+	list, err := database.QueryForList(query, args, ChatMessageScanner)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
 }
 
 func GetChatSessionMessageCount(sessionId int) (int, error) {
@@ -68,21 +89,6 @@ func GetMessageById(messageId int) (*ChatMessage, error) {
 	query := "SELECT * FROM chat_messages WHERE id=?"
 	args := []any{messageId}
 	return database.QueryForRecord(query, args, ChatMessageScanner)
-}
-
-func GetMessagesInSession(sessionId int, limit int) ([]ChatMessage, error) {
-	query := "SELECT * FROM chat_messages WHERE chat_session_id=? ORDER BY id DESC LIMIT ?"
-	args := []any{sessionId, limit}
-	list, err := database.QueryForList(query, args, ChatMessageScanner)
-
-	if err != nil {
-		return nil, err
-	}
-
-	// Reverse the slice to be in ASC order
-	slices.Reverse(list)
-
-	return list, nil
 }
 
 func GetMessagesInSessionBeforeId(sessionId int, messageId int, limit int) ([]ChatMessage, error) {
@@ -105,12 +111,13 @@ func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 	chatMessage.CreatedAt = nil
 	chatMessage.IsUser = chatMessage.CharacterID == nil
 
-	query := `INSERT INTO chat_messages (chat_session_id, is_user, is_generating, character_id, content, reasoning)
-            VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at`
+	query := `INSERT INTO chat_messages (chat_session_id, is_user, is_generating, is_memorized, character_id, content, reasoning)
+            VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at`
 	args := []any{
 		chatMessage.ChatSessionID,
 		chatMessage.IsUser,
 		chatMessage.IsGenerating,
+		chatMessage.IsMemorized,
 		chatMessage.CharacterID,
 		chatMessage.Content,
 		chatMessage.Reasoning,
@@ -132,7 +139,6 @@ func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
 	query := `UPDATE chat_messages
             SET is_user = ?,
                 is_generating = ?,
-                is_archived = ?,
                 character_id = ?,
                 content = ?,
                 reasoning = ?
@@ -141,7 +147,6 @@ func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
 	args := []any{
 		chatMessage.IsUser,
 		chatMessage.IsGenerating,
-		chatMessage.IsArchived,
 		chatMessage.CharacterID,
 		chatMessage.Content,
 		chatMessage.Reasoning,
@@ -157,13 +162,13 @@ func UpdateChatMessage(sessionId int, id int, chatMessage *ChatMessage) error {
 	return err
 }
 
-func SetMessageArchived(sessionId int, id int) error {
-	query := `UPDATE chat_messages SET is_archived = TRUE WHERE chat_session_id = ? AND id = ?`
+func SetMessageMemorized(sessionId int, id int) error {
+	query := `UPDATE chat_messages SET is_memorized = TRUE WHERE chat_session_id = ? AND id = ?`
 	args := []any{sessionId, id}
 	err := database.UpdateRecord(query, args)
 
 	if err == nil {
-		ChatMessageArchivedSignal.EmitBG(id)
+		ChatMessageMemorizedSignal.EmitBG(id)
 	}
 
 	return err

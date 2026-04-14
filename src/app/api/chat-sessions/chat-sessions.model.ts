@@ -21,7 +21,6 @@ export interface ChatSession extends ChatQuestModel {
   scenarioId: Nullable<number>
   generateMemories: boolean
   useMemories: boolean
-  autoArchiveMessages: boolean
   pauseAutomaticResponses: boolean
   currentTimeOfDay: Nullable<TimeOfDay>
   chatNotes: Nullable<string>
@@ -37,7 +36,7 @@ export interface ChatMessage extends ChatQuestModel {
   createdAt: Nullable<string>
   isUser: boolean
   isGenerating: boolean
-  isArchived: boolean
+  isMemorized: boolean
   characterId: Nullable<number>
   content: string
   reasoning: string
@@ -58,6 +57,6 @@ export const ChatSessionDeleted: SseEvent<number> = 'ChatSessionDeleted'
 export const ChatMessageCreated: SseEvent<ChatMessage> = 'ChatMessageCreated'
 export const ChatMessageUpdated: SseEvent<ChatMessage> = 'ChatMessageUpdated'
 export const ChatMessageDeleted: SseEvent<number> = 'ChatMessageDeleted'
-export const ChatMessageArchivedSignal: SseEvent<number> = 'ChatMessageArchivedSignal'
+export const ChatMessageMemorizedSignal: SseEvent<number> = 'ChatMessageMemorizedSignal'
 export const ChatParticipantAdded: SseEvent<ChatParticipant> = 'ChatParticipantAdded'
 export const ChatParticipantRemoved: SseEvent<ChatParticipant> = 'ChatParticipantRemoved'

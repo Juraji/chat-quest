@@ -52,7 +52,6 @@ export class ChatSessionDetailsBlock {
     scenarioId: formControl(null),
     generateMemories: formControl(false),
     useMemories: formControl(false),
-    autoArchiveMessages: formControl(false),
     pauseAutomaticResponses: formControl(false),
     currentTimeOfDay: formControl(null),
     chatNotes: formControl(null),
@@ -72,16 +71,12 @@ export class ChatSessionDetailsBlock {
     effect(() => {
       const session = this.session();
       this.sessionForm.reset(session);
-
-      const autoArchiveMessagesField = this.sessionForm.get("autoArchiveMessages")!;
-      session.generateMemories ? autoArchiveMessagesField.disable() : autoArchiveMessagesField.enable();
     });
 
     // Common fields with standard debounce
     const standardFields = [
       'generateMemories',
       'useMemories',
-      'autoArchiveMessages',
       'pauseAutomaticResponses',
       'personaId',
       'scenarioId',

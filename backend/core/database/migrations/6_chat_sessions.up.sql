@@ -7,7 +7,6 @@ CREATE TABLE chat_sessions
   scenario_id               INTEGER REFERENCES scenarios (id) ON DELETE CASCADE,
   generate_memories         BIT(1)  NOT NULL,
   use_memories              BIT(1)  NOT NULL,
-  auto_archive_messages     BIT(1)  NOT NULL,
   pause_automatic_responses BIT(1)  NOT NULL,
   current_time_of_day       VARCHAR(50),
   chat_notes                TEXT,
@@ -33,12 +32,12 @@ CREATE TABLE chat_messages
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
   chat_session_id INTEGER   NOT NULL REFERENCES chat_sessions (id) ON DELETE CASCADE,
   created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  is_user         BIT(1)    NOT NULL,
-  is_generating BIT(1) NOT NULL,
-  is_archived   BIT(1) NOT NULL DEFAULT FALSE,
+  is_user       BIT(1) NOT NULL DEFAULT FALSE,
+  is_generating BIT(1) NOT NULL DEFAULT FALSE,
+  is_memorized  BIT(1) NOT NULL DEFAULT FALSE,
   character_id    INTEGER   REFERENCES characters (id) ON DELETE SET NULL,
   content       TEXT   NOT NULL,
   reasoning     TEXT   NOT NULL
 );
 
-CREATE INDEX idx_chat_messages__is_archived ON chat_messages (is_archived);
+CREATE INDEX idx_chat_messages__is_memorized ON chat_messages (is_memorized);

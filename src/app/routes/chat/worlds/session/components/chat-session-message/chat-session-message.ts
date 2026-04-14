@@ -26,7 +26,7 @@ type MessageFormGroup = Pick<ChatMessage, 'content'>
   templateUrl: './chat-session-message.html',
   styleUrl: './chat-session-message.scss',
   host: {
-    '[class.is-archived]': 'isArchived()',
+    '[class.is-memorized]': 'isMemorized()',
     '[class.is-generating]': 'isGenerating()'
   }
 })
@@ -46,7 +46,7 @@ export class ChatSessionMessage {
   readonly content: Signal<string> = computed(() => this.message().content)
   readonly isUser: Signal<boolean> = computed(() => this.message().isUser)
   readonly isGenerating: Signal<boolean> = computed(() => this.message().isGenerating)
-  readonly isArchived: Signal<boolean> = computed(() => this.message().isArchived)
+  readonly isMemorized: Signal<boolean> = computed(() => this.message().isMemorized)
   readonly createdAt: Signal<string> = computed(() => this.message().createdAt!)
 
   readonly reasoning: Signal<string> = computed(() => this.message().reasoning)
@@ -153,23 +153,5 @@ Note that this and all subsequent messages will be deleted and this action can n
     this.system
       .stopCurrentGeneration()
       .subscribe(() => this.notifications.toast('Generation cancelled!'));
-  }
-
-  onToggleArchived() {
-    const worldId = this.worldId();
-    const sessionId = this.sessionData.chatSessionId()
-    const msg = this.message()
-    const isArchived = !msg.isArchived
-
-    const update: ChatMessage = {
-      ...msg, isArchived
-    }
-
-    this.chatSessions
-      .saveMessage(worldId, sessionId, update)
-      .subscribe(() => {
-        this.editMessage.set(false)
-        this.notifications.toast(isArchived ? 'Message archived!' : 'Message restored!');
-      })
   }
 }

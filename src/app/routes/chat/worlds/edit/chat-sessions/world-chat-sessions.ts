@@ -35,7 +35,6 @@ export class WorldChatSessions {
       scenarioId: null,
       generateMemories: true,
       useMemories: true,
-      autoArchiveMessages: true,
       pauseAutomaticResponses: false,
       currentTimeOfDay: null,
       chatNotes: null,

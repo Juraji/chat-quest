@@ -58,7 +58,7 @@ func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.Ch
 	}
 
 	// Fetch chat history
-	chatHistory, err := cs.GetUnarchivedChatMessages(session.ID)
+	chatHistory, err := cs.GetAllChatMessages(session.ID)
 	if err != nil {
 		logger.Error("Error fetching chat history", zap.Error(err))
 		return
@@ -105,7 +105,7 @@ func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.C
 	}
 
 	// Fetch chat history
-	chatHistory, err := cs.GetUnarchivedChatMessages(session.ID)
+	chatHistory, err := cs.GetAllChatMessages(session.ID)
 	if err != nil {
 		logger.Error("Error fetching chat history", zap.Error(err))
 		return

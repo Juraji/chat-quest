@@ -72,7 +72,7 @@ func GenerateTitleForSession(
 	}
 
 	// Get message window (as per preferences)
-	messageWindow, err := cs.GetMessagesInSession(sessionID, prefs.TitleGenerationMessageWindow)
+	messageWindow, err := cs.GetTailChatMessages(sessionID, prefs.TitleGenerationMessageWindow)
 	if err != nil {
 		logger.Error("Error getting messages in session", zap.Error(err))
 	}
