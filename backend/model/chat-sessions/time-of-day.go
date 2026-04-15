@@ -1,7 +1,6 @@
 package chat_sessions
 
 import (
-	"slices"
 	"time"
 )
 
@@ -24,9 +23,16 @@ func (t *TimeOfDay) IsValid() bool {
 		return true
 	}
 
-	validToD := []TimeOfDay{EarlyMorning, Night, EarlyMorning, Morning, Afternoon, Evening, LateNight}
+	switch *t {
+	case Midnight, Night,
+		EarlyMorning, Morning,
+		Noon, Afternoon,
+		Evening, LateNight,
+		RealTime:
+		return true
+	}
 
-	return slices.Contains(validToD, *t)
+	return false
 }
 
 func (t *TimeOfDay) HumanFmtEn() string {
