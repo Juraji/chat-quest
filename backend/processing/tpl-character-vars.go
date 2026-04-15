@@ -160,7 +160,7 @@ func NewTemplateCharacter(
 			}
 
 			// Short circuit: No chat history, just get "AlwaysInclude" memories and return.
-			if len(chatHistory) == 0 {
+			if len(chatHistory) == 0 && session.ChatNotes == nil {
 				var staticMemories []string
 				for _, mem := range memories {
 					if mem.AlwaysInclude {

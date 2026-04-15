@@ -2,7 +2,6 @@ package processing
 
 import (
 	"sync"
-	"time"
 
 	c "juraji.nl/chat-quest/model/characters"
 	cs "juraji.nl/chat-quest/model/chat-sessions"
@@ -27,11 +26,6 @@ type ChatInstructionVars interface {
 	CurrentTimeOfDay() *cs.TimeOfDay
 	CurrentTimeOfDayFmtEN() string
 	ChatNotes() string
-}
-
-type WorldVars interface {
-	CharacterName() (string, error)
-	PersonaName() (string, error)
 }
 
 type chatInstructionVarsImpl struct {
@@ -79,75 +73,12 @@ func (c *chatInstructionVarsImpl) Scenario() (string, error) {
 func (c *chatInstructionVarsImpl) CurrentTimeOfDay() *cs.TimeOfDay {
 	return c.timeOfDay
 }
-func (c *chatInstructionVarsImpl) CurrentTimeOfDayFmtEN() string {
-	if c.timeOfDay == nil {
-		return ""
-	}
-	switch *c.timeOfDay {
-	case cs.Midnight:
-		return "Midnight (00:00–01:00)"
-	case cs.Night:
-		return "Night time (01:00–06:00)"
-	case cs.EarlyMorning:
-		return "Early morning (06:00–09:00)"
-	case cs.Morning:
-		return "Morning (09:00–11:59)"
-	case cs.Noon:
-		return "Noon (12:00-13:00)"
-	case cs.Afternoon:
-		return "Afternoon (13:00–18:00)"
-	case cs.Evening:
-		return "Evening (18:00–22:00)"
-	case cs.LateNight:
-		return "Late night (22:00–23:59)"
-	case cs.RealTime:
-		return time.Now().Format("15:04")
-	default:
-		panic("invalid timeOfDay")
-	}
-}
+func (c *chatInstructionVarsImpl) CurrentTimeOfDayFmtEN() string { return c.timeOfDay.HumanFmtEn() }
 func (c *chatInstructionVarsImpl) ChatNotes() string {
 	if c.chatNotes == nil {
 		return ""
 	}
 	return *c.chatNotes
-}
-
-type worldVarsImpl struct {
-	characterName func() (string, error)
-	personaName   func() (string, error)
-}
-
-func (w *worldVarsImpl) CharacterName() (string, error) {
-	return w.characterName()
-}
-func (w *worldVarsImpl) PersonaName() (string, error) {
-	return w.personaName()
-}
-
-func NewWorldVarsForCharacter(sessionId int, char *c.Character) WorldVars {
-	return &worldVarsImpl{
-		characterName: func() (string, error) {
-			return char.Name, nil
-		},
-		personaName: sync.OnceValues(func() (string, error) {
-			session, err := cs.GetById(sessionId)
-			if err != nil {
-				return "", err
-			}
-
-			if session.PersonaID == nil {
-				return "User", nil
-			}
-
-			character, err := c.CharacterById(*session.PersonaID)
-			if err != nil {
-				return "", err
-			}
-
-			return character.Name, nil
-		}),
-	}
 }
 
 func NewChatInstructionVars(

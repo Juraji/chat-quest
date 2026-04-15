@@ -43,7 +43,7 @@ func GreetOnParticipantAdded(ctx context.Context, participant *chat_sessions.Cha
 			return
 		}
 
-		vars := NewWorldVarsForCharacter(sessionID, char)
+		vars := NewGreetingVars(sessionID, char)
 		result, err := util.ParseAndApplyTextTemplate(message.Content, vars)
 		if err != nil {
 			logger.Error("Failed to parse and apply text template", zap.Error(err))

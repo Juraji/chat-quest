@@ -1,7 +1,6 @@
 package chat_sessions
 
 import (
-	"slices"
 	"time"
 
 	"go.uber.org/zap"
@@ -9,30 +8,6 @@ import (
 	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/util"
 )
-
-type TimeOfDay string
-
-const (
-	Midnight     TimeOfDay = "MIDNIGHT"      // (00:00–01:00)
-	Night        TimeOfDay = "NIGHT"         // (00:10–05:59)
-	EarlyMorning TimeOfDay = "EARLY_MORNING" // (06:00–08:59)
-	Morning      TimeOfDay = "MORNING"       // (09:00–11:59)
-	Noon         TimeOfDay = "NOON"          // (12:00–13:00)
-	Afternoon    TimeOfDay = "AFTERNOON"     // (13:00–18:00)
-	Evening      TimeOfDay = "EVENING"       // (18:00–22:00)
-	LateNight    TimeOfDay = "LATE_NIGHT"    // (22:00–23:59)
-	RealTime     TimeOfDay = "REAL_TIME"
-)
-
-func (t *TimeOfDay) IsValid() bool {
-	if t == nil {
-		return true
-	}
-
-	validToD := []TimeOfDay{EarlyMorning, Night, EarlyMorning, Morning, Afternoon, Evening, LateNight}
-
-	return slices.Contains(validToD, *t)
-}
 
 type ChatSession struct {
 	ID                      int        `json:"id"`

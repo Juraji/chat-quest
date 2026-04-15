@@ -37,36 +37,8 @@ func (m memoryInstructionVarsImpl) ChatNotes() string {
 	}
 	return *m.chatNotes
 }
-func (m memoryInstructionVarsImpl) CurrentTimeOfDay() *cs.TimeOfDay {
-	return m.timeOfDay
-}
-func (m memoryInstructionVarsImpl) CurrentTimeOfDayFmtEN() string {
-	if m.timeOfDay == nil {
-		return ""
-	}
-	switch *m.timeOfDay {
-	case cs.Midnight:
-		return "Midnight (00:00–01:00)"
-	case cs.Night:
-		return "Night time (01:00–06:00)"
-	case cs.EarlyMorning:
-		return "Early morning (06:00–09:00)"
-	case cs.Morning:
-		return "Morning (09:00–11:59)"
-	case cs.Noon:
-		return "Noon (12:00-13:00)"
-	case cs.Afternoon:
-		return "Afternoon (13:00–18:00)"
-	case cs.Evening:
-		return "Evening (18:00–22:00)"
-	case cs.LateNight:
-		return "Late night (22:00–23:59)"
-	case cs.RealTime:
-		return time.Now().Format("15:04")
-	default:
-		panic("invalid timeOfDay")
-	}
-}
+func (m memoryInstructionVarsImpl) CurrentTimeOfDay() *cs.TimeOfDay { return m.timeOfDay }
+func (m memoryInstructionVarsImpl) CurrentTimeOfDayFmtEN() string   { return m.timeOfDay.HumanFmtEn() }
 
 func NewMemoryInstructionVars(session *cs.ChatSession, before time.Time) MemoryInstructionVars {
 	return &memoryInstructionVarsImpl{
