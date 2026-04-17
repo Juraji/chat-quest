@@ -12,6 +12,7 @@ import {llmModelViewsResolver} from '@api/providers';
 import {preferencesResolver} from '@api/preferences';
 import {EditWorldPage} from './edit/edit-world-page';
 import {instructionsResolver} from '@api/instructions';
+import {memoryBookmarkResolverFactory} from '@api/memories';
 
 const routes: Routes = [
   {
@@ -32,6 +33,7 @@ const routes: Routes = [
       chatSession: chatSessionResolverFactory('worldId', 'chatSessionId'),
       participants: chatParticipantsResolverFactory('worldId', 'chatSessionId'),
       messages: chatMessagesResolverFactory('worldId', 'chatSessionId'),
+      memoryBookmark: memoryBookmarkResolverFactory('worldId', 'chatSessionId'),
       scenarios: scenariosResolver,
       llmModels: llmModelViewsResolver,
       preferences: preferencesResolver,

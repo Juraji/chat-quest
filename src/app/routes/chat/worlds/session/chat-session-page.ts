@@ -43,6 +43,8 @@ export class ChatSessionPage {
   readonly worldId: Signal<number> = this.sessionData.worldId
   readonly chatSessionName: Signal<string> = computed(() => this.sessionData.chatSession().name)
 
+  readonly memoryBookmark = this.sessionData.memoryBookmark
+
   readonly messageLimit: WritableSignal<number> = signal(this.config.maxMessagesInChatView)
   readonly olderMessagesAvailable = computed(() => this.messageLimit() < this.sessionData.messages().length)
   readonly olderMessagesShown = computed(() => this.messageLimit() > this.config.maxMessagesInChatView)

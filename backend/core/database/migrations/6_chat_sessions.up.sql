@@ -10,7 +10,7 @@ CREATE TABLE chat_sessions
   pause_automatic_responses BIT(1)  NOT NULL,
   current_time_of_day       VARCHAR(50),
   chat_notes                TEXT,
-  persona_id                INTEGER          DEFAULT NULL REFERENCES characters (id) ON DELETE SET DEFAULT,
+  persona_id INTEGER REFERENCES characters (id) ON DELETE SET NULL,
   chat_model_id             INTEGER REFERENCES llm_models (id) ON DELETE SET NULL,
   chat_instruction_id       INTEGER REFERENCES instructions (id) ON DELETE SET NULL,
   last_total_tokens         INTEGER NOT NULL DEFAULT 0,
@@ -34,10 +34,7 @@ CREATE TABLE chat_messages
   created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   is_user       BIT(1) NOT NULL DEFAULT FALSE,
   is_generating BIT(1) NOT NULL DEFAULT FALSE,
-  is_memorized  BIT(1) NOT NULL DEFAULT FALSE,
   character_id    INTEGER   REFERENCES characters (id) ON DELETE SET NULL,
   content       TEXT   NOT NULL,
   reasoning     TEXT   NOT NULL
 );
-
-CREATE INDEX idx_chat_messages__is_memorized ON chat_messages (is_memorized);

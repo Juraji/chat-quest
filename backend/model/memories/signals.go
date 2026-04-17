@@ -8,6 +8,7 @@ import (
 var MemoryCreatedSignal = signals.New[*Memory]()
 var MemoryUpdatedSignal = signals.New[*Memory]()
 var MemoryDeletedSignal = signals.New[int]()
+var MemoryBookmarkUpdatedSignal = signals.New[*MemoryBookmark]()
 
 var MemoryGenerationForMessageRequestedSignal = signals.New[GenerationRequest]()
 
@@ -15,4 +16,5 @@ func init() {
 	sse.RegisterOnSSE("MemoryCreated", MemoryCreatedSignal)
 	sse.RegisterOnSSE("MemoryUpdated", MemoryUpdatedSignal)
 	sse.RegisterOnSSE("MemoryDeleted", MemoryDeletedSignal)
+	sse.RegisterOnSSE("MemoryBookmarkUpdated", MemoryBookmarkUpdatedSignal)
 }

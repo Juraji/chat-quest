@@ -41,6 +41,41 @@ type memoriesContainer struct {
 
 var memoryGenerationMutex sync.Mutex
 
+func UpdateBookmarkOnMemoryGenEnable(_ context.Context, session *cs.ChatSession) {
+	if !session.GenerateMemories {
+		return
+	}
+
+	logger := log.Get().With(
+		zap.Int("sessionID", session.ID))
+
+	logger.Info("Memory generation enabled for session, moving bookmark to latest message...")
+
+	var err error
+	// The user has re-enabled memory generation, assuming it starts enabled.
+	// Here we move the memory bookmark to the last message in the chat, so we ignore messages prior to this point.
+	messages, err := cs.GetTailChatMessages(session.ID, 1)
+	if err != nil {
+		logger.Error("Error getting last chat message", zap.Error(err))
+		return
+	}
+	if len(messages) == 0 {
+		logger.Info("No messages found, skipping.")
+		return
+	}
+
+	messageID := messages[0].ID
+	logger = logger.With(zap.Int("messageID", messageID))
+
+	err = m.SetMemoryBookmark(session.ID, messageID)
+	if err != nil {
+		logger.Error("Error setting bookmark", zap.Error(err))
+		return
+	}
+
+	logger.Info("Updated bookmark successfully")
+}
+
 func GenerateMemoriesForMessageID(
 	ctx context.Context,
 	request m.GenerationRequest,
@@ -167,14 +202,36 @@ func GenerateMemories(
 		return
 	}
 
-	messageWindow, err := getMemoryMessageWindow(logger, prefs, sessionID)
-	if err != nil {
-		logger.Error("Error getting message window", zap.Error(err))
-		return
-	}
-	if messageWindow == nil {
-		logger.Info("Message window is empty, skipping...")
-		return
+	var messageWindow []cs.ChatMessage
+	{
+		bookmark, err := m.GetMemoryBookmark(sessionID)
+		if err != nil {
+			logger.Error("Error getting message bookmark", zap.Error(err))
+			return
+		}
+
+		limit := prefs.MemoryWindowSize + prefs.MemoryTriggerAfter
+		if bookmark == nil {
+			// No bookmark set yet, just get the tail messages
+			messageWindow, err = cs.GetTailChatMessages(sessionID, limit)
+		} else {
+			// Get messages AFTER the current bookmark, up to the maximum
+			messageWindow, err = cs.GetMessagesInSessionAfterId(sessionID, *bookmark, limit)
+		}
+		if err != nil {
+			logger.Error("Error getting chat messages", zap.Error(err))
+			return
+		}
+
+		windowSize := len(messageWindow) - prefs.MemoryTriggerAfter
+		if windowSize < prefs.MemoryWindowSize {
+			logger.Info("Skipping summary generation because window size is too small",
+				zap.Int("requiredWindowSize", prefs.MemoryWindowSize),
+				zap.Int("windowSize", windowSize))
+			return
+		}
+
+		messageWindow = messageWindow[:windowSize]
 	}
 
 	memories, ok := generateMemories(logger, ctx, session, prefs, messageWindow)
@@ -194,12 +251,11 @@ func GenerateMemories(
 		}
 	}
 
-	// Update message memorized states
-	for _, chatMessage := range messageWindow {
-		err = cs.SetMessageMemorized(sessionID, chatMessage.ID)
-		if err != nil {
-			logger.Error("Error setting message memorized bit", zap.Error(err))
-		}
+	// Update bookmark
+	lastMessageId := messageWindow[len(messageWindow)-1].ID
+	if err = m.SetMemoryBookmark(sessionID, lastMessageId); err != nil {
+		logger.Error("Error setting message bookmark ID", zap.Error(err))
+		return
 	}
 
 	logger.Info("Memory generation completed", zap.Int("newMemories", len(memories)))
@@ -275,26 +331,4 @@ responseLoop:
 	memories := slices.DeleteFunc(container.Memories, memoryFilter)
 	logger.Debug("Memories generated successfully", zap.Int("memoryCount", len(memories)))
 	return memories, true
-}
-
-func getMemoryMessageWindow(logger *zap.Logger, prefs *pf.Preferences, sessionID int) ([]cs.ChatMessage, error) {
-	messages, err := cs.GetNotMemorizedChatMessages(sessionID)
-	if err != nil {
-		return nil, err
-	}
-
-	triggerAfter := prefs.MemoryTriggerAfter
-	requiredWindowSize := prefs.MemoryWindowSize
-
-	windowSize := len(messages) - triggerAfter
-
-	// Only proceed if we have enough messages to create a valid window
-	if windowSize < requiredWindowSize {
-		logger.Info("Message window not yet full, skipping generation",
-			zap.Int("requiredWindowSize", requiredWindowSize),
-			zap.Int("windowSize", windowSize))
-		return nil, nil
-	}
-
-	return messages[:windowSize], nil
 }

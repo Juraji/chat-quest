@@ -28,7 +28,6 @@ type MessageFormGroup = Pick<ChatMessage, 'content'>
   templateUrl: './chat-session-message.html',
   styleUrl: './chat-session-message.scss',
   host: {
-    '[class.is-memorized]': 'isMemorized()',
     '[class.is-generating]': 'isGenerating()'
   }
 })
@@ -48,7 +47,6 @@ export class ChatSessionMessage {
   readonly content: Signal<string> = computed(() => this.message().content)
   readonly isUser: Signal<boolean> = computed(() => this.message().isUser)
   readonly isGenerating: Signal<boolean> = computed(() => this.message().isGenerating)
-  readonly isMemorized: Signal<boolean> = computed(() => this.message().isMemorized)
   readonly createdAt: Signal<string> = computed(() => this.message().createdAt!)
 
   readonly reasoning: Signal<string> = computed(() => this.message().reasoning)

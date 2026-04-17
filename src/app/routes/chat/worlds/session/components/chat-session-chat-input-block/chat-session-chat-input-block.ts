@@ -46,7 +46,6 @@ export class ChatSessionChatInputBlock {
       createdAt: null,
       isUser: true,
       isGenerating: false,
-      isMemorized: false,
       characterId: null,
       content,
       reasoning: ''

@@ -18,6 +18,11 @@ type Memory struct {
 	EmbeddingModelId *int                `json:"-"`
 }
 
+type MemoryBookmark struct {
+	ChatSessionID int `json:"chatSessionId"`
+	MessageID     int `json:"messageId"`
+}
+
 type GenerationRequest struct {
 	BaseMessageId     int
 	IncludeNPreceding int
@@ -144,6 +149,29 @@ func DeleteMemory(id int) error {
 
 	if err == nil {
 		MemoryDeletedSignal.EmitBG(id)
+	}
+
+	return err
+}
+
+func GetMemoryBookmark(chatSessionId int) (*int, error) {
+	query := `SELECT message_id FROM memory_bookmarks WHERE chat_session_id = ?`
+	args := []any{chatSessionId}
+	return database.QueryForRecord(query, args, database.IntScanner)
+}
+
+func SetMemoryBookmark(chatSessionId int, messageId int) error {
+	//language=SQLite
+	query := `INSERT OR REPLACE INTO memory_bookmarks (chat_session_id, message_id) VALUES(?,?)`
+	args := []any{chatSessionId, messageId}
+	err := database.UpdateRecord(query, args)
+
+	if err == nil {
+		event := MemoryBookmark{
+			ChatSessionID: chatSessionId,
+			MessageID:     messageId,
+		}
+		MemoryBookmarkUpdatedSignal.EmitBG(&event)
 	}
 
 	return err

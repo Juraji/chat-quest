@@ -30,12 +30,16 @@ export class Memories {
     return this.http.delete<void>(`/worlds/${worldId}/memories/${memoryId}`)
   }
 
+  getBookmarkMessageId(worldId: number, chatSessionId: number): Observable<Nullable<number>> {
+    return this.http.get<Nullable<number>>(`/worlds/${worldId}/memories/bookmarks/${chatSessionId}`)
+  }
+
   generateMemoriesForMessage(worldId: number, messageId: number, includeNPreceding: number | null): Observable<void> {
     let params = new HttpParams()
     if (!!includeNPreceding) {
       params = params.set("includeNPreceding", includeNPreceding)
     }
 
-    return this.http.post<void>(`/worlds/${worldId}/memories/generate-for-message/${messageId}`, null, {params})
+    return this.http.post<void>(`/worlds/${worldId}/memories/generate/${messageId}`, null, {params})
   }
 }

@@ -23,7 +23,7 @@ import {entityIdFilter} from '@api/common';
 import {arrayAdd, arrayRemove, arrayReplace, arrayUpdate} from '@util/array';
 import {LlmModelView} from '@api/providers';
 import {CQPreferences, PreferencesUpdated} from '@api/preferences';
-import {MemoryCreated} from '@api/memories';
+import {MemoryBookmarkUpdated, MemoryCreated} from '@api/memories';
 import {Notifications} from '@components/notifications';
 import {Instruction} from '@api/instructions';
 
@@ -42,6 +42,9 @@ export class ChatSessionData {
   private readonly _chatSession: Signal<ChatSession> = routeDataSignal(this.activatedRoute, 'chatSession')
   readonly chatSession: WritableSignal<ChatSession> = linkedSignal(() => this._chatSession())
   readonly chatSessionId: Signal<number> = computed(() => this.chatSession().id)
+
+  private readonly _memoryBookmark: Signal<number> = routeDataSignal(this.activatedRoute, 'memoryBookmark')
+  readonly memoryBookmark: WritableSignal<number> = linkedSignal(() => this._memoryBookmark())
 
   private readonly _participants: Signal<ChatParticipant[]> = routeDataSignal(this.activatedRoute, 'participants')
   readonly participants: WritableSignal<ChatParticipant[]> = linkedSignal(() => this._participants())
@@ -110,6 +113,10 @@ export class ChatSessionData {
     this.sse
       .on(PreferencesUpdated)
       .subscribe(prefs => this.preferences.set(prefs))
+
+    this.sse
+      .on(MemoryBookmarkUpdated, sessionEntityFilter(this.chatSessionId))
+      .subscribe(e => this.memoryBookmark.set(e.messageId))
 
     this.sse
       .on(MemoryCreated)

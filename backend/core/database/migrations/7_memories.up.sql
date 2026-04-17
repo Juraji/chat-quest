@@ -9,3 +9,9 @@ CREATE TABLE memories
   embedding      BLOB,
   embedding_model_id INTEGER   REFERENCES llm_models (id) ON DELETE SET NULL
 );
+
+CREATE TABLE memory_bookmarks
+(
+  chat_session_id INTEGER NOT NULL PRIMARY KEY REFERENCES chat_sessions (id) ON DELETE CASCADE,
+  message_id      INTEGER NOT NULL
+);

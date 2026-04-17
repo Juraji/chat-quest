@@ -9,6 +9,12 @@ export interface Memory extends ChatQuestModel {
   alwaysInclude: boolean
 }
 
+export interface MemoryBookmarkEvent {
+  chatSessionId: number
+  messageId: number
+}
+
 export const MemoryCreated: SseEvent<Memory> = 'MemoryCreated'
 export const MemoryUpdated: SseEvent<Memory> = 'MemoryUpdated'
 export const MemoryDeleted: SseEvent<number> = 'MemoryDeleted'
+export const MemoryBookmarkUpdated: SseEvent<MemoryBookmarkEvent> = 'MemoryBookmarkUpdated'

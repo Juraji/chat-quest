@@ -88,7 +88,22 @@ func Routes(router *gin.RouterGroup) {
 		controllers.RespondEmpty(c, err)
 	})
 
-	memoriesRouter.POST("/generate-for-message/:messageId", func(c *gin.Context) {
+	memoriesRouter.GET("/bookmarks/:chatSessionId", func(c *gin.Context) {
+		chatSessionId, ok := controllers.GetParamAsID(c, "chatSessionId")
+		if !ok {
+			controllers.RespondBadRequest(c, "Invalid chat session ID", nil)
+			return
+		}
+
+		bookmarkID, err := GetMemoryBookmark(chatSessionId)
+		if bookmarkID == nil {
+			controllers.RespondEmpty(c, err)
+		} else {
+			controllers.RespondSingle(c, bookmarkID, err)
+		}
+	})
+
+	memoriesRouter.POST("/generate/:messageId", func(c *gin.Context) {
 		messageId, ok := controllers.GetParamAsID(c, "messageId")
 		if !ok {
 			controllers.RespondBadRequest(c, "Invalid message ID", nil)
