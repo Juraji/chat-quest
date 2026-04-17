@@ -15,7 +15,7 @@ import (
 	pf "juraji.nl/chat-quest/model/preferences"
 )
 
-var memoriesResponseFormat = `{
+const memoriesResponseFormat = `{
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "required": ["memories"],
@@ -64,10 +64,6 @@ func GenerateMemoriesForMessageID(
 	// Cancellation
 	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateMemories")
 	defer cleanup()
-
-	if contextCheckPoint(ctx, logger) {
-		return
-	}
 
 	logger.Info("Generating memories for specific message...")
 
@@ -151,10 +147,6 @@ func GenerateMemories(
 	// Cancellation
 	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateMemories")
 	defer cleanup()
-
-	if contextCheckPoint(ctx, logger) {
-		return
-	}
 
 	session, err := cs.GetById(sessionID)
 	if err != nil {
@@ -244,7 +236,7 @@ func generateMemories(
 	// Generate memories
 	requestMessages := createChatRequestMessages(messageWindow, instruction)
 	llmParameters := instruction.AsLlmParameters()
-	llmParameters.ResponseFormat = &memoriesResponseFormat
+	llmParameters.ResponseFormat = new(memoriesResponseFormat)
 
 	chatResponseChan := p.GenerateChatResponse(ctx, modelInstance, requestMessages, llmParameters)
 	var memoryGenResponse string

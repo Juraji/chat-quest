@@ -1,7 +1,7 @@
 import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {ChatSession, ChatSessions} from '@api/chat-sessions';
 import {DatePipe} from '@angular/common';
-import {formControl, formGroup, readOnlyControl} from '@util/ng';
+import {booleanSignal, formControl, formGroup, readOnlyControl} from '@util/ng';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Notifications} from '@components/notifications';
 import {ChatSessionData} from '../../chat-session-data';
@@ -43,6 +43,8 @@ export class ChatSessionDetailsBlock {
     computed(() => this.instructions().filter(i => i.type === 'CHAT'));
   readonly chatModels: Signal<LlmModelView[]> =
     computed(() => this.llmModels().filter(i => i.modelType === 'CHAT_MODEL'))
+
+  readonly showChatNotesInput = booleanSignal(false)
 
   readonly sessionForm = formGroup<ChatSession>({
     id: readOnlyControl(),

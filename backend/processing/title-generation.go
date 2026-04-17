@@ -22,7 +22,7 @@ var titleResponseFormat = `{
 
 var titleGenerationMutex sync.Mutex
 
-func GenerateTitleForSession(
+func GenerateTitle(
 	ctx context.Context,
 	request *cs.ChatSessionTitleGenerateRequest,
 ) {

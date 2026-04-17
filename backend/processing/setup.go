@@ -33,5 +33,5 @@ func SetupProcessing() {
 
 	// Chat session title generation
 	cs.ChatSessionTitleGenerationRequested.AddListener(
-		"GenerateTitleForSession", GenerateTitleForSession)
+		"GenerateTitle", GenerateTitle)
 }

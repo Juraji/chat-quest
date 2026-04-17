@@ -45,7 +45,7 @@ export class SettingsPage {
     computed(() => this.instructions().filter(i => i.type === 'CHAT'));
   readonly memoryInstructionTemplates: Signal<Instruction[]> =
     computed(() => this.instructions().filter(i => i.type === 'MEMORIES'));
-  readonly titleGenerationInstructionTemplates: Signal<Instruction[]> =
+  readonly titleInstructionTemplates: Signal<Instruction[]> =
     computed(() => this.instructions().filter(i => i.type === 'TITLE_GENERATION'));
   readonly chatModels: Signal<LlmModelView[]> =
     computed(() => this.llmModelViews().filter(i => i.modelType === 'CHAT_MODEL'))

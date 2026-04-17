@@ -106,6 +106,13 @@ func GetMessagesInSessionBeforeId(sessionId int, messageId int, limit int) ([]Ch
 	return list, nil
 }
 
+func GetMessagesInSessionAfterId(sessionId int, messageId int, limit int) ([]ChatMessage, error) {
+	query := "SELECT * FROM chat_messages WHERE chat_session_id=? AND id<? ORDER BY id LIMIT ?"
+	args := []any{sessionId, messageId, limit}
+
+	return database.QueryForList(query, args, ChatMessageScanner)
+}
+
 func CreateChatMessage(sessionId int, chatMessage *ChatMessage) error {
 	chatMessage.ChatSessionID = sessionId
 	chatMessage.CreatedAt = nil

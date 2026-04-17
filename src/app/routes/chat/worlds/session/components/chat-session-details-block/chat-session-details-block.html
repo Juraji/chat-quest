@@ -166,17 +166,22 @@
           </div>
         </div>
       </div>
-      <div class="grid gap-1 align-items-center">
-        <div class="g-col-3">
-          <label for="chatNotesInput">Chat Notes</label>
-        </div>
-        <div class="g-col-9">
-        <textarea
-          class="form-control form-control-sm"
-          id="chatNotesInput"
-          formControlName="chatNotes"
-        ></textarea>
-        </div>
+      <div class="mb-1">
+        <label class="cursor-pointer" for="chatNotesInput"
+               (click)="showChatNotesInput.toggle()">
+          <span>Chat Notes</span>
+          <span class="bi bi-chevron-down mx-1"
+                [class.bi-chevron-up]="showChatNotesInput()"></span>
+        </label>
+        @if (showChatNotesInput()) {
+          <textarea
+            class="form-control form-control-sm"
+            id="chatNotesInput"
+            formControlName="chatNotes"
+            rows="5"
+            placeholder="Available in the chat instructions as '.ChatNotes', this can be used to add extra information to the world setup."
+          ></textarea>
+        }
       </div>
     </div>
   </div>
