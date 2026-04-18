@@ -94,32 +94,28 @@ func NewChatInstructionVars(
 		fullHistory = append(chatHistory, *triggerMessage)
 	}
 
-	characterFunc := sync.OnceValues(func() (TemplateCharacter, error) {
-		character, err := c.CharacterById(currentCharacterId)
-		if err != nil {
-			return nil, err
-		}
-		return NewTemplateCharacter(character, prefs, session, fullHistory), nil
-	})
-
-	personaFunc := sync.OnceValues(func() (TemplateCharacter, error) {
-		if session.PersonaID == nil {
-			return nil, nil
-		}
-		character, err := c.CharacterById(*session.PersonaID)
-		if err != nil {
-			return nil, err
-		}
-		return NewTemplateCharacter(character, prefs, session, fullHistory), nil
-	})
-
 	return &chatInstructionVarsImpl{
 		triggerMessage:      triggerMessage,
 		currentMessageIndex: sessionMessageCount,
 		timeOfDay:           session.CurrentTimeOfDay,
 		chatNotes:           session.ChatNotes,
-		character:           characterFunc,
-		persona:             personaFunc,
+		character: sync.OnceValues(func() (TemplateCharacter, error) {
+			character, err := c.CharacterById(currentCharacterId)
+			if err != nil {
+				return nil, err
+			}
+			return NewTemplateCharacter(character, prefs, session, fullHistory), nil
+		}),
+		persona: sync.OnceValues(func() (TemplateCharacter, error) {
+			if session.PersonaID == nil {
+				return nil, nil
+			}
+			character, err := c.CharacterById(*session.PersonaID)
+			if err != nil {
+				return nil, err
+			}
+			return NewTemplateCharacter(character, prefs, session, fullHistory), nil
+		}),
 		otherParticipants: sync.OnceValues(func() ([]TemplateCharacter, error) {
 			allParticipants, err := cs.GetAllParticipantsAsCharacters(session.ID)
 			if err != nil {
