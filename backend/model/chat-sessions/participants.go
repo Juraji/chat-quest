@@ -66,10 +66,15 @@ func GetParticipantAsCharacter(sessionId int, characterId int) (*ChatParticipant
 	return database.QueryForRecord(query, args, chatParticipantScanner)
 }
 
-func IsGroupSession(sessionId int) (*bool, error) {
-	query := `SELECT COUNT(*) > 1 FROM chat_participants WHERE chat_session_id = ?`
-	args := []any{sessionId}
-	return database.QueryForRecord(query, args, database.BoolScanner)
+func CheckParticipantInSession(sessionId int, characterId int) (bool, error) {
+	query := `SELECT COUNT(*) FROM chat_participants p
+                WHERE p.chat_session_id = ?
+                  AND p.character_id = ?
+                  AND p.removed_on IS NULL`
+	args := []any{sessionId, characterId}
+
+	count, err := database.QueryForRecord(query, args, database.IntScanner)
+	return count != nil && *count == 1, err
 }
 
 // RandomParticipantId selects a participant from a chat session with weighted randomness based on talkativeness.

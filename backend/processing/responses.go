@@ -199,12 +199,13 @@ func generateResponse(
 	reasoningSuffix := instruction.ReasoningSuffix
 
 	addMessageToStack := func() {
-		currentMessage = cs.NewChatMessage(false, true, &responderId, "")
-		if err := cs.CreateChatMessage(session.ID, currentMessage); err != nil {
+		newMessage := cs.NewChatMessage(false, true, &responderId, "")
+		if err := cs.CreateChatMessage(session.ID, newMessage); err != nil {
 			logger.Error("Failed to create response chat message", zap.Error(err))
-			return
+		} else {
+			currentMessage = newMessage
+			messageStack = append(messageStack, currentMessage)
 		}
-		messageStack = append(messageStack, currentMessage)
 	}
 
 	defer func() {
@@ -301,7 +302,15 @@ func generateResponse(
 							charTransitionSeen = true
 						}
 
-						currentMessage.CharacterID = &characterId
+						if charInSession, err := cs.CheckParticipantInSession(session.ID, characterId); !charInSession {
+							logger.Warn("LLM tried to use character that is not in session, continuing as responder...",
+								zap.Int("characterId", characterId),
+								zap.Error(err))
+							currentMessage.CharacterID = &responderId
+						} else {
+							currentMessage.CharacterID = &characterId
+						}
+
 						currentState = InContent
 						prefixBuffer.Reset()
 					}
