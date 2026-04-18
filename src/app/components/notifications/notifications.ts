@@ -41,7 +41,6 @@ export class Notifications {
   ): number {
     const toastId = ++this.lastId
     const timerHandle = timeout <= 0 ? null : window.setTimeout(() => this.removeToast(toastId), timeout)
-    console.log(arguments)
 
     const toast: Toast = {
       id: toastId,

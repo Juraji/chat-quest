@@ -40,6 +40,7 @@ func InitLogger(env core.Environment) {
 		level = zap.DebugLevel
 	}
 
+	// Console logging
 	var consoleCore zapcore.Core
 	{
 		consoleEncoderConfig := encoderConfig
@@ -49,6 +50,7 @@ func InitLogger(env core.Environment) {
 		consoleCore = zapcore.NewCore(encoder, writer, level)
 	}
 
+	// File logging
 	var fileCore zapcore.Core
 	{
 		logDir := env.MkDataDir("log")
@@ -67,8 +69,12 @@ func InitLogger(env core.Environment) {
 		fileCore = zapcore.NewCore(encoder, writer, level)
 	}
 
+	// Signal logging
+	signalCore := newSignalCore(level, LogMessagesSignal)
+
+	// Combine cores and set logger instance
 	loggerInstance = zap.New(
-		zapcore.NewTee(consoleCore, fileCore),
+		zapcore.NewTee(consoleCore, fileCore, signalCore),
 		zap.AddCaller(),
 		zap.AddStacktrace(zap.ErrorLevel), // Add stack trace for error logs
 	)
