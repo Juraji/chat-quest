@@ -36,6 +36,19 @@ func New[T any]() *Signal[T] {
 	}
 }
 
+// MapSignal creates a new signal that emits transformed versions of the original signal's payload.
+// The transformation is applied using the provided function, which takes each emitted value
+// from the source signal and returns a new value of type R. Returns a new Signal[R] instance.
+func MapSignal[T any, R any](source *Signal[T], name string, transform func(T) R) *Signal[R] {
+	mappedSignal := New[R]()
+
+	source.AddListener(name, func(ctx context.Context, payload T) {
+		mappedSignal.Emit(ctx, transform(payload))
+	})
+
+	return mappedSignal
+}
+
 // AddListener registers your callback function to be notified when the signal is emitted.
 // Provide a unique key for each listener to avoid duplicates and ensure proper removal later.
 func (s *Signal[T]) AddListener(key string, listener SignalListener[T]) {

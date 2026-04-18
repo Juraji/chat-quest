@@ -33,6 +33,12 @@ type ChatSessionTitleGenerateRequest struct {
 	ChatSessionID int `json:"chatSessionId"`
 }
 
+type ChatSessionUpdatedBAEvent struct {
+	SessionId int          `json:"sessionId"`
+	Before    *ChatSession `json:"before"`
+	After     *ChatSession `json:"after"`
+}
+
 func chatSessionScanner(scanner database.RowScanner, dest *ChatSession) error {
 	return scanner.Scan(
 		&dest.ID,
@@ -154,6 +160,12 @@ func Create(worldId int, session *ChatSession, characterIds []int) error {
 
 func Update(worldId int, id int, session *ChatSession) error {
 	session.ChatNotes = util.EmptyStrToNil(session.ChatNotes)
+	var err error
+
+	before, err := GetByWorldIdAndId(worldId, id)
+	if err != nil {
+		return err
+	}
 
 	query := `UPDATE chat_sessions
             SET name = ?,
@@ -183,10 +195,14 @@ func Update(worldId int, id int, session *ChatSession) error {
 		id,
 	}
 
-	err := database.UpdateRecord(query, args)
+	err = database.UpdateRecord(query, args)
 
 	if err == nil {
-		ChatSessionUpdatedSignal.EmitBG(session)
+		ChatSessionUpdatedBASignal.EmitBG(&ChatSessionUpdatedBAEvent{
+			SessionId: id,
+			Before:    before,
+			After:     session,
+		})
 	}
 
 	return err
@@ -282,8 +298,8 @@ func ForkChatSession(sessionId int, messageId int) (*ChatSession, error) {
 		}
 
 		// Copy messages up to messageId
-		query = `INSERT INTO chat_messages (chat_session_id, created_at, is_user, is_generating, is_memorized, character_id, content, reasoning)
-				 SELECT ?, created_at, is_user, is_generating, is_memorized, character_id, content, reasoning
+		query = `INSERT INTO chat_messages (chat_session_id, created_at, is_user, is_generating, character_id, content, reasoning)
+				 SELECT ?, created_at, is_user, is_generating, character_id, content, reasoning
 				 FROM chat_messages
 				 WHERE chat_session_id = ? AND id <= ?;`
 		args = []any{newSessionId, sessionId, messageId}

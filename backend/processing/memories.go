@@ -41,20 +41,20 @@ type memoriesContainer struct {
 
 var memoryGenerationMutex sync.Mutex
 
-func UpdateBookmarkOnMemoryGenEnable(_ context.Context, session *cs.ChatSession) {
-	if !session.GenerateMemories {
+func UpdateBookmarkOnMemoryGenEnable(_ context.Context, e *cs.ChatSessionUpdatedBAEvent) {
+	if e.Before.GenerateMemories == e.After.GenerateMemories {
 		return
 	}
 
 	logger := log.Get().With(
-		zap.Int("sessionID", session.ID))
+		zap.Int("sessionID", e.SessionId))
 
 	logger.Info("Memory generation enabled for session, moving bookmark to latest message...")
 
 	var err error
 	// The user has re-enabled memory generation, assuming it starts enabled.
 	// Here we move the memory bookmark to the last message in the chat, so we ignore messages prior to this point.
-	messages, err := cs.GetTailChatMessages(session.ID, 1)
+	messages, err := cs.GetTailChatMessages(e.SessionId, 1)
 	if err != nil {
 		logger.Error("Error getting last chat message", zap.Error(err))
 		return
@@ -67,7 +67,7 @@ func UpdateBookmarkOnMemoryGenEnable(_ context.Context, session *cs.ChatSession)
 	messageID := messages[0].ID
 	logger = logger.With(zap.Int("messageID", messageID))
 
-	err = m.SetMemoryBookmark(session.ID, messageID)
+	err = m.SetMemoryBookmark(e.SessionId, messageID)
 	if err != nil {
 		logger.Error("Error setting bookmark", zap.Error(err))
 		return
@@ -225,7 +225,7 @@ func GenerateMemories(
 
 		windowSize := len(messageWindow) - prefs.MemoryTriggerAfter
 		if windowSize < prefs.MemoryWindowSize {
-			logger.Info("Skipping summary generation because window size is too small",
+			logger.Info("Skipping memory generation because window size is too small",
 				zap.Int("requiredWindowSize", prefs.MemoryWindowSize),
 				zap.Int("windowSize", windowSize))
 			return

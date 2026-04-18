@@ -6,13 +6,17 @@ import (
 )
 
 var ChatSessionCreatedSignal = signals.New[*ChatSession]()
-var ChatSessionUpdatedSignal = signals.New[*ChatSession]()
+var ChatSessionUpdatedBASignal = signals.New[*ChatSessionUpdatedBAEvent]()
+var ChatSessionUpdatedSignal = signals.MapSignal(
+	ChatSessionUpdatedBASignal,
+	"MappedChatSessionUpdatedSignal",
+	func(e *ChatSessionUpdatedBAEvent) *ChatSession { return e.After },
+)
 var ChatSessionDeletedSignal = signals.New[int]()
 
 var ChatMessageCreatedSignal = signals.New[*ChatMessage]()
 var ChatMessageUpdatedSignal = signals.New[*ChatMessage]()
 var ChatMessageDeletedSignal = signals.New[int]()
-var ChatMessageMemorizedSignal = signals.New[int]()
 
 var ChatParticipantAddedSignal = signals.New[*ChatParticipant]()
 var ChatParticipantRemovedSignal = signals.New[*ChatParticipant]()
@@ -27,7 +31,6 @@ func init() {
 	sse.RegisterOnSSE("ChatMessageCreated", ChatMessageCreatedSignal)
 	sse.RegisterOnSSE("ChatMessageUpdated", ChatMessageUpdatedSignal)
 	sse.RegisterOnSSE("ChatMessageDeleted", ChatMessageDeletedSignal)
-	sse.RegisterOnSSE("ChatMessageMemorizedSignal", ChatMessageMemorizedSignal)
 	sse.RegisterOnSSE("ChatParticipantAdded", ChatParticipantAddedSignal)
 	sse.RegisterOnSSE("ChatParticipantRemoved", ChatParticipantRemovedSignal)
 }

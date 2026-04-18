@@ -22,7 +22,7 @@ func SetupProcessing() {
 		"GenerateMemories", GenerateMemories)
 	cs.ChatMessageUpdatedSignal.AddListener(
 		"GenerateMemories", GenerateMemories)
-	cs.ChatSessionUpdatedSignal.AddListener(
+	cs.ChatSessionUpdatedBASignal.AddListener(
 		"UpdateBookmarkOnMemoryGenEnable", UpdateBookmarkOnMemoryGenEnable)
 	m.MemoryGenerationForMessageRequestedSignal.AddListener(
 		"GenerateMemoriesForMessageID", GenerateMemoriesForMessageID)
