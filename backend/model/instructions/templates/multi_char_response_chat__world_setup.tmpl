@@ -1,21 +1,40 @@
 {{- /*gotype: juraji.nl/chat-quest/processing.ChatInstructionVars*/ -}}
 ```rag.xml
-{{if .World -}}
-<WorldDescription>
-  {{.World}}
-</WorldDescription>
-{{end -}}
 {{if .Scenario -}}
 <Scenario>
   {{.Scenario}}
 </Scenario>
 {{end -}}
+<Lore>
+  <!-- World lore is important. Make sure to follow this as closely as possible, unless character descriptions state otherwise. -->
+  {{if .World -}}
+  <World>
+    {{.World}}
+  </World>
+  {{end -}}
+  {{if .SpeciesPresent -}}
+  <Inhabitants>
+    <!-- The species described here are not all species this world knows, only the ones that are currently present in the chat. -->
+    {{range .SpeciesPresent}}
+    <Species>
+      <Name>{{.Name}}<Name>
+      <Description>
+        {{.Description}}
+      </Description>
+    </Species>
+    {{end -}}
+  </Inhabitants>
+  {{end -}}
+</Lore>
 <Characters>
   {{with .Character -}}
   <Character>
     <!-- This is the character you are currently impersonating. -->
     <Id>{{.ID}}</Id>
     <Name>{{.Name}}</Name>
+    {{if .Age}}<AgeInYears>{{.Age}}</AgeInYears>{{end}}
+    {{if .Pronouns}}<Pronouns>{{.Pronouns}}</Pronouns>{{end}}
+    {{if .Species}}<Species>{{.Species}}</Species>{{end}}
     {{if .Appearance -}}
     <Appearance>
       {{.Appearance}}
@@ -53,6 +72,9 @@
     <!-- This is another participant in the chat. -->
     <Id>{{$c.ID}}</Id>
     <Name>{{$c.Name}}</Name>
+    {{if $c.Age}}<AgeInYears>{{$c.Age}}</AgeInYears>{{end}}
+    {{if $c.Pronouns}}<Pronouns>{{$c.Pronouns}}</Pronouns>{{end}}
+    {{if $c.Species}}<Species>{{$c.Species}}</Species>{{end}}
     {{if $c.Appearance -}}
     <Appearance>
       {{$c.Appearance -}}
@@ -85,6 +107,9 @@
 <UserPersona>
   <!-- This information describes the user, it is not a character in the chat -->
   <Name>{{.Persona.Name}}</Name>
+  {{if .Persona.Age}}<AgeInYears>{{.Persona.Age}}</AgeInYears>{{end}}
+  {{if .Persona.Pronouns}}<Pronouns>{{.Persona.Pronouns}}</Pronouns>{{end}}
+  {{if .Persona.Species}}<Species>{{.Persona.Species}}</Species>{{end}}
   {{if .Persona.Appearance -}}
   <Appearance>
     {{.Persona.Appearance -}}

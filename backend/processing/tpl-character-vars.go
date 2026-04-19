@@ -44,11 +44,13 @@ func NewSparseTemplateCharacter(char *c.Character) SparseTemplateCharacter {
 		age:      char.Age,
 		pronouns: char.Pronouns,
 		species: sync.OnceValues(func() (string, error) {
-			species, err := sp.SpeciesByID(char.ID)
+			if char.SpeciesID == nil {
+				return "", nil
+			}
+			species, err := sp.SpeciesByID(*char.SpeciesID)
 			if err != nil {
 				return "", err
 			}
-
 			if species == nil {
 				return "", nil
 			}

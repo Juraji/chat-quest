@@ -12,14 +12,7 @@ export function sseInitializer() {
   // Display backend error messages
   sse
     .on(LogMessages, m => m.level == "ERROR")
-    .subscribe(logMessage => {
-      const fieldsList = Object
-        .entries(logMessage.fields)
-        .map(([key, value]) => `${key}: ${value}`)
-        .join('\n')
-
-      notifications.toast(`Backend error: ${logMessage.message}<br/><pre>${fieldsList}</pre>`, "DANGER");
-    })
+    .subscribe(logMessage => notifications.toast(`Backend error: ${logMessage.message}`, "DANGER"))
 
   window.addEventListener("beforeunload", () => sse.disconnect())
 }

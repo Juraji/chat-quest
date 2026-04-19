@@ -84,7 +84,16 @@ func GetSpeciesPresentInSession(sessionId int) ([]Species, error) {
 				LEFT JOIN characters c on c.species_id = s.id
 				LEFT JOIN chat_participants cp on c.id = cp.character_id
 			WHERE cp.chat_session_id=?
-				AND c.species_id IS NOT NULL`
-	args := []any{sessionId}
+				AND c.species_id IS NOT NULL
+
+			UNION
+
+			SELECT DISTINCT s.*
+			FROM species s
+				LEFT JOIN characters c on c.species_id = s.id
+				LEFT JOIN chat_sessions cs on cs.persona_id = c.id
+			WHERE cs.id=?
+				AND cs.persona_id IS NOT NULL`
+	args := []any{sessionId, sessionId}
 	return database.QueryForList(query, args, speciesScanner)
 }
