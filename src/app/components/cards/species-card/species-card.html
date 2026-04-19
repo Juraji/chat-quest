@@ -1,0 +1,11 @@
+<div class="card" [style.background-image]="avatarUrl()">
+  <div class="card-header d-flex align-items-center">
+    <h5 class="card-title mb-0 text-center flex-grow-1 text-truncate">{{ name() }}</h5>
+  </div>
+  <div class="card-body"></div>
+  <div class="card-footer">
+    <div class="btn-toolbar justify-content-center gap-2">
+      <ng-content select=".btn"></ng-content>
+    </div>
+  </div>
+</div>

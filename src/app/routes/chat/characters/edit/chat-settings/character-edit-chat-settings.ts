@@ -1,4 +1,4 @@
-import {Component, computed, inject} from '@angular/core';
+import {Component, inject} from '@angular/core';
 import {CharacterEditFormService} from '../character-edit-form.service';
 import {ReactiveFormsModule} from '@angular/forms';
 import {booleanSignal, controlValueSignal} from '@util/ng';
@@ -29,10 +29,6 @@ export class CharacterEditChatSettings {
   readonly editGreetings = booleanSignal(false)
   readonly greetingsFA = this.formService.greetingsFA
   readonly greetings = controlValueSignal(this.greetingsFA)
-
-  readonly editGroupSettings = booleanSignal(false)
-  readonly groupTalkativeness = controlValueSignal<number>(this.formGroup, ['character', 'groupTalkativeness'])
-  readonly groupTalkativenessPercent = computed(() => (this.groupTalkativeness() * 100) + '%')
 
   readonly onFormSubmit = this.formService.requestSubmitFn()
   readonly onAddControl = this.formService.addControlFn()

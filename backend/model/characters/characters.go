@@ -21,7 +21,7 @@ type Character struct {
 	GroupTalkativeness float32    `json:"groupTalkativeness"`
 	Age                *int       `json:"age"`
 	Pronouns           *string    `json:"pronouns"`
-	Species            *string    `json:"species"`
+	SpeciesID          *int       `json:"speciesId"`
 }
 
 func CharacterScanner(scanner database.RowScanner, dest *Character) error {
@@ -37,7 +37,7 @@ func CharacterScanner(scanner database.RowScanner, dest *Character) error {
 		&dest.GroupTalkativeness,
 		&dest.Age,
 		&dest.Pronouns,
-		&dest.Species,
+		&dest.SpeciesID,
 	)
 }
 
@@ -59,10 +59,9 @@ func CreateCharacter(newCharacter *Character) error {
 	newCharacter.Personality = util.EmptyStrToNil(newCharacter.Personality)
 	newCharacter.History = util.EmptyStrToNil(newCharacter.History)
 	newCharacter.Pronouns = util.EmptyStrToNil(newCharacter.Pronouns)
-	newCharacter.Species = util.EmptyStrToNil(newCharacter.Species)
 
 	query := `INSERT INTO characters (name, favorite, avatar_url, appearance, personality, history,
-                        group_talkativeness, age, pronouns, species)
+                        group_talkativeness, age, pronouns, species_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at`
 	args := []any{
 		newCharacter.Name,
@@ -74,7 +73,7 @@ func CreateCharacter(newCharacter *Character) error {
 		newCharacter.GroupTalkativeness,
 		newCharacter.Age,
 		newCharacter.Pronouns,
-		newCharacter.Species,
+		newCharacter.SpeciesID,
 	}
 
 	err := database.InsertRecord(query, args, &newCharacter.ID, &newCharacter.CreatedAt)
@@ -92,7 +91,6 @@ func UpdateCharacter(id int, character *Character) error {
 	character.Personality = util.EmptyStrToNil(character.Personality)
 	character.History = util.EmptyStrToNil(character.History)
 	character.Pronouns = util.EmptyStrToNil(character.Pronouns)
-	character.Species = util.EmptyStrToNil(character.Species)
 
 	query := `UPDATE characters
             SET name = ?,
@@ -104,7 +102,7 @@ func UpdateCharacter(id int, character *Character) error {
                 group_talkativeness = ?,
                 age = ?,
                 pronouns = ?,
-                species = ?
+                species_id = ?
             WHERE id = ?`
 	args := []any{
 		character.Name,
@@ -116,7 +114,7 @@ func UpdateCharacter(id int, character *Character) error {
 		character.GroupTalkativeness,
 		character.Age,
 		character.Pronouns,
-		character.Species,
+		character.SpeciesID,
 		id,
 	}
 
@@ -223,7 +221,7 @@ func DuplicateCharacter(characterId int) (*Character, error) {
 	txErr := database.Transactional(func(ctx *database.TxContext) error {
 		var err error
 		query := `INSERT INTO characters (name, favorite, avatar_url,
-                        appearance, personality, history, group_talkativeness, age, pronouns, species)
+                        appearance, personality, history, group_talkativeness, age, pronouns, species_id)
 				  SELECT name || ' (copy)',
 				         favorite,
 				         avatar_url,
@@ -233,7 +231,7 @@ func DuplicateCharacter(characterId int) (*Character, error) {
 				         group_talkativeness,
 				         age,
 				         pronouns,
-				         species
+				         species_id
 				  FROM characters
 				  WHERE id = ?
 				  RETURNING *`

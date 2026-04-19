@@ -95,12 +95,18 @@
             </div>
 
             <div class="mb-1">
-              <label for="characterSpeciesInput">Species</label>
-              <input type="text" class="form-control"
-                     id="characterSpeciesInput"
-                     aria-describedby="characterSpeciesInputHelp"
-                     formControlName="species"/>
-              <div id="characterSpeciesInputHelp" class="form-text">
+              <label for="speciesSelect">Species</label>
+              <select class="form-select"
+                      id="speciesSelect"
+                      aria-describedby="speciesSelectHelp"
+                      formControlName="speciesId">
+                <option [ngValue]="null">None</option>
+                <option disabled>──────────</option>
+                @for (s of species(); track s.id) {
+                  <option [ngValue]="s.id">{{ s.name }}</option>
+                }
+              </select>
+              <div id="speciesSelectHelp" class="form-text">
                 Centaur? Valerian? Is Valerian even a species?
               </div>
             </div>

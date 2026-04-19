@@ -10,6 +10,7 @@ import (
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	m "juraji.nl/chat-quest/model/memories"
 	p "juraji.nl/chat-quest/model/preferences"
+	sp "juraji.nl/chat-quest/model/species"
 )
 
 // SparseTemplateCharacter
@@ -18,8 +19,8 @@ type SparseTemplateCharacter interface {
 	ID() int
 	CharacterName() string
 	Age() *int
-	Pronouns() *string
-	Species() *string
+	Pronouns() string
+	Species() (string, error)
 }
 
 type sparseTemplateCharacterImpl struct {
@@ -27,14 +28,14 @@ type sparseTemplateCharacterImpl struct {
 	name     string
 	age      *int
 	pronouns *string
-	species  *string
+	species  func() (string, error)
 }
 
-func (t *sparseTemplateCharacterImpl) ID() int               { return t.id }
-func (t *sparseTemplateCharacterImpl) CharacterName() string { return t.name }
-func (t *sparseTemplateCharacterImpl) Age() *int             { return t.age }
-func (t *sparseTemplateCharacterImpl) Pronouns() *string     { return t.pronouns }
-func (t *sparseTemplateCharacterImpl) Species() *string      { return t.species }
+func (t *sparseTemplateCharacterImpl) ID() int                  { return t.id }
+func (t *sparseTemplateCharacterImpl) CharacterName() string    { return t.name }
+func (t *sparseTemplateCharacterImpl) Age() *int                { return t.age }
+func (t *sparseTemplateCharacterImpl) Pronouns() string         { return util.StrPtrOrDefault(t.pronouns, "") }
+func (t *sparseTemplateCharacterImpl) Species() (string, error) { return t.species() }
 
 func NewSparseTemplateCharacter(char *c.Character) SparseTemplateCharacter {
 	return &sparseTemplateCharacterImpl{
@@ -42,7 +43,18 @@ func NewSparseTemplateCharacter(char *c.Character) SparseTemplateCharacter {
 		name:     char.Name,
 		age:      char.Age,
 		pronouns: char.Pronouns,
-		species:  char.Species,
+		species: sync.OnceValues(func() (string, error) {
+			species, err := sp.SpeciesByID(char.ID)
+			if err != nil {
+				return "", err
+			}
+
+			if species == nil {
+				return "", nil
+			}
+
+			return species.Name, nil
+		}),
 	}
 }
 
@@ -56,6 +68,9 @@ type TemplateCharacter interface {
 	History() (string, error)
 	DialogueExamples() ([]string, error)
 	Memories() ([]string, error)
+	Age() *int
+	Pronouns() string
+	Species() (string, error)
 }
 
 type templateCharacterImpl struct {
@@ -63,7 +78,7 @@ type templateCharacterImpl struct {
 	name             string
 	age              *int
 	pronouns         *string
-	species          *string
+	species          func() (string, error)
 	appearance       func() (string, error)
 	personality      func() (string, error)
 	history          func() (string, error)
@@ -79,8 +94,8 @@ func (t *templateCharacterImpl) History() (string, error)            { return t.
 func (t *templateCharacterImpl) DialogueExamples() ([]string, error) { return t.dialogueExamples() }
 func (t *templateCharacterImpl) Memories() ([]string, error)         { return t.memories() }
 func (t *templateCharacterImpl) Age() *int                           { return t.age }
-func (t *templateCharacterImpl) Pronouns() *string                   { return t.pronouns }
-func (t *templateCharacterImpl) Species() *string                    { return t.species }
+func (t *templateCharacterImpl) Pronouns() string                    { return util.StrPtrOrDefault(t.pronouns, "") }
+func (t *templateCharacterImpl) Species() (string, error)            { return t.species() }
 
 // NewTemplateCharacter creates a new character object for use in go templates.
 // Note that the chatHistory must contain the full history, including the latest user message if applicable.
@@ -95,8 +110,18 @@ func NewTemplateCharacter(
 		name:     char.Name,
 		age:      char.Age,
 		pronouns: char.Pronouns,
-		species:  char.Species,
 
+		species: sync.OnceValues(func() (string, error) {
+			if char.SpeciesID == nil {
+				return "", nil
+			}
+			species, err := sp.SpeciesByID(*char.SpeciesID)
+			if err != nil || species == nil {
+				return "", err
+			}
+
+			return species.Name, nil
+		}),
 		appearance: sync.OnceValues(func() (string, error) {
 			if char.Appearance == nil {
 				return "", nil

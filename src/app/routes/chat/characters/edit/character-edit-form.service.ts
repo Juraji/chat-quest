@@ -20,7 +20,7 @@ export class CharacterEditFormService {
       history: formControl<Nullable<string>>(null),
       age: formControl<Nullable<number>>(null),
       pronouns: formControl<Nullable<string>>(null),
-      species: formControl<Nullable<string>>(null),
+      speciesId: formControl<Nullable<number>>(null),
       groupTalkativeness: formControl(0)
     }),
     dialogueExamples: formArray([]),

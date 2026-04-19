@@ -6,6 +6,10 @@
     padding-left: var(--bs-navbar-nav-link-padding-x) !important;
     padding-right: var(--bs-navbar-nav-link-padding-x) !important;
   }
+
+  .dropdown-menu {
+    position: absolute;
+  }
 }
 
 .navbar-img {

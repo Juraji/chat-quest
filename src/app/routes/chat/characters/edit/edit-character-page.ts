@@ -11,6 +11,7 @@ import {defer, forkJoin, mergeMap, tap} from 'rxjs';
 import {CharacterEditFormService} from './character-edit-form.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {Character, Characters} from '@api/characters';
+import {Species} from '@api/species';
 
 @Component({
   selector: 'app-edit-character-page',
@@ -39,6 +40,8 @@ export class EditCharacterPage {
   readonly character: Signal<Character> = routeDataSignal(this.activatedRoute, 'character')
   readonly dialogueExamples: Signal<string[]> = routeDataSignal(this.activatedRoute, 'dialogueExamples')
   readonly greetings: Signal<string[]> = routeDataSignal(this.activatedRoute, 'greetings')
+  readonly species: Signal<Species[]> = routeDataSignal<Species[]>(
+    this.activatedRoute, 'species', l => l.sort((a, b) => a.name.localeCompare(b.name)))
   readonly characterFormData: Signal<CharacterFormData> = computed(() => ({
     character: this.character(),
     dialogueExamples: this.dialogueExamples(),

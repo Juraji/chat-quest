@@ -19,6 +19,10 @@ const routes: Routes = [
         loadChildren: () => import("./scenarios/scenarios.routes")
       },
       {
+        path: 'species',
+        loadChildren: () => import("./species/species.routes")
+      },
+      {
         path: '**',
         redirectTo: 'worlds'
       }

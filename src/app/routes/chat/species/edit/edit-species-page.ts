@@ -1,53 +1,52 @@
 import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {Notifications} from '@components/notifications';
+import {Species, SpeciesS} from '@api/species';
 import {
-  BooleanSignal,
   booleanSignal,
+  BooleanSignal,
   controlValueSignal,
   formControl,
   formGroup,
   readOnlyControl,
   routeDataSignal
 } from '@util/ng';
+import {isNew} from '@api/common';
 import {FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
 import {PageHeader} from '@components/page-header';
 import {AvatarControl} from '@components/avatar-control';
 import {RenderedMessage} from '@components/rendered-message';
 import {TokenCount} from '@components/token-count';
-import {Scenario, Scenarios} from '@api/scenarios';
-import {isNew} from '@api/common';
 
 @Component({
-  selector: 'app-edit-scenario',
+  selector: 'edit-species-page',
   imports: [
     FormsModule,
-    PageHeader,
     ReactiveFormsModule,
+    PageHeader,
     AvatarControl,
     RenderedMessage,
     TokenCount
   ],
-  templateUrl: './edit-scenario-page.html',
-  styleUrls: ["./edit-scenario-page.scss"]
+  templateUrl: './edit-species-page.html',
+  styleUrl: './edit-species-page.scss'
 })
-export class EditScenarioPage {
+export class EditSpeciesPage {
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly notifications = inject(Notifications);
-  private readonly scenarios = inject(Scenarios)
+  private readonly speciesS = inject(SpeciesS)
   private readonly router = inject(Router);
 
-  readonly scenario: Signal<Scenario> = routeDataSignal(this.activatedRoute, 'scenario');
-  readonly isNew: Signal<boolean> = computed(() => isNew(this.scenario()))
-  readonly name: Signal<string> = computed(() => this.scenario().name)
-  readonly avatar = computed(() => this.scenario().avatarUrl)
+  readonly species: Signal<Species> = routeDataSignal(this.activatedRoute, 'species')
+  readonly isNew: Signal<boolean> = computed(() => isNew(this.species()))
+  readonly name: Signal<string> = computed(() => this.species().name)
+  readonly avatar: Signal<Nullable<string>> = computed(() => this.species().avatarUrl)
 
-  readonly formGroup = formGroup<Scenario>({
+  readonly formGroup = formGroup<Species>({
     id: readOnlyControl(),
     name: formControl('', [Validators.required]),
     description: formControl('', [Validators.required]),
     avatarUrl: formControl<Nullable<string>>(null),
-    linkedCharacterId: formControl<Nullable<number>>(null)
   })
 
   readonly editDescription: BooleanSignal = booleanSignal(false)
@@ -55,7 +54,7 @@ export class EditScenarioPage {
 
   constructor() {
     effect(() => {
-      const input = this.scenario()
+      const input = this.species()
       this.formGroup.reset(input)
       this.editDescription.set(isNew(input))
     });
@@ -65,17 +64,16 @@ export class EditScenarioPage {
     if (this.formGroup.invalid) return
 
     const formValue = this.formGroup.value
-
-    const update: Scenario = {
-      ...this.scenario(),
-      ...formValue
+    const update: Species = {
+      ...this.species(),
+      ...formValue,
     }
 
-    this.scenarios
+    this.speciesS
       .save(update)
-      .subscribe(scenario => {
-        this.notifications.toast("Scenario saved!")
-        this.router.navigate(['..', scenario.id], {
+      .subscribe(s => {
+        this.notifications.toast("Species saved!")
+        this.router.navigate(['..', s.id], {
           relativeTo: this.activatedRoute,
           queryParams: {u: Date.now()},
           replaceUrl: true
@@ -84,16 +82,16 @@ export class EditScenarioPage {
   }
 
   onResetForm() {
-    this.formGroup.reset(this.scenario());
+    this.formGroup.reset(this.species());
   }
 
-  onDeleteScenario() {
-    const s = this.scenario();
+  onDeleteSpecies() {
+    const s = this.species()
     if (isNew(s)) return
-    const doDelete = confirm(`Are you sure you want to delete this scenario?`)
+    const doDelete = confirm(`Are you sure you want to delete this species?`)
 
     if (doDelete) {
-      this.scenarios
+      this.speciesS
         .delete(s!.id)
         .subscribe(() => {
           this.notifications.toast("Scenario deleted!")

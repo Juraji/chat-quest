@@ -11,7 +11,8 @@ import {mergeMap} from 'rxjs';
 import {ActivatedRoute, Router} from '@angular/router';
 import {System} from '@api/system';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
-import {DatePipe} from '@angular/common';
+import {AsyncPipe, DatePipe} from '@angular/common';
+import {TimeAgoPipe} from '@components/time-ago.pipe';
 
 type MessageFormGroup = Pick<ChatMessage, 'content'>
 
@@ -23,7 +24,9 @@ type MessageFormGroup = Pick<ChatMessage, 'content'>
     DropdownContainer,
     DropdownToggle,
     DropdownMenu,
-    DatePipe
+    DatePipe,
+    TimeAgoPipe,
+    AsyncPipe
   ],
   templateUrl: './chat-session-message.html',
   styleUrl: './chat-session-message.scss',

@@ -7,6 +7,7 @@ import (
 	cs "juraji.nl/chat-quest/model/chat-sessions"
 	p "juraji.nl/chat-quest/model/preferences"
 	sc "juraji.nl/chat-quest/model/scenarios"
+	sp "juraji.nl/chat-quest/model/species"
 	w "juraji.nl/chat-quest/model/worlds"
 )
 
@@ -23,6 +24,7 @@ type ChatInstructionVars interface {
 
 	World() (string, error)
 	Scenario() (string, error)
+	SpeciesPresent() ([]TemplateSpecies, error)
 	CurrentTimeOfDay() *cs.TimeOfDay
 	CurrentTimeOfDayFmtEN() string
 	ChatNotes() string
@@ -38,6 +40,7 @@ type chatInstructionVarsImpl struct {
 	otherParticipants   func() ([]TemplateCharacter, error)
 	world               func() (string, error)
 	scenario            func() (string, error)
+	presentSpecies      func() ([]TemplateSpecies, error)
 }
 
 func (c *chatInstructionVarsImpl) IsTriggeredByMessage() bool {
@@ -69,6 +72,9 @@ func (c *chatInstructionVarsImpl) World() (string, error) {
 }
 func (c *chatInstructionVarsImpl) Scenario() (string, error) {
 	return c.scenario()
+}
+func (c *chatInstructionVarsImpl) SpeciesPresent() ([]TemplateSpecies, error) {
+	return c.presentSpecies()
 }
 func (c *chatInstructionVarsImpl) CurrentTimeOfDay() *cs.TimeOfDay {
 	return c.timeOfDay
@@ -150,6 +156,19 @@ func NewChatInstructionVars(
 			}
 
 			return scenario.Description, nil
+		}),
+		presentSpecies: sync.OnceValues(func() ([]TemplateSpecies, error) {
+			species, err := sp.GetSpeciesPresentInSession(session.ID)
+			if err != nil || len(species) == 0 {
+				return nil, err
+			}
+
+			var templateSpecies []TemplateSpecies
+			for _, s := range species {
+				templateSpecies = append(templateSpecies, NewTemplateSpecies(&s))
+			}
+
+			return templateSpecies, nil
 		}),
 	}
 }

@@ -59,16 +59,16 @@ or &quot;All&quot; for a general memory applicable to everyone.">
   </form>
 } @else {
   <div class="d-flex justify-content-between align-items-start">
-    <div>
+      <div class="small">
       <p class="mb-0">{{ content() }}</p>
-      <span class="small text-muted">
+          <span class="text-muted small">
             @if (characterName(); as cName) {
               <span>{{ cName }}</span>
             } @else {
               <span>All</span>
             }
         <span>&nbsp;-&nbsp;</span>
-            <span>{{ createdAt() | timeAgo:true | async }}</span>
+        <span [title]="createdAt() | date">{{ createdAt() | timeAgo:true | async }}</span>
         @if (alwaysInclude()) {
           <span>&nbsp;-&nbsp;Always included</span>
         }

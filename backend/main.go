@@ -19,6 +19,7 @@ import (
 	"juraji.nl/chat-quest/model/memories"
 	"juraji.nl/chat-quest/model/preferences"
 	"juraji.nl/chat-quest/model/scenarios"
+	"juraji.nl/chat-quest/model/species"
 	"juraji.nl/chat-quest/model/worlds"
 	"juraji.nl/chat-quest/processing"
 )
@@ -73,6 +74,7 @@ func main() {
 	instructions.Routes(apiRouter)
 	providers.Routes(apiRouter)
 	scenarios.Routes(apiRouter)
+	species.Routes(apiRouter)
 	worlds.Routes(apiRouter)
 	chat_sessions.Routes(apiRouter)
 	memories.Routes(apiRouter)

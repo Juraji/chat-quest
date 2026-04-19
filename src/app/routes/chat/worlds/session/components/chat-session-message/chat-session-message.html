@@ -41,7 +41,7 @@
         </div>
       } @else {
         <h6 class="mb-0 flex-grow-1">{{ characterName() }}</h6>
-        <small class="text-muted">{{ createdAt() | date }}</small>
+        <small class="text-muted" [title]="createdAt() | date">{{ createdAt() | timeAgo:true | async }}</small>
       }
       <div class="btn-toolbar gap-1 message-actions">
         @if (editMessage()) {

@@ -2,7 +2,7 @@
   "name": "Chat",
   "type": "CHAT",
   "temperature": 1.1,
-  "maxTokens": 300,
+  "maxTokens": 500,
   "topP": 0.95,
   "presencePenalty": 1.1,
   "frequencyPenalty": 1.1,

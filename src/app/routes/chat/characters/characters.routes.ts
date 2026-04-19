@@ -6,6 +6,7 @@ import {
   characterResolverFactory,
 } from '@api/characters';
 import {EditCharacterPage} from './edit/edit-character-page';
+import {speciesResolver} from '@api/species';
 
 const routes: Routes = [
   {
@@ -21,6 +22,7 @@ const routes: Routes = [
       character: characterResolverFactory('characterId'),
       dialogueExamples: characterDialogExamplesResolverFactory('characterId'),
       greetings: characterGreetingsResolverFactory('characterId'),
+      species: speciesResolver
     }
   },
 ]
