@@ -128,13 +128,10 @@ export class ChatSessionDetailsBlock {
 
   protected onGenerateTitle() {
     const session = this.session()
-    const tId = this.notifications.toast("Generating session title...", 'INFO', -1)
 
-    this.chatSessions
-      .generateTitle(session.worldId, session.id)
-      .subscribe(() => {
-        this.notifications.removeToast(tId)
-        this.notifications.toast("Title generation completed!");
-      })
+    this.notifications
+      .run("Generating session title...", "INFO", () => this.chatSessions
+        .generateTitle(session.worldId, session.id))
+      .subscribe(() => this.notifications.toast("Title generation completed!"))
   }
 }

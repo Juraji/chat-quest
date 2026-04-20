@@ -1,0 +1,19 @@
+{
+  "name": "Character Export as Text",
+  "type": "CHARACTER_EXPORT",
+  "temperature": 0,
+  "maxTokens": 1,
+  "topP": 0,
+  "presencePenalty": 0,
+  "frequencyPenalty": 0,
+  "stream": false,
+  "stopSequences": null,
+  "includeReasoning": false,
+  "reasoningPrefix": "--",
+  "reasoningSuffix": "--",
+  "characterIdPrefix": "--",
+  "characterIdSuffix": "--",
+  "systemPrompt": "templates/_empty.tmpl",
+  "worldSetup": "templates/_empty.tmpl",
+  "instruction": "templates/character_as_text__instruction.tmpl"
+}

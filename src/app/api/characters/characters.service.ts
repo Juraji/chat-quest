@@ -1,5 +1,5 @@
 import {computed, inject, Injectable, Signal, signal, WritableSignal} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {Character, CharacterCreated, CharacterDeleted, CharacterUpdated} from './characters.model';
 import {isNew} from '@api/common';
@@ -70,6 +70,12 @@ export class Characters {
 
   saveGreetings(characterId: number, greetings: string[]): Observable<void> {
     return this.http.post<void>(`/characters/${characterId}/greetings`, greetings)
+  }
+
+  exportAsText(characterId: number, instructionId: number): Observable<Blob> {
+    const params = new HttpParams()
+      .append('instructionId', instructionId)
+    return this.http.post<Blob>(`/characters/${characterId}/export/text`, null, {params, responseType: "blob" as any})
   }
 
   private setupLVCache() {

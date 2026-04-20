@@ -1,5 +1,6 @@
 import {Injectable, Signal, signal, WritableSignal} from '@angular/core';
 import {arrayRemove} from '@util/array';
+import {finalize, from, Observable, ObservableInput} from 'rxjs';
 
 type ToastType = "INFO" | "WARNING" | "DANGER"
 
@@ -52,6 +53,11 @@ export class Notifications {
     this._toasts.update(toasts => [toast, ...toasts])
 
     return toastId
+  }
+
+  run<R>(message: string, type: ToastType = 'INFO', action: () => ObservableInput<R>): Observable<R> {
+    const toastId = this.toast(message, type, -1)
+    return from(action()).pipe(finalize(() => this.removeToast(toastId)))
   }
 
   removeToast(toastId: number) {

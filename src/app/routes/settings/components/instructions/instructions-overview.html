@@ -38,7 +38,7 @@
         @for (instruction of instructionList(); track instruction.id) {
           <tr class="cursor-pointer" [routerLink]="['/settings/instruction-templates', instruction.id]">
             <td><span class="bi bi-terminal"></span>&nbsp;{{ instruction.name }}</td>
-            <td class="text-muted">{{ instruction.type }}</td>
+            <td class="text-muted">{{ instruction.type | textCase }}</td>
             <td>
               <div class="btn-toolbar justify-content-end gap-1">
                 <button type="button" class="btn btn-sm btn-primary">

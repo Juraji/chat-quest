@@ -8,6 +8,20 @@
       }
 
       @if (!isNew()) {
+        <div class="page-action" dropdown>
+          <button type="button" class="btn btn-outline-secondary" dropdownToggle>Export</button>
+          <ul class="mt-1" dropdownMenu>
+            <li><h5 class="dropdown-header">Pick an export instruction:</h5></li>
+            @for (it of exportInstructions(); track it.id) {
+              <button type="button" class="dropdown-item" (click)="onExportCharacterUsing(it)">
+                {{ it.name }}
+              </button>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (!isNew()) {
         <button type="button" class="btn btn-outline-danger"
                 (click)="onDeleteCharacter()">Delete
         </button>

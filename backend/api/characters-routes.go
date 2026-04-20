@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	ch "juraji.nl/chat-quest/model/characters"
+	"juraji.nl/chat-quest/processing"
 )
 
 func CharactersRoutes(router *gin.RouterGroup) {
@@ -128,5 +129,21 @@ func CharactersRoutes(router *gin.RouterGroup) {
 
 		newCharacter, err := ch.DuplicateCharacter(characterId)
 		respondSingle(c, newCharacter, err)
+	})
+
+	charactersRouter.POST("/:characterId/export/text", func(c *gin.Context) {
+		characterId, ok := getParamAsID(c, "characterId")
+		if !ok {
+			respondBadRequest(c, "Invalid character ID", nil)
+			return
+		}
+		instructionId := getQueryParamAsIntOr(c, "instructionId", 0)
+		if instructionId == 0 {
+			respondBadRequest(c, "Missing or invalid instruction ID", nil)
+			return
+		}
+
+		template, err := processing.ExportCharacterAsText(c, characterId, instructionId)
+		respondSingle(c, &template, err)
 	})
 }

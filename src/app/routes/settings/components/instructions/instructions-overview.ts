@@ -5,6 +5,7 @@ import {Instruction} from '@api/instructions';
 import {routeDataSignal} from '@util/ng';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
 import {KeyValuePipe} from '@angular/common';
+import {TextCasePipe} from '@components/text-case.pipe';
 
 @Component({
   selector: 'instruction-overview',
@@ -14,7 +15,8 @@ import {KeyValuePipe} from '@angular/common';
     DropdownContainer,
     DropdownToggle,
     DropdownMenu,
-    KeyValuePipe
+    KeyValuePipe,
+    TextCasePipe,
   ],
   templateUrl: './instructions-overview.html'
 })

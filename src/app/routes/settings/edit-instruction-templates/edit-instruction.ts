@@ -7,6 +7,7 @@ import {Notifications} from '@components/notifications';
 import {RenderedMessage} from '@components/rendered-message/rendered-message';
 import {Instruction, Instructions, InstructionType} from '@api/instructions';
 import {isNew, NEW_ID} from '@api/common';
+import {TextCasePipe} from '@components/text-case.pipe';
 
 @Component({
   selector: 'app-edit-instruction-template-page',
@@ -15,6 +16,7 @@ import {isNew, NEW_ID} from '@api/common';
     PageHeader,
     ReactiveFormsModule,
     RenderedMessage,
+    TextCasePipe,
   ],
   templateUrl: './edit-instruction.html',
 })

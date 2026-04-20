@@ -10,12 +10,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var templateFuncMap = gt.FuncMap{
-	"sliceTakeStr":    tplSliceTakeStr,
-	"sliceTakeStrRnd": tplSliceTakeStrRnd,
-	"fmtEnum":         tplFormatEnum,
-}
-
 func ContainsTemplateVars(template string) bool {
 	return len(template) > 0 && strings.Contains(template, "{{")
 }
@@ -27,6 +21,13 @@ func ParseAndApplyTextTemplate(template string, variables any) (string, error) {
 	}
 
 	tplName := "Template: " + template[:20] + "..."
+	var templateFuncMap = gt.FuncMap{
+		"sliceTakeStr":    tplSliceTakeStr,
+		"sliceTakeStrRnd": tplSliceTakeStrRnd,
+		"fmtEnum":         tplFormatEnum,
+		"oneliner":        tplOneliner,
+	}
+
 	tpl, err := gt.New(tplName).Funcs(templateFuncMap).Parse(template)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to parse template")
@@ -44,9 +45,9 @@ func ParseAndApplyTextTemplate(template string, variables any) (string, error) {
 func tplSliceTakeStr(slice []string, limit int) []string {
 	if len(slice) <= limit {
 		return slice
-	} else {
-		return slice[:limit-1]
 	}
+
+	return slice[:limit-1]
 }
 
 func tplSliceTakeStrRnd(slice []string, limit int) []string {
@@ -66,5 +67,13 @@ func tplSliceTakeStrRnd(slice []string, limit int) []string {
 }
 
 func tplFormatEnum(v interface{}) string {
-	return strings.ToLower(strings.ReplaceAll(fmt.Sprintf("%v", v), "_", " "))
+	str := fmt.Sprintf("%v", v)
+	words := strings.ReplaceAll(str, "_", " ")
+	return strings.ToLower(words)
+}
+
+func tplOneliner(v interface{}) string {
+	str := fmt.Sprintf("%v", v)
+	str = strings.ReplaceAll(str, "\n", " ")
+	return strings.Join(strings.Fields(str), " ")
 }

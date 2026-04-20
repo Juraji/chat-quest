@@ -1,0 +1,28 @@
+{{- /*gotype: juraji.nl/chat-quest/processing.TemplateCharacter*/ -}}
+Name:  {{.Name}}
+{{if .Age}}Age: {{.Age}}{{end}}
+{{if .Species}}Species: {{.Species}}{{end}}
+{{if .Pronouns}}Pronouns: {{.Pronouns}}{{end}}
+
+{{if .Appearance -}}
+Appearance:
+{{.Appearance}}
+{{end -}}
+
+{{if .Personality -}}
+Personality:
+{{.Personality}}
+{{end -}}
+
+{{if .History -}}
+History:
+{{.History}}
+{{end -}}
+
+{{if .DialogueExamples -}}
+Dialogue Examples:
+{{range .DialogueExamples -}}
+<START>
+{{.}}
+{{end -}}
+{{end -}}

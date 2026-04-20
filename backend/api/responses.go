@@ -60,7 +60,12 @@ func respondSingle[T any](c *gin.Context, entity *T, err error) {
 	} else if entity == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Entity not found"})
 	} else {
-		c.JSON(http.StatusOK, entity)
+		switch v := any(entity).(type) {
+		case *string:
+			c.String(http.StatusOK, *v)
+		default:
+			c.JSON(http.StatusOK, entity)
+		}
 	}
 }
 

@@ -12,6 +12,9 @@ import {CharacterEditFormService} from './character-edit-form.service';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {Character, Characters} from '@api/characters';
 import {Species} from '@api/species';
+import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
+import {Instruction} from '@api/instructions';
+import {dowloadBlob} from '@util/blobs';
 
 @Component({
   selector: 'app-edit-character-page',
@@ -21,7 +24,10 @@ import {Species} from '@api/species';
     AvatarControl,
     RouterOutlet,
     RouterLink,
-    RouterLinkActive
+    RouterLinkActive,
+    DropdownContainer,
+    DropdownToggle,
+    DropdownMenu,
   ],
   providers: [
     CharacterEditFormService
@@ -47,6 +53,10 @@ export class EditCharacterPage {
     dialogueExamples: this.dialogueExamples(),
     greetings: this.greetings(),
   }))
+
+  private readonly instructions: Signal<Instruction[]> = routeDataSignal(this.activatedRoute, 'instructions')
+  readonly exportInstructions: Signal<Instruction[]> =
+    computed(() => this.instructions().filter(i => i.type === "CHARACTER_EXPORT"))
 
   readonly isNew = computed(() => isNew(this.character()))
   readonly name = computed(() => this.character().name)
@@ -118,11 +128,11 @@ export class EditCharacterPage {
       })
   }
 
-  onResetForm() {
+  protected onResetForm() {
     this.formService.resetFormData(this.characterFormData())
   }
 
-  onDuplicateCharacter() {
+  protected onDuplicateCharacter() {
     if (this.isNew()) return
     const characterId = this.character().id
 
@@ -136,7 +146,7 @@ export class EditCharacterPage {
       })
   }
 
-  onDeleteCharacter() {
+  protected onDeleteCharacter() {
     if (this.isNew()) return
 
     const character = this.character()
@@ -153,5 +163,18 @@ export class EditCharacterPage {
           });
         })
     }
+  }
+
+  protected onExportCharacterUsing(it: Instruction) {
+    if (this.isNew()) return
+
+    this.notifications
+      .run("Exporting character...", "INFO", () => this.characters
+        .exportAsText(this.character().id, it.id))
+      .subscribe(blob => {
+        const filename = `${this.character().name}.txt`
+        dowloadBlob(blob, filename)
+        this.notifications.toast(`Export downloaded as ${filename}.`)
+      })
   }
 }

@@ -2,10 +2,10 @@
   <div class="container mt-3">
     <app-page-header backUrl="../..">
       @if (isNew()) {
-        <span class="page-title">New Connection Profile</span>
+        <span class="page-title">New Instruction</span>
       } @else {
         <span class="page-title"><span>{{ instruction().name }}</span>&nbsp;<span
-          class="text-muted small">&bullet;&nbsp;{{ instruction().type }}</span></span>
+          class="text-muted small">&bullet;&nbsp;{{ instruction().type | textCase }}</span></span>
       }
 
       @if (!isNew()) {
@@ -52,9 +52,10 @@
                       id="typeInput"
                       aria-describedby="typeInputHelp"
                       formControlName="type">
-                <option value="CHAT">Chat</option>
-                <option value="MEMORIES">Memories</option>
-                <option value="TITLE_GENERATION">Title Generation</option>
+                <option value="CHAT">{{ 'CHAT' | textCase }}</option>
+                <option value="MEMORIES">{{ 'MEMORIES' | textCase }}</option>
+                <option value="TITLE_GENERATION">{{ 'TITLE_GENERATION' | textCase }}</option>
+                <option value="CHARACTER_EXPORT">{{ 'CHARACTER_EXPORT' | textCase }}</option>
               </select>
               <div id="typeInputHelp" class="form-text">
                 Makes this template available under specific conditions.
@@ -208,7 +209,7 @@ Besides that they can also be used by the LLM to output multi-character response
             <button type="button" class="nav-link"
                     [class.active]="selectedTab() == 0"
                     (click)="selectedTab.set(0)">
-              <span>System Prompt</span>
+              <span>Instruction</span>
             </button>
           </li>
           <li class="nav-item">
@@ -222,7 +223,7 @@ Besides that they can also be used by the LLM to output multi-character response
             <button type="button" class="nav-link"
                     [class.active]="selectedTab() == 2"
                     (click)="selectedTab.set(2)">
-              <span>Instruction</span>
+              <span>System Prompt</span>
             </button>
           </li>
         </ul>
@@ -232,9 +233,9 @@ Besides that they can also be used by the LLM to output multi-character response
             <div class="card">
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                  <h5 class="card-title mb-0">System Prompt</h5>
-                  <button type="button" class="btn btn-sm" (click)="editSystemPrompt.toggle()">
-                    @if (editSystemPrompt()) {
+                  <h5 class="card-title mb-0">Instruction</h5>
+                  <button type="button" class="btn btn-sm" (click)="editInstruction.toggle()">
+                    @if (editInstruction()) {
                       <span class="bi bi-x"></span>
                     } @else {
                       <span class="bi bi-pencil"></span>
@@ -242,23 +243,24 @@ Besides that they can also be used by the LLM to output multi-character response
                   </button>
                 </div>
 
-                @if (editSystemPrompt()) {
+                @if (editInstruction()) {
                   <div>
                 <textarea type="text" class="form-control" rows="15"
-                          id="systemPromptInput"
-                          aria-describedby="systemPromptInputHelp"
-                          formControlName="systemPrompt"></textarea>
-                    <div id="systemPromptInputHelp" class="form-text">
-                      The rules of the system. Describe how the LLM should generate responses.
+                          id="instructionInput"
+                          aria-describedby="instructionInputHelp"
+                          formControlName="instruction"></textarea>
+                    <div id="instructionInputHelp" class="form-text">
+                      The final instruction for the LLM, appended to the user message to instruct the LLM on what to do
+                      next.
                     </div>
                   </div>
-                } @else if (!!systemPromptValue()) {
-                  @let systemPrompt = systemPromptValue();
+                } @else if (!!instructionValue()) {
+                  @let systemPrompt = instructionValue();
                   <app-rendered-message [message]="systemPrompt"
                                         [renderOptions]="{enableMD: true}"></app-rendered-message>
                 } @else {
                   <p class="form-text mb-0">
-                    No system prompt defined.
+                    No instruction defined.
                   </p>
                 }
               </div>
@@ -304,9 +306,9 @@ Besides that they can also be used by the LLM to output multi-character response
             <div class="card">
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                  <h5 class="card-title mb-0">Instruction</h5>
-                  <button type="button" class="btn btn-sm" (click)="editInstruction.toggle()">
-                    @if (editInstruction()) {
+                  <h5 class="card-title mb-0">System Prompt</h5>
+                  <button type="button" class="btn btn-sm" (click)="editSystemPrompt.toggle()">
+                    @if (editSystemPrompt()) {
                       <span class="bi bi-x"></span>
                     } @else {
                       <span class="bi bi-pencil"></span>
@@ -314,24 +316,23 @@ Besides that they can also be used by the LLM to output multi-character response
                   </button>
                 </div>
 
-                @if (editInstruction()) {
+                @if (editSystemPrompt()) {
                   <div>
                 <textarea type="text" class="form-control" rows="15"
-                          id="instructionInput"
-                          aria-describedby="instructionInputHelp"
-                          formControlName="instruction"></textarea>
-                    <div id="instructionInputHelp" class="form-text">
-                      The final instruction for the LLM, appended to the user message to instruct the LLM on what to do
-                      next.
+                          id="systemPromptInput"
+                          aria-describedby="systemPromptInputHelp"
+                          formControlName="systemPrompt"></textarea>
+                    <div id="systemPromptInputHelp" class="form-text">
+                      The rules of the system. Describe how the LLM should generate responses.
                     </div>
                   </div>
-                } @else if (!!instructionValue()) {
-                  @let systemPrompt = instructionValue();
+                } @else if (!!systemPromptValue()) {
+                  @let systemPrompt = systemPromptValue();
                   <app-rendered-message [message]="systemPrompt"
                                         [renderOptions]="{enableMD: true}"></app-rendered-message>
                 } @else {
                   <p class="form-text mb-0">
-                    No instruction defined.
+                    No system prompt defined.
                   </p>
                 }
               </div>
