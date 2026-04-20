@@ -179,6 +179,4 @@ I know there's a lot of these around. But competition is what drives a market?
 ## Some more screenshots
 
 ![char-sheet-base.jpg](images/char-sheet-base.jpg)
-![char-sheet-chat-settings.jpg](images/char-sheet-chat-settings.jpg)
-![char-sheet-memories.jpg](images/char-sheet-memories.jpg)
 ![scenario.jpg](images/scenario.jpg)
