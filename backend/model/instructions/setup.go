@@ -31,9 +31,9 @@ func init() {
 			existingNames[inst.Name] = struct{}{}
 		}
 
-		for tplKey, tplName := range defaultTemplates() {
+		for tplKey, tplName := range DefaultTemplates() {
 			if _, exists := existingNames[tplName]; !exists {
-				template, err := reifyInstructionTemplate(tplKey)
+				template, err := ReifyInstructionTemplate(tplKey)
 				if err != nil {
 					logger.Panic("failed to create default template",
 						zap.String("key", tplKey),

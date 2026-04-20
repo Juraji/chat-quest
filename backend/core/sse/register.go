@@ -6,15 +6,15 @@ import (
 	"juraji.nl/chat-quest/core/util/signals"
 )
 
-type message struct {
+type Message struct {
 	Source  string `json:"source"`
 	Payload any    `json:"payload"`
 }
 
-var sseCombinedSignal = signals.New[message]()
+var SseCombinedSignal = signals.New[Message]()
 
 func RegisterOnSSE[T any](name string, s *signals.Signal[T]) {
 	s.AddListener(name, func(ctx context.Context, t T) {
-		sseCombinedSignal.Emit(ctx, message{Source: name, Payload: t})
+		SseCombinedSignal.Emit(ctx, Message{Source: name, Payload: t})
 	})
 }

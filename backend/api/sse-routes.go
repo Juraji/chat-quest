@@ -1,4 +1,4 @@
-package sse
+package api
 
 import (
 	"context"
@@ -12,9 +12,10 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
+	"juraji.nl/chat-quest/core/sse"
 )
 
-func Routes(router *gin.RouterGroup) {
+func SseRoutes(router *gin.RouterGroup) {
 	sseRouter := router.Group("/sse")
 
 	sseRouter.GET("", func(c *gin.Context) {
@@ -28,11 +29,11 @@ func Routes(router *gin.RouterGroup) {
 			zap.String("connectionId", connectionId))
 
 		ctx := c.Request.Context()
-		clientChan := make(chan message)
+		clientChan := make(chan sse.Message)
 		pingTicker := time.NewTicker(30 * time.Second)
 		defer pingTicker.Stop()
 
-		sseCombinedSignal.AddListener(connectionId, func(_ context.Context, m message) {
+		sse.SseCombinedSignal.AddListener(connectionId, func(_ context.Context, m sse.Message) {
 			clientChan <- m
 		})
 
@@ -46,7 +47,7 @@ func Routes(router *gin.RouterGroup) {
 		for {
 			select {
 			case <-ctx.Done():
-				sseCombinedSignal.RemoveListener(connectionId)
+				sse.SseCombinedSignal.RemoveListener(connectionId)
 				close(clientChan)
 				log.Get().Info("SSE subscriber left, connection closed", zap.String("connectionId", connectionId))
 				return

@@ -23,11 +23,6 @@ type MemoryBookmark struct {
 	MessageID     int `json:"messageId"`
 }
 
-type GenerationRequest struct {
-	BaseMessageId     int
-	IncludeNPreceding int
-}
-
 func memoryScanner(scanner database.RowScanner, dest *Memory) error {
 	return scanner.Scan(
 		&dest.ID,

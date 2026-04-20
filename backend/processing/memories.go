@@ -78,7 +78,8 @@ func UpdateBookmarkOnMemoryGenEnable(_ context.Context, e *cs.ChatSessionUpdated
 
 func GenerateMemoriesForMessageID(
 	ctx context.Context,
-	request m.GenerationRequest,
+	messageId int,
+	includeNPreceding int,
 ) {
 	// Lock while processing to avoid multiple messages invoking simultaneous generation
 	// for the same message window.
@@ -89,12 +90,9 @@ func GenerateMemoriesForMessageID(
 	}
 	defer memoryGenerationMutex.Unlock()
 
-	messageId := request.BaseMessageId
-	nPreceding := request.IncludeNPreceding
-
 	logger := log.Get().With(
 		zap.Int("sourceMessageId", messageId),
-		zap.Int("includeNPreceding", nPreceding))
+		zap.Int("includeNPreceding", includeNPreceding))
 
 	// Cancellation
 	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateMemories")
@@ -114,13 +112,13 @@ func GenerateMemoriesForMessageID(
 
 	session, err := cs.GetById(sessionID)
 	if err != nil {
-		logger.Error("Error getting session", zap.Error(err))
+		logger.Error("Error fetching session", zap.Error(err))
 		return
 	}
 
 	prefs, err := pf.GetPreferences(true)
 	if err != nil {
-		logger.Error("Error getting preferences", zap.Error(err))
+		logger.Error("Error fetching preferences", zap.Error(err))
 		return
 	}
 
@@ -128,9 +126,9 @@ func GenerateMemoriesForMessageID(
 		return
 	}
 
-	precedingMessages, err := cs.GetMessagesInSessionBeforeId(message.ChatSessionID, messageId, nPreceding)
+	precedingMessages, err := cs.GetMessagesInSessionBeforeId(message.ChatSessionID, messageId, includeNPreceding)
 	if err != nil {
-		logger.Error("Error fetching previous message", zap.Error(err))
+		logger.Error("Error fetching previous messages", zap.Error(err))
 		return
 	}
 
@@ -156,6 +154,7 @@ func GenerateMemoriesForMessageID(
 	}
 
 	logger.Info("Memory generation completed", zap.Int("newMemories", len(memories)))
+	return
 }
 
 func GenerateMemories(

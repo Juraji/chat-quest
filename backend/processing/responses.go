@@ -76,7 +76,10 @@ func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.Ch
 	generateResponse(ctx, logger, session, chatHistory, triggerMessage, *responderId)
 }
 
-func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.ChatParticipant) {
+func GenerateResponseByParticipantTrigger(
+	ctx context.Context,
+	participant *cs.ChatParticipant,
+) {
 	if participant == nil {
 		// Ignore null
 		return
@@ -112,6 +115,7 @@ func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.C
 	}
 
 	generateResponse(ctx, logger, session, chatHistory, nil, responderId)
+	return
 }
 
 func generateResponse(

@@ -12,7 +12,7 @@ import (
 //go:embed templates/*
 var templatesFs embed.FS
 
-var defaultTemplates = sync.OnceValue(func() map[string]string {
+var DefaultTemplates = sync.OnceValue(func() map[string]string {
 	dirEntries, err := templatesFs.ReadDir("templates")
 	if err != nil {
 		panic(errors.Wrap(err, "failed to read default templates"))
@@ -40,7 +40,7 @@ var defaultTemplates = sync.OnceValue(func() map[string]string {
 	return tpls
 })
 
-func reifyInstructionTemplate(templateName string) (*Instruction, error) {
+func ReifyInstructionTemplate(templateName string) (*Instruction, error) {
 	// Load instruction data
 	instructionJsonData, err := templatesFs.ReadFile("templates/" + templateName + ".json")
 	if err != nil {

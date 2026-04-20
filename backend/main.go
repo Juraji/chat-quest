@@ -6,21 +6,11 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"juraji.nl/chat-quest/api"
 	"juraji.nl/chat-quest/core"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
-	"juraji.nl/chat-quest/core/providers"
-	"juraji.nl/chat-quest/core/sse"
-	"juraji.nl/chat-quest/core/system"
 	"juraji.nl/chat-quest/core/ui"
-	"juraji.nl/chat-quest/model/characters"
-	"juraji.nl/chat-quest/model/chat-sessions"
-	"juraji.nl/chat-quest/model/instructions"
-	"juraji.nl/chat-quest/model/memories"
-	"juraji.nl/chat-quest/model/preferences"
-	"juraji.nl/chat-quest/model/scenarios"
-	"juraji.nl/chat-quest/model/species"
-	"juraji.nl/chat-quest/model/worlds"
 	"juraji.nl/chat-quest/processing"
 )
 
@@ -68,17 +58,17 @@ func main() {
 	// Register routes (/api)
 	apiRouter := router.Group(env.ApiBasePath)
 	mainLogger.Info("Registering route handlers...")
-	system.Routes(apiRouter)
-	preferences.Routes(apiRouter)
-	characters.Routes(apiRouter)
-	instructions.Routes(apiRouter)
-	providers.Routes(apiRouter)
-	scenarios.Routes(apiRouter)
-	species.Routes(apiRouter)
-	worlds.Routes(apiRouter)
-	chat_sessions.Routes(apiRouter)
-	memories.Routes(apiRouter)
-	sse.Routes(apiRouter)
+	api.SystemRoutes(apiRouter)
+	api.PreferencesRoutes(apiRouter)
+	api.CharactersRoutes(apiRouter)
+	api.InstructionsRoutes(apiRouter)
+	api.ProvidersRoutes(apiRouter)
+	api.ScenariosRoutes(apiRouter)
+	api.SpeciesRoutes(apiRouter)
+	api.WorldsRoutes(apiRouter)
+	api.ChatSessionsRoutes(apiRouter)
+	api.MemoriesRoutes(apiRouter)
+	api.SseRoutes(apiRouter)
 
 	// Setup UI host (any non-api route)
 	// If endpoint is not found, the request is probably a UI resource, else we just fail ugly.

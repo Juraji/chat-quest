@@ -1,4 +1,4 @@
-package system
+package api
 
 import (
 	"net/http"
@@ -10,16 +10,16 @@ import (
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/providers"
-	"juraji.nl/chat-quest/core/util/controllers"
+	"juraji.nl/chat-quest/core/system"
 )
 
-func Routes(router *gin.RouterGroup) {
+func SystemRoutes(router *gin.RouterGroup) {
 	systemRouter := router.Group("/system")
 
 	systemRouter.POST("/tokenizer/count", func(c *gin.Context) {
 		body, err := c.GetRawData()
 		if err != nil {
-			controllers.RespondBadRequest(c, "Failed to read request body", nil)
+			respondBadRequest(c, "Failed to read request body", nil)
 			return
 		}
 
@@ -34,16 +34,16 @@ func Routes(router *gin.RouterGroup) {
 	})
 
 	systemRouter.POST("/stop-current-generation", func(c *gin.Context) {
-		StopCurrentGeneration.EmitBG(nil)
-		controllers.RespondEmpty(c, nil)
+		system.StopCurrentGeneration.EmitBG(nil)
+		respondEmpty(c, nil)
 	})
 
 	systemRouter.POST("/migrations/goto/:version", func(c *gin.Context) {
-		version, _ := controllers.GetParamAsID(c, "version")
+		version, _ := getParamAsID(c, "version")
 		log.Get().Info("Migrating to version", zap.Int("version", version))
 
 		database.GoToVersion(database.GetDB(), uint(version))
-		controllers.RespondEmpty(c, nil)
+		respondEmpty(c, nil)
 	})
 
 	systemRouter.POST("/shutdown", func(c *gin.Context) {

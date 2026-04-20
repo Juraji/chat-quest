@@ -1,4 +1,4 @@
-package controllers
+package api
 
 import (
 	"net/http"
@@ -9,13 +9,13 @@ import (
 	"juraji.nl/chat-quest/core/log"
 )
 
-func GetParamAsID(c *gin.Context, key string) (int, bool) {
+func getParamAsID(c *gin.Context, key string) (int, bool) {
 	idStr := c.Param(key)
 	id, err := strconv.ParseInt(idStr, 10, 32)
 	return int(id), err == nil
 }
 
-func GetQueryParamAsIntOr(c *gin.Context, key string, defaultValue int) int {
+func getQueryParamAsIntOr(c *gin.Context, key string, defaultValue int) int {
 	str, present := c.GetQuery(key)
 	if !present || str == "" {
 		return defaultValue
@@ -28,7 +28,7 @@ func GetQueryParamAsIntOr(c *gin.Context, key string, defaultValue int) int {
 	return int(i)
 }
 
-func GetQueryParamsAsInts(c *gin.Context, key string) ([]int, bool) {
+func getQueryParamsAsInts(c *gin.Context, key string) ([]int, bool) {
 	values, ok := c.GetQueryArray(key)
 	if !ok {
 		return nil, false
@@ -46,17 +46,17 @@ func GetQueryParamsAsInts(c *gin.Context, key string) ([]int, bool) {
 	return ints, true
 }
 
-func RespondList[T any](c *gin.Context, list []T, err error) {
+func respondList[T any](c *gin.Context, list []T, err error) {
 	if err != nil {
-		RespondInternalError(c, err)
+		respondInternalError(c, err)
 	} else {
 		c.JSON(http.StatusOK, list)
 	}
 }
 
-func RespondSingle[T any](c *gin.Context, entity *T, err error) {
+func respondSingle[T any](c *gin.Context, entity *T, err error) {
 	if err != nil {
-		RespondInternalError(c, err)
+		respondInternalError(c, err)
 	} else if entity == nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Entity not found"})
 	} else {
@@ -64,15 +64,15 @@ func RespondSingle[T any](c *gin.Context, entity *T, err error) {
 	}
 }
 
-func RespondEmpty(c *gin.Context, err error) {
+func respondEmpty(c *gin.Context, err error) {
 	if err != nil {
-		RespondInternalError(c, err)
+		respondInternalError(c, err)
 	} else {
 		c.Status(http.StatusNoContent)
 	}
 }
 
-func RespondInternalError(c *gin.Context, err error) {
+func respondInternalError(c *gin.Context, err error) {
 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal Server Error"})
 	if err != nil {
 		log.Get().Error("Error during API request", zap.String("uri", c.Request.RequestURI), zap.Error(err))
@@ -81,7 +81,7 @@ func RespondInternalError(c *gin.Context, err error) {
 	}
 }
 
-func RespondBadRequest(c *gin.Context, message string, err error) {
+func respondBadRequest(c *gin.Context, message string, err error) {
 	c.JSON(http.StatusBadRequest, gin.H{"error": message})
 	log.Get().Warn("Bad API Request",
 		zap.String("uri", c.Request.RequestURI),
@@ -89,7 +89,7 @@ func RespondBadRequest(c *gin.Context, message string, err error) {
 		zap.Error(err))
 }
 
-func RespondNotAcceptable(c *gin.Context, message string, err error) {
+func respondNotAcceptable(c *gin.Context, message string, err error) {
 	c.JSON(http.StatusNotAcceptable, gin.H{"error": message})
 	log.Get().Warn("Unacceptable data for API request", zap.String("uri", c.Request.RequestURI), zap.Error(err))
 }

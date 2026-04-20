@@ -24,7 +24,7 @@ var titleGenerationMutex sync.Mutex
 
 func GenerateTitle(
 	ctx context.Context,
-	request *cs.ChatSessionTitleGenerateRequest,
+	sessionID int,
 ) {
 	var err error
 
@@ -36,7 +36,6 @@ func GenerateTitle(
 	}
 	defer titleGenerationMutex.Unlock()
 
-	sessionID := request.ChatSessionID
 	logger := log.Get().With(
 		zap.Int("sessionId", sessionID))
 

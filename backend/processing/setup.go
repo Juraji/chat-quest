@@ -14,8 +14,6 @@ func SetupProcessing() {
 	// Chat response
 	cs.ChatMessageCreatedSignal.AddListener(
 		"GenerateResponse", GenerateResponseByMessageCreated)
-	cs.ChatParticipantResponseRequestedSignal.AddListener(
-		"GenerateResponse", GenerateResponseByParticipantTrigger)
 
 	// Memory generation
 	cs.ChatMessageCreatedSignal.AddListener(
@@ -24,16 +22,10 @@ func SetupProcessing() {
 		"GenerateMemories", GenerateMemories)
 	cs.ChatSessionUpdatedBASignal.AddListener(
 		"UpdateBookmarkOnMemoryGenEnable", UpdateBookmarkOnMemoryGenEnable)
-	m.MemoryGenerationForMessageRequestedSignal.AddListener(
-		"GenerateMemoriesForMessageID", GenerateMemoriesForMessageID)
 	m.MemoryCreatedSignal.AddListener(
 		"GenerateMemoryEmbeddings", GenerateEmbeddings)
 	m.MemoryUpdatedSignal.AddListener(
 		"GenerateMemoryEmbeddings", GenerateEmbeddings)
 	p.PreferencesUpdatedSignal.AddListener(
 		"RegenerateMemoryEmbeddings", RegenerateEmbeddingsOnPrefsUpdate)
-
-	// Chat session title generation
-	cs.ChatSessionTitleGenerationRequested.AddListener(
-		"GenerateTitle", GenerateTitle)
 }
