@@ -6,6 +6,7 @@
   $backdrop-brightness-focus: 70%;
 
   .chat-session-container {
+    margin-top: $navbar-height;
     height: calc(100vh - $navbar-height);
   }
 

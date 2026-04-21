@@ -1,5 +1,5 @@
 <form [formGroup]="formGroup" (submit)="onFormSubmit()">
-  <div class="container mt-3">
+  <div class="container">
     <app-page-header>
       <span class="page-title">Settings</span>
       @if (formGroup.dirty) {
@@ -8,7 +8,7 @@
         </button>
       }
       <button class="btn btn-primary btn-magical"
-              [disabled]="formGroup.invalid || this.uiSettingsFormGroup.invalid || (this.formGroup.pristine && this.uiSettingsFormGroup.pristine)">
+              [disabled]="saveDisabled">
         Save Changes
       </button>
     </app-page-header>

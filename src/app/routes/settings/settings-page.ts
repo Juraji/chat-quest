@@ -76,6 +76,10 @@ export class SettingsPage {
     maxMessagesInChatView: formControl(0, [Validators.required, Validators.min(1)]),
   })
 
+  get saveDisabled(): boolean {
+    return this.formGroup.invalid || this.uiSettingsFormGroup.invalid || (this.formGroup.pristine && this.uiSettingsFormGroup.pristine)
+  }
+
   constructor() {
     effect(() => this.onRevertChanges());
     effect(() => {
