@@ -45,6 +45,9 @@ func UpdateBookmarkOnMemoryGenEnable(_ context.Context, e *cs.ChatSessionUpdated
 	if e.Before.GenerateMemories == e.After.GenerateMemories {
 		return
 	}
+	if !e.After.GenerateMemories {
+		return
+	}
 
 	logger := log.Get().With(
 		zap.Int("sessionID", e.SessionId))
