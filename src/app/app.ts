@@ -8,6 +8,7 @@ import {SseConnectionStatus} from '@components/sse-connection-status';
   selector: 'app-root',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationsDisplay, ShutdownBtn, SseConnectionStatus],
   templateUrl: './app.html',
+  styleUrl: './app.scss'
 })
 export class App {
 }
