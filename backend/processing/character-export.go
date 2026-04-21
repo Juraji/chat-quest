@@ -48,7 +48,7 @@ func ExportCharacterAsText(
 		return "", nil
 	}
 
-	instructionVars := NewTemplateCharacter(character, prefs, nil, nil)
+	instructionVars := NewTemplateCharacter(character, prefs, nil)
 	if err = instruction.ApplyTemplates(instructionVars); err != nil {
 		logger.Error("Failed to apply templates", zap.Error(err))
 		return "", errors.WithMessage(err, "failed to apply templates")

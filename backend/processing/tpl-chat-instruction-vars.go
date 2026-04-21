@@ -90,16 +90,10 @@ func (c *chatInstructionVarsImpl) ChatNotes() string {
 func NewChatInstructionVars(
 	session *cs.ChatSession,
 	prefs *p.Preferences,
-	chatHistory []cs.ChatMessage,
 	triggerMessage *cs.ChatMessage,
 	sessionMessageCount int,
 	currentCharacterId int,
 ) ChatInstructionVars {
-	fullHistory := chatHistory
-	if triggerMessage != nil {
-		fullHistory = append(chatHistory, *triggerMessage)
-	}
-
 	return &chatInstructionVarsImpl{
 		triggerMessage:      triggerMessage,
 		currentMessageIndex: sessionMessageCount,
@@ -110,7 +104,7 @@ func NewChatInstructionVars(
 			if err != nil {
 				return nil, err
 			}
-			return NewTemplateCharacter(character, prefs, session, fullHistory), nil
+			return NewTemplateCharacter(character, prefs, session), nil
 		}),
 		persona: sync.OnceValues(func() (TemplateCharacter, error) {
 			if session.PersonaID == nil {
@@ -120,7 +114,7 @@ func NewChatInstructionVars(
 			if err != nil {
 				return nil, err
 			}
-			return NewTemplateCharacter(character, prefs, session, fullHistory), nil
+			return NewTemplateCharacter(character, prefs, session), nil
 		}),
 		otherParticipants: sync.OnceValues(func() ([]TemplateCharacter, error) {
 			allParticipants, err := cs.GetAllParticipantsAsCharacters(session.ID)
@@ -130,7 +124,7 @@ func NewChatInstructionVars(
 			templateVars := make([]TemplateCharacter, 0, len(allParticipants))
 			for _, participant := range allParticipants {
 				if participant.ID != currentCharacterId {
-					templateVars = append(templateVars, NewTemplateCharacter(&participant, prefs, session, fullHistory))
+					templateVars = append(templateVars, NewTemplateCharacter(&participant, prefs, session))
 				}
 			}
 			return templateVars, nil

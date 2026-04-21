@@ -1,6 +1,7 @@
 package processing
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -105,7 +106,6 @@ func NewTemplateCharacter(
 	char *c.Character,
 	prefs *p.Preferences,
 	session *cs.ChatSession,
-	chatHistory []cs.ChatMessage,
 ) TemplateCharacter {
 	return &templateCharacterImpl{
 		id:       char.ID,
@@ -177,11 +177,18 @@ func NewTemplateCharacter(
 				return nil, nil
 			}
 
+			chatHistory, err := cs.GetTailChatMessages(session.ID, prefs.MemoryIncludeChatSize)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to fetch chat messages for memory scan")
+			}
+
 			memories, err := m.GetMemoriesByWorldAndCharacterIdWithEmbeddings(
 				session.WorldID, char.ID, *prefs.EmbeddingModelId)
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to get memories for character ID %d", char.ID)
 			}
+
+			// Short circuit: Character has no memories
 			if len(memories) == 0 {
 				return nil, nil
 			}
@@ -198,21 +205,31 @@ func NewTemplateCharacter(
 				return staticMemories, nil
 			}
 
-			// Determine subject, based on the last n message and the trigger message.
-			var subject string
-			if prefs.MemoryIncludeChatNotes && session.ChatNotes != nil {
-				subject = *session.ChatNotes
-			}
-
-			if len(chatHistory) > 0 {
-				end := len(chatHistory)
-				start := end - prefs.MemoryIncludeChatSize
-				if start < 0 {
-					start = 0
+			// The subject is made up of
+			// - Current participant names.
+			// - Optionally the Chat notes.
+			// - The messages to scan.
+			var subjectBuffer strings.Builder
+			{
+				participants, err := cs.GetAllParticipantsAsCharacters(session.ID)
+				if err != nil {
+					return nil, errors.Wrap(err, "failed to get session participants")
+				}
+				for _, participant := range participants {
+					subjectBuffer.WriteString(participant.Name)
+					subjectBuffer.WriteRune(' ')
 				}
 
-				for i := start; i < end; i++ {
-					subject += chatHistory[i].Content + " "
+				if prefs.MemoryIncludeChatNotes && session.ChatNotes != nil {
+					subjectBuffer.WriteString(*session.ChatNotes)
+					subjectBuffer.WriteRune(' ')
+				}
+
+				if len(chatHistory) > 0 {
+					for _, msg := range chatHistory {
+						subjectBuffer.WriteString(msg.Content)
+						subjectBuffer.WriteRune(' ')
+					}
 				}
 			}
 
@@ -222,7 +239,7 @@ func NewTemplateCharacter(
 				return nil, errors.Wrapf(err, "failed to get embedding model while processing memories for character ID %d", char.ID)
 			}
 
-			subjectEmbeddings, err := prov.GenerateEmbeddings(embeddingModelInst, subject, true)
+			subjectEmbeddings, err := prov.GenerateEmbeddings(embeddingModelInst, subjectBuffer.String(), true)
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to embed subject while processing memories for character ID %d", char.ID)
 			}

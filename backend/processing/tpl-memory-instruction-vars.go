@@ -49,7 +49,7 @@ func NewMemoryInstructionVars(session *cs.ChatSession, before time.Time) MemoryI
 			}
 			templateVars := make([]TemplateCharacter, len(allParticipants))
 			for i, participant := range allParticipants {
-				templateVars[i] = NewTemplateCharacter(&participant, nil, nil, nil)
+				templateVars[i] = NewTemplateCharacter(&participant, nil, nil)
 			}
 			return templateVars, nil
 		}),

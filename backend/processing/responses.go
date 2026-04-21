@@ -149,7 +149,7 @@ func generateResponse(
 	}
 
 	// Create instructions
-	instructionVars := NewChatInstructionVars(session, prefs, chatHistory, triggerMessage, sessionMessageCount, responderId)
+	instructionVars := NewChatInstructionVars(session, prefs, triggerMessage, sessionMessageCount, responderId)
 	instruction, err := inst.InstructionById(*session.ChatInstructionId)
 	if err != nil {
 		logger.Error("Error fetching chat instruction", zap.Error(err))
@@ -226,6 +226,7 @@ func generateResponse(
 	// Create initial response message
 	addMessageToStack()
 
+	ctx, cancelCtx := context.WithCancel(ctx)
 	chatResponseChan := prov.GenerateChatResponse(ctx, chatModelInst, requestMessages, instruction.AsLlmParameters())
 
 	for {
@@ -233,6 +234,7 @@ func generateResponse(
 		case response, hasNext := <-chatResponseChan:
 			if response.Error != nil {
 				logger.Error("Error generating response", zap.Error(response.Error))
+				cancelCtx()
 				return
 			}
 
@@ -296,6 +298,7 @@ func generateResponse(
 						if err != nil {
 							logger.Warn("Invalid character prefix found in LLM response stream",
 								zap.String("prefix", currentPrefix))
+							cancelCtx()
 							return
 						}
 
@@ -348,6 +351,7 @@ func generateResponse(
 				if err := cs.UpdateChatMessage(session.ID, currentMessage.ID, currentMessage); err != nil {
 					logger.Error("Failed to update response chat message",
 						zap.Int("messageId", currentMessage.ID), zap.Error(err))
+					cancelCtx()
 					return
 				}
 			}
@@ -359,11 +363,11 @@ func generateResponse(
 			}
 
 			if !hasNext {
+				cancelCtx()
 				return
 			}
 		case <-ctx.Done():
 			logger.Debug("Cancelled by context")
-			return
 		}
 	}
 }

@@ -87,7 +87,7 @@ func GenerateTitle(
 	}
 
 	// Build instruction
-	templateVars := NewChatInstructionVars(session, prefs, messageWindow, nil, sessionMessageCount, 0)
+	templateVars := NewChatInstructionVars(session, prefs, nil, sessionMessageCount, 0)
 	instruction, err := i.InstructionById(*prefs.TitleGenerationInstructionId)
 	if err != nil {
 		logger.Error("Could not fetch memory instruction", zap.Error(err))
