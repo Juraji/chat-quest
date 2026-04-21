@@ -15,10 +15,10 @@ CREATE TABLE instructions
   include_reasoning BIT(1) NOT NULL,
 
   -- Parsing
-  reasoning_prefix    VARCHAR(50)  NOT NULL,
-  reasoning_suffix    VARCHAR(50)  NOT NULL,
-  character_id_prefix VARCHAR(50)  NOT NULL,
-  character_id_suffix VARCHAR(50)  NOT NULL,
+  reasoning_prefix    VARCHAR(50),
+  reasoning_suffix    VARCHAR(50),
+  character_id_prefix VARCHAR(50),
+  character_id_suffix VARCHAR(50),
 
   -- Prompt Templates
   system_prompt     TEXT,

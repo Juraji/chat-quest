@@ -9,11 +9,11 @@
   "stream": false,
   "stopSequences": null,
   "includeReasoning": false,
-  "reasoningPrefix": "--",
-  "reasoningSuffix": "--",
-  "characterIdPrefix": "--",
-  "characterIdSuffix": "--",
-  "systemPrompt": "templates/_empty.tmpl",
-  "worldSetup": "templates/_empty.tmpl",
+  "reasoningPrefix": null,
+  "reasoningSuffix": null,
+  "characterIdPrefix": null,
+  "characterIdSuffix": null,
+  "systemPrompt": null,
+  "worldSetup": null,
   "instruction": "templates/character_as_text__instruction.tmpl"
 }

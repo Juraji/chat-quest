@@ -44,10 +44,10 @@ type Instruction struct {
 	IncludeReasoning bool    `json:"includeReasoning"`
 
 	// Parsing
-	ReasoningPrefix   string `json:"reasoningPrefix"`
-	ReasoningSuffix   string `json:"reasoningSuffix"`
-	CharacterIdPrefix string `json:"characterIdPrefix"`
-	CharacterIdSuffix string `json:"characterIdSuffix"`
+	ReasoningPrefix   *string `json:"reasoningPrefix"`
+	ReasoningSuffix   *string `json:"reasoningSuffix"`
+	CharacterIdPrefix *string `json:"characterIdPrefix"`
+	CharacterIdSuffix *string `json:"characterIdSuffix"`
 
 	// Prompt Templates
 	SystemPrompt *string `json:"systemPrompt"`
@@ -157,10 +157,10 @@ func CreateInstruction(inst *Instruction) error {
 		inst.Stream,
 		es(inst.StopSequences),
 		inst.IncludeReasoning,
-		inst.ReasoningPrefix,
-		inst.ReasoningSuffix,
-		inst.CharacterIdPrefix,
-		inst.CharacterIdSuffix,
+		es(inst.ReasoningPrefix),
+		es(inst.ReasoningSuffix),
+		es(inst.CharacterIdPrefix),
+		es(inst.CharacterIdSuffix),
 		es(inst.SystemPrompt),
 		es(inst.WorldSetup),
 		inst.Instruction,
@@ -208,10 +208,10 @@ func UpdateInstruction(id int, inst *Instruction) error {
 		inst.Stream,
 		es(inst.StopSequences),
 		inst.IncludeReasoning,
-		inst.ReasoningPrefix,
-		inst.ReasoningSuffix,
-		inst.CharacterIdPrefix,
-		inst.CharacterIdSuffix,
+		es(inst.ReasoningPrefix),
+		es(inst.ReasoningSuffix),
+		es(inst.CharacterIdPrefix),
+		es(inst.CharacterIdSuffix),
 		es(inst.SystemPrompt),
 		es(inst.WorldSetup),
 		inst.Instruction,

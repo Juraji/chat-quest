@@ -156,46 +156,72 @@ When this option is checked, any reasoning from the chat history is readded usin
             <h5 class="card-title">Parsing</h5>
 
             <div class="grid gap-1">
-              <div class="g-col-12 g-col-lg-6">
-                <label for="reasoningPrefixInput">Reasoning Prefix</label>
-                <input class="form-control"
-                       id="reasoningPrefixInput"
-                       aria-describedby="reasoningPrefixSuffixInputHelp"
-                       formControlName="reasoningPrefix"/>
+              <div class="g-col-12">
+                <div class="form-check" [class.mb-1]="!enableReasoningParsing()">
+                  <input class="form-check-input" type="checkbox"
+                         id="enableReasoningParsingInput"
+                         [checked]="enableReasoningParsing()"
+                         (change)="enableReasoningParsing.toggle(); formGroup.markAsDirty()"/>
+                  <label class="form-check-label" for="enableReasoningParsingInput">
+                    Parse reasoning
+                  </label>
+                </div>
               </div>
-              <div class="g-col-12 g-col-lg-6">
-                <label for="reasoningSuffixInput">Reasoning Suffix</label>
-                <input class="form-control"
-                       id="reasoningSuffixInput"
-                       aria-describedby="reasoningPrefixSuffixInputHelp"
-                       formControlName="reasoningSuffix"/>
-              </div>
-            </div>
-            <div id="reasoningPrefixSuffixInputHelp" class="form-text mb-3"
-                 title="Usually these are tags like <think>...</think> or [THINK]...[/THINK], depending on the model training.">
-              <span>Reasoning tokens</span>
-              <span class="bi bi-question-circle ms-1"></span>
+              @if (enableReasoningParsing()) {
+                <div class="g-col-12 g-col-lg-6">
+                  <label for="reasoningPrefixInput">Reasoning Prefix</label>
+                  <input class="form-control"
+                         id="reasoningPrefixInput"
+                         aria-describedby="reasoningPrefixSuffixInputHelp"
+                         formControlName="reasoningPrefix"/>
+                </div>
+                <div class="g-col-12 g-col-lg-6">
+                  <label for="reasoningSuffixInput">Reasoning Suffix</label>
+                  <input class="form-control"
+                         id="reasoningSuffixInput"
+                         aria-describedby="reasoningPrefixSuffixInputHelp"
+                         formControlName="reasoningSuffix"/>
+                </div>
+                <div id="enableReasoningParsingInput" class="g-col-12 form-text mb-3">
+                  Usually these are tags like &lt;think&gt;&lt;/think&gt;
+                  or [THINK][/THINK], depending on the model training.
+                </div>
+              }
             </div>
 
             <div class="grid gap-1">
-              <div class="g-col-12 g-col-lg-6">
-                <label for="characterIdPrefixInput">Character Marker Prefix</label>
-                <input class="form-control"
-                       id="characterIdPrefixInput"
-                       aria-describedby="characterIdPrefixSuffixInputHelp"
-                       formControlName="characterIdPrefix"/>
+              <div class="g-col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         id="enableCharacterIdParsingInput"
+                         [checked]="enableCharacterIdParsing()"
+                         (change)="enableCharacterIdParsing.toggle(); formGroup.markAsDirty()"/>
+                  <label class="form-check-label" for="enableCharacterIdParsingInput">
+                    Parse character markers
+                  </label>
+                </div>
               </div>
-              <div class="g-col-12 g-col-lg-6">
-                <label for="characterIdSuffixInput">Character Marker Suffix</label>
-                <input class="form-control"
-                       id="characterIdSuffixInput"
-                       aria-describedby="characterIdPrefixSuffixInputHelp"
-                       formControlName="characterIdSuffix"/>
-              </div>
+              @if (enableCharacterIdParsing()) {
+                <div class="g-col-12 g-col-lg-6">
+                  <label for="characterIdPrefixInput">Character Marker Prefix</label>
+                  <input class="form-control"
+                         id="characterIdPrefixInput"
+                         aria-describedby="characterIdPrefixSuffixInputHelp"
+                         formControlName="characterIdPrefix"/>
+                </div>
+                <div class="g-col-12 g-col-lg-6">
+                  <label for="characterIdSuffixInput">Character Marker Suffix</label>
+                  <input class="form-control"
+                         id="characterIdSuffixInput"
+                         aria-describedby="characterIdPrefixSuffixInputHelp"
+                         formControlName="characterIdSuffix"/>
+                </div>
+              }
             </div>
             <div id="reasoningPrefixSuffixInputHelp" class="form-text"
-                 title="These are added to each assistant chat message in the chat history for the LLM to determine which character said what.
-Besides that they can also be used by the LLM to output multi-character responses, but that is very dependent on the model's abilities">
+                 title="When enabled these are added to each assistant chat message in the chat history for the LLM to determine which character said what.
+When parsing the LLM output, Chat Quest looks for these markers, when found it will automatically change the character to the target character, allowing for LLM driven choices and multi-character responses.
+Disable this if you have trouble with the LLM taking over too much.">
               <span>Character markers</span>
               <span class="bi bi-question-circle ms-1"></span>
             </div>

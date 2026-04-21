@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
@@ -195,12 +196,24 @@ func generateResponse(
 	var reasoningBuffer strings.Builder
 	var messageStack []*cs.ChatMessage
 	var currentMessage *cs.ChatMessage
-	characterIdPrefixInitial := string(instruction.CharacterIdPrefix[0])
-	characterIdPrefix := instruction.CharacterIdPrefix
-	characterIdSuffix := instruction.CharacterIdSuffix
-	reasoningPrefixInitial := string(instruction.ReasoningPrefix[0])
-	reasoningPrefix := instruction.ReasoningPrefix
-	reasoningSuffix := instruction.ReasoningSuffix
+
+	var characterIdPrefixInitial rune
+	var characterIdPrefix string
+	var characterIdSuffix string
+	if instruction.CharacterIdPrefix != nil && instruction.CharacterIdSuffix != nil {
+		characterIdPrefix = *instruction.CharacterIdPrefix
+		characterIdSuffix = *instruction.CharacterIdSuffix
+		characterIdPrefixInitial, _ = utf8.DecodeRuneInString(characterIdPrefix)
+	}
+
+	var reasoningPrefixInitial rune
+	var reasoningPrefix string
+	var reasoningSuffix string
+	if instruction.ReasoningPrefix != nil && instruction.ReasoningSuffix != nil {
+		reasoningPrefix = *instruction.ReasoningPrefix
+		reasoningSuffix = *instruction.ReasoningSuffix
+		reasoningPrefixInitial, _ = utf8.DecodeRuneInString(reasoningPrefix)
+	}
 
 	addMessageToStack := func() {
 		newMessage := cs.NewChatMessage(false, true, &responderId, "")
@@ -238,24 +251,24 @@ func generateResponse(
 				return
 			}
 
-			for _, token := range strings.Split(response.Content, "") {
+			for _, token := range response.Content {
 				switch currentState {
 				case InContent:
 					if token == characterIdPrefixInitial || token == reasoningPrefixInitial {
 						currentState = PrefixDetected
-						prefixBuffer.WriteString(token)
+						prefixBuffer.WriteRune(token)
 					} else {
 						// Output the token directly as it's not part of a prefix
-						contentBuffer.WriteString(token)
+						contentBuffer.WriteRune(token)
 					}
 				case PrefixDetected:
 					// Accumulate prefix tokens.
-					if token == "\n" {
+					if token == '\n' {
 						currentState = CancelPrefix
 						continue
 					}
 
-					prefixBuffer.WriteString(token)
+					prefixBuffer.WriteRune(token)
 					currentPrefix := prefixBuffer.String()
 
 					// Figure out if we are in a known prefix (reasoning or Char transition)
@@ -270,7 +283,7 @@ func generateResponse(
 
 				case InReasoning:
 					prefixBuffer.Reset()
-					reasoningBuffer.WriteString(token)
+					reasoningBuffer.WriteRune(token)
 					currentReasoning := reasoningBuffer.String()
 
 					if util.HasSuffixCaseInsensitive(currentReasoning, reasoningSuffix) {
@@ -284,12 +297,12 @@ func generateResponse(
 					}
 
 				case InCharTransition:
-					if token == "\n" {
+					if token == '\n' {
 						currentState = CancelPrefix
 						continue
 					}
 
-					prefixBuffer.WriteString(token)
+					prefixBuffer.WriteRune(token)
 					currentPrefix := prefixBuffer.String()
 
 					if util.HasSuffixCaseInsensitive(currentPrefix, characterIdSuffix) {
@@ -323,7 +336,8 @@ func generateResponse(
 					}
 
 				case CancelPrefix:
-					contentBuffer.WriteString(prefixBuffer.String() + token)
+					contentBuffer.WriteString(prefixBuffer.String())
+					contentBuffer.WriteRune(token)
 					prefixBuffer.Reset()
 					currentState = InContent
 				}

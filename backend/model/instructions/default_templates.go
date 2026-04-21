@@ -53,20 +53,24 @@ func ReifyInstructionTemplate(templateName string) (*Instruction, error) {
 	}
 
 	// Reify system prompt
-	systemPromptPath := *instruction.SystemPrompt
-	systemPromptData, err := templatesFs.ReadFile(systemPromptPath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load system prompt template from '%s'", systemPromptPath)
+	if instruction.SystemPrompt != nil {
+		systemPromptPath := *instruction.SystemPrompt
+		systemPromptData, err := templatesFs.ReadFile(systemPromptPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to load system prompt template from '%s'", systemPromptPath)
+		}
+		instruction.SystemPrompt = new(string(systemPromptData))
 	}
-	instruction.SystemPrompt = new(string(systemPromptData))
 
 	// Reify world setup
-	worldSetupPath := *instruction.WorldSetup
-	worldSetupData, err := templatesFs.ReadFile(worldSetupPath)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load world setup template from '%s'", worldSetupPath)
+	if instruction.WorldSetup != nil {
+		worldSetupPath := *instruction.WorldSetup
+		worldSetupData, err := templatesFs.ReadFile(worldSetupPath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to load world setup template from '%s'", worldSetupPath)
+		}
+		instruction.WorldSetup = new(string(worldSetupData))
 	}
-	instruction.WorldSetup = new(string(worldSetupData))
 
 	// Reify instruction
 	instructionPath := instruction.Instruction

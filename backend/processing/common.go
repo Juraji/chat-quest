@@ -62,18 +62,24 @@ func createChatRequestMessages(
 			var msgBuffer strings.Builder
 
 			// Add reasoning if enabled and available
-			if instruction.IncludeReasoning && len(msg.Reasoning) > 0 {
-				msgBuffer.WriteString(instruction.ReasoningPrefix)
+			if instruction.IncludeReasoning &&
+				len(msg.Reasoning) > 0 &&
+				instruction.ReasoningPrefix != nil &&
+				instruction.ReasoningSuffix != nil {
+				msgBuffer.WriteString(*instruction.ReasoningPrefix)
 				msgBuffer.WriteString(msg.Reasoning)
-				msgBuffer.WriteString(instruction.ReasoningSuffix)
-				msgBuffer.WriteString("\n\n")
+				msgBuffer.WriteString(*instruction.ReasoningSuffix)
+				msgBuffer.WriteRune('\n')
 			}
 
 			// Add character ID
-			msgBuffer.WriteString(instruction.CharacterIdPrefix)
-			msgBuffer.WriteString(fmt.Sprint(*msg.CharacterID))
-			msgBuffer.WriteString(instruction.CharacterIdSuffix)
-			msgBuffer.WriteString("\n\n")
+			if instruction.CharacterIdPrefix != nil &&
+				instruction.CharacterIdSuffix != nil {
+				msgBuffer.WriteString(*instruction.CharacterIdPrefix)
+				msgBuffer.WriteString(fmt.Sprint(*msg.CharacterID))
+				msgBuffer.WriteString(*instruction.CharacterIdSuffix)
+				msgBuffer.WriteRune('\n')
+			}
 
 			// Add the main content
 			msgBuffer.WriteString(msg.Content)
