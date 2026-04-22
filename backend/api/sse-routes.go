@@ -17,6 +17,7 @@ import (
 
 func SseRoutes(router *gin.RouterGroup) {
 	sseRouter := router.Group("/sse")
+	logger := log.Get()
 
 	sseRouter.GET("", func(c *gin.Context) {
 		connectionId := fmt.Sprintf("SSE::%s::%s", c.ClientIP(), uuid.New())
@@ -25,7 +26,7 @@ func SseRoutes(router *gin.RouterGroup) {
 		c.Header("Cache-Control", "no-cache")
 		c.Header("Connection", "keep-alive")
 
-		log.Get().Info("New SSE subscriber",
+		logger.Info("New SSE subscriber",
 			zap.String("connectionId", connectionId))
 
 		ctx := c.Request.Context()
@@ -39,7 +40,7 @@ func SseRoutes(router *gin.RouterGroup) {
 
 		// Write initial message to confirm connection with connection ID
 		if err := writeAndFlushEvent(c, "connection", fmt.Sprintf("SSE connected! Connection ID: %s", connectionId)); err != nil {
-			log.Get().Error("failed to send 'SSE connected' event to client",
+			logger.Error("failed to send 'SSE connected' event to client",
 				zap.Error(err),
 				zap.String("connectionId", connectionId))
 		}
@@ -49,13 +50,13 @@ func SseRoutes(router *gin.RouterGroup) {
 			case <-ctx.Done():
 				sse.SseCombinedSignal.RemoveListener(connectionId)
 				close(clientChan)
-				log.Get().Info("SSE subscriber left, connection closed", zap.String("connectionId", connectionId))
+				logger.Info("SSE subscriber left, connection closed", zap.String("connectionId", connectionId))
 				return
 
 			case msg := <-clientChan:
 				j, err := json.Marshal(msg)
 				if err != nil {
-					log.Get().Error("failed to marshal event",
+					logger.Error("failed to marshal event",
 						zap.Error(err),
 						zap.String("connectionId", connectionId),
 						zap.Any("msg", msg))
@@ -63,7 +64,7 @@ func SseRoutes(router *gin.RouterGroup) {
 				}
 
 				if err = writeAndFlushEvent(c, "message", string(j)); err != nil {
-					log.Get().Error("failed to write message to client",
+					logger.Error("failed to write message to client",
 						zap.Error(err),
 						zap.String("connectionId", connectionId),
 						zap.Any("msg", msg))
@@ -73,7 +74,7 @@ func SseRoutes(router *gin.RouterGroup) {
 				// Ping for keep-alive on client side with connection ID
 				timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 				if err := writeAndFlushEvent(c, "ping", timestamp); err != nil {
-					log.Get().Error("failed to write ping to client",
+					logger.Error("failed to write ping to client",
 						zap.Error(err),
 						zap.String("connectionId", connectionId))
 				}
