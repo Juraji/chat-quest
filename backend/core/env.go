@@ -1,8 +1,10 @@
 package core
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -18,6 +20,7 @@ type Environment struct {
 	ApplicationPort  string
 	ApiBasePath      string
 	DefaultFSPerm    os.FileMode
+	KeepNLogFiles    int
 }
 
 // MkDataDir creates directories in the application data directory and returns the full path.
@@ -57,6 +60,7 @@ func InitEnvironment() {
 		ApplicationPort:  "8080",
 		ApiBasePath:      "/api",
 		DefaultFSPerm:    0644,
+		KeepNLogFiles:    5,
 	}
 
 	setStringFromEnvIfPresent("CHAT_QUEST_DATA_DIR", &currentEnvironment.DataDirectory)
@@ -77,6 +81,7 @@ func InitEnvironment() {
 	setStringFromEnvIfPresent("CHAT_QUEST_APPLICATION_HOST", &currentEnvironment.ApplicationHost)
 	setStringFromEnvIfPresent("CHAT_QUEST_APPLICATION_PORT", &currentEnvironment.ApplicationPort)
 	setStringFromEnvIfPresent("CHAT_QUEST_API_BASE_PATH", &currentEnvironment.ApiBasePath)
+	setIntFromEnvIfPresent("CHAT_QUEST_KEEP_NLOG_FILES", &currentEnvironment.KeepNLogFiles)
 
 	var debugModeVal string
 	setStringFromEnvIfPresent("CHAT_QUEST_DEBUG", &debugModeVal)
@@ -87,6 +92,17 @@ func Env() Environment {
 	return currentEnvironment
 }
 
+func setIntFromEnvIfPresent(envVarName string, dest *int) {
+	value, isSet := os.LookupEnv(envVarName)
+	if isSet {
+		parseInt, err := strconv.ParseInt(value, 10, 32)
+		if err != nil {
+			panic(fmt.Errorf("could not convert value '%s' for %s: %w", value, envVarName, err))
+		}
+
+		*dest = int(parseInt)
+	}
+}
 func setStringFromEnvIfPresent(envVarName string, dest *string) {
 	value, isSet := os.LookupEnv(envVarName)
 	if isSet {

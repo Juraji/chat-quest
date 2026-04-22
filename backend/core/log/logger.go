@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"time"
 
 	"go.uber.org/zap"
@@ -56,17 +57,37 @@ func InitLogger(env core.Environment) {
 		logDir := env.MkDataDir("log")
 
 		currentTime := time.Now()
-		currentFileName := fmt.Sprintf("chat-quest_%s.log", currentTime.Format("2006-01-02_15-04-05"))
-		currentFilePath := filepath.Join(logDir, currentFileName)
+		logFileName := fmt.Sprintf("chat-quest_%s.log", currentTime.Format("2006-01-02"))
+		currentFilePath := filepath.Join(logDir, logFileName)
 
-		file, err := os.OpenFile(currentFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		currentLogFile, err := os.OpenFile(currentFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			panic(fmt.Errorf("error opening log file: %w", err))
 		}
 
 		encoder := zapcore.NewConsoleEncoder(encoderConfig)
-		writer := zapcore.AddSync(file)
+		writer := zapcore.AddSync(currentLogFile)
 		fileCore = zapcore.NewCore(encoder, writer, level)
+
+		go func() {
+			// Remove old files.
+			logFiles, err := os.ReadDir(logDir)
+			if err != nil {
+				panic(fmt.Errorf("error listing existing log files: %w", err))
+			}
+			slices.Reverse(logFiles)
+
+			for idx, file := range logFiles {
+				if idx < env.KeepNLogFiles {
+					// Skip n files to keep
+					continue
+				}
+				err := os.Remove(filepath.Join(logDir, file.Name()))
+				if err != nil {
+					panic(fmt.Errorf("failed removing old log file '%s' %w", file.Name(), err))
+				}
+			}
+		}()
 	}
 
 	// Signal logging
