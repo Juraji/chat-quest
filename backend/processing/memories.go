@@ -6,6 +6,7 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	p "juraji.nl/chat-quest/core/providers"
@@ -41,12 +42,10 @@ type memoriesContainer struct {
 
 var memoryGenerationMutex sync.Mutex
 
-func UpdateBookmarkOnMemoryGenEnable(_ context.Context, e *cs.ChatSessionUpdatedBAEvent) {
-	if e.Before.GenerateMemories == e.After.GenerateMemories {
-		return
-	}
-	if !e.After.GenerateMemories {
-		return
+func UpdateBookmarkOnMemoryGenEnable(_ context.Context, e *cs.ChatSessionUpdatedBAEvent) error {
+	// Skip if memory gen is turned off or unchanged
+	if !e.After.GenerateMemories || e.Before.GenerateMemories == e.After.GenerateMemories {
+		return nil
 	}
 
 	logger := log.Get().With(
@@ -60,11 +59,11 @@ func UpdateBookmarkOnMemoryGenEnable(_ context.Context, e *cs.ChatSessionUpdated
 	messages, err := cs.GetTailChatMessages(e.SessionId, 1)
 	if err != nil {
 		logger.Error("Error getting last chat message", zap.Error(err))
-		return
+		return errors.Wrap(err, "error getting last chat message")
 	}
 	if len(messages) == 0 {
 		logger.Info("No messages found, skipping.")
-		return
+		return nil
 	}
 
 	messageID := messages[0].ID
@@ -73,23 +72,24 @@ func UpdateBookmarkOnMemoryGenEnable(_ context.Context, e *cs.ChatSessionUpdated
 	err = m.SetMemoryBookmark(e.SessionId, messageID)
 	if err != nil {
 		logger.Error("Error setting bookmark", zap.Error(err))
-		return
+		return errors.Wrap(err, "error setting bookmark")
 	}
 
 	logger.Info("Updated bookmark successfully")
+	return nil
 }
 
 func GenerateMemoriesForMessageID(
 	ctx context.Context,
 	messageId int,
 	includeNPreceding int,
-) {
+) error {
 	// Lock while processing to avoid multiple messages invoking simultaneous generation
 	// for the same message window.
 	// If the lock is already active we cancel this invocation.
 	lock := memoryGenerationMutex.TryLock()
 	if !lock {
-		return
+		return errors.New("memory generation already in progress")
 	}
 	defer memoryGenerationMutex.Unlock()
 
@@ -106,7 +106,7 @@ func GenerateMemoriesForMessageID(
 	message, err := cs.GetMessageById(messageId)
 	if err != nil {
 		logger.Error("Error fetching message", zap.Error(err))
-		return
+		return errors.Wrap(err, "error fetching message")
 	}
 
 	sessionID := message.ChatSessionID
@@ -116,35 +116,35 @@ func GenerateMemoriesForMessageID(
 	session, err := cs.GetById(sessionID)
 	if err != nil {
 		logger.Error("Error fetching session", zap.Error(err))
-		return
+		return errors.Wrap(err, "error fetching session")
 	}
 
 	prefs, err := pf.GetPreferences(true)
 	if err != nil {
 		logger.Error("Error fetching preferences", zap.Error(err))
-		return
+		return errors.Wrap(err, "error fetching preferences")
 	}
 
 	if contextCheckPoint(ctx, logger) {
-		return
+		return nil
 	}
 
 	precedingMessages, err := cs.GetMessagesInSessionBeforeId(message.ChatSessionID, messageId, includeNPreceding)
 	if err != nil {
 		logger.Error("Error fetching previous messages", zap.Error(err))
-		return
+		return errors.Wrap(err, "error fetching previous messages")
 	}
 
 	// Create message window (preceding messages + current message)
 	messageWindow := append(precedingMessages, *message)
 
-	memories, ok := generateMemories(logger, ctx, session, prefs, messageWindow)
-	if !ok {
-		return
+	memories, err := generateMemories(logger, ctx, session, prefs, messageWindow)
+	if err != nil {
+		return err
 	}
 
 	if contextCheckPoint(ctx, logger) {
-		return
+		return nil
 	}
 
 	// We're done, save memories
@@ -152,21 +152,21 @@ func GenerateMemoriesForMessageID(
 		err = m.CreateMemory(session.WorldID, memory)
 		if err != nil {
 			logger.Error("Error creating memory", zap.Error(err))
-			return
+			return errors.Wrap(err, "error creating memory")
 		}
 	}
 
 	logger.Info("Memory generation completed", zap.Int("newMemories", len(memories)))
-	return
+	return nil
 }
 
 func GenerateMemories(
 	ctx context.Context,
 	message *cs.ChatMessage,
-) {
+) error {
 	if message.IsGenerating {
 		// Skip messages that are still being generated
-		return
+		return nil
 	}
 
 	// Lock while processing to avoid multiple messages invoking simultaneous generation
@@ -174,26 +174,22 @@ func GenerateMemories(
 	// If the lock is already active we cancel this invocation.
 	lock := memoryGenerationMutex.TryLock()
 	if !lock {
-		return
+		return errors.New("memory generation already in progress")
 	}
 	defer memoryGenerationMutex.Unlock()
 
 	sessionID := message.ChatSessionID
 	logger := log.Get().With(zap.Int("chatSessionId", sessionID))
 
-	// Cancellation
-	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateMemories")
-	defer cleanup()
-
 	session, err := cs.GetById(sessionID)
 	if err != nil {
 		logger.Error("Error getting session", zap.Error(err))
-		return
+		return errors.Wrap(err, "error getting session")
 	}
 
 	if !session.GenerateMemories {
 		// Memories are disabled for this session
-		return
+		return nil
 	}
 
 	logger.Info("Generating memories...")
@@ -201,15 +197,19 @@ func GenerateMemories(
 	prefs, err := pf.GetPreferences(true)
 	if err != nil {
 		logger.Error("Error getting preferences", zap.Error(err))
-		return
+		return errors.Wrap(err, "error getting preferences")
 	}
+
+	// Cancellation
+	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateMemories")
+	defer cleanup()
 
 	var messageWindow []cs.ChatMessage
 	{
 		bookmark, err := m.GetMemoryBookmark(sessionID)
 		if err != nil {
 			logger.Error("Error getting message bookmark", zap.Error(err))
-			return
+			return errors.Wrap(err, "error getting message bookmark")
 		}
 
 		limit := prefs.MemoryWindowSize + prefs.MemoryTriggerAfter
@@ -222,7 +222,7 @@ func GenerateMemories(
 		}
 		if err != nil {
 			logger.Error("Error getting chat messages", zap.Error(err))
-			return
+			return errors.Wrap(err, "error getting chat messages")
 		}
 
 		windowSize := len(messageWindow) - prefs.MemoryTriggerAfter
@@ -230,18 +230,21 @@ func GenerateMemories(
 			logger.Info("Skipping memory generation because window size is too small",
 				zap.Int("requiredWindowSize", prefs.MemoryWindowSize),
 				zap.Int("windowSize", windowSize))
-			return
+			return nil
 		}
 
 		messageWindow = messageWindow[:windowSize]
 	}
 
-	memories, ok := generateMemories(logger, ctx, session, prefs, messageWindow)
-	if !ok {
-		return
+	if contextCheckPoint(ctx, logger) {
+		return nil
+	}
+	memories, err := generateMemories(logger, ctx, session, prefs, messageWindow)
+	if err != nil {
+		return err
 	}
 	if contextCheckPoint(ctx, logger) {
-		return
+		return nil
 	}
 
 	// We're done, save memories
@@ -249,7 +252,7 @@ func GenerateMemories(
 		err = m.CreateMemory(session.WorldID, memory)
 		if err != nil {
 			logger.Error("Error creating memory", zap.Error(err))
-			return
+			return errors.Wrap(err, "error creating memory")
 		}
 	}
 
@@ -257,10 +260,11 @@ func GenerateMemories(
 	lastMessageId := messageWindow[len(messageWindow)-1].ID
 	if err = m.SetMemoryBookmark(sessionID, lastMessageId); err != nil {
 		logger.Error("Error setting message bookmark ID", zap.Error(err))
-		return
+		return errors.Wrap(err, "error setting message bookmark id")
 	}
 
 	logger.Info("Memory generation completed", zap.Int("newMemories", len(memories)))
+	return nil
 }
 
 func generateMemories(
@@ -269,23 +273,23 @@ func generateMemories(
 	session *cs.ChatSession,
 	prefs *pf.Preferences,
 	messageWindow []cs.ChatMessage,
-) ([]*m.Memory, bool) {
+) ([]*m.Memory, error) {
 	instruction, err := i.InstructionById(*prefs.MemoriesInstructionId)
 	if err != nil {
 		logger.Error("Could not fetch memory instruction", zap.Error(err))
-		return nil, false
+		return nil, errors.Wrap(err, "could not fetch memory instruction")
 	}
 	modelInstance, err := p.GetLlmModelInstanceById(*prefs.MemoriesModelId)
 	if err != nil {
 		logger.Error("Could not fetch memory model", zap.Error(err))
-		return nil, false
+		return nil, errors.Wrap(err, "could not fetch memory model")
 	}
 
 	lastTimestampInWindow := *messageWindow[len(messageWindow)-1].CreatedAt
 	templateVars := NewMemoryInstructionVars(session, lastTimestampInWindow)
 	if err = instruction.ApplyTemplates(templateVars); err != nil {
 		logger.Error("Error applying instruction templates", zap.Error(err))
-		return nil, false
+		return nil, errors.Wrap(err, "error applying instruction templates")
 	}
 
 	// Log instruction contents
@@ -304,10 +308,10 @@ responseLoop:
 		select {
 		case r, hasNext := <-chatResponseChan:
 			if r.Error != nil {
-				logger.Error("Error generating memories",
+				logger.Error("Error in repsonse",
 					zap.String("generated", memoryGenResponse),
 					zap.Error(r.Error))
-				return nil, false
+				return nil, errors.Wrap(err, "error in response")
 			}
 
 			memoryGenResponse = memoryGenResponse + r.Content
@@ -317,7 +321,7 @@ responseLoop:
 			}
 		case <-ctx.Done():
 			logger.Debug("Cancelled by context")
-			return nil, false
+			return nil, nil
 		}
 	}
 
@@ -326,11 +330,11 @@ responseLoop:
 	err = json.Unmarshal([]byte(memoryGenResponse), &container)
 	if err != nil {
 		logger.Error("Could not unmarshal memory response", zap.Error(err))
-		return nil, false
+		return nil, errors.Wrap(err, "could not unmarshal memory response")
 	}
 
 	memoryFilter := func(memory *m.Memory) bool { return len(memory.Content) == 0 }
 	memories := slices.DeleteFunc(container.Memories, memoryFilter)
 	logger.Debug("Memories generated successfully", zap.Int("memoryCount", len(memories)))
-	return memories, true
+	return memories, nil
 }

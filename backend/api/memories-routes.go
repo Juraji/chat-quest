@@ -113,8 +113,7 @@ func MemoriesRoutes(router *gin.RouterGroup) {
 
 		includeNPreceding := getQueryParamAsIntOr(c, "includeNPreceding", 0)
 
-		// TODO: Handle errors
-		processing.GenerateMemoriesForMessageID(c, messageId, includeNPreceding)
-		respondEmpty(c, nil)
+		err := processing.GenerateMemoriesForMessageID(c, messageId, includeNPreceding)
+		respondEmpty(c, err)
 	})
 }

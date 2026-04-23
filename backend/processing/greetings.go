@@ -3,6 +3,7 @@ package processing
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	"juraji.nl/chat-quest/core/util"
@@ -10,10 +11,10 @@ import (
 	"juraji.nl/chat-quest/model/chat-sessions"
 )
 
-func GreetOnParticipantAdded(ctx context.Context, participant *chat_sessions.ChatParticipant) {
+func GreetOnParticipantAdded(ctx context.Context, participant *chat_sessions.ChatParticipant) error {
 	if participant == nil || !participant.NewlyAdded {
 		// Skip nil or not newly added
-		return
+		return nil
 	}
 
 	sessionID := participant.ChatSessionID
@@ -21,17 +22,23 @@ func GreetOnParticipantAdded(ctx context.Context, participant *chat_sessions.Cha
 	logger := log.Get().With(
 		zap.Int("sessionId", sessionID),
 		zap.Int("characterId", characterID))
+	var err error
+
+	defer func() {
+		if err != nil {
+			logger.Error("Error greeting as new participant", zap.Error(err))
+		}
+	}()
 
 	contextCheckPoint(ctx, logger)
 
 	greeting, err := characters.RandomGreetingByCharacterId(characterID)
 	if err != nil {
-		logger.Error("Failed to fetch greeting", zap.Error(err))
-		return
+		return errors.Wrap(err, "failed to fetch greeting")
 	}
 	if greeting == nil {
 		logger.Debug("Skipping empty greeting")
-		return
+		return nil
 	}
 
 	message := chat_sessions.NewChatMessage(false, false, &characterID, *greeting)
@@ -39,15 +46,13 @@ func GreetOnParticipantAdded(ctx context.Context, participant *chat_sessions.Cha
 	if util.ContainsTemplateVars(message.Content) {
 		char, err := characters.CharacterById(characterID)
 		if err != nil {
-			logger.Error("Failed to fetch character", zap.Error(err))
-			return
+			return errors.Wrap(err, "failed to fetch character")
 		}
 
 		vars := NewGreetingVars(sessionID, char)
 		result, err := util.ParseAndApplyTextTemplate(message.Content, vars)
 		if err != nil {
-			logger.Error("Failed to parse and apply text template", zap.Error(err))
-			return
+			return errors.Wrap(err, "failed to parse and apply text template")
 		}
 
 		message.Content = result
@@ -55,6 +60,8 @@ func GreetOnParticipantAdded(ctx context.Context, participant *chat_sessions.Cha
 
 	err = chat_sessions.CreateChatMessage(sessionID, message)
 	if err != nil {
-		logger.Error("Error creating chat message", zap.Error(err))
+		return errors.Wrap(err, "error creating chat message")
 	}
+
+	return nil
 }

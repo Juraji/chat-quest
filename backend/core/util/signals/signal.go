@@ -5,12 +5,28 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/hashicorp/go-multierror"
+
 	"juraji.nl/chat-quest/core/util"
 )
 
 // SignalListener defines a callback function type for handling signal events.
 // Use this to process payloads when a signal is emitted.
-type SignalListener[T any] func(ctx context.Context, payload T)
+type SignalListener[T any] func(ctx context.Context, payload T) error
+
+// SignalResult encapsulates the result of emitting signals to multiple listeners.
+// It provides synchronization via a WaitGroup and aggregates errors from all listener executions.
+// wg is a WaitGroup used to synchronize waiting for all listener goroutines to complete.
+// errGroup accumulates errors from each listener execution, allowing retrieval of combined results.
+type SignalResult struct {
+	wg       *sync.WaitGroup
+	errGroup *multierror.Error
+}
+
+func (sr SignalResult) Wait() error {
+	sr.wg.Wait()
+	return sr.errGroup.ErrorOrNil()
+}
 
 // subscriber represents an internal structure used to manage subscribers.
 // You typically won't interact with this directly.
@@ -42,8 +58,10 @@ func New[T any]() *Signal[T] {
 func MapSignal[T any, R any](source *Signal[T], name string, transform func(T) R) *Signal[R] {
 	mappedSignal := New[R]()
 
-	source.AddListener(name, func(ctx context.Context, payload T) {
-		mappedSignal.Emit(ctx, transform(payload))
+	source.AddListener(name, func(ctx context.Context, payload T) error {
+		return mappedSignal.
+			Emit(ctx, transform(payload)).
+			Wait()
 	})
 
 	return mappedSignal
@@ -85,54 +103,62 @@ func (s *Signal[T]) RemoveListener(key string) {
 	}
 }
 
-// emitOnGroup is an internal method used to execute all registered listeners.
-// You typically won't call this directly, as it is not thread-safe - use Emit or EmitBG instead.
-func (s *Signal[T]) emitOnGroup(ctx context.Context, payload T, wg *sync.WaitGroup) {
-	for _, sub := range s.subscribers {
-		wg.Add(1)
-		go func(s *subscriber[T], p T, wg *sync.WaitGroup) {
-			s.mut.Lock()
-			defer s.mut.Unlock()
-			defer wg.Done()
-
-			s.listener(ctx, p)
-		}(sub, payload, wg)
-	}
-}
-
 // Emit sends a signal to all registered listeners and returns a WaitGroup.
 // Use this when you need to wait for all listener functions to complete execution.
-func (s *Signal[T]) Emit(ctx context.Context, payload T) *sync.WaitGroup {
+func (s *Signal[T]) Emit(ctx context.Context, payload T) SignalResult {
 	s.subscriberMut.Lock()
 	defer s.subscriberMut.Unlock()
 	var wg sync.WaitGroup
+	var errGroup *multierror.Error
 
-	s.emitOnGroup(ctx, payload, &wg)
-	return &wg
+	for _, sub := range s.subscribers {
+		wg.Go(func() {
+			sub.mut.Lock()
+			defer sub.mut.Unlock()
+			err := sub.listener(ctx, payload)
+			errGroup = multierror.Append(errGroup, err)
+		})
+	}
+
+	return SignalResult{
+		wg:       &wg,
+		errGroup: errGroup,
+	}
 }
 
 // EmitBG is a convenience method for emitting signals with a background context.
 // Use this when you don't need request-scoped data in your listeners.
-func (s *Signal[T]) EmitBG(payload T) *sync.WaitGroup {
+func (s *Signal[T]) EmitBG(payload T) SignalResult {
 	return s.Emit(context.Background(), payload)
 }
 
 // EmitAll sends multiple related signals to all registered listeners in sequence.
 // Use this when you need to emitOnGroup several related signals and want to wait for all of them to complete.
-func (s *Signal[T]) EmitAll(ctx context.Context, payloads []T) *sync.WaitGroup {
+func (s *Signal[T]) EmitAll(ctx context.Context, payloads []T) SignalResult {
 	s.subscriberMut.Lock()
 	defer s.subscriberMut.Unlock()
 	var wg sync.WaitGroup
+	var errGroup *multierror.Error
 
 	for _, payload := range payloads {
-		s.emitOnGroup(ctx, payload, &wg)
+		for _, sub := range s.subscribers {
+			wg.Go(func() {
+				sub.mut.Lock()
+				defer sub.mut.Unlock()
+				err := sub.listener(ctx, payload)
+				errGroup = multierror.Append(errGroup, err)
+			})
+		}
 	}
 
-	return &wg
+	return SignalResult{
+		wg:       &wg,
+		errGroup: errGroup,
+	}
 }
 
 // EmitAllBG sends multiple related signals using a background context.
 // Use this when you need to emitOnGroup several related signals without request-scoped data.
-func (s *Signal[T]) EmitAllBG(payloads []T) *sync.WaitGroup {
+func (s *Signal[T]) EmitAllBG(payloads []T) SignalResult {
 	return s.EmitAll(context.Background(), payloads)
 }

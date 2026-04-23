@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	p "juraji.nl/chat-quest/core/providers"
@@ -25,14 +26,14 @@ var titleGenerationMutex sync.Mutex
 func GenerateTitle(
 	ctx context.Context,
 	sessionID int,
-) {
+) error {
 	var err error
 
 	// Lock while processing to avoid multiple messages invoking simultaneous generation.
 	// If the lock is already active we cancel this invocation.
 	lock := titleGenerationMutex.TryLock()
 	if !lock {
-		return
+		return errors.New("previous title generation in progress")
 	}
 	defer titleGenerationMutex.Unlock()
 
@@ -44,30 +45,30 @@ func GenerateTitle(
 	defer cleanup()
 
 	if contextCheckPoint(ctx, logger) {
-		return
+		return nil
 	}
 	logger.Info("Generating title for session....")
 
 	session, err := cs.GetById(sessionID)
 	if err != nil {
 		logger.Error("Error getting session", zap.Error(err))
-		return
+		return errors.Wrap(err, "error getting session")
 	}
 
 	prefs, err := pf.GetPreferences(true)
 	if err != nil {
 		logger.Error("Error getting preferences", zap.Error(err))
-		return
+		return errors.Wrap(err, "error getting preferences")
 	}
 
 	if contextCheckPoint(ctx, logger) {
-		return
+		return nil
 	}
 
 	modelInstance, err := p.GetLlmModelInstanceById(*prefs.TitleGenerationModelId)
 	if err != nil {
 		logger.Error("Could not fetch memory model", zap.Error(err))
-		return
+		return errors.Wrap(err, "could not fetch memory model")
 	}
 
 	// Get message window (as per preferences)
@@ -77,13 +78,13 @@ func GenerateTitle(
 	}
 	if len(messageWindow) == 0 {
 		logger.Warn("No messages in session")
-		return
+		return nil
 	}
 
 	sessionMessageCount, err := cs.GetChatSessionMessageCount(session.ID)
 	if err != nil {
 		logger.Error("Error fetching chat session messages count", zap.Error(err))
-		return
+		return errors.Wrap(err, "error fetching chat session messages count")
 	}
 
 	// Build instruction
@@ -91,12 +92,12 @@ func GenerateTitle(
 	instruction, err := i.InstructionById(*prefs.TitleGenerationInstructionId)
 	if err != nil {
 		logger.Error("Could not fetch memory instruction", zap.Error(err))
-		return
+		return errors.Wrap(err, "could not fetch memory instruction")
 	}
 
 	if err = instruction.ApplyTemplates(templateVars); err != nil {
 		logger.Error("Error applying instruction templates", zap.Error(err))
-		return
+		return errors.Wrap(err, "error applying instruction templates")
 	}
 
 	logInstructionsToFile(logger, instruction, messageWindow)
@@ -114,10 +115,10 @@ responseLoop:
 		select {
 		case r, hasNext := <-chatResponseChan:
 			if r.Error != nil {
-				logger.Error("Error generating title for session",
+				logger.Error("Error in response",
 					zap.String("generated", titleGenResponse),
 					zap.Error(r.Error))
-				return
+				return errors.Wrap(r.Error, "error in response")
 			}
 
 			titleGenResponse = titleGenResponse + r.Content
@@ -127,15 +128,17 @@ responseLoop:
 			}
 		case <-ctx.Done():
 			logger.Debug("Canceled by context")
-			return
+			return nil
 		}
 	}
 
-	session.Name = strings.Trim(titleGenResponse, "\"")
+	session.Name = strings.Trim(titleGenResponse, "\"\n ")
 	err = cs.Update(session.WorldID, sessionID, session)
 	if err != nil {
 		logger.Error("Error updating session", zap.Error(err))
-		return
+		return errors.Wrap(err, "error updating session")
 	}
+
 	logger.Debug("Successfully generated title for session", zap.String("session", session.Name))
+	return nil
 }

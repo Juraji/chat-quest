@@ -105,9 +105,10 @@ func createChatRequestMessages(
 func setupCancelBySystem(ctx context.Context, logger *zap.Logger, name string) (context.Context, func()) {
 	newCtx, ctxCancelFunc := context.WithCancel(ctx)
 	ctxCancelKey := fmt.Sprintf("%s::%s", name, uuid.New())
-	system.StopCurrentGeneration.AddListener(ctxCancelKey, func(_ context.Context, _ any) {
+	system.StopCurrentGeneration.AddListener(ctxCancelKey, func(_ context.Context, _ any) error {
 		logger.Info("Canceled by system", zap.String("cancelKey", ctxCancelKey))
 		ctxCancelFunc()
+		return nil
 	})
 	cleanup := func() {
 		system.StopCurrentGeneration.RemoveListener(ctxCancelKey)

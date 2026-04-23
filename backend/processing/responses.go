@@ -7,6 +7,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"juraji.nl/chat-quest/core/log"
 	prov "juraji.nl/chat-quest/core/providers"
@@ -16,10 +17,10 @@ import (
 	p "juraji.nl/chat-quest/model/preferences"
 )
 
-func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.ChatMessage) {
+func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.ChatMessage) error {
 	if triggerMessage == nil || !triggerMessage.IsUser {
 		// Ignore null and non-user
-		return
+		return nil
 	}
 
 	sessionId := triggerMessage.ChatSessionID
@@ -28,62 +29,46 @@ func GenerateResponseByMessageCreated(ctx context.Context, triggerMessage *cs.Ch
 		zap.Int("chatSessionId", sessionId),
 		zap.Int("triggerMsgId", triggerMessage.ID))
 
+	var err error
+
 	// Cancellation
-	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateResponse")
+	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateResponseByMessageCreated")
 	defer cleanup()
 
 	// Fetch Session
 	session, err := cs.GetById(sessionId)
 	if err != nil {
-		logger.Error("Error fetching session", zap.Error(err))
-		return
+		return errors.Wrap(err, "error fetching session")
 	}
 
 	if session.PauseAutomaticResponses {
-		return
+		return nil
 	}
 
 	if contextCheckPoint(ctx, logger) {
-		return
+		return nil
 	}
 
 	// Select participant to respond with
 	responderId, err := cs.RandomParticipantId(sessionId)
 	if err != nil {
 		logger.Error("Error getting random responder", zap.Error(err))
-		return
+		return errors.Wrap(err, "error getting random responder")
 	}
 	if responderId == nil {
-		logger.Error("No participants to reply with, skipping generation")
-		return
+		logger.Warn("No participants to reply with, skipping generation")
+		return nil
 	}
 
-	// Fetch chat history
-	chatHistory, err := cs.GetAllChatMessages(session.ID)
-	if err != nil {
-		logger.Error("Error fetching chat history", zap.Error(err))
-		return
-	}
-	// Remove the last message from the history, if it is the equal to the trigger message.
-	// Which it most likely is, but let's be sure
-	lastMsgIndex := len(chatHistory) - 1
-	if len(chatHistory) != 0 && chatHistory[lastMsgIndex].ID == triggerMessage.ID {
-		chatHistory = chatHistory[:lastMsgIndex]
-	}
+	logger = logger.With(zap.Intp("responderId", responderId))
 
-	logger = logger.With(
-		zap.Intp("responderId", responderId))
-
-	generateResponse(ctx, logger, session, chatHistory, triggerMessage, *responderId)
+	return generateResponse(ctx, logger, session, triggerMessage, *responderId)
 }
 
-func GenerateResponseByParticipantTrigger(
-	ctx context.Context,
-	participant *cs.ChatParticipant,
-) {
+func GenerateResponseByParticipantTrigger(ctx context.Context, participant *cs.ChatParticipant) error {
 	if participant == nil {
 		// Ignore null
-		return
+		return nil
 	}
 
 	sessionId := participant.ChatSessionID
@@ -94,59 +79,50 @@ func GenerateResponseByParticipantTrigger(
 		zap.Int("responderId", responderId))
 
 	// Cancellation
-	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateResponse")
+	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateResponseByParticipantTrigger")
 	defer cleanup()
 
 	if contextCheckPoint(ctx, logger) {
-		return
+		return nil
 	}
 
 	// Fetch Session
 	session, err := cs.GetById(sessionId)
 	if err != nil {
 		logger.Error("Error fetching session", zap.Error(err))
-		return
+		return errors.Wrap(err, "error fetching session")
 	}
 
-	// Fetch chat history
-	chatHistory, err := cs.GetAllChatMessages(session.ID)
-	if err != nil {
-		logger.Error("Error fetching chat history", zap.Error(err))
-		return
-	}
-
-	generateResponse(ctx, logger, session, chatHistory, nil, responderId)
-	return
+	return generateResponse(ctx, logger, session, nil, responderId)
 }
 
 func generateResponse(
 	ctx context.Context,
 	logger *zap.Logger,
 	session *cs.ChatSession,
-	chatHistory []cs.ChatMessage,
 	triggerMessage *cs.ChatMessage,
 	responderId int,
-) {
+) error {
 	if session.ChatModelId == nil {
-		logger.Warn("Chat model id is required on session")
-		return
+		logger.Error("Chat model id is required on session")
+		return errors.New("chat model id is required on session")
 	}
 	if session.ChatInstructionId == nil {
-		logger.Warn("Chat instruction id is required on session")
-		return
+		logger.Error("Chat instruction id is required on session")
+		return errors.New("chat instruction id is required on session")
 	}
 
 	// Fetch preferences
 	prefs, err := p.GetPreferences(true)
 	if err != nil {
-		logger.Error("Error getting preferences", zap.Error(err))
-		return
+		logger.Error("Error fetching preferences", zap.Error(err))
+		return errors.Wrap(err, "error fetching preferences")
 	}
 
 	sessionMessageCount, err := cs.GetChatSessionMessageCount(session.ID)
 	if err != nil {
 		logger.Error("Error fetching chat session messages count", zap.Error(err))
-		return
+		return errors.Wrap(err, "error fetching chat session messages count")
 	}
 
 	// Create instructions
@@ -154,14 +130,22 @@ func generateResponse(
 	instruction, err := inst.InstructionById(*session.ChatInstructionId)
 	if err != nil {
 		logger.Error("Error fetching chat instruction", zap.Error(err))
-		return
+		return errors.Wrap(err, "error fetching chat instruction")
 	}
 	if err = instruction.ApplyTemplates(instructionVars); err != nil {
 		logger.Error("Error applying instruction templates", zap.Error(err))
-		return
+		return errors.Wrap(err, "error applying instruction templates")
 	}
 
-	includedHistory := util.SliceLastNElements(chatHistory, prefs.MaxMessagesInContext)
+	messagesToFetch := prefs.MaxMessagesInContext
+	if triggerMessage != nil {
+		messagesToFetch++
+	}
+	includedHistory, err := cs.GetTailChatMessages(session.ID, messagesToFetch)
+	if err != nil {
+		logger.Error("Failed to fetch messages for context", zap.Error(err))
+		return errors.Wrap(err, "failed to fetch messages for context")
+	}
 
 	// Log instruction contents
 	logInstructionsToFile(logger, instruction, includedHistory)
@@ -170,14 +154,14 @@ func generateResponse(
 	requestMessages := createChatRequestMessages(includedHistory, instruction)
 
 	if contextCheckPoint(ctx, logger) {
-		return
+		return nil
 	}
 
 	// Get chat model instance
 	chatModelInst, err := prov.GetLlmModelInstanceById(*session.ChatModelId)
 	if err != nil {
 		logger.Error("Error fetching chat model instance", zap.Error(err))
-		return
+		return errors.Wrap(err, "error fetching chat model instance")
 	}
 
 	// Create message stack
@@ -246,9 +230,9 @@ func generateResponse(
 		select {
 		case response, hasNext := <-chatResponseChan:
 			if response.Error != nil {
-				logger.Error("Error generating response", zap.Error(response.Error))
 				cancelCtx()
-				return
+				logger.Error("Error generating response", zap.Error(response.Error))
+				return errors.Wrap(response.Error, "error generating response")
 			}
 
 			for _, token := range response.Content {
@@ -309,10 +293,10 @@ func generateResponse(
 						characterIdStr := currentPrefix[len(characterIdPrefix) : len(currentPrefix)-len(characterIdSuffix)]
 						characterId, err := strconv.Atoi(characterIdStr)
 						if err != nil {
-							logger.Warn("Invalid character prefix found in LLM response stream",
+							logger.Warn("Invalid character prefix found in LLM response stream, ignoring!",
 								zap.String("prefix", currentPrefix))
-							cancelCtx()
-							return
+							currentState = CancelPrefix
+							continue
 						}
 
 						if charTransitionSeen {
@@ -363,22 +347,23 @@ func generateResponse(
 
 			if hasReasoning || hasContent {
 				if err := cs.UpdateChatMessage(session.ID, currentMessage.ID, currentMessage); err != nil {
-					logger.Error("Failed to update response chat message",
-						zap.Int("messageId", currentMessage.ID), zap.Error(err))
 					cancelCtx()
-					return
+					logger.Error("Failed to update response chat message",
+						zap.Int("messageId", currentMessage.ID),
+						zap.Error(err))
+					return errors.Wrapf(err, "failed to update response chat message with id %d", currentMessage.ID)
 				}
 			}
 
 			if response.TotalTokens != 0 || response.CompletionTokens != 0 {
 				if err := cs.UpdateSessionStatistics(session.ID, response.TotalTokens, response.CompletionTokens); err != nil {
-					logger.Error("Failed to update response session statistics. (Does not break response processing!)", zap.Error(err))
+					logger.Warn("Failed to update response session statistics. (Does not break response processing!)", zap.Error(err))
 				}
 			}
 
 			if !hasNext {
 				cancelCtx()
-				return
+				return nil
 			}
 		case <-ctx.Done():
 			logger.Debug("Cancelled by context")

@@ -20,29 +20,30 @@ func SseRoutes(router *gin.RouterGroup) {
 	logger := log.Get()
 
 	sseRouter.GET("", func(c *gin.Context) {
-		connectionId := fmt.Sprintf("SSE::%s::%s", c.ClientIP(), uuid.New())
+		clientIP := c.ClientIP()
+		connectionId := fmt.Sprintf("SSE::%s::%s", clientIP, uuid.New())
+
+		logger.Info("New SSE subscriber",
+			zap.String("clientIP", clientIP),
+			zap.String("connectionId", connectionId))
 
 		c.Header("Content-Type", "text/event-stream")
 		c.Header("Cache-Control", "no-cache")
 		c.Header("Connection", "keep-alive")
-
-		logger.Info("New SSE subscriber",
-			zap.String("connectionId", connectionId))
 
 		ctx := c.Request.Context()
 		clientChan := make(chan sse.Message)
 		pingTicker := time.NewTicker(30 * time.Second)
 		defer pingTicker.Stop()
 
-		sse.SseCombinedSignal.AddListener(connectionId, func(_ context.Context, m sse.Message) {
+		sse.SseCombinedSignal.AddListener(connectionId, func(_ context.Context, m sse.Message) error {
 			clientChan <- m
+			return nil
 		})
 
 		// Write initial message to confirm connection with connection ID
 		if err := writeAndFlushEvent(c, "connection", fmt.Sprintf("SSE connected! Connection ID: %s", connectionId)); err != nil {
-			logger.Error("failed to send 'SSE connected' event to client",
-				zap.Error(err),
-				zap.String("connectionId", connectionId))
+			logger.Error("failed to send 'SSE connected' event to client", zap.Error(err))
 		}
 
 		for {
@@ -57,26 +58,22 @@ func SseRoutes(router *gin.RouterGroup) {
 				j, err := json.Marshal(msg)
 				if err != nil {
 					logger.Error("failed to marshal event",
-						zap.Error(err),
-						zap.String("connectionId", connectionId),
-						zap.Any("msg", msg))
+						zap.Any("msg", msg),
+						zap.Error(err))
 					continue
 				}
 
 				if err = writeAndFlushEvent(c, "message", string(j)); err != nil {
 					logger.Error("failed to write message to client",
-						zap.Error(err),
-						zap.String("connectionId", connectionId),
-						zap.Any("msg", msg))
+						zap.Any("msg", msg),
+						zap.Error(err))
 				}
 
 			case <-pingTicker.C:
 				// Ping for keep-alive on client side with connection ID
 				timestamp := strconv.FormatInt(time.Now().Unix(), 10)
 				if err := writeAndFlushEvent(c, "ping", timestamp); err != nil {
-					logger.Error("failed to write ping to client",
-						zap.Error(err),
-						zap.String("connectionId", connectionId))
+					logger.Error("failed to write ping to client", zap.Error(err))
 				}
 			}
 		}

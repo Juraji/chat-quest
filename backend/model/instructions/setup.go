@@ -3,7 +3,7 @@ package instructions
 import (
 	"context"
 
-	"go.uber.org/zap"
+	"github.com/pkg/errors"
 	"juraji.nl/chat-quest/core/database"
 	"juraji.nl/chat-quest/core/log"
 )
@@ -11,10 +11,10 @@ import (
 func init() {
 	const key = "InstallDefaultInstructions"
 
-	database.MigrationsVersionUpgradeCompletedSignal.AddListener(key, func(ctx context.Context, event database.MigratedEvent) {
+	database.MigrationsVersionUpgradeCompletedSignal.AddListener(key, func(ctx context.Context, event database.MigratedEvent) error {
 		// Always execute, but only if our latest version is above 3 (instructions).
 		if event.ToVersion <= 3 {
-			return
+			return nil
 		}
 
 		logger := log.Get()
@@ -22,8 +22,7 @@ func init() {
 		logger.Info("Checking default instructions...")
 		existing, err := AllInstructions()
 		if err != nil {
-			logger.Panic("failed to get existing instructions",
-				zap.Error(err))
+			return errors.Wrap(err, "failed to get existing instructions")
 		}
 
 		existingNames := make(map[string]struct{}, len(existing))
@@ -35,17 +34,15 @@ func init() {
 			if _, exists := existingNames[tplName]; !exists {
 				template, err := ReifyInstructionTemplate(tplKey)
 				if err != nil {
-					logger.Panic("failed to create default template",
-						zap.String("key", tplKey),
-						zap.Error(err))
+					return errors.Wrapf(err, "failed to create default template for key %s", tplKey)
 				}
 				err = CreateInstruction(template)
 				if err != nil {
-					logger.Panic("failed to save instruction template",
-						zap.String("key", tplKey),
-						zap.Error(err))
+					return errors.Wrapf(err, "failed to save instruction template for key %s", tplKey)
 				}
 			}
 		}
+
+		return nil
 	})
 }

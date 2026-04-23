@@ -14,7 +14,7 @@ type Message struct {
 var SseCombinedSignal = signals.New[Message]()
 
 func RegisterOnSSE[T any](name string, s *signals.Signal[T]) {
-	s.AddListener(name, func(ctx context.Context, t T) {
-		SseCombinedSignal.Emit(ctx, Message{Source: name, Payload: t})
+	s.AddListener(name, func(ctx context.Context, t T) error {
+		return SseCombinedSignal.Emit(ctx, Message{Source: name, Payload: t}).Wait()
 	})
 }

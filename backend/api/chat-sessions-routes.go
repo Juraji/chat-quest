@@ -241,9 +241,8 @@ func ChatSessionsRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		// TODO: Handle errors
-		processing.GenerateResponseByParticipantTrigger(c, participant)
-		respondEmpty(c, nil)
+		err = processing.GenerateResponseByParticipantTrigger(c, participant)
+		respondEmpty(c, err)
 	})
 
 	sessionRouter.POST("/:sessionId/generate-title", func(c *gin.Context) {
@@ -253,8 +252,7 @@ func ChatSessionsRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		// TODO: Handle errors
-		processing.GenerateTitle(c, sessionId)
-		respondEmpty(c, nil)
+		err := processing.GenerateTitle(c, sessionId)
+		respondEmpty(c, err)
 	})
 }

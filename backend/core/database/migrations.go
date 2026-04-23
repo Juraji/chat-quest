@@ -30,6 +30,7 @@ func GoToVersion(db *sql.DB, version uint) {
 
 func runUsingMigrations(db *sql.DB, action func(m *migrate.Migrate) error) {
 	logger := log.Get()
+	var err error
 
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 	if err != nil {
@@ -65,7 +66,10 @@ func runUsingMigrations(db *sql.DB, action func(m *migrate.Migrate) error) {
 
 	// Emit migration event and wait for all listeners to complete
 	migratedEvent := MigratedEvent{FromVersion: fromVersion, ToVersion: toVersion}
-	MigrationsVersionUpgradeCompletedSignal.EmitBG(migratedEvent).Wait()
+	err = MigrationsVersionUpgradeCompletedSignal.EmitBG(migratedEvent).Wait()
+	if err != nil {
+		logger.Fatal("Failed running version upgrade handlers")
+	}
 
 	// Run "post_migration.sql" (Only when migrating up)
 	if fromVersion >= toVersion {
@@ -80,5 +84,8 @@ func runUsingMigrations(db *sql.DB, action func(m *migrate.Migrate) error) {
 		}
 	}
 
-	MigrationsPostMigrationCompletedSignal.EmitBG(migratedEvent).Wait()
+	err = MigrationsPostMigrationCompletedSignal.EmitBG(migratedEvent).Wait()
+	if err != nil {
+		logger.Fatal("Failed running post upgrade handlers")
+	}
 }
