@@ -1,6 +1,8 @@
 package instructions
 
 import (
+	"unicode/utf8"
+
 	"github.com/pkg/errors"
 	"juraji.nl/chat-quest/core/database"
 	p "juraji.nl/chat-quest/core/providers"
@@ -55,6 +57,7 @@ type Instruction struct {
 	Instruction  string  `json:"instruction"`
 }
 
+// AsLlmParameters converts the instruction's model settings into an LlmParameters struct.
 func (i *Instruction) AsLlmParameters() p.LlmParameters {
 	return p.LlmParameters{
 		MaxTokens:        i.MaxTokens,
@@ -67,6 +70,9 @@ func (i *Instruction) AsLlmParameters() p.LlmParameters {
 	}
 }
 
+// ApplyTemplates processes all string fields in the Instruction that support templating using provided variables.
+// It applies text templates to SystemPrompt, WorldSetup, and Instruction fields if they are non-nil,
+// replacing placeholders with actual values from the given variables map. Returns an error if template parsing or execution fails.
 func (i *Instruction) ApplyTemplates(variables any) error {
 	fields := []*string{
 		i.SystemPrompt,
@@ -88,6 +94,52 @@ func (i *Instruction) ApplyTemplates(variables any) error {
 	}
 
 	return nil
+}
+
+// CharacterMarkerEnabled checks if character markers are enabled for this instruction by verifying
+// that both the prefix and suffix fields for character IDs are non-nil.
+func (i *Instruction) CharacterMarkerEnabled() bool {
+	return i.CharacterIdPrefix != nil && i.CharacterIdSuffix != nil
+}
+
+// CharacterMarkers retrieves the character identifier markers if enabled, returning the first rune of the prefix,
+// the full prefix string, and the suffix string for use in text formatting. If markers are disabled,
+// all returned values will be zero-value (empty string or Unicode replacement character).
+func (i *Instruction) CharacterMarkers() (rune, string, string) {
+	var initial rune
+	var prefix string
+	var suffix string
+
+	if i.CharacterMarkerEnabled() {
+		initial, _ = utf8.DecodeRuneInString(*i.CharacterIdPrefix)
+		prefix = *i.CharacterIdPrefix
+		suffix = *i.CharacterIdSuffix
+	}
+
+	return initial, prefix, suffix
+}
+
+// ReasoningMarkerEnabled checks whether reasoning markers are enabled for this instruction by verifying
+// that both the prefix and suffix fields for reasoning content are non-nil.
+func (i *Instruction) ReasoningMarkerEnabled() bool {
+	return i.ReasoningPrefix != nil && i.ReasoningSuffix != nil
+}
+
+// ReasoningMarkers returns the reasoning content markers if enabled, extracting the first rune of the prefix,
+// the full prefix string, and the suffix string for use in text formatting. If disabled or fields are nil,
+// all returned values will be zero-value (empty string or Unicode replacement character).
+func (i *Instruction) ReasoningMarkers() (rune, string, string) {
+	var initial rune
+	var prefix string
+	var suffix string
+
+	if i.ReasoningMarkerEnabled() {
+		initial, _ = utf8.DecodeRuneInString(*i.ReasoningPrefix)
+		prefix = *i.ReasoningPrefix
+		suffix = *i.ReasoningSuffix
+	}
+
+	return initial, prefix, suffix
 }
 
 func instructionPromptScanner(scanner database.RowScanner, dest *Instruction) error {

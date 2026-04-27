@@ -64,8 +64,7 @@ func createChatRequestMessages(
 			// Add reasoning if enabled and available
 			if instruction.IncludeReasoning &&
 				len(msg.Reasoning) > 0 &&
-				instruction.ReasoningPrefix != nil &&
-				instruction.ReasoningSuffix != nil {
+				instruction.ReasoningMarkerEnabled() {
 				msgBuffer.WriteString(*instruction.ReasoningPrefix)
 				msgBuffer.WriteString(msg.Reasoning)
 				msgBuffer.WriteString(*instruction.ReasoningSuffix)
@@ -73,8 +72,7 @@ func createChatRequestMessages(
 			}
 
 			// Add character ID
-			if instruction.CharacterIdPrefix != nil &&
-				instruction.CharacterIdSuffix != nil {
+			if instruction.CharacterMarkerEnabled() {
 				msgBuffer.WriteString(*instruction.CharacterIdPrefix)
 				msgBuffer.WriteString(fmt.Sprint(*msg.CharacterID))
 				msgBuffer.WriteString(*instruction.CharacterIdSuffix)
