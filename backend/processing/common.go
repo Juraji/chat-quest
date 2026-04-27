@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,9 +18,59 @@ import (
 	inst "juraji.nl/chat-quest/model/instructions"
 )
 
+type sessionScopeLocks struct {
+	scopeMut *sync.Mutex
+	locks    map[int]*sync.Mutex
+}
+
+func (g *sessionScopeLocks) initLock(sessionId int) *sync.Mutex {
+	g.scopeMut.Lock()
+	defer g.scopeMut.Unlock()
+
+	var lock *sync.Mutex
+	if l, exists := g.locks[sessionId]; exists {
+		lock = l
+	} else {
+		lock = &sync.Mutex{}
+		g.locks[sessionId] = lock
+	}
+
+	return lock
+}
+
+func newSessionScopedLocks() *sessionScopeLocks {
+	return &sessionScopeLocks{
+		scopeMut: &sync.Mutex{},
+		locks:    make(map[int]*sync.Mutex),
+	}
+}
+
+// Lock acquires a session-scoped mutex for the given session ID and returns an unlock function.
+// The returned function must be called to release the lock when done, ensuring proper synchronization.
+// Thread-safe creation of per-session locks is guaranteed by the scope-level mutex.
+func (g *sessionScopeLocks) Lock(sessionId int) func() {
+	lock := g.initLock(sessionId)
+
+	lock.Lock()
+	return lock.Unlock
+}
+
+// CheckLock attempts to acquire a non-blocking session-scoped mutex for the given session ID.
+// Returns true and an unlock function if the lock was acquired successfully.
+// If the lock is already held by another goroutine, returns false with no unlock function.
+func (g *sessionScopeLocks) CheckLock(sessionId int) (bool, func()) {
+	lock := g.initLock(sessionId)
+
+	if lock.TryLock() {
+		return true, lock.Unlock
+	}
+
+	return false, nil
+}
+
 func contextCheckPoint(ctx context.Context, logger *zap.Logger) bool {
 	if ctx.Err() != nil {
-		logger.Error("Cancelled by context")
+		logger.Warn("Cancelled by context")
 		return true
 	}
 

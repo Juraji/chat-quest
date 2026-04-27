@@ -3,7 +3,6 @@ package processing
 import (
 	"context"
 	"strings"
-	"sync"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -21,7 +20,7 @@ var titleResponseFormat = `{
   "maxLength": 100
 }`
 
-var titleGenerationMutex sync.Mutex
+var titleGenLocks = newSessionScopedLocks()
 
 func GenerateTitle(
 	ctx context.Context,
@@ -29,16 +28,17 @@ func GenerateTitle(
 ) error {
 	var err error
 
-	// Lock while processing to avoid multiple messages invoking simultaneous generation.
-	// If the lock is already active we cancel this invocation.
-	lock := titleGenerationMutex.TryLock()
-	if !lock {
-		return errors.New("previous title generation in progress")
-	}
-	defer titleGenerationMutex.Unlock()
-
 	logger := log.Get().With(
 		zap.Int("sessionId", sessionID))
+
+	// Lock while processing to avoid multiple messages invoking simultaneous generation.
+	// If the lock is already active we cancel this invocation.
+	if lockOk, unlock := titleGenLocks.CheckLock(sessionID); lockOk {
+		defer unlock()
+	} else {
+		logger.Warn("Title generation already in progress for this session, skipping attempt")
+		return errors.New("previous title generation in progress")
+	}
 
 	// Cancellation
 	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateTitle")

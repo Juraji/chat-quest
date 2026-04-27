@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"slices"
-	"sync"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -40,7 +39,7 @@ type memoriesContainer struct {
 	Memories []*m.Memory
 }
 
-var memoryGenerationMutex sync.Mutex
+var memoryGenLocks = newSessionScopedLocks()
 
 func UpdateBookmarkOnMemoryGenEnable(_ context.Context, e *cs.ChatSessionUpdatedBAEvent) error {
 	// Skip if memory gen is turned off or unchanged
@@ -84,30 +83,24 @@ func GenerateMemoriesForMessageID(
 	messageId int,
 	includeNPreceding int,
 ) error {
-	// Lock while processing to avoid multiple messages invoking simultaneous generation
-	// for the same message window.
-	// If the lock is already active we cancel this invocation.
-	lock := memoryGenerationMutex.TryLock()
-	if !lock {
-		return errors.New("memory generation already in progress")
-	}
-	defer memoryGenerationMutex.Unlock()
-
 	logger := log.Get().With(
 		zap.Int("sourceMessageId", messageId),
 		zap.Int("includeNPreceding", includeNPreceding))
-
-	// Cancellation
-	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateMemories")
-	defer cleanup()
-
-	logger.Info("Generating memories for specific message...")
 
 	message, err := cs.GetMessageById(messageId)
 	if err != nil {
 		logger.Error("Error fetching message", zap.Error(err))
 		return errors.Wrap(err, "error fetching message")
 	}
+
+	unlock := memoryGenLocks.Lock(message.ChatSessionID)
+	defer unlock()
+
+	logger.Info("Generating memories for specific message...")
+
+	// Cancellation
+	ctx, cleanup := setupCancelBySystem(ctx, logger, "GenerateMemories")
+	defer cleanup()
 
 	sessionID := message.ChatSessionID
 	logger = logger.With(
@@ -169,14 +162,8 @@ func GenerateMemories(
 		return nil
 	}
 
-	// Lock while processing to avoid multiple messages invoking simultaneous generation
-	// for the same message window.
-	// If the lock is already active we cancel this invocation.
-	lock := memoryGenerationMutex.TryLock()
-	if !lock {
-		return errors.New("memory generation already in progress")
-	}
-	defer memoryGenerationMutex.Unlock()
+	unlock := memoryGenLocks.Lock(message.ChatSessionID)
+	defer unlock()
 
 	sessionID := message.ChatSessionID
 	logger := log.Get().With(zap.Int("chatSessionId", sessionID))

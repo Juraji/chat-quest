@@ -11,7 +11,7 @@ import (
 	"juraji.nl/chat-quest/model/chat-sessions"
 )
 
-func GreetOnParticipantAdded(ctx context.Context, participant *chat_sessions.ChatParticipant) error {
+func GreetOnParticipantAdded(_ context.Context, participant *chat_sessions.ChatParticipant) error {
 	if participant == nil || !participant.NewlyAdded {
 		// Skip nil or not newly added
 		return nil
@@ -29,8 +29,6 @@ func GreetOnParticipantAdded(ctx context.Context, participant *chat_sessions.Cha
 			logger.Error("Error greeting as new participant", zap.Error(err))
 		}
 	}()
-
-	contextCheckPoint(ctx, logger)
 
 	greeting, err := characters.RandomGreetingByCharacterId(characterID)
 	if err != nil {
