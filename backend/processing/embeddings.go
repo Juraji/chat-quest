@@ -75,7 +75,7 @@ func GenerateEmbeddings(ctx context.Context, memory *m.Memory) error {
 		return errors.Wrap(err, "error getting embedding model instance")
 	}
 
-	embeddings, err := p.GenerateEmbeddings(modelInstance, memoryContent, true)
+	embeddings, err := p.GenerateEmbeddings(modelInstance, memoryContent)
 	if err != nil {
 		logger.Error("Error generating embeddings", zap.Error(err))
 		return errors.Wrap(err, "error generating embeddings")

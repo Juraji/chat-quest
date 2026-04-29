@@ -3,9 +3,7 @@ package providers
 import (
 	"context"
 	"fmt"
-	"strings"
 	"sync"
-	"unicode"
 )
 
 var (
@@ -66,21 +64,8 @@ func GetAvailableModels(profile *ConnectionProfile) ([]*LlmModel, error) {
 }
 
 // GenerateEmbeddings creates vector embeddings from the given input text using a specified LLM model.
-func GenerateEmbeddings(llm *LlmModelInstance, input string, cleanInput bool) (Embedding, error) {
+func GenerateEmbeddings(llm *LlmModelInstance, input string) (Embedding, error) {
 	ctx := context.Background()
-
-	if cleanInput {
-		var builder strings.Builder
-		const apos = '\''
-
-		for _, char := range input {
-			if unicode.IsLetter(char) || unicode.IsNumber(char) || unicode.IsSpace(char) || char == apos {
-				builder.WriteRune(unicode.ToLower(char))
-			}
-		}
-
-		input = strings.TrimSpace(builder.String())
-	}
 
 	provider := getProvider(llm.ProviderId, llm.ProviderType, llm.BaseUrl, llm.ApiKey)
 	embedding, err := provider.generateEmbeddings(ctx, input, llm.ModelId)

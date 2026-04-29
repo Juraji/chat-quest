@@ -14,13 +14,12 @@ func ContainsTemplateVars(template string) bool {
 	return len(template) > 0 && strings.Contains(template, "{{")
 }
 
-func ParseAndApplyTextTemplate(template string, variables any) (string, error) {
+func ParseAndApplyTextTemplate(name string, template string, variables any) (string, error) {
 	if !ContainsTemplateVars(template) {
 		// Shortcut: Template has no variables
 		return template, nil
 	}
 
-	tplName := "Template: " + template[:20] + "..."
 	var templateFuncMap = gt.FuncMap{
 		"sliceTakeStr":    tplSliceTakeStr,
 		"sliceTakeStrRnd": tplSliceTakeStrRnd,
@@ -28,7 +27,7 @@ func ParseAndApplyTextTemplate(template string, variables any) (string, error) {
 		"oneliner":        tplOneliner,
 	}
 
-	tpl, err := gt.New(tplName).Funcs(templateFuncMap).Parse(template)
+	tpl, err := gt.New(name).Funcs(templateFuncMap).Parse(template)
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to parse template")
 	}

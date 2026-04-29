@@ -5,6 +5,8 @@ import (
 	"sync"
 
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
+	"juraji.nl/chat-quest/core/log"
 	prov "juraji.nl/chat-quest/core/providers"
 	"juraji.nl/chat-quest/core/util"
 	c "juraji.nl/chat-quest/model/characters"
@@ -61,8 +63,6 @@ func NewSparseTemplateCharacter(char *c.Character) SparseTemplateCharacter {
 	}
 }
 
-// TemplateCharacter
-
 type TemplateCharacter interface {
 	ID() int
 	Name() string
@@ -89,24 +89,26 @@ type templateCharacterImpl struct {
 	memories         func() ([]string, error)
 }
 
-func (t *templateCharacterImpl) ID() int                             { return t.id }
-func (t *templateCharacterImpl) Name() string                        { return t.name }
-func (t *templateCharacterImpl) Appearance() (string, error)         { return t.appearance() }
-func (t *templateCharacterImpl) Personality() (string, error)        { return t.personality() }
-func (t *templateCharacterImpl) History() (string, error)            { return t.history() }
-func (t *templateCharacterImpl) DialogueExamples() ([]string, error) { return t.dialogueExamples() }
-func (t *templateCharacterImpl) Memories() ([]string, error)         { return t.memories() }
-func (t *templateCharacterImpl) Age() *int                           { return t.age }
-func (t *templateCharacterImpl) Pronouns() string                    { return util.StrPtrOrDefault(t.pronouns, "") }
-func (t *templateCharacterImpl) Species() (string, error)            { return t.species() }
+func (t templateCharacterImpl) ID() int                             { return t.id }
+func (t templateCharacterImpl) Name() string                        { return t.name }
+func (t templateCharacterImpl) Appearance() (string, error)         { return t.appearance() }
+func (t templateCharacterImpl) Personality() (string, error)        { return t.personality() }
+func (t templateCharacterImpl) History() (string, error)            { return t.history() }
+func (t templateCharacterImpl) DialogueExamples() ([]string, error) { return t.dialogueExamples() }
+func (t templateCharacterImpl) Memories() ([]string, error)         { return t.memories() }
+func (t templateCharacterImpl) Age() *int                           { return t.age }
+func (t templateCharacterImpl) Pronouns() string                    { return util.StrPtrOrDefault(t.pronouns, "") }
+func (t templateCharacterImpl) Species() (string, error)            { return t.species() }
 
 // NewTemplateCharacter creates a new character object for use in go templates.
-// Note that the chatHistory must contain the full history, including the latest user message if applicable.
 func NewTemplateCharacter(
 	char *c.Character,
 	prefs *p.Preferences,
 	session *cs.ChatSession,
 ) TemplateCharacter {
+	logger := log.Get().With(
+		zap.Int("characterId", char.ID))
+
 	return &templateCharacterImpl{
 		id:       char.ID,
 		name:     char.Name,
@@ -129,7 +131,7 @@ func NewTemplateCharacter(
 				return "", nil
 			}
 			charTpl := NewSparseTemplateCharacter(char)
-			template, err := util.ParseAndApplyTextTemplate(*char.Appearance, charTpl)
+			template, err := util.ParseAndApplyTextTemplate("Appeance for "+char.Name, *char.Appearance, charTpl)
 			return template, errors.Wrapf(err, "failed to parse char appearance template for character ID %d", char.ID)
 		}),
 		personality: sync.OnceValues(func() (string, error) {
@@ -137,7 +139,7 @@ func NewTemplateCharacter(
 				return "", nil
 			}
 			charTpl := NewSparseTemplateCharacter(char)
-			template, err := util.ParseAndApplyTextTemplate(*char.Personality, charTpl)
+			template, err := util.ParseAndApplyTextTemplate("Personality for "+char.Name, *char.Personality, charTpl)
 			return template, errors.Wrapf(err, "failed to parse char personality template for character ID %d", char.ID)
 		}),
 		history: sync.OnceValues(func() (string, error) {
@@ -145,7 +147,7 @@ func NewTemplateCharacter(
 				return "", nil
 			}
 			charTpl := NewSparseTemplateCharacter(char)
-			template, err := util.ParseAndApplyTextTemplate(*char.History, charTpl)
+			template, err := util.ParseAndApplyTextTemplate("History for "+char.Name, *char.History, charTpl)
 			return template, errors.Wrapf(err, "failed to parse char history template for character ID %d", char.ID)
 		}),
 		dialogueExamples: sync.OnceValues(func() ([]string, error) {
@@ -159,7 +161,7 @@ func NewTemplateCharacter(
 
 			charTpl := NewSparseTemplateCharacter(char)
 			for i, example := range examples {
-				template, err := util.ParseAndApplyTextTemplate(example, charTpl)
+				template, err := util.ParseAndApplyTextTemplate("Dialogue Example for "+char.Name, example, charTpl)
 				if err != nil {
 					return nil, errors.Wrapf(err, "failed to parse char dialogue example template for character ID %d: %s", char.ID, example)
 				}
@@ -239,7 +241,7 @@ func NewTemplateCharacter(
 				return nil, errors.Wrapf(err, "failed to get embedding model while processing memories for character ID %d", char.ID)
 			}
 
-			subjectEmbeddings, err := prov.GenerateEmbeddings(embeddingModelInst, subjectBuffer.String(), true)
+			subjectEmbeddings, err := prov.GenerateEmbeddings(embeddingModelInst, subjectBuffer.String())
 			if err != nil {
 				return nil, errors.Wrapf(err, "failed to embed subject while processing memories for character ID %d", char.ID)
 			}
@@ -275,6 +277,9 @@ func NewTemplateCharacter(
 
 						similarity := subjectEmbeddings.CosineSimilarity(memory.Embedding)
 						if similarity >= minP {
+							logger.Debug("Including memory",
+								zap.Float64("similarity", similarity),
+								zap.String("memory", memory.Content))
 							relevantMemoriesChan <- memory.Content
 						}
 					}
