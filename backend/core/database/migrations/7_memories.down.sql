@@ -1,2 +1,2 @@
-DROP TABLE memory_preferences;
+DROP TABLE memory_bookmarks;
 DROP TABLE memories;

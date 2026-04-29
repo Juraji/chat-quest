@@ -10,7 +10,7 @@ CREATE TABLE chat_sessions
   pause_automatic_responses BIT(1)  NOT NULL,
   current_time_of_day       VARCHAR(50),
   chat_notes                TEXT,
-  persona_id INTEGER REFERENCES characters (id) ON DELETE SET NULL,
+  persona_id                INTEGER REFERENCES characters (id) ON DELETE SET NULL,
   chat_model_id             INTEGER REFERENCES llm_models (id) ON DELETE SET NULL,
   chat_instruction_id       INTEGER REFERENCES instructions (id) ON DELETE SET NULL,
   last_total_tokens         INTEGER NOT NULL DEFAULT 0,
