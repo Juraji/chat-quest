@@ -14,6 +14,6 @@
   "characterIdPrefix": "<characterid>",
   "characterIdSuffix": "</characterid>",
   "systemPrompt": "templates/memories__system_prompt.tmpl",
-  "worldSetup": "templates/memories__world_setup.tmpl",
+  "worldSetup": null,
   "instruction": "templates/memories__instruction.tmpl"
 }

@@ -14,6 +14,6 @@
   "characterIdPrefix": "<characterid>",
   "characterIdSuffix": "</characterid>",
   "systemPrompt": "templates/npc_chat__system_prompt.tmpl",
-  "worldSetup": "templates/npc_chat__world_setup.tmpl",
+  "worldSetup": null,
   "instruction": "templates/npc_chat__instruction.tmpl"
 }

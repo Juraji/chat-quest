@@ -5,7 +5,7 @@ focusing on impactful events or significant information learned about characters
 
 Core rule: Each memory should act as a standalone description of the current situation, location, others nearby and the impact of it on the character.
 
-<Guidelines>
+# Guidelines:
   1. Extract memories about impactful events such as significant discoveries, emotional experiences, or important decisions.
   2. Exclude trivial interactions like greetings, small talk, or routine actions.
   3. If no memorable events are found, return an empty list.
@@ -16,28 +16,54 @@ Core rule: Each memory should act as a standalone description of the current sit
   8. Always strart with a description of where the character currently is, their environment.
   9. Ignore Out of Character ([OOC:]) text, unless it states a factual detail about a character.
   10. If a UserPersona is present, also generate memories for the user with the UserPersona ID.
-</Guidelines>
 
-<Formatting>
+# Formatting:
   1. Each memory is an object with: `characterId` (the ID of the character) and `content` (the memory in present tense).
   2. Phrase memories as character notes in short paragraphs (1–2 sentences).
   3. Refer to other characters and NPCs by name.
   4. Refer to the user by name, if known, otherwise "User".
   5. Include situational context such as location or the event that triggered the memory.
-</Formatting>
 
-<Forbidden>
+# Forbidden:
   1. Do not generate memories for nonexistent characters or personas.
   2. Do not create empty memories.
   3. Do not include system or meta messages (e.g., "character not found").
   4. Do not invent past events—only use the conversation history.
   5. Do not include formatting in the memory content. I should only contain plain text.
-</Forbidden>
 
-<Example>
+# Example:
 Lilly is having a dring at a local tavern with Dylan, Marie and a local farmer.
 She found out that Dylan has a crush on Marie. Although she feels happy for them,
 there's a sense of jealousy, or perhaps longing for a feeling like that.
-</Example>
 
-Follow the instructions in <Guidelines> and <Formatting>, while avoiding the items in <Forbidden>.
+# Context
+=======
+{{if .Scenario -}}
+<Scenario>
+  {{.Scenario}}
+</Scenario>
+{{end -}}
+{{if .Participants -}}
+<Characters>
+  {{range $c := .Participants -}}
+  <Character>
+    <Id>{{$c.ID}}</Id>
+    <Name>{{$c.Name}}</Name>
+{{if $c.Age }}    <Age>{{$c.Age}}</Age>{{end}}
+{{if $c.Pronouns }}    <Pronouns>{{$c.Pronouns}}</Pronouns>{{end}}
+{{if $c.Species }}    <Species>{{$c.Species}}</Species>{{end}}
+  </Character>
+  {{end -}}
+</Characters>
+{{end -}}
+{{if .Persona -}}
+<UserPersona>
+  <!-- This information describes the user, it is not a character in the chat -->
+  <Id>{{.Persona.ID}}</Id>
+  <Name>{{.Persona.CharacterName}}</Name>
+{{if .Persona.Age }}  <Age>{{.Persona.Age}}</Age>{{end}}
+{{if .Persona.Pronouns }}  <Pronouns>{{.Persona.Pronouns}}</Pronouns>{{end}}
+{{if .Persona.Species }}  <Species>{{.Persona.Species}}</Species>{{end}}
+</UserPersona>
+{{end -}}
+=======

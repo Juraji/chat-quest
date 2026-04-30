@@ -82,7 +82,7 @@
                      aria-describedby="maxMessagesInChatViewInputHelp"
                      formControlName="maxMessagesInChatView"/>
               <div id="maxMessagesInChatViewInputHelp" class="form-text">
-                After how many attempts should the UI stop reconnecting to the backend.
+                How many messages to render in the UI. Note that a larger amount uses more CPU and resources.
               </div>
             </div>
 
@@ -93,7 +93,7 @@
             </button>
             @if (uiSettingsAdvancedOpened()) {
               <div>
-                <div class="form-text text-muted">
+                <div class="form-text text-muted mb-3">
                   You probably don't need to ever touch the values below, unless you have the Chat Quest backend running
                   on
                   a home server or similar.
