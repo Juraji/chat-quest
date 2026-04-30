@@ -1,6 +1,6 @@
 {{- /*gotype: juraji.nl/chat-quest/processing.ChatInstructionVars*/ -}}
 {{.MessageText}}
 
-{{if .CurrentTimeOfDay}}(The current time of day is {{.CurrentTimeOfDayFmtEN}}.{{end}})
+{{if .CurrentTimeOfDay}}(The current time of day is {{.CurrentTimeOfDayFmtEN}}.){{end}}
 (Respond ONLY as {{.Character.Name}}, id={{.Character.ID}}.)
 (Respond initially ONLY as {{.Character.Name}} (id={{.Character.ID}}), after that you are allowed to append responses from other characters if the situation requires it.)
