@@ -17,10 +17,13 @@ export interface Instruction extends ChatQuestModel {
   includeReasoning: boolean
 
   // Parsing
-  reasoningPrefix: Nullable<string>
-  reasoningSuffix: Nullable<string>
-  characterIdPrefix: Nullable<string>
-  characterIdSuffix: Nullable<string>
+  allowMultiCharacterResponses: boolean,
+  enableReasoningParsing: boolean,
+  reasoningPrefix: string,
+  reasoningSuffix: string,
+  enableCharacterMarkers: boolean,
+  characterIdPrefix: string,
+  characterIdSuffix: string,
 
   // Prompt Templates
   systemPrompt: Nullable<string>

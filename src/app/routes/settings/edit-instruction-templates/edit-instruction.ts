@@ -26,11 +26,8 @@ export class EditInstruction {
   private readonly router = inject(Router)
   private readonly notifications = inject(Notifications)
 
-
   readonly instruction: Signal<Instruction> = routeDataSignal(this.activatedRoute, 'template');
   readonly isNew = computed(() => isNew(this.instruction()))
-  readonly enableCharacterIdParsing = booleanSignal(false)
-  readonly enableReasoningParsing = booleanSignal(false)
 
   readonly formGroup = formGroup<Instruction>({
     id: readOnlyControl(),
@@ -45,15 +42,21 @@ export class EditInstruction {
     stopSequences: formControl<Nullable<string>>(null),
     includeReasoning: formControl(false),
 
-    reasoningPrefix: formControl(null, [Validators.required, Validators.maxLength(50)]),
-    reasoningSuffix: formControl(null, [Validators.required, Validators.maxLength(50)]),
-    characterIdPrefix: formControl(null, [Validators.required, Validators.maxLength(50)]),
-    characterIdSuffix: formControl(null, [Validators.required, Validators.maxLength(50)]),
+    allowMultiCharacterResponses: formControl(false),
+    enableReasoningParsing: formControl(false),
+    reasoningPrefix: formControl('', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]),
+    reasoningSuffix: formControl('', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]),
+    enableCharacterMarkers: formControl(false),
+    characterIdPrefix: formControl('', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]),
+    characterIdSuffix: formControl('', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]),
 
     systemPrompt: formControl(null),
     worldSetup: formControl(null),
     instruction: formControl('', [Validators.required]),
   })
+
+  readonly enableReasoningParsing = controlValueSignal(this.formGroup, 'enableReasoningParsing')
+  readonly enableCharacterMarkers = controlValueSignal(this.formGroup, 'enableCharacterMarkers')
 
   readonly selectedTab: WritableSignal<number> = signal(0)
 
@@ -71,36 +74,10 @@ export class EditInstruction {
       const input = this.instruction()
       this.formGroup.reset(input)
 
-      this.enableCharacterIdParsing.set(!!input.characterIdPrefix || !!input.characterIdSuffix)
-      this.enableReasoningParsing.set(!!input.reasoningPrefix || !!input.reasoningSuffix)
-
       const n = isNew(input)
       this.editSystemPrompt.set(n)
       this.editWorldSetup.set(n)
       this.editInstruction.set(n)
-    });
-
-    effect(() => {
-      const pCtrl = this.formGroup.get('characterIdPrefix')!
-      const sCtrl = this.formGroup.get('characterIdSuffix')!
-      if (this.enableCharacterIdParsing()) {
-        pCtrl.enable()
-        sCtrl.enable()
-      } else {
-        pCtrl.disable()
-        sCtrl.disable()
-      }
-    });
-    effect(() => {
-      const pCtrl = this.formGroup.get('reasoningPrefix')!
-      const sCtrl = this.formGroup.get('reasoningSuffix')!
-      if (this.enableReasoningParsing()) {
-        pCtrl.enable()
-        sCtrl.enable()
-      } else {
-        pCtrl.disable()
-        sCtrl.disable()
-      }
     });
   }
 
@@ -111,14 +88,6 @@ export class EditInstruction {
     const update: Instruction = {
       ...this.instruction(),
       ...formValue
-    }
-    if (!this.enableReasoningParsing()) {
-      update.reasoningPrefix = null
-      update.reasoningSuffix = null
-    }
-    if (!this.enableCharacterIdParsing()) {
-      update.characterIdPrefix = null
-      update.characterIdSuffix = null
     }
 
     this.instructions

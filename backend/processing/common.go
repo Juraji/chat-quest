@@ -114,19 +114,18 @@ func createChatRequestMessages(
 
 			// Add reasoning if enabled and available
 			if instruction.IncludeReasoning &&
-				len(msg.Reasoning) > 0 &&
-				instruction.ReasoningMarkerEnabled() {
-				msgBuffer.WriteString(*instruction.ReasoningPrefix)
+				len(msg.Reasoning) > 0 {
+				msgBuffer.WriteString(instruction.ReasoningPrefix)
 				msgBuffer.WriteString(msg.Reasoning)
-				msgBuffer.WriteString(*instruction.ReasoningSuffix)
+				msgBuffer.WriteString(instruction.ReasoningSuffix)
 				msgBuffer.WriteRune('\n')
 			}
 
 			// Add character ID
-			if instruction.CharacterMarkerEnabled() {
-				msgBuffer.WriteString(*instruction.CharacterIdPrefix)
+			if instruction.EnableCharacterMarkers {
+				msgBuffer.WriteString(instruction.CharacterIdPrefix)
 				msgBuffer.WriteString(fmt.Sprint(*msg.CharacterID))
-				msgBuffer.WriteString(*instruction.CharacterIdSuffix)
+				msgBuffer.WriteString(instruction.CharacterIdSuffix)
 				msgBuffer.WriteRune('\n')
 			}
 
@@ -206,7 +205,10 @@ Frequency Penalty: %f
 Stream: %v
 Stop Sequences: %s
 Include Reasoning: %v
+Allow multi character responses: %v
+Enable reasoning parsing: %v
 Reasoning Delimiters: %s%s
+Enable character markers: %v
 Character Delimiters: %s%s
 
 ## ——— System Prompt ————————————————————————————————————————— ##
@@ -234,10 +236,13 @@ Character Delimiters: %s%s
 		instruction.Stream,
 		util.StrPtrOrDefault(instruction.StopSequences, "<Not Set>"),
 		instruction.IncludeReasoning,
-		util.StrPtrOrDefault(instruction.ReasoningPrefix, "<Not Set>"),
-		util.StrPtrOrDefault(instruction.ReasoningSuffix, "<Not Set>"),
-		util.StrPtrOrDefault(instruction.CharacterIdPrefix, "<Not Set>"),
-		util.StrPtrOrDefault(instruction.CharacterIdSuffix, "<Not Set>"),
+		instruction.AllowMultiCharacterResponses,
+		instruction.EnableReasoningParsing,
+		instruction.ReasoningPrefix,
+		instruction.ReasoningSuffix,
+		instruction.EnableCharacterMarkers,
+		instruction.CharacterIdPrefix,
+		instruction.CharacterIdSuffix,
 		util.StrPtrOrDefault(instruction.SystemPrompt, "<Not Set>"),
 		util.StrPtrOrDefault(instruction.WorldSetup, "<Not Set>"),
 		len(includedMessages),

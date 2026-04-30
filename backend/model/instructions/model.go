@@ -46,10 +46,13 @@ type Instruction struct {
 	IncludeReasoning bool    `json:"includeReasoning"`
 
 	// Parsing
-	ReasoningPrefix   *string `json:"reasoningPrefix"`
-	ReasoningSuffix   *string `json:"reasoningSuffix"`
-	CharacterIdPrefix *string `json:"characterIdPrefix"`
-	CharacterIdSuffix *string `json:"characterIdSuffix"`
+	AllowMultiCharacterResponses bool   `json:"allowMultiCharacterResponses"`
+	EnableReasoningParsing       bool   `json:"enableReasoningParsing"`
+	ReasoningPrefix              string `json:"reasoningPrefix"`
+	ReasoningSuffix              string `json:"reasoningSuffix"`
+	EnableCharacterMarkers       bool   `json:"enableCharacterMarkers"`
+	CharacterIdPrefix            string `json:"characterIdPrefix"`
+	CharacterIdSuffix            string `json:"characterIdSuffix"`
 
 	// Prompt Templates
 	SystemPrompt *string `json:"systemPrompt"`
@@ -96,50 +99,19 @@ func (i *Instruction) ApplyTemplates(variables any) error {
 	return nil
 }
 
-// CharacterMarkerEnabled checks if character markers are enabled for this instruction by verifying
-// that both the prefix and suffix fields for character IDs are non-nil.
-func (i *Instruction) CharacterMarkerEnabled() bool {
-	return i.CharacterIdPrefix != nil && i.CharacterIdSuffix != nil
-}
-
-// CharacterMarkers retrieves the character identifier markers if enabled, returning the first rune of the prefix,
-// the full prefix string, and the suffix string for use in text formatting. If markers are disabled,
-// all returned values will be zero-value (empty string or Unicode replacement character).
+// CharacterMarkers extracts the first Unicode rune from `CharacterIdPrefix` and returns it along with the full prefix and suffix strings.
+// Returns a zero-width space rune if `CharacterIdPrefix` is empty or invalid UTF-8.
 func (i *Instruction) CharacterMarkers() (rune, string, string) {
-	var initial rune
-	var prefix string
-	var suffix string
-
-	if i.CharacterMarkerEnabled() {
-		initial, _ = utf8.DecodeRuneInString(*i.CharacterIdPrefix)
-		prefix = *i.CharacterIdPrefix
-		suffix = *i.CharacterIdSuffix
-	}
-
-	return initial, prefix, suffix
+	initial, _ := utf8.DecodeRuneInString(i.CharacterIdPrefix)
+	return initial, i.CharacterIdPrefix, i.CharacterIdSuffix
 }
 
-// ReasoningMarkerEnabled checks whether reasoning markers are enabled for this instruction by verifying
-// that both the prefix and suffix fields for reasoning content are non-nil.
-func (i *Instruction) ReasoningMarkerEnabled() bool {
-	return i.ReasoningPrefix != nil && i.ReasoningSuffix != nil
-}
-
-// ReasoningMarkers returns the reasoning content markers if enabled, extracting the first rune of the prefix,
-// the full prefix string, and the suffix string for use in text formatting. If disabled or fields are nil,
-// all returned values will be zero-value (empty string or Unicode replacement character).
+// ReasoningMarkers Returns the first Unicode rune from `ReasoningPrefix`, along with the full reasoning prefix and suffix strings.
+// If `ReasoningPrefix` is empty or invalid UTF-8, returns a zero-width space rune as fallback.
 func (i *Instruction) ReasoningMarkers() (rune, string, string) {
-	var initial rune
-	var prefix string
-	var suffix string
+	initial, _ := utf8.DecodeRuneInString(i.ReasoningPrefix)
 
-	if i.ReasoningMarkerEnabled() {
-		initial, _ = utf8.DecodeRuneInString(*i.ReasoningPrefix)
-		prefix = *i.ReasoningPrefix
-		suffix = *i.ReasoningSuffix
-	}
-
-	return initial, prefix, suffix
+	return initial, i.ReasoningPrefix, i.ReasoningSuffix
 }
 
 func instructionPromptScanner(scanner database.RowScanner, dest *Instruction) error {
@@ -155,8 +127,11 @@ func instructionPromptScanner(scanner database.RowScanner, dest *Instruction) er
 		&dest.Stream,
 		&dest.StopSequences,
 		&dest.IncludeReasoning,
+		&dest.AllowMultiCharacterResponses,
+		&dest.EnableReasoningParsing,
 		&dest.ReasoningPrefix,
 		&dest.ReasoningSuffix,
+		&dest.EnableCharacterMarkers,
 		&dest.CharacterIdPrefix,
 		&dest.CharacterIdSuffix,
 		&dest.SystemPrompt,
@@ -190,14 +165,17 @@ func CreateInstruction(inst *Instruction) error {
                           stream,
                           stop_sequences,
                           include_reasoning,
+                          allow_multi_character_responses,
+                          enable_reasoning_parsing,
                           reasoning_prefix,
                           reasoning_suffix,
+                          enable_character_markers,
                           character_id_prefix,
                           character_id_suffix,
                           system_prompt,
                           world_setup,
                           instruction)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id`
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id`
 	args := []any{
 		inst.Name,
 		inst.Type,
@@ -209,10 +187,13 @@ func CreateInstruction(inst *Instruction) error {
 		inst.Stream,
 		es(inst.StopSequences),
 		inst.IncludeReasoning,
-		es(inst.ReasoningPrefix),
-		es(inst.ReasoningSuffix),
-		es(inst.CharacterIdPrefix),
-		es(inst.CharacterIdSuffix),
+		inst.AllowMultiCharacterResponses,
+		inst.EnableReasoningParsing,
+		inst.ReasoningPrefix,
+		inst.ReasoningSuffix,
+		inst.EnableCharacterMarkers,
+		inst.CharacterIdPrefix,
+		inst.CharacterIdSuffix,
 		es(inst.SystemPrompt),
 		es(inst.WorldSetup),
 		inst.Instruction,
@@ -241,8 +222,11 @@ func UpdateInstruction(id int, inst *Instruction) error {
                 stream = ?,
                 stop_sequences = ?,
                 include_reasoning = ?,
+                allow_multi_character_responses = ?,
+                enable_reasoning_parsing = ?,
                 reasoning_prefix = ?,
                 reasoning_suffix = ?,
+                enable_character_markers = ?,
                 character_id_prefix = ?,
                 character_id_suffix = ?,
                 system_prompt = ?,
@@ -260,10 +244,13 @@ func UpdateInstruction(id int, inst *Instruction) error {
 		inst.Stream,
 		es(inst.StopSequences),
 		inst.IncludeReasoning,
-		es(inst.ReasoningPrefix),
-		es(inst.ReasoningSuffix),
-		es(inst.CharacterIdPrefix),
-		es(inst.CharacterIdSuffix),
+		inst.AllowMultiCharacterResponses,
+		inst.EnableReasoningParsing,
+		inst.ReasoningPrefix,
+		inst.ReasoningSuffix,
+		inst.EnableCharacterMarkers,
+		inst.CharacterIdPrefix,
+		inst.CharacterIdSuffix,
 		es(inst.SystemPrompt),
 		es(inst.WorldSetup),
 		inst.Instruction,

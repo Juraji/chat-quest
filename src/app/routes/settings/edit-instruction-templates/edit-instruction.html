@@ -157,11 +157,10 @@ When this option is checked, any reasoning from the chat history is readded usin
 
             <div class="grid gap-1">
               <div class="g-col-12">
-                <div class="form-check" [class.mb-1]="!enableReasoningParsing()">
+                <div class="form-check">
                   <input class="form-check-input" type="checkbox"
                          id="enableReasoningParsingInput"
-                         [checked]="enableReasoningParsing()"
-                         (change)="enableReasoningParsing.toggle(); formGroup.markAsDirty()"/>
+                         formControlName="enableReasoningParsing"/>
                   <label class="form-check-label" for="enableReasoningParsingInput">
                     Parse reasoning
                   </label>
@@ -172,17 +171,17 @@ When this option is checked, any reasoning from the chat history is readded usin
                   <label for="reasoningPrefixInput">Reasoning Prefix</label>
                   <input class="form-control"
                          id="reasoningPrefixInput"
-                         aria-describedby="reasoningPrefixSuffixInputHelp"
+                         aria-describedby="ReasoningInputHelp"
                          formControlName="reasoningPrefix"/>
                 </div>
                 <div class="g-col-12 g-col-lg-6">
                   <label for="reasoningSuffixInput">Reasoning Suffix</label>
                   <input class="form-control"
                          id="reasoningSuffixInput"
-                         aria-describedby="reasoningPrefixSuffixInputHelp"
+                         aria-describedby="ReasoningInputHelp"
                          formControlName="reasoningSuffix"/>
                 </div>
-                <div id="enableReasoningParsingInput" class="g-col-12 form-text mb-3">
+                <div id="ReasoningInputHelp" class="g-col-12 form-text mb-3">
                   Usually these are tags like &lt;think&gt;&lt;/think&gt;
                   or [THINK][/THINK], depending on the model training.
                 </div>
@@ -193,15 +192,14 @@ When this option is checked, any reasoning from the chat history is readded usin
               <div class="g-col-12">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox"
-                         id="enableCharacterIdParsingInput"
-                         [checked]="enableCharacterIdParsing()"
-                         (change)="enableCharacterIdParsing.toggle(); formGroup.markAsDirty()"/>
-                  <label class="form-check-label" for="enableCharacterIdParsingInput">
-                    Parse character markers
+                         id="enableCharacterMarkersInput"
+                         formControlName="enableCharacterMarkers"/>
+                  <label class="form-check-label" for="enableCharacterMarkersInput">
+                    Enable character markers
                   </label>
                 </div>
               </div>
-              @if (enableCharacterIdParsing()) {
+              @if (enableCharacterMarkers()) {
                 <div class="g-col-12 g-col-lg-6">
                   <label for="characterIdPrefixInput">Character Marker Prefix</label>
                   <input class="form-control"
@@ -224,6 +222,22 @@ When parsing the LLM output, Chat Quest looks for these markers, when found it w
 Disable this if you have trouble with the LLM taking over too much.">
               <span>Character markers</span>
               <span class="bi bi-question-circle ms-1"></span>
+            </div>
+            <div class="g-col-12 mt-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox"
+                       id="allowMultiCharacterResponsesInput"
+                       formControlName="allowMultiCharacterResponses"/>
+                <label class="form-check-label" for="allowMultiCharacterResponsesInput">
+                  Allow multi character responses
+                </label>
+                <div id="allowMultiCharacterResponsesInputHelp" class="g-col-12 form-text mb-3"
+                     title="when disabled, the parser forces strict adherence to a single character/role per response.
+Using character markers is recommended, as it will show the LLM how to speak as a character.">
+                  <span>Allows LLM flexibility in character/role selection.</span>
+                  <span class="bi bi-question-circle ms-1"></span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
