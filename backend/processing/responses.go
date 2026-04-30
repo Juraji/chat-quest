@@ -295,10 +295,15 @@ func generateResponse(
 								zap.Int("characterId", characterId),
 								zap.Error(err))
 							currentMessage.CharacterID = &responderId
-						} else {
-							currentMessage.CharacterID = &characterId
+						} else if !instruction.AllowMultiCharacterResponses && characterId != responderId {
+							logger.Warn("LLM tried to switch character, which is not allowed. Parser canceled.",
+								zap.Int("characterId", characterId),
+								zap.Error(err))
+							cancelCtx()
+							break
 						}
 
+						currentMessage.CharacterID = &characterId
 						currentState = InContent
 						prefixBuffer.Reset()
 					}

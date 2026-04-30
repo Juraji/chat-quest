@@ -9,7 +9,7 @@
   "stream": true,
   "stopSequences": null,
   "includeReasoning": false,
-  "allowMultiCharacterResponses": false,
+  "allowMultiCharacterResponses": true,
   "enableReasoningParsing": true,
   "reasoningPrefix": "<think>",
   "reasoningSuffix": "</think>",

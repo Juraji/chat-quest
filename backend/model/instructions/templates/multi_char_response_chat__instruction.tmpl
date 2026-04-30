@@ -1,4 +1,6 @@
 {{- /*gotype: juraji.nl/chat-quest/processing.ChatInstructionVars*/ -}}
 {{.MessageText}}
 
-[OOC: {{if .CurrentTimeOfDay}}The current time of day is {{.CurrentTimeOfDayFmtEN}}. {{end}}Respond to this message initially ONLY as {{.Character.Name}} (id={{.Character.ID}}), after that you are allowed to append responses from other characters if the situation requires it.]
+{{if .CurrentTimeOfDay}}(The current time of day is {{.CurrentTimeOfDayFmtEN}}.{{end}})
+(Respond ONLY as {{.Character.Name}}, id={{.Character.ID}}.)
+(Respond initially ONLY as {{.Character.Name}} (id={{.Character.ID}}), after that you are allowed to append responses from other characters if the situation requires it.)

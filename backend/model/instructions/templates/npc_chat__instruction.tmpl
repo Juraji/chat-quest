@@ -1,9 +1,9 @@
 {{- /*gotype: juraji.nl/chat-quest/processing.ChatInstructionVars*/ -}}
 {{.MessageText}}
 
-{{if .CurrentTimeOfDay}}[OOC: The current time of day is {{.CurrentTimeOfDayFmtEN}}.]{{end -}}
+{{if .CurrentTimeOfDay}}(The current time of day is {{.CurrentTimeOfDayFmtEN}}.){{end -}}
 {{if .IsFirstMessage -}}
-[OOC: Respond as a random NPC]
+(Respond as an NPC, not as any of the characters)
 {{else -}}
-[OOC: Respond ONLY as the NPC currently being addressed by the user]
+(Respond ONLY as the NPC currently being addressed by the user, not as any of the characters)
 {{end -}}
