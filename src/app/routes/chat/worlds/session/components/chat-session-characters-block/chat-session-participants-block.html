@@ -1,13 +1,20 @@
 <div class="card">
   <div class="card-body">
     <h5 class="card-title">Participants</h5>
-
-    @if (!participants().length) {
-      <small class="text-muted">No participants active.</small>
-    }
-    <div class="mb-4 grid gap-1">
+    <div class="mb-4 grid gap-1" cdkDropList
+         #participantDropList="cdkDropList"
+         [cdkDropListConnectedTo]="[characterSourceDropList]"
+         (cdkDropListDropped)="onAddParticipant($event.item.data)">
+      @if (!participants().length) {
+        <div class="card g-col-12">
+          <div class="card-body">
+            Drag/Drop characters here to add them to the session!
+          </div>
+        </div>
+      }
       @for (p of participants(); track p.characterId) {
-        <div class="g-col-6">
+        <div class="g-col-6"
+             cdkDrag [cdkDragData]="p">
           <scalable class="mx-auto">
             <app-character-card [character]="p.characterId">
               <button type="button" class="btn btn-outline-danger"
@@ -42,9 +49,13 @@
     </div>
 
     <label>Add Participants</label>
-    <div class="grid gap-1">
+    <div class="grid gap-1" cdkDropList
+         #characterSourceDropList="cdkDropList"
+         [cdkDropListConnectedTo]="[participantDropList]"
+         (cdkDropListDropped)="onRemoveParticipant($event.item.data)">
       @for (char of available(); track char.id) {
-        <div class="g-col-6 g-col-lg-4">
+        <div class="g-col-6 g-col-lg-4"
+             cdkDrag [cdkDragData]="char">
           <scalable class="mx-auto">
             <app-character-card [character]="char">
               <button type="button" class="btn btn-success w-100"

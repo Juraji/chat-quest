@@ -5,15 +5,19 @@ import {CharacterCard} from '@components/cards/character-card';
 import {Scalable} from '@components/scalable/scalable';
 import {RouterLink} from '@angular/router';
 import {ChatSessionData} from '../../chat-session-data';
+import {CdkDrag, CdkDropList} from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'chat-session-participants-block',
   imports: [
     CharacterCard,
     Scalable,
-    RouterLink
+    RouterLink,
+    CdkDrag,
+    CdkDropList
   ],
   templateUrl: './chat-session-participants-block.html',
+  styleUrl: './chat-session-participants-block.scss',
 })
 export class ChatSessionParticipantsBlock {
   private readonly sessionData = inject(ChatSessionData)

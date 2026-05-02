@@ -1,0 +1,17 @@
+:host {
+  .cdk-drag {
+    cursor: grab;
+  }
+
+  .drop-list-receiver {
+    display: none;
+  }
+
+  .cdk-drop-list-receiving .drop-list-receiver {
+    display: block;
+  }
+}
+
+.cdk-drag-preview {
+  cursor: grabbing;
+}
