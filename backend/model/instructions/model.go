@@ -1,6 +1,7 @@
 package instructions
 
 import (
+	"strings"
 	"unicode/utf8"
 
 	"github.com/pkg/errors"
@@ -93,7 +94,7 @@ func (i *Instruction) ApplyTemplates(variables any) error {
 			return errors.Wrap(err, "Error creating template for instruction template")
 		}
 
-		*fieldPtr = result
+		*fieldPtr = strings.TrimSpace(result)
 	}
 
 	return nil
@@ -102,6 +103,10 @@ func (i *Instruction) ApplyTemplates(variables any) error {
 // CharacterMarkers extracts the first Unicode rune from `CharacterIdPrefix` and returns it along with the full prefix and suffix strings.
 // Returns a zero-width space rune if `CharacterIdPrefix` is empty or invalid UTF-8.
 func (i *Instruction) CharacterMarkers() (rune, string, string) {
+	if !(i.AllowMultiCharacterResponses) {
+		return 0, "", ""
+	}
+
 	initial, _ := utf8.DecodeRuneInString(i.CharacterIdPrefix)
 	return initial, i.CharacterIdPrefix, i.CharacterIdSuffix
 }
@@ -109,8 +114,11 @@ func (i *Instruction) CharacterMarkers() (rune, string, string) {
 // ReasoningMarkers Returns the first Unicode rune from `ReasoningPrefix`, along with the full reasoning prefix and suffix strings.
 // If `ReasoningPrefix` is empty or invalid UTF-8, returns a zero-width space rune as fallback.
 func (i *Instruction) ReasoningMarkers() (rune, string, string) {
-	initial, _ := utf8.DecodeRuneInString(i.ReasoningPrefix)
+	if !i.EnableReasoningParsing {
+		return 0, "", ""
+	}
 
+	initial, _ := utf8.DecodeRuneInString(i.ReasoningPrefix)
 	return initial, i.ReasoningPrefix, i.ReasoningSuffix
 }
 

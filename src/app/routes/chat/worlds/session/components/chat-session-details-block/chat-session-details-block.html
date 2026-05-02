@@ -133,7 +133,7 @@
                 <option [ngValue]="llm.id">{{ llm | llmLabel }}</option>
               }
             </select>
-            <a [routerLink]="['/settings/connections/', selectedModel().profileId]"
+            <a [routerLink]="['/settings/connections/', selectedModel()?.profileId]"
                target="_blank"
                class="btn btn-secondary"
                title="Open edit in new window/tab">

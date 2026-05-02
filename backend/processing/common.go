@@ -110,6 +110,15 @@ func createChatRequestMessages(
 				Content: msg.Content,
 			})
 		} else {
+			// Add character ID marker message
+			if instruction.EnableCharacterMarkers {
+				messages = append(messages, p.ChatRequestMessage{
+					Role:    p.RoleSystem,
+					Content: fmt.Sprintf("Character %d responded:", msg.CharacterID),
+				})
+			}
+
+			// Build message
 			var msgBuffer strings.Builder
 
 			// Add reasoning if enabled and available
@@ -118,14 +127,6 @@ func createChatRequestMessages(
 				msgBuffer.WriteString(instruction.ReasoningPrefix)
 				msgBuffer.WriteString(msg.Reasoning)
 				msgBuffer.WriteString(instruction.ReasoningSuffix)
-				msgBuffer.WriteRune('\n')
-			}
-
-			// Add character ID
-			if instruction.EnableCharacterMarkers {
-				msgBuffer.WriteString(instruction.CharacterIdPrefix)
-				msgBuffer.WriteString(fmt.Sprint(*msg.CharacterID))
-				msgBuffer.WriteString(instruction.CharacterIdSuffix)
 				msgBuffer.WriteRune('\n')
 			}
 

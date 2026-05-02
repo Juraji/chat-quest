@@ -316,7 +316,9 @@ responseLoop:
 	var container memoriesContainer
 	err = json.Unmarshal([]byte(memoryGenResponse), &container)
 	if err != nil {
-		logger.Error("Could not unmarshal memory response", zap.Error(err))
+		logger.Error("Could not unmarshal memory response",
+			zap.String("memoryGenResponse", memoryGenResponse),
+			zap.Error(err))
 		return nil, errors.Wrap(err, "could not unmarshal memory response")
 	}
 
