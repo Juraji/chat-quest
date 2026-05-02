@@ -111,6 +111,34 @@ options that add up to a probability of 'P', making the output more diverse yet 
               </div>
             </div>
             <div class="mb-3">
+              <label for="presencePenaltyInput">Presence Penalty</label>
+              <input type="number" class="form-control"
+                     step="0.01"
+                     id="presencePenaltyInput"
+                     aria-describedby="presencePenaltyInputHelp"
+                     formControlName="presencePenalty"/>
+              <div id="presencePenaltyInputHelp" class="form-text"
+                   title="Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear
+in the text so far, increasing the model's likelihood to talk about new topics.">
+                <span>Diversity</span>
+                <span class="bi bi-question-circle ms-1"></span>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="frequencyPenaltyInput">Frequency Penalty</label>
+              <input type="number" class="form-control"
+                     step="0.01"
+                     id="frequencyPenaltyInput"
+                     aria-describedby="frequencyPenaltyInputHelp"
+                     formControlName="frequencyPenalty"/>
+              <div id="frequencyPenaltyInputHelp" class="form-text"
+                   title="Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear
+in the text so far, increasing the model's likelihood to talk about new topics.">
+                <span>Diversity</span>
+                <span class="bi bi-question-circle ms-1"></span>
+              </div>
+            </div>
+            <div class="mb-3">
               <label for="stopTokensInput">Stop Sequences</label>
               <input type="number" class="form-control"
                      step="0.01"

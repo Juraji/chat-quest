@@ -1,6 +1,7 @@
 package processing
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -213,88 +214,99 @@ func NewTemplateCharacter(
 			// - The messages to scan.
 			var subjectBuffer strings.Builder
 			{
-				participants, err := cs.GetAllParticipantsAsCharacters(session.ID)
-				if err != nil {
-					return nil, errors.Wrap(err, "failed to get session participants")
+				participants, perr := cs.GetAllParticipantsAsCharacters(session.ID)
+				if perr != nil {
+					return nil, errors.Wrap(perr, "failed to get session participants")
 				}
 				for _, participant := range participants {
 					subjectBuffer.WriteString(participant.Name)
-					subjectBuffer.WriteRune(' ')
+					subjectBuffer.WriteRune('\n')
 				}
 
 				if prefs.MemoryIncludeChatNotes && session.ChatNotes != nil {
 					subjectBuffer.WriteString(*session.ChatNotes)
-					subjectBuffer.WriteRune(' ')
+					subjectBuffer.WriteRune('\n')
 				}
 
 				if len(chatHistory) > 0 {
 					for _, msg := range chatHistory {
 						subjectBuffer.WriteString(msg.Content)
-						subjectBuffer.WriteRune(' ')
+						subjectBuffer.WriteRune('\n')
 					}
 				}
 			}
 
 			// Embed subject text
-			embeddingModelInst, err := prov.GetLlmModelInstanceById(*prefs.EmbeddingModelId)
-			if err != nil {
-				return nil, errors.Wrapf(err, "failed to get embedding model while processing memories for character ID %d", char.ID)
-			}
+			var subjectEmbeddings prov.Embedding
+			{
+				embeddingModelInst, err := prov.GetLlmModelInstanceById(*prefs.EmbeddingModelId)
+				if err != nil {
+					return nil, errors.Wrapf(err, "failed to get embedding model while processing memories for character ID %d", char.ID)
+				}
 
-			subjectEmbeddings, err := prov.GenerateEmbeddings(embeddingModelInst, subjectBuffer.String())
-			if err != nil {
-				return nil, errors.Wrapf(err, "failed to embed subject while processing memories for character ID %d", char.ID)
+				subjectEmbeddings, err = prov.GenerateEmbeddings(embeddingModelInst, subjectBuffer.String())
+				if err != nil {
+					return nil, errors.Wrapf(err, "failed to embed subject while processing memories for character ID %d", char.ID)
+				}
 			}
 
 			// Process memories in batches using goroutines
-			const workerCount = 8
-			const minChunkSize = 10
-			minP := prefs.MemoryMinP
+			var relevantMemories []string
+			{
+				const workerCount = 8
+				const minChunkSize = 10
+				minP := prefs.MemoryMinP
 
-			chunkSize := (len(memories) + workerCount - 1) / workerCount
-			if chunkSize < minChunkSize {
-				chunkSize = minChunkSize
-			}
-
-			relevantMemoriesChan := make(chan string, len(memories))
-			var wg sync.WaitGroup
-
-			for start := 0; start < len(memories); start = start + chunkSize {
-				end := start + chunkSize
-				if end > len(memories) {
-					end = len(memories)
+				chunkSize := (len(memories) + workerCount - 1) / workerCount
+				if chunkSize < minChunkSize {
+					chunkSize = minChunkSize
 				}
 
-				wg.Add(1)
-				go func(start, end int) {
-					defer wg.Done()
+				relevantMemoriesChan := make(chan string, len(memories))
+				var wg sync.WaitGroup
 
-					for _, memory := range memories[start:end] {
-						if memory.AlwaysInclude {
-							relevantMemoriesChan <- memory.Content
-							continue
-						}
-
-						similarity := subjectEmbeddings.CosineSimilarity(memory.Embedding)
-						if similarity >= minP {
-							logger.Debug("Including memory",
-								zap.Float64("similarity", similarity),
-								zap.String("memory", memory.Content))
-							relevantMemoriesChan <- memory.Content
-						}
+				for start := 0; start < len(memories); start = start + chunkSize {
+					end := start + chunkSize
+					if end > len(memories) {
+						end = len(memories)
 					}
-				}(start, end)
-			}
 
-			// Wait for all workers to finish
-			go func() {
-				wg.Wait()
-				close(relevantMemoriesChan)
-			}()
+					wg.Add(1)
+					go func(start, end int) {
+						defer wg.Done()
 
-			var relevantMemories []string
-			for memory := range relevantMemoriesChan {
-				relevantMemories = append(relevantMemories, memory)
+						for _, memory := range memories[start:end] {
+							//if memory.AlwaysInclude {
+							//	relevantMemoriesChan <- memory.Content
+							//	continue
+							//}
+
+							var similarity float64
+							if memory.AlwaysInclude {
+								similarity = 1.0
+							} else {
+								similarity = subjectEmbeddings.CosineSimilarity(memory.Embedding)
+							}
+
+							if similarity >= minP {
+								logger.Debug("Including memory",
+									zap.Float64("similarity", similarity),
+									zap.String("memory", memory.Content))
+								relevantMemoriesChan <- fmt.Sprintf("(Relevance score: %0.3f) %s", similarity, memory.Content)
+							}
+						}
+					}(start, end)
+				}
+
+				// Wait for all workers to finish
+				go func() {
+					wg.Wait()
+					close(relevantMemoriesChan)
+				}()
+
+				for memory := range relevantMemoriesChan {
+					relevantMemories = append(relevantMemories, memory)
+				}
 			}
 
 			return relevantMemories, nil
