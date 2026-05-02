@@ -1,25 +1,127 @@
 <form [formGroup]="sessionForm">
-  <div class="card">
+  <div class="card mb-3">
     <div class="card-body">
-      <div class="mb-1">
-        <h5 class="card-title mb-0">Session Details</h5>
-        <h6 class="small text-muted mb-0">In {{ worldName() }}</h6>
-        <div class="small text-muted">Started at {{ createdAt() | date }}</div>
+      <h5 class="card-title">{{ worldName() }}</h5>
+
+      <div class="input-group mb-3">
+        <input type="text" class="form-control"
+               id="chatNameInput"
+               placeholder="Name"
+               formControlName="name"/>
+        <button type="button" class="btn btn-secondary"
+                title="Generate Title"
+                (click)="onGenerateTitle()">
+          <span class="bi bi-robot"></span>
+        </button>
       </div>
 
-      <div class="mb-3">
-        <div class="input-group">
-          <input type="text" class="form-control"
-                 id="chatNameInput"
-                 placeholder="Name"
-                 formControlName="name"/>
-          <button type="button" class="btn btn-secondary"
-                  title="Generate Title"
-                  (click)="onGenerateTitle()">
-            <span class="bi bi-robot"></span>
-          </button>
+      <div class="small text-muted">Started at {{ createdAt() | date }}</div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Scenario</h5>
+
+      <div class="grid gap-1 align-items-center mb-1">
+        <div class="g-col-4">
+          <label for="personaIdInput">Persona</label>
+        </div>
+        <div class="g-col-8">
+          <div class="input-group input-group-sm">
+            <select formControlName="personaId"
+                    class="form-select"
+                    id="personaIdInput">
+              <option [ngValue]="null">No persona</option>
+              <option disabled>──────────</option>
+              @for (c of characters(); track c.id) {
+                <option [ngValue]="c.id">{{ c.name }}</option>
+              }
+            </select>
+            @if (session().personaId; as personaId) {
+              <a [routerLink]="['/chat/characters/', personaId]"
+                 target="_blank"
+                 class="btn btn-secondary"
+                 title="Open edit in new window/tab">
+                <span class="bi bi-box-arrow-up-right"></span>
+              </a>
+            }
+          </div>
         </div>
       </div>
+
+      <div class="grid gap-1 align-items-center mb-1">
+        <div class="g-col-4">
+          <label for="timeOfDayInput">Time of Day</label>
+        </div>
+        <div class="g-col-8">
+          <select class="form-select form-select-sm"
+                  id="timeOfDayInput"
+                  formControlName="currentTimeOfDay">
+            <option [ngValue]="null">Not Set</option>
+            <option disabled>──────────</option>
+            <option value="MIDNIGHT">Midnight (00:00–01:00)</option>
+            <option value="NIGHT">Night (00:10–05:59)</option>
+            <option value="EARLY_MORNING">Early Morning (06:00–08:59)</option>
+            <option value="MORNING">Morning (09:00–11:59)</option>
+            <option value="NOON">Noon (12:00–13:00)</option>
+            <option value="AFTERNOON">Afternoon (13:00–18:00)</option>
+            <option value="EVENING">Evening (18:00–22:00)</option>
+            <option value="LATE_NIGHT">Late Night (22:00–23:59)</option>
+            <option value="REAL_TIME">Real Time</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid gap-1 align-items-center mb-1">
+        <div class="g-col-4">
+          <label for="chatScenarioInput">Scenario</label>
+        </div>
+        <div class="g-col-8">
+          <div class="input-group input-group-sm">
+            <select class="form-select"
+                    id="chatScenarioInput"
+                    formControlName="scenarioId">
+              <option [ngValue]="null">No Scenario</option>
+              <option disabled>──────────</option>
+              @for (scene of scenarios(); track scene.id) {
+                <option [ngValue]="scene.id">{{ scene.name }}</option>
+              }
+            </select>
+            @if (session().scenarioId; as scenarioId) {
+              <a [routerLink]="['/chat/scenarios/', scenarioId]"
+                 target="_blank"
+                 class="btn btn-secondary"
+                 title="Open edit in new window/tab">
+                <span class="bi bi-box-arrow-up-right"></span>
+              </a>
+            }
+          </div>
+        </div>
+        @if (selectedScenario(); as scenario) {
+          <div class="g-col-12 scenario-description">{{ scenario.description }}</div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="card-title">Chat Notes</h5>
+      <textarea
+        class="form-control form-control-sm"
+        id="chatNotesInput"
+        formControlName="chatNotes"
+        rows="5"
+        placeholder="Available in the chat instructions as '.ChatNotes', this can be used to add extra information to the world setup."
+      ></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Settings</h5>
+
       <div class="mb-3">
         <div class="form-check">
           <input class="form-check-input" type="checkbox"
@@ -46,85 +148,12 @@
           </label>
         </div>
       </div>
+
       <div class="grid gap-1 align-items-center mb-1">
-        <div class="g-col-3">
-          <label for="personaIdInput">Persona</label>
-        </div>
-        <div class="g-col-9">
-          <div class="input-group input-group-sm">
-            <select formControlName="personaId"
-                    class="form-select"
-                    id="personaIdInput">
-              <option [ngValue]="null">No persona</option>
-              <option disabled>──────────</option>
-              @for (c of characters(); track c.id) {
-                <option [ngValue]="c.id">{{ c.name }}</option>
-              }
-            </select>
-            @if (session().personaId; as personaId) {
-              <a [routerLink]="['/chat/characters/', personaId]"
-                 target="_blank"
-                 class="btn btn-secondary"
-                 title="Open edit in new window/tab">
-                <span class="bi bi-box-arrow-up-right"></span>
-              </a>
-            }
-          </div>
-        </div>
-      </div>
-      <div class="grid gap-1 align-items-center mb-1">
-        <div class="g-col-3">
-          <label for="chatScenarioInput">Scenario</label>
-        </div>
-        <div class="g-col-9">
-          <div class="input-group input-group-sm">
-            <select class="form-select"
-                    id="chatScenarioInput"
-                    formControlName="scenarioId">
-              <option [ngValue]="null">No Scenario</option>
-              <option disabled>──────────</option>
-              @for (scene of scenarios(); track scene.id) {
-                <option [ngValue]="scene.id">{{ scene.name }}</option>
-              }
-            </select>
-            @if (session().scenarioId; as scenarioId) {
-              <a [routerLink]="['/chat/scenarios/', scenarioId]"
-                 target="_blank"
-                 class="btn btn-secondary"
-                 title="Open edit in new window/tab">
-                <span class="bi bi-box-arrow-up-right"></span>
-              </a>
-            }
-          </div>
-        </div>
-      </div>
-      <div class="grid gap-1 align-items-center mb-1">
-        <div class="g-col-3">
-          <label for="timeOfDayInput">Time of Day</label>
-        </div>
-        <div class="g-col-9">
-          <select class="form-select form-select-sm"
-                  id="timeOfDayInput"
-                  formControlName="currentTimeOfDay">
-            <option [ngValue]="null">Not Set</option>
-            <option disabled>──────────</option>
-            <option value="MIDNIGHT">Midnight (00:00–01:00)</option>
-            <option value="NIGHT">Night (00:10–05:59)</option>
-            <option value="EARLY_MORNING">Early Morning (06:00–08:59)</option>
-            <option value="MORNING">Morning (09:00–11:59)</option>
-            <option value="NOON">Noon (12:00–13:00)</option>
-            <option value="AFTERNOON">Afternoon (13:00–18:00)</option>
-            <option value="EVENING">Evening (18:00–22:00)</option>
-            <option value="LATE_NIGHT">Late Night (22:00–23:59)</option>
-            <option value="REAL_TIME">Real Time</option>
-          </select>
-        </div>
-      </div>
-      <div class="grid gap-1 align-items-center mb-1">
-        <div class="g-col-3">
+        <div class="g-col-4">
           <label for="chatModelIdInput">Chat Model</label>
         </div>
-        <div class="g-col-9">
+        <div class="g-col-8">
           <div class="input-group input-group-sm">
             <select class="form-select"
                     formControlName="chatModelId"
@@ -143,10 +172,10 @@
         </div>
       </div>
       <div class="grid gap-1 align-items-center mb-1">
-        <div class="g-col-3">
+        <div class="g-col-4">
           <label for="chatInstructionInput">Instructions</label>
         </div>
-        <div class="g-col-9">
+        <div class="g-col-8">
           <div class="input-group input-group-sm">
             <select class="form-select"
                     formControlName="chatInstructionId"
@@ -165,23 +194,6 @@
             }
           </div>
         </div>
-      </div>
-      <div class="mb-1">
-        <label class="cursor-pointer" for="chatNotesInput"
-               (click)="showChatNotesInput.toggle()">
-          <span>Chat Notes</span>
-          <span class="bi bi-chevron-down mx-1"
-                [class.bi-chevron-up]="showChatNotesInput()"></span>
-        </label>
-        @if (showChatNotesInput()) {
-          <textarea
-            class="form-control form-control-sm"
-            id="chatNotesInput"
-            formControlName="chatNotes"
-            rows="5"
-            placeholder="Available in the chat instructions as '.ChatNotes', this can be used to add extra information to the world setup."
-          ></textarea>
-        }
       </div>
     </div>
   </div>

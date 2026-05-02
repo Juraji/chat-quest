@@ -60,6 +60,8 @@ export class ChatSessionPage {
 
   readonly focusMode = booleanSignal(false)
   readonly enableBackdrop = booleanSignal(true)
+  readonly selectedLeftPaneTab = signal<number>(0)
+
   readonly avatars: Signal<string[]> = computed(() => {
     if (!this.enableBackdrop()) return [];
 

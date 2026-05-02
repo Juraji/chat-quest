@@ -2,6 +2,9 @@
   <div class="card-body">
     <h5 class="card-title">Participants</h5>
 
+    @if (!participants().length) {
+      <small class="text-muted">No participants active.</small>
+    }
     <div class="mb-4 grid gap-1">
       @for (p of participants(); track p.characterId) {
         <div class="g-col-6">

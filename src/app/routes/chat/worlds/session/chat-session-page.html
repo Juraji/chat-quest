@@ -24,8 +24,31 @@
   <div class="grid gap-5 flex-grow-1 overflow-y-hidden chat-grid">
     @if (!focusMode()) {
       <div class="g-col-3 h-100 pb-4 overflow-y-auto chat-grid-column">
-        <chat-session-details-block class="d-block mb-3"/>
-        <memory-list [worldId]="worldId()"/>
+        <ul class="nav nav-underline mb-3">
+          <li class="nav-item">
+            <button type="button" class="nav-link"
+                    [class.active]="selectedLeftPaneTab() == 0"
+                    (click)="selectedLeftPaneTab.set(0)">
+              <span>Session</span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button type="button" class="nav-link"
+                    [class.active]="selectedLeftPaneTab() == 1"
+                    (click)="selectedLeftPaneTab.set(1)">
+              <span>Memories</span>
+            </button>
+          </li>
+        </ul>
+
+        @switch (selectedLeftPaneTab()) {
+          @case (0) {
+            <chat-session-details-block class="d-block mb-3"/>
+          }
+          @case (1) {
+            <memory-list [worldId]="worldId()"/>
+          }
+        }
       </div>
     }
     <div class="g-col-6 h-100 overflow-y-hidden d-flex flex-column gap-2 chat-grid-column"

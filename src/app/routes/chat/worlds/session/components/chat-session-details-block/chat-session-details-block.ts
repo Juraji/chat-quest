@@ -1,7 +1,7 @@
 import {Component, computed, effect, inject, Signal} from '@angular/core';
 import {ChatSession, ChatSessions} from '@api/chat-sessions';
 import {DatePipe} from '@angular/common';
-import {booleanSignal, formControl, formGroup, readOnlyControl} from '@util/ng';
+import {controlValueSignal, formControl, formGroup, readOnlyControl} from '@util/ng';
 import {ReactiveFormsModule, Validators} from '@angular/forms';
 import {Notifications} from '@components/notifications';
 import {ChatSessionData} from '../../chat-session-data';
@@ -24,6 +24,7 @@ const TEXT_FIELD_DEBOUNCE_TIME = 2500 // ms
     RouterLink
   ],
   templateUrl: './chat-session-details-block.html',
+  styleUrl: './chat-session-details-block.scss',
 })
 export class ChatSessionDetailsBlock {
   private readonly sessionData = inject(ChatSessionData)
@@ -44,8 +45,6 @@ export class ChatSessionDetailsBlock {
   readonly chatModels: Signal<LlmModelView[]> =
     computed(() => this.llmModels().filter(i => i.modelType === 'CHAT_MODEL'))
 
-  readonly showChatNotesInput = booleanSignal(false)
-
   readonly sessionForm = formGroup<ChatSession>({
     id: readOnlyControl(),
     worldId: readOnlyControl(),
@@ -64,9 +63,20 @@ export class ChatSessionDetailsBlock {
     lastCompletionTokens: readOnlyControl(),
   })
 
-  readonly selectedModel: Signal<LlmModelView> = computed(() => {
-    const {chatModelId} = this.session()
-    return this.llmModels().find(l => l.id === chatModelId)!
+  readonly selectedModelId: Signal<Nullable<number>> = controlValueSignal(this.sessionForm, 'chatModelId')
+  readonly selectedModel: Signal<Nullable<LlmModelView>> = computed(() => {
+    const chatModelId = this.selectedModelId()
+    return !!chatModelId
+      ? this.llmModels().find(l => l.id === chatModelId)
+      : null
+  })
+
+  readonly selectedScenarioId: Signal<Nullable<number>> = controlValueSignal(this.sessionForm, 'scenarioId')
+  readonly selectedScenario: Signal<Nullable<Scenario>> = computed(() => {
+    const scenarioId = this.selectedScenarioId()
+    return !!scenarioId
+      ? this.scenarios().find(l => l.id === scenarioId)
+      : null
   })
 
   constructor() {
