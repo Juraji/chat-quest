@@ -5,21 +5,36 @@
   }
 
   .thought-block {
-    display: block;
-    color: unset;
-    font-family: var(--bs-font-monospace), monospace;
-    font-style: normal;
-    font-size: 0.875rem;
     background-color: rgba(0, 0, 0, 0.1);
-    padding: 0.5rem;
-    border-radius: var(--bs-border-radius-sm);
-    white-space: pre-wrap;
-    box-sizing: border-box;
     border: transparent var(--bs-border-width) solid;
     transition: border-color 0.3s ease-in-out;
 
     &:hover, &.open {
       border-color: var(--bs-card-border-color);
+    }
+
+    .thought-content {
+      color: unset;
+      font-family: var(--bs-font-monospace), monospace;
+      font-style: normal;
+      font-size: 0.875rem;
+      white-space: pre-wrap;
+    }
+
+    .thinking {
+      animation: thinking-wave 3s ease-in-out infinite;
+
+      @keyframes thinking-wave {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
     }
   }
 

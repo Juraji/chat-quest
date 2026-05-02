@@ -7,24 +7,28 @@
     } @else {
       <div class="card-body">
         @if (reasoning(); as s) {
-          @if (showReasoning()) {
-            <div class="thought-block open mb-3 position-relative">
-              <button type="button" class="btn btn-sm position-absolute end-0" (click)="showReasoning.toggle()">
-                <span class="bi bi-x"></span>
-              </button>
-              <span>{{ s }}</span>
-            </div>
-          } @else {
-            <div class="thought-block mb-3 text-muted small cursor-pointer"
-                 (click)="showReasoning.toggle()">
-              @if (isGenerating()) {
-                <span>Thinking...</span>
-              } @else {
-                <span>Thoughts</span>
+          <div class="card mb-3 thought-block">
+            <div class="card-body p-2">
+              <div class="card-title text-muted cursor-pointer"
+                   (click)="showReasoning.toggle()"
+                   [class.mb-0]="!showReasoning()">
+                @if (isGenerating()) {
+                  <span class="thinking">Thinking...</span>
+                } @else {
+                  <span>Thoughts</span>
+                }
+                @if (showReasoning()) {
+                  <i class="ms-2 small">(Click to hide)</i>
+                } @else {
+                  <i class="ms-2 small">(Click to view)</i>
+                }
+              </div>
+
+              @if (showReasoning()) {
+                <div class="thought-content">{{ s }}</div>
               }
-              <i class="ms-2 small">(Click to view)</i>
             </div>
-          }
+          </div>
         }
         <app-rendered-message [message]="content()" [renderOptions]="{enableVariables: false}"/>
       </div>
