@@ -3,7 +3,7 @@ package processing
 import (
 	"context"
 	"encoding/json"
-	"slices"
+	"strings"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -322,8 +322,18 @@ responseLoop:
 		return nil, errors.Wrap(err, "could not unmarshal memory response")
 	}
 
-	memoryFilter := func(memory *m.Memory) bool { return len(memory.Content) == 0 }
-	memories := slices.DeleteFunc(container.Memories, memoryFilter)
+	var memories []*m.Memory
+	for _, memory := range container.Memories {
+		memory.Content = strings.TrimSpace(memory.Content)
+		memory.Content = strings.ReplaceAll(memory.Content, "*", "")
+
+		if len(memory.Content) == 0 {
+			continue
+		}
+
+		memories = append(memories, memory)
+	}
+
 	logger.Debug("Memories generated successfully", zap.Int("memoryCount", len(memories)))
 	return memories, nil
 }
