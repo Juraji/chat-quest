@@ -1,7 +1,13 @@
 import {computed, inject, Injectable, Signal, signal, WritableSignal} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {Character, CharacterCreated, CharacterDeleted, CharacterUpdated} from './characters.model';
+import {
+  Character,
+  CharacterBuilderRequest,
+  CharacterCreated,
+  CharacterDeleted,
+  CharacterUpdated
+} from './characters.model';
 import {isNew} from '@api/common';
 import {SSE} from '@api/sse';
 import {arrayAdd, arrayRemove, arrayUpdate} from '@util/array';
@@ -26,9 +32,9 @@ export class Characters {
 
   listViewBy(idFn: () => Nullable<number>): Signal<Nullable<Character>> {
     return computed(() => {
+      const chars = this.lvCache()
       const id = idFn()
       if (!!id) {
-        const chars = this.lvCache()
         return chars.find(char => char.id === id)
       } else {
         return null
@@ -76,6 +82,10 @@ export class Characters {
     const params = new HttpParams()
       .append('instructionId', instructionId)
     return this.http.post<Blob>(`/characters/${characterId}/export/text`, null, {params, responseType: "blob" as any})
+  }
+
+  buildCharacter(request: CharacterBuilderRequest): Observable<Character> {
+    return this.http.post<Character>(`/characters/build`, request)
   }
 
   private setupLVCache() {

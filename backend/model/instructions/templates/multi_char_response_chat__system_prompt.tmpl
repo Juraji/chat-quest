@@ -84,7 +84,7 @@ Your role is to impersonate {{.Character.Name}}, described in detail below. As {
     {{end -}}
     {{if .DialogueExamples -}}
     <DialogExamples>
-      {{range sliceTakeStrRnd .DialogueExamples 1 -}}
+      {{range sliceRandomN .DialogueExamples 1 -}}
         <DialogExample>{{.}}<DialogExample>
       {{end -}}
     </DialogExamples>
@@ -92,7 +92,7 @@ Your role is to impersonate {{.Character.Name}}, described in detail below. As {
     {{if .Memories -}}
     <Memories>
       <!-- These are relevant memories specifically for {{.Name}}, only they remember this. -->
-      {{range sliceTakeStrRnd .Memories 3 -}}
+      {{range sliceRandomN .Memories 3 -}}
         <Memory>{{.}}<Memory>
       {{end -}}
     </Memories>
@@ -119,7 +119,7 @@ Your role is to impersonate {{.Character.Name}}, described in detail below. As {
     {{end -}}
     {{if $c.DialogueExamples -}}
     <DialogExamples>
-      {{range sliceTakeStrRnd .DialogueExamples 1 -}}
+      {{range sliceRandomN .DialogueExamples 1 -}}
         <DialogExample>{{.}}<DialogExample>
       {{end -}}
     </DialogExamples>
@@ -127,7 +127,7 @@ Your role is to impersonate {{.Character.Name}}, described in detail below. As {
     {{if .Memories -}}
     <Memories>
       <!-- These are relevant memories specifically for {{$c.Name}}, only they remember this. -->
-      {{range sliceTakeStrRnd $c.Memories 3 -}}
+      {{range sliceRandomN $c.Memories 3 -}}
         <Memory>{{.}}<Memory>
       {{end -}}
     </Memories>

@@ -17,6 +17,7 @@ const (
 	MemoriesInstruction InstructionType = "MEMORIES"
 	TitleGeneration     InstructionType = "TITLE_GENERATION"
 	CharacterExport     InstructionType = "CHARACTER_EXPORT"
+	CharacterBuilder    InstructionType = "CHARACTER_BUILDER"
 )
 
 func (i InstructionType) IsValid() bool {
@@ -24,7 +25,8 @@ func (i InstructionType) IsValid() bool {
 	case ChatInstruction,
 		MemoriesInstruction,
 		TitleGeneration,
-		CharacterExport:
+		CharacterExport,
+		CharacterBuilder:
 		return true
 	default:
 		return false

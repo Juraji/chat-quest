@@ -137,13 +137,24 @@ func CharactersRoutes(router *gin.RouterGroup) {
 			respondBadRequest(c, "Invalid character ID", nil)
 			return
 		}
-		instructionId := getQueryParamAsIntOr(c, "instructionId", 0)
-		if instructionId == 0 {
+		instructionId := getQueryParamAsIntP(c, "instructionId")
+		if instructionId == nil {
 			respondBadRequest(c, "Missing or invalid instruction ID", nil)
 			return
 		}
 
-		template, err := processing.ExportCharacterAsText(c, characterId, instructionId)
+		template, err := processing.ExportCharacterAsText(c, characterId, *instructionId)
 		respondSingle(c, &template, err)
+	})
+
+	charactersRouter.POST("/build", func(c *gin.Context) {
+		var request *processing.CharacterBuilderRequest
+		err := c.BindJSON(&request)
+		if err != nil {
+			respondBadRequest(c, "Invalid request", err)
+		}
+
+		character, err := processing.BuildCharacter(c, request)
+		respondSingle(c, character, err)
 	})
 }

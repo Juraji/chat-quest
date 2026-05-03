@@ -15,17 +15,18 @@ func getParamAsID(c *gin.Context, key string) (int, bool) {
 	return int(id), err == nil
 }
 
-func getQueryParamAsIntOr(c *gin.Context, key string, defaultValue int) int {
+func getQueryParamAsIntP(c *gin.Context, key string) *int {
 	str, present := c.GetQuery(key)
 	if !present || str == "" {
-		return defaultValue
+		return nil
 	}
 
 	i, err := strconv.ParseInt(str, 10, 32)
 	if err != nil {
-		return defaultValue
+		return nil
 	}
-	return int(i)
+
+	return new(int(i))
 }
 
 func getQueryParamsAsInts(c *gin.Context, key string) ([]int, bool) {

@@ -1,0 +1,33 @@
+{{- /*gotype: juraji.nl/chat-quest/processing.CharacterBuilderVars*/ -}}
+
+{{.UserInput}}
+
+Extra Details:
+  - Name: {{.CharacterName}}
+{{if .Age}}  - Age: {{.Age}}{{end}}
+{{if .Pronouns}}  - Pronouns: {{.Pronouns}}{{end}}
+{{if .Species}}
+
+Species description:
+{{.Species | indent 2}}
+{{end}}
+{{if .World}}
+
+World description:
+{{.World | indent 2}}
+{{end}}
+{{if .CurrentAppearance}}
+
+Current appearance:
+{{.CurrentAppearance | indent 2}}
+{{end}}
+{{if .CurrentPersonality}}
+
+Current personality:
+{{.CurrentPersonality | indent 2}}
+{{end}}
+{{if .CurrentHistory}}
+
+Current history:
+{{.CurrentHistory | indent 2}}
+{{end}}

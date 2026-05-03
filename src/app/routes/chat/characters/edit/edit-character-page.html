@@ -8,6 +8,12 @@
       }
 
       @if (!isNew()) {
+        <button type="button" class="btn btn-outline-secondary"
+                (click)="onDuplicateCharacter()">Duplicate
+        </button>
+      }
+
+      @if (!isNew()) {
         <div class="page-action" dropdown>
           <button type="button" class="btn btn-outline-secondary" dropdownToggle>Export</button>
           <ul class="mt-1" dropdownMenu>
@@ -24,11 +30,6 @@
       @if (!isNew()) {
         <button type="button" class="btn btn-outline-danger"
                 (click)="onDeleteCharacter()">Delete
-        </button>
-      }
-      @if (!isNew()) {
-        <button type="button" class="btn btn-outline-secondary"
-                (click)="onDuplicateCharacter()">Duplicate
         </button>
       }
       @if (!isNew() && formGroup.dirty) {

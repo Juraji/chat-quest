@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"math/rand"
+	"reflect"
 	"strings"
 	gt "text/template"
 
@@ -21,10 +22,10 @@ func ParseAndApplyTextTemplate(name string, template string, variables any) (str
 	}
 
 	var templateFuncMap = gt.FuncMap{
-		"sliceTakeStr":    tplSliceTakeStr,
-		"sliceTakeStrRnd": tplSliceTakeStrRnd,
-		"fmtEnum":         tplFormatEnum,
-		"oneliner":        tplOneliner,
+		"sliceRandomN": tplSliceRandomN,
+		"fmtEnum":      tplFmtEnum,
+		"oneliner":     tplOneliner,
+		"indent":       tplIndent,
 	}
 
 	tpl, err := gt.New(name).Funcs(templateFuncMap).Parse(template)
@@ -41,38 +42,48 @@ func ParseAndApplyTextTemplate(name string, template string, variables any) (str
 	return buffer.String(), nil
 }
 
-func tplSliceTakeStr(slice []string, limit int) []string {
-	if len(slice) <= limit {
-		return slice
+func tplSliceRandomN(input any, limit int) (any, error) {
+	v := reflect.ValueOf(input)
+
+	if k := v.Kind(); k != reflect.Slice {
+		return nil, fmt.Errorf("input must be a slice, got %v", k)
 	}
 
-	return slice[:limit-1]
+	length := v.Len()
+	if limit > length {
+		limit = length
+	}
+
+	indices := rand.Perm(length)[:limit]
+
+	out := reflect.MakeSlice(v.Type(), limit, limit)
+	for i, idx := range indices {
+		out.Index(i).Set(v.Index(idx))
+	}
+
+	return out.Interface(), nil
 }
 
-func tplSliceTakeStrRnd(slice []string, limit int) []string {
-	if len(slice) <= limit {
-		return slice
-	}
-
-	shuffled := make([]string, len(slice))
-	copy(shuffled, slice)
-
-	for i := range shuffled {
-		j := rand.Intn(i + 1)
-		shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
-	}
-
-	return shuffled[:limit]
-}
-
-func tplFormatEnum(v interface{}) string {
+func tplFmtEnum(v any) string {
 	str := fmt.Sprintf("%v", v)
 	words := strings.ReplaceAll(str, "_", " ")
 	return strings.ToLower(words)
 }
 
-func tplOneliner(v interface{}) string {
+func tplOneliner(v any) string {
 	str := fmt.Sprintf("%v", v)
 	str = strings.ReplaceAll(str, "\n", " ")
 	return strings.Join(strings.Fields(str), " ")
+}
+
+func tplIndent(indentSize int, v string) string {
+	if len(v) == 0 {
+		return v
+	}
+
+	lines := strings.Split(v, "\n")
+	for i := range lines {
+		lines[i] = strings.Repeat(" ", indentSize) + lines[i]
+	}
+	return strings.Join(lines, "\n")
 }

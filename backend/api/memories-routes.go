@@ -111,9 +111,9 @@ func MemoriesRoutes(router *gin.RouterGroup) {
 			return
 		}
 
-		includeNPreceding := getQueryParamAsIntOr(c, "includeNPreceding", 0)
+		includeNPreceding := getQueryParamAsIntP(c, "includeNPreceding")
 
-		err := processing.GenerateMemoriesForMessageID(c, messageId, includeNPreceding)
+		err := processing.GenerateMemoriesForMessageID(c, messageId, *includeNPreceding)
 		respondEmpty(c, err)
 	})
 }

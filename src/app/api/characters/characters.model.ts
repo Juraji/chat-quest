@@ -15,6 +15,14 @@ export interface Character extends ChatQuestModel {
   groupTalkativeness: number
 }
 
+export interface CharacterBuilderRequest {
+  character: Character
+  description: string
+  worldId: Nullable<number>
+  instructionId: number
+  llmModelId: number
+}
+
 export const CharacterCreated: SseEvent<Character> = 'CharacterCreated'
 export const CharacterUpdated: SseEvent<Character> = 'CharacterUpdated'
 export const CharacterDeleted: SseEvent<number> = 'CharacterDeleted'

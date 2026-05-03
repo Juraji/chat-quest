@@ -15,6 +15,7 @@ import {Species} from '@api/species';
 import {DropdownContainer, DropdownMenu, DropdownToggle} from '@components/dropdown';
 import {Instruction} from '@api/instructions';
 import {dowloadBlob} from '@util/blobs';
+import {CharacterBuilderFormService} from './character-builder-form.service';
 
 @Component({
   selector: 'app-edit-character-page',
@@ -30,7 +31,8 @@ import {dowloadBlob} from '@util/blobs';
     DropdownMenu,
   ],
   providers: [
-    CharacterEditFormService
+    CharacterEditFormService,
+    CharacterBuilderFormService
   ],
   styleUrls: ['./edit-character-page.scss'],
   templateUrl: './edit-character-page.html',
@@ -54,9 +56,8 @@ export class EditCharacterPage {
     greetings: this.greetings(),
   }))
 
-  private readonly instructions: Signal<Instruction[]> = routeDataSignal(this.activatedRoute, 'instructions')
-  readonly exportInstructions: Signal<Instruction[]> =
-    computed(() => this.instructions().filter(i => i.type === "CHARACTER_EXPORT"))
+  readonly exportInstructions: Signal<Instruction[]> = routeDataSignal<Instruction[]>(
+    this.activatedRoute, 'instructions', l => l.filter(i => i.type === "CHARACTER_EXPORT"))
 
   readonly isNew = computed(() => isNew(this.character()))
   readonly name = computed(() => this.character().name)
@@ -69,6 +70,7 @@ export class EditCharacterPage {
     {route: 'descriptions', label: 'Descriptions'},
     {route: 'chat-settings', label: 'Chat Settings'},
     {route: 'memories', label: 'Memories'},
+    {route: 'character-builder', label: 'Character Builder'},
   ]
 
   constructor() {

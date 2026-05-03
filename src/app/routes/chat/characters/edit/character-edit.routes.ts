@@ -3,6 +3,9 @@ import {CharacterEditChatSettings} from './chat-settings/character-edit-chat-set
 import {CharacterEditDescriptions} from './descriptions/character-edit-descriptions';
 import {CharacterEditMemories} from './memories/character-edit-memories';
 import {worldsResolver} from '@api/worlds';
+import {CharacterBuilder} from './character-builder/character-builder';
+import {instructionsResolver} from '@api/instructions';
+import {llmModelViewsResolver} from '@api/providers';
 
 const routes: Routes = [
   {
@@ -18,6 +21,15 @@ const routes: Routes = [
     component: CharacterEditMemories,
     resolve: {
       worlds: worldsResolver
+    }
+  },
+  {
+    path: "character-builder",
+    component: CharacterBuilder,
+    resolve: {
+      instructions: instructionsResolver,
+      llmModels: llmModelViewsResolver,
+      worlds: worldsResolver,
     }
   },
   {

@@ -1,0 +1,89 @@
+<form [formGroup]="builderFormGroup" (submit)="onBuilderSubmit()">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Character Builder</h5>
+
+      <p> Have the AI generate the descriptions for you! </p>
+
+      <div class="mb-3">
+        <label for="descriptionInput">Describe me</label>
+        <textarea id="descriptionInput"
+                  class="form-control" rows="5"
+                  formControlName="description"
+                  aria-describedby="descriptionInputHelp"></textarea>
+        <div class="form-text" id="descriptionInputHelp">
+          Describe your character in as much detail as you'd like.
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="g-col-12 g-col-lg-6">
+          <label for="worldIdInput">World</label>
+          <select class="form-select"
+                  formControlName="worldId"
+                  id="worldIdInput"
+                  aria-describedby="worldIdInputHelp">
+            <option [ngValue]="null">No world</option>
+            <option disabled>──────────</option>
+            @for (w of worlds(); track w.id) {
+              <option [ngValue]="w.id">{{ w.name }}</option>
+            }
+          </select>
+          <div id="worldIdInputHelp" class="form-text">
+            Optionally, depending on the instruction, the world description
+            is used as a base for the character to be built in.
+          </div>
+        </div>
+        <div class="g-col-12 g-col-lg-6">
+          <label for="llmModelIdInput">Model</label>
+          <select class="form-select"
+                  formControlName="llmModelId"
+                  id="llmModelIdInput"
+                  aria-describedby="llmModelIdInputHelp">
+            @for (llm of llmModels(); track llm.id) {
+              <option [ngValue]="llm.id">{{ llm | llmLabel }}</option>
+            }
+          </select>
+          <div id="llmModelIdInputHelp" class="form-text">
+            Select the model you want to use.
+          </div>
+        </div>
+        <div class="g-col-12 g-col-lg-6">
+          <label for="instructionIdInput">Instruction</label>
+          <select class="form-select"
+                  formControlName="instructionId"
+                  id="instructionIdInput"
+                  aria-describedby="instructionIdInputHelp">
+            @for (inst of instructions(); track inst.id) {
+              <option [ngValue]="inst.id">{{ inst.name }}</option>
+            }
+          </select>
+          <div id="instructionIdInputHelp" class="form-text">
+            Select the instruction you want to use.
+          </div>
+        </div>
+
+        <div class="g-col-12 g-col-lg-6 pt-lg-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox"
+                   id="ignoreCurrentDescriptionsInput"
+                   formControlName="ignoreCurrentDescriptions"
+                   aria-describedby="ignoreCurrentDescriptionsInputHelp"/>
+            <label class="form-check-label" for="ignoreCurrentDescriptionsInput">
+              Ignore current descriptions
+            </label>
+            <div id="ignoreCurrentDescriptionsInputHelp" class="form-text">
+              When checked, the current descriptions are not used in the build.
+            </div>
+          </div>
+        </div>
+
+        <div class="g-col-12">
+          <button type="submit" class="btn btn-primary"
+                  [disabled]="builderInvalid">Build Character!
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

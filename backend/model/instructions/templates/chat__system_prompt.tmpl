@@ -83,7 +83,7 @@ Your role is to impersonate {{.Character.Name}}, described in detail below. As {
     {{end -}}
     {{if .DialogueExamples -}}
     <DialogExamples>
-      {{range sliceTakeStrRnd .DialogueExamples 3 -}}
+      {{range sliceRandomN .DialogueExamples 3 -}}
         <DialogExample>
           {{.}}
         </DialogExample>
@@ -93,7 +93,7 @@ Your role is to impersonate {{.Character.Name}}, described in detail below. As {
     {{if .Memories -}}
     <Memories>
       <!-- These are relevant memories specifically for {{.Name}}, only they remember this. -->
-      {{range sliceTakeStrRnd .Memories 7 -}}
+      {{range sliceRandomN .Memories 7 -}}
         <Memory>{{.}}</Memory>
       {{end -}}
     </Memories>

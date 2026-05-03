@@ -1,0 +1,22 @@
+{
+  "name": "Character Builder",
+  "type": "CHARACTER_BUILDER",
+  "temperature": 0.1,
+  "maxTokens": 1024,
+  "topP": 0,
+  "presencePenalty": 0,
+  "frequencyPenalty": 0,
+  "stream": false,
+  "stopSequences": null,
+  "includeReasoning": false,
+  "allowMultiCharacterResponses": false,
+  "enableReasoningParsing": false,
+  "reasoningPrefix": "<think>",
+  "reasoningSuffix": "</think>",
+  "enableCharacterMarkers": false,
+  "characterIdPrefix": "<characterid>",
+  "characterIdSuffix": "</characterid>",
+  "systemPrompt": "templates/character_builder__system_prompt.tmpl",
+  "worldSetup": null,
+  "instruction": "templates/character_builder__instruction.tmpl"
+}
